@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState, useMemo } from "react"
+import { memo, useCallback, useEffect, useState, useMemo, useRef } from "react"
 import nodeWorker from "@/lib/nodeWorker"
 import { View, ActivityIndicator } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
@@ -12,11 +12,14 @@ import { type ListRenderItemInfo } from "@shopify/flash-list"
 import { useDebouncedCallback } from "use-debounce"
 import cache from "@/lib/cache"
 import { type SearchFindItemDecrypted } from "@filen/sdk/dist/types/api/v3/search/find"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; queryParams: FetchCloudItemsParams }) => {
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const [result, setResults] = useState<SearchFindItemDecrypted[]>([])
 	const { colors } = useColorScheme()
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const query = useCloudItemsQuery({
 		...queryParams,
@@ -178,15 +181,17 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 	}, [searchTerm, debouncedSearch])
 
 	return (
-		<View className="flex-1">
+		<View
+			className="flex-1"
+			ref={viewRef}
+			onLayout={onLayout}
+		>
 			<List
 				variant="full-width"
 				data={items}
-				estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
 				contentInsetAdjustmentBehavior="automatic"
-				drawDistance={0}
 				keyboardDismissMode="none"
 				keyboardShouldPersistTaps="never"
 				refreshing={isLoading}
@@ -202,6 +207,18 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 						</View>
 					) : undefined
 				}
+				estimatedListSize={
+					listLayout.width > 0 && listLayout.height > 0
+						? {
+								width: listLayout.width,
+								height: listLayout.height
+						  }
+						: undefined
+				}
+				estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
+				drawDistance={0}
+				removeClippedSubviews={true}
+				disableAutoLayout={true}
 			/>
 		</View>
 	)

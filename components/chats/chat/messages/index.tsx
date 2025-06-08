@@ -23,6 +23,7 @@ import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConversation; isPreview: boolean; inputHeight: number }) => {
 	const headerHeight = useHeaderHeight()
@@ -55,6 +56,8 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const listRef = useRef<FlashList<ChatMessage>>(null)
 	const { colors } = useColorScheme()
 	const [showScrollToBottom, setShowScrollToBottom] = useState<boolean>(false)
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const suggestionsVisible = useMemo(() => {
 		return (
@@ -230,35 +233,51 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 					/>
 				</Button>
 			</Animated.View>
-			<FlashList
-				ref={listRef}
-				onScroll={onScroll}
-				onEndReached={fetchMoreMessages}
-				data={messages}
-				keyExtractor={keyExtractor}
-				renderItem={renderItem}
-				inverted={true}
-				initialScrollIndex={initialScrollIndex}
-				keyboardDismissMode={suggestionsVisible ? "none" : "on-drag"}
-				keyboardShouldPersistTaps={suggestionsVisible ? "always" : "never"}
-				showsHorizontalScrollIndicator={false}
-				showsVerticalScrollIndicator={false}
-				extraData={lastFocus}
-				estimatedItemSize={150}
-				drawDistance={screen.height}
-				ListFooterComponent={
-					isPreview ? undefined : (
-						<View
-							style={{
-								height: headerHeight + 8
-							}}
-						/>
-					)
-				}
-				ListHeaderComponent={isPreview ? undefined : <Animated.View style={headerComponentStyle} />}
-				viewabilityConfig={viewabilityConfig}
-				onViewableItemsChanged={onViewableItemsChanged}
-			/>
+			<View
+				ref={viewRef}
+				className="flex-1"
+				onLayout={onLayout}
+			>
+				<FlashList
+					ref={listRef}
+					onScroll={onScroll}
+					onEndReached={fetchMoreMessages}
+					data={messages}
+					keyExtractor={keyExtractor}
+					renderItem={renderItem}
+					inverted={true}
+					initialScrollIndex={initialScrollIndex}
+					keyboardDismissMode={suggestionsVisible ? "none" : "on-drag"}
+					keyboardShouldPersistTaps={suggestionsVisible ? "always" : "never"}
+					showsHorizontalScrollIndicator={false}
+					showsVerticalScrollIndicator={false}
+					extraData={lastFocus}
+					ListFooterComponent={
+						isPreview ? undefined : (
+							<View
+								style={{
+									height: headerHeight + 8
+								}}
+							/>
+						)
+					}
+					ListHeaderComponent={isPreview ? undefined : <Animated.View style={headerComponentStyle} />}
+					viewabilityConfig={viewabilityConfig}
+					onViewableItemsChanged={onViewableItemsChanged}
+					estimatedListSize={
+						listLayout.width > 0 && listLayout.height > 0
+							? {
+									width: listLayout.width,
+									height: listLayout.height
+							  }
+							: undefined
+					}
+					estimatedItemSize={150}
+					drawDistance={screen.height}
+					removeClippedSubviews={true}
+					disableAutoLayout={true}
+				/>
+			</View>
 			{!isPreview && (
 				<Animated.View style={toolbarStyle}>
 					<Typing chat={chat} />

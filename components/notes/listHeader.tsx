@@ -6,6 +6,7 @@ import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
 import { useTranslation } from "react-i18next"
 import Tag from "./tag"
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export const Item = memo((info: ListRenderItemInfo<string>) => {
 	const { t } = useTranslation()
@@ -52,6 +53,8 @@ Item.displayName = "Item"
 export const ListHeader = memo(() => {
 	const tagsListRef = useRef<FlashList<string>>(null)
 	const [selectedTag] = useMMKVString("selectedTag", mmkvInstance)
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const notesTagsQuery = useNotesTagsQuery({
 		enabled: false
@@ -90,7 +93,11 @@ export const ListHeader = memo(() => {
 	}, [selectedTag])
 
 	return (
-		<View className="px-4 h-10 py-2">
+		<View
+			className="px-4 h-10 py-2"
+			onLayout={onLayout}
+			ref={viewRef}
+		>
 			<FlashList
 				ref={tagsListRef}
 				horizontal={true}
@@ -99,6 +106,18 @@ export const ListHeader = memo(() => {
 				keyExtractor={keyExtractor}
 				data={listTags}
 				renderItem={renderItem}
+				estimatedListSize={
+					listLayout.width > 0 && listLayout.height > 0
+						? {
+								width: listLayout.width,
+								height: listLayout.height
+						  }
+						: undefined
+				}
+				estimatedItemSize={listLayout.height > 0 ? listLayout.height : 40}
+				drawDistance={0}
+				removeClippedSubviews={true}
+				disableAutoLayout={true}
 			/>
 		</View>
 	)

@@ -11,6 +11,7 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import alerts from "@/lib/alerts"
 import Item from "./item"
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export const Chats = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
@@ -18,6 +19,8 @@ export const Chats = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const bottomListContainerPadding = useBottomListContainerPadding()
 	const { colors } = useColorScheme()
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const chatsQuery = useChatsQuery({})
 
@@ -130,20 +133,38 @@ export const Chats = memo(() => {
 		<Fragment>
 			<Header setSearchTerm={setSearchTerm} />
 			<Container>
-				<FlashList
-					ref={listRef}
-					data={chats}
-					contentInsetAdjustmentBehavior="automatic"
-					keyExtractor={keyExtractor}
-					renderItem={renderItem}
-					refreshing={refreshing || chatsQuery.status === "pending"}
-					contentContainerStyle={{
-						paddingBottom: bottomListContainerPadding
-					}}
-					ListEmptyComponent={ListEmpty}
-					ListFooterComponent={ListFooter}
-					refreshControl={refreshControl}
-				/>
+				<View
+					ref={viewRef}
+					onLayout={onLayout}
+					className="flex-1"
+				>
+					<FlashList
+						ref={listRef}
+						data={chats}
+						contentInsetAdjustmentBehavior="automatic"
+						keyExtractor={keyExtractor}
+						renderItem={renderItem}
+						refreshing={refreshing || chatsQuery.status === "pending"}
+						contentContainerStyle={{
+							paddingBottom: bottomListContainerPadding
+						}}
+						ListEmptyComponent={ListEmpty}
+						ListFooterComponent={ListFooter}
+						refreshControl={refreshControl}
+						estimatedListSize={
+							listLayout.width > 0 && listLayout.height > 0
+								? {
+										width: listLayout.width,
+										height: listLayout.height
+								  }
+								: undefined
+						}
+						estimatedItemSize={78}
+						drawDistance={0}
+						removeClippedSubviews={true}
+						disableAutoLayout={true}
+					/>
+				</View>
 			</Container>
 		</Fragment>
 	)

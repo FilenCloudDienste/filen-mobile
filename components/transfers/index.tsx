@@ -1,4 +1,4 @@
-import { memo, Fragment, useCallback, useState, useMemo } from "react"
+import { memo, Fragment, useCallback, useState, useMemo, useRef } from "react"
 import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
 import { View, RefreshControl } from "react-native"
 import { useTransfersStore } from "@/stores/transfers.store"
@@ -11,6 +11,7 @@ import { formatBytes, promiseAllChunked, normalizeTransferProgress, bpsToReadabl
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export const Transfers = memo(() => {
 	const transfers = useTransfersStore(useShallow(state => state.transfers))
@@ -18,6 +19,8 @@ export const Transfers = memo(() => {
 	const speed = useTransfersStore(useShallow(state => state.speed))
 	const remaining = useTransfersStore(useShallow(state => state.remaining))
 	const [refreshing, setRefreshing] = useState<boolean>(false)
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const data = useMemo(() => {
 		return transfers
@@ -128,53 +131,65 @@ export const Transfers = memo(() => {
 				iosBackButtonMenuEnabled={false}
 				iosBackButtonTitleVisible={true}
 			/>
-			<View className="flex-1">
-				<Container>
-					<View className="flex-1">
-						<List
-							variant="full-width"
-							data={data}
-							estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
-							renderItem={renderItem}
-							keyExtractor={keyExtractor}
-							refreshing={refreshing}
-							contentInsetAdjustmentBehavior="automatic"
-							contentContainerClassName="pb-16"
-							drawDistance={ESTIMATED_ITEM_HEIGHT.withSubTitle * 3}
-							ListHeaderComponent={
-								ongoingTransfers.length > 0 ? (
-									<View className="flex-1 flex-row px-4 pb-4">
-										<Text
-											numberOfLines={1}
-											ellipsizeMode="middle"
-											className="text-sm text-muted-foreground"
-										>
-											Transferring {ongoingTransfers.length} items at {bpsToReadable(speed)}, {remaining} remaining
-										</Text>
-									</View>
-								) : undefined
-							}
-							ListEmptyComponent={
-								<View className="flex-1 items-center justify-center">
-									<Text>No transfers</Text>
+			<Container>
+				<View
+					className="flex-1"
+					onLayout={onLayout}
+					ref={viewRef}
+				>
+					<List
+						variant="full-width"
+						data={data}
+						renderItem={renderItem}
+						keyExtractor={keyExtractor}
+						refreshing={refreshing}
+						contentInsetAdjustmentBehavior="automatic"
+						contentContainerClassName="pb-16"
+						ListHeaderComponent={
+							ongoingTransfers.length > 0 ? (
+								<View className="flex-1 flex-row px-4 pb-4">
+									<Text
+										numberOfLines={1}
+										ellipsizeMode="middle"
+										className="text-sm text-muted-foreground"
+									>
+										Transferring {ongoingTransfers.length} items at {bpsToReadable(speed)}, {remaining} remaining
+									</Text>
 								</View>
-							}
-							refreshControl={
-								<RefreshControl
-									refreshing={refreshing}
-									onRefresh={async () => {
-										setRefreshing(true)
+							) : undefined
+						}
+						ListEmptyComponent={
+							<View className="flex-1 items-center justify-center">
+								<Text>No transfers</Text>
+							</View>
+						}
+						refreshControl={
+							<RefreshControl
+								refreshing={refreshing}
+								onRefresh={async () => {
+									setRefreshing(true)
 
-										await nodeWorker.updateTransfers().catch(() => {})
+									await nodeWorker.updateTransfers().catch(() => {})
 
-										setRefreshing(false)
-									}}
-								/>
-							}
-						/>
-					</View>
-				</Container>
-			</View>
+									setRefreshing(false)
+								}}
+							/>
+						}
+						estimatedListSize={
+							listLayout.width > 0 && listLayout.height > 0
+								? {
+										width: listLayout.width,
+										height: listLayout.height
+								  }
+								: undefined
+						}
+						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
+						drawDistance={0}
+						removeClippedSubviews={true}
+						disableAutoLayout={true}
+					/>
+				</View>
+			</Container>
 			<Toolbar
 				leftView={
 					<ToolbarIcon

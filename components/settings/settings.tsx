@@ -5,9 +5,10 @@ import { Button } from "~/components/nativewindui/Button"
 import { List, ListDataItem, ListRenderItemInfo } from "~/components/nativewindui/List"
 import { Text } from "~/components/nativewindui/Text"
 import { useColorScheme } from "~/lib/useColorScheme"
-import { useCallback, Fragment, memo } from "react"
+import { useCallback, Fragment, memo, useRef } from "react"
 import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
 import { cn } from "@/lib/cn"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export const ChevronRight = memo(() => {
 	return null
@@ -32,6 +33,9 @@ export const IconView = memo(({ name, className }: { name: MaterialIconName; cla
 IconView.displayName = "IconView"
 
 export const Settings = memo((props: SettingsProps) => {
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
+
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
 		return typeof item === "string" ? item : item.id
 	}, [])
@@ -76,20 +80,36 @@ export const Settings = memo((props: SettingsProps) => {
 					}
 				/>
 			)}
-			<List
-				key={Date.now()} // Force re-render on each new render
-				rootClassName="bg-background px-4"
-				contentContainerStyle={{
-					paddingBottom: 80
-				}}
-				contentInsetAdjustmentBehavior="automatic"
-				variant="full-width"
-				data={props.items}
-				estimatedItemSize={92}
-				renderItem={renderItem}
-				keyExtractor={keyExtractor}
-				sectionHeaderAsGap={true}
-			/>
+			<View
+				className="flex-1"
+				ref={viewRef}
+				onLayout={onLayout}
+			>
+				<List
+					rootClassName="bg-background px-4"
+					contentContainerStyle={{
+						paddingBottom: 80
+					}}
+					contentInsetAdjustmentBehavior="automatic"
+					variant="full-width"
+					data={props.items}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					sectionHeaderAsGap={true}
+					estimatedListSize={
+						listLayout.width > 0 && listLayout.height > 0
+							? {
+									width: listLayout.width,
+									height: listLayout.height
+							  }
+							: undefined
+					}
+					estimatedItemSize={92}
+					drawDistance={0}
+					removeClippedSubviews={true}
+					disableAutoLayout={true}
+				/>
+			</View>
 		</Fragment>
 	)
 })

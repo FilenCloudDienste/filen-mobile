@@ -21,34 +21,34 @@ export const Header = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 			})
 		}
 
-		if (queryParams.of === "recents") {
+		if (queryParams.of === "recents" || queryParams.parent === "recents") {
 			return t("drive.header.title.recents")
 		}
 
-		if (queryParams.of === "favorites") {
+		if (queryParams.of === "favorites" || queryParams.parent === "favorites") {
 			return t("drive.header.title.favorites")
 		}
 
-		if (queryParams.of === "trash") {
+		if (queryParams.of === "trash" || queryParams.parent === "trash") {
 			return t("drive.header.title.trash")
 		}
 
-		if (queryParams.of === "links" && !validateUUID(uuid)) {
+		if ((queryParams.of === "links" || queryParams.parent === "links") && !validateUUID(uuid)) {
 			return t("drive.header.title.links")
 		}
 
-		if (queryParams.of === "sharedIn" && !validateUUID(uuid)) {
+		if ((queryParams.of === "sharedIn" || queryParams.parent === "shared-in") && !validateUUID(uuid)) {
 			return t("drive.header.title.sharedIn")
 		}
 
-		if (queryParams.of === "sharedOut" && !validateUUID(uuid)) {
+		if ((queryParams.of === "sharedOut" || queryParams.parent === "shared-out") && !validateUUID(uuid)) {
 			return t("drive.header.title.sharedOut")
 		}
 
 		return typeof uuid !== "string" || !cache.directoryUUIDToName.has(uuid)
 			? t("drive.header.title.drive")
 			: cache.directoryUUIDToName.get(uuid) ?? t("drive.header.title.drive")
-	}, [uuid, selectedItemsCount, t, queryParams.of])
+	}, [uuid, selectedItemsCount, t, queryParams.of, queryParams.parent])
 
 	if (Platform.OS === "android") {
 		return (

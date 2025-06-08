@@ -1,4 +1,4 @@
-import { memo, Fragment, useCallback, useMemo } from "react"
+import { memo, Fragment, useCallback, useMemo, useRef } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
 import { ESTIMATED_ITEM_HEIGHT, List, type ListDataItem, ListItem, ListSectionHeader } from "@/components/nativewindui/List"
@@ -12,6 +12,7 @@ import { cn } from "@/lib/cn"
 import useCameraUpload from "@/hooks/useCameraUpload"
 import { Image } from "expo-image"
 import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export type ListItemInfo = {
 	title: string
@@ -27,6 +28,8 @@ export const Albums = memo(() => {
 	const { colors } = useColorScheme()
 	const [cameraUpload, setCameraUpload] = useCameraUpload()
 	const bottomListContainerPadding = useBottomListContainerPadding()
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const localAlbumsQuery = useLocalAlbumsQuery({})
 
@@ -110,22 +113,38 @@ export const Albums = memo(() => {
 		<Fragment>
 			<LargeTitleHeader title="Albums" />
 			<Container>
-				<List
-					contentContainerClassName="pt-4 pb-20"
-					contentInsetAdjustmentBehavior="automatic"
-					variant="insets"
-					data={items}
-					estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
-					renderItem={renderItem}
-					keyExtractor={keyExtractor}
-					sectionHeaderAsGap={true}
-					drawDistance={ESTIMATED_ITEM_HEIGHT.withSubTitle * 3}
-					ListEmptyComponent={<ActivityIndicator color={colors.foreground} />}
-					extraData={cameraUpload.albums}
-					contentContainerStyle={{
-						paddingBottom: bottomListContainerPadding
-					}}
-				/>
+				<View
+					className="flex-1"
+					ref={viewRef}
+					onLayout={onLayout}
+				>
+					<List
+						contentContainerClassName="pt-4 pb-20"
+						contentInsetAdjustmentBehavior="automatic"
+						variant="insets"
+						data={items}
+						renderItem={renderItem}
+						keyExtractor={keyExtractor}
+						sectionHeaderAsGap={true}
+						ListEmptyComponent={<ActivityIndicator color={colors.foreground} />}
+						extraData={cameraUpload.albums}
+						contentContainerStyle={{
+							paddingBottom: bottomListContainerPadding
+						}}
+						estimatedListSize={
+							listLayout.width > 0 && listLayout.height > 0
+								? {
+										width: listLayout.width,
+										height: listLayout.height
+								  }
+								: undefined
+						}
+						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
+						drawDistance={0}
+						removeClippedSubviews={true}
+						disableAutoLayout={true}
+					/>
+				</View>
 			</Container>
 		</Fragment>
 	)

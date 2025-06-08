@@ -1,6 +1,6 @@
 import { Icon, MaterialIconName } from "@roninoss/icons"
 import { View } from "react-native"
-import { memo, Fragment, useCallback } from "react"
+import { memo, Fragment, useCallback, useRef } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { ESTIMATED_ITEM_HEIGHT, List, ListDataItem, ListItem, ListSectionHeader } from "@/components/nativewindui/List"
 import { Text } from "@/components/nativewindui/Text"
@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
 import { type SettingsItem, type SettingsProps } from "."
+import useViewLayout from "@/hooks/useViewLayout"
 
 export const ChevronRight = memo(() => {
 	const { colors } = useColorScheme()
@@ -38,6 +39,9 @@ export const IconView = memo(({ className, name }: { className?: string; name: M
 IconView.displayName = "IconView"
 
 export const Settings = memo((props: SettingsProps) => {
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
+
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
 		return typeof item === "string" ? item : item.id
 	}, [])
@@ -102,19 +106,35 @@ export const Settings = memo((props: SettingsProps) => {
 					}
 				/>
 			)}
-			<List
-				contentInsetAdjustmentBehavior="automatic"
-				variant="insets"
-				contentContainerStyle={{
-					paddingBottom: 100
-				}}
-				data={props.items}
-				estimatedItemSize={ESTIMATED_ITEM_HEIGHT.titleOnly}
-				renderItem={renderItem}
-				keyExtractor={keyExtractor}
-				sectionHeaderAsGap={true}
-				drawDistance={0}
-			/>
+			<View
+				className="flex-1"
+				ref={viewRef}
+				onLayout={onLayout}
+			>
+				<List
+					contentInsetAdjustmentBehavior="automatic"
+					variant="insets"
+					contentContainerStyle={{
+						paddingBottom: 100
+					}}
+					data={props.items}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					sectionHeaderAsGap={true}
+					estimatedListSize={
+						listLayout.width > 0 && listLayout.height > 0
+							? {
+									width: listLayout.width,
+									height: listLayout.height
+							  }
+							: undefined
+					}
+					estimatedItemSize={ESTIMATED_ITEM_HEIGHT.titleOnly}
+					drawDistance={0}
+					removeClippedSubviews={true}
+					disableAutoLayout={true}
+				/>
+			</View>
 		</Fragment>
 	)
 })

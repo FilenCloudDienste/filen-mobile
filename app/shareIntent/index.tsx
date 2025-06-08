@@ -1,7 +1,7 @@
 import { View, Platform } from "react-native"
 import { Stack } from "expo-router"
 import { useShareIntentContext, type ShareIntentFile } from "expo-share-intent"
-import { Fragment, useMemo, useCallback, memo } from "react"
+import { Fragment, useMemo, useCallback, memo, useRef } from "react"
 import { Text } from "@/components/nativewindui/Text"
 import { Image } from "expo-image"
 import { getPreviewType, formatBytes } from "@/lib/utils"
@@ -18,6 +18,7 @@ import { List, type ListRenderItemInfo, ListItem, ESTIMATED_ITEM_HEIGHT } from "
 import { useColorScheme } from "@/lib/useColorScheme"
 import Container from "@/components/Container"
 import paths from "@/lib/paths"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export type ListItemInfo = {
 	title: string
@@ -76,6 +77,8 @@ Item.displayName = "Item"
 
 export default function ShareIntent() {
 	const { shareIntent, resetShareIntent } = useShareIntentContext()
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const upload = useCallback(async () => {
 		if (!shareIntent.files) {
@@ -207,21 +210,38 @@ export default function ShareIntent() {
 		<Fragment>
 			{header}
 			<Container>
-				<List
-					data={
-						shareIntent.files?.map(file => ({
-							title: file.fileName,
-							subTitle: formatBytes(file.size ?? 0),
-							id: file.path,
-							item: file
-						})) ?? []
-					}
-					variant="full-width"
-					renderItem={renderItem}
-					keyExtractor={item => item.item.path}
-					contentInsetAdjustmentBehavior="automatic"
-					estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
-				/>
+				<View
+					className="flex-1"
+					ref={viewRef}
+					onLayout={onLayout}
+				>
+					<List
+						data={
+							shareIntent.files?.map(file => ({
+								title: file.fileName,
+								subTitle: formatBytes(file.size ?? 0),
+								id: file.path,
+								item: file
+							})) ?? []
+						}
+						variant="full-width"
+						renderItem={renderItem}
+						keyExtractor={item => item.item.path}
+						contentInsetAdjustmentBehavior="automatic"
+						estimatedListSize={
+							listLayout.width > 0 && listLayout.height > 0
+								? {
+										width: listLayout.width,
+										height: listLayout.height
+								  }
+								: undefined
+						}
+						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
+						drawDistance={0}
+						removeClippedSubviews={true}
+						disableAutoLayout={true}
+					/>
+				</View>
 			</Container>
 		</Fragment>
 	)

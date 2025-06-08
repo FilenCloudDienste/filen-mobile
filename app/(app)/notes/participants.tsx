@@ -1,5 +1,5 @@
 import { useLocalSearchParams, Redirect } from "expo-router"
-import { useMemo, Fragment, useCallback, useState } from "react"
+import { useMemo, Fragment, useCallback, useState, useRef } from "react"
 import { View, Platform, RefreshControl } from "react-native"
 import { type Note, type NoteParticipant } from "@filen/sdk/dist/types/api/v3/notes"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
@@ -21,6 +21,7 @@ import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import queryUtils from "@/queries/utils"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export type ListItemInfo = {
 	title: string
@@ -35,6 +36,8 @@ export default function Participants() {
 	const { colors } = useColorScheme()
 	const [{ userId }] = useSDKConfig()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const noteUUIDParsed = useMemo((): string | null => {
 		try {
@@ -246,17 +249,19 @@ export default function Participants() {
 					)
 				}}
 			/>
-			<View className="flex-1">
-				<Container>
+			<Container>
+				<View
+					className="flex-1"
+					ref={viewRef}
+					onLayout={onLayout}
+				>
 					<List
 						contentContainerClassName="pb-20"
 						contentInsetAdjustmentBehavior="automatic"
 						variant="full-width"
 						data={participants}
-						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
-						drawDistance={ESTIMATED_ITEM_HEIGHT.withSubTitle * 3}
 						ListFooterComponent={
 							<View className="h-16 flex-row items-center justify-center">
 								<Text className="text-sm">
@@ -276,9 +281,21 @@ export default function Participants() {
 								}}
 							/>
 						}
+						estimatedListSize={
+							listLayout.width > 0 && listLayout.height > 0
+								? {
+										width: listLayout.width,
+										height: listLayout.height
+								  }
+								: undefined
+						}
+						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
+						drawDistance={0}
+						removeClippedSubviews={true}
+						disableAutoLayout={true}
 					/>
-				</Container>
-			</View>
+				</View>
+			</Container>
 		</Fragment>
 	)
 }

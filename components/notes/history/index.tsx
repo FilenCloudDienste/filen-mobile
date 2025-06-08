@@ -1,4 +1,4 @@
-import { useMemo, Fragment, useCallback, memo } from "react"
+import { useMemo, Fragment, useCallback, memo, useRef } from "react"
 import { View } from "react-native"
 import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
 import { type NoteHistory } from "@filen/sdk/dist/types/api/v3/notes/history"
@@ -15,6 +15,7 @@ import alerts from "@/lib/alerts"
 import queryUtils from "@/queries/utils"
 import useNoteHistoryQuery from "@/queries/useNoteHistoryQuery"
 import { useTranslation } from "react-i18next"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export type ListItemInfo = {
 	title: string
@@ -25,6 +26,8 @@ export type ListItemInfo = {
 
 export const History = memo(({ note }: { note: Note }) => {
 	const { t } = useTranslation()
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const noteHistoryQuery = useNoteHistoryQuery({
 		uuid: note.uuid
@@ -131,21 +134,35 @@ export const History = memo(({ note }: { note: Note }) => {
 	return (
 		<Fragment>
 			<LargeTitleHeader title="History" />
-			<View className="flex-1">
-				<Container>
+			<Container>
+				<View
+					className="flex-1"
+					ref={viewRef}
+					onLayout={onLayout}
+				>
 					<List
 						contentContainerClassName="pb-20"
 						contentInsetAdjustmentBehavior="automatic"
 						variant="full-width"
 						data={history}
-						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
-						drawDistance={ESTIMATED_ITEM_HEIGHT.withSubTitle * 3}
 						ListFooterComponent={ListFooter}
+						estimatedListSize={
+							listLayout.width > 0 && listLayout.height > 0
+								? {
+										width: listLayout.width,
+										height: listLayout.height
+								  }
+								: undefined
+						}
+						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
+						drawDistance={0}
+						removeClippedSubviews={true}
+						disableAutoLayout={true}
 					/>
-				</Container>
-			</View>
+				</View>
+			</Container>
 		</Fragment>
 	)
 })

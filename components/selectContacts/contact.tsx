@@ -1,11 +1,12 @@
 import { useCallback, memo } from "react"
 import { useSelectContactsStore } from "@/stores/selectContacts.store"
 import { ListItem } from "@/components/nativewindui/List"
-import { View, type ListRenderItemInfo } from "react-native"
+import { View } from "react-native"
 import { type Contact as ContactType } from "@filen/sdk/dist/types/api/v3/contacts"
 import { Checkbox } from "@/components/nativewindui/Checkbox"
 import Avatar from "../avatar"
 import { useShallow } from "zustand/shallow"
+import { type ListRenderItemInfo } from "@shopify/flash-list"
 
 export type ListItemInfo = {
 	title: string
@@ -32,8 +33,8 @@ export const Contact = memo(({ info, multiple, max }: { info: ListRenderItemInfo
 
 	return (
 		<ListItem
-			className="overflow-hidden"
 			{...info}
+			className="overflow-hidden"
 			subTitleClassName="text-sm"
 			variant="full-width"
 			textNumberOfLines={1}

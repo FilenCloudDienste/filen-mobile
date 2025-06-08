@@ -1,8 +1,8 @@
 import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect, useEffect } from "react"
-import { List, ListDataItem, ESTIMATED_ITEM_HEIGHT } from "@/components/nativewindui/List"
+import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react"
+import { List, ListDataItem } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { simpleDate, formatBytes, orderItemsByType, type OrderByType } from "@/lib/utils"
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
@@ -33,7 +33,6 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 	const { isTablet, isPortrait } = useDimensions()
 	const setDriveItems = useDriveStore(useShallow(state => state.setItems))
-	const didScrollToUUIDRef = useRef<boolean>(false)
 
 	const cloudItemsQuery = useCloudItemsQuery(queryParams)
 
@@ -112,146 +111,18 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 		)
 	}, [refreshing, cloudItemsQuery])
 
-	const list = useMemo(() => {
-		if (gridModeEnabled) {
-			return (
-				<FlashList
-					ref={listRef}
-					data={items}
-					numColumns={numColumns}
-					renderItem={renderItem}
-					keyExtractor={keyExtractor}
-					refreshing={refreshing || cloudItemsQuery.status === "pending"}
-					contentInsetAdjustmentBehavior="automatic"
-					contentContainerStyle={{
-						paddingBottom: bottomListContainerPadding
-					}}
-					ListHeaderComponent={() => {
-						if (hasInternet) {
-							return undefined
-						}
-
-						return (
-							<View className="flex-row items-center justify-center bg-red-500 p-2">
-								<Text>Offline mode</Text>
-							</View>
-						)
-					}}
-					ListEmptyComponent={() => {
-						return (
-							<View className="flex-1 flex-row items-center justify-center">
-								{cloudItemsQuery.isSuccess ? (
-									searchTerm.length > 0 ? (
-										<Text>Nothing found</Text>
-									) : (
-										<Text>Directory is empty</Text>
-									)
-								) : (
-									<ActivityIndicator color={colors.foreground} />
-								)}
-							</View>
-						)
-					}}
-					ListFooterComponent={() => {
-						if (items.length === 0) {
-							return undefined
-						}
-
-						return (
-							<View className="h-16 flex-1 flex-row items-center justify-center">
-								<Text className="text-sm">{items.length} items</Text>
-							</View>
-						)
-					}}
-					refreshControl={refreshControl}
-				/>
-			)
+	const initialScrollIndex = useMemo(() => {
+		if (!scrollToUUID || items.length === 0) {
+			return undefined
 		}
 
-		return (
-			<List
-				ref={listRef}
-				variant="full-width"
-				data={items}
-				renderItem={renderItem}
-				keyExtractor={keyExtractor}
-				refreshing={refreshing || cloudItemsQuery.status === "pending"}
-				contentInsetAdjustmentBehavior="automatic"
-				contentContainerStyle={{
-					paddingBottom: bottomListContainerPadding
-				}}
-				estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
-				ListHeaderComponent={() => {
-					if (hasInternet) {
-						return undefined
-					}
+		const index = items.findIndex(item => item.id === scrollToUUID)
 
-					return (
-						<View className="flex-row items-center justify-center bg-red-500 p-2">
-							<Text>Offline mode</Text>
-						</View>
-					)
-				}}
-				ListEmptyComponent={() => {
-					return (
-						<View className="flex-1 flex-row items-center justify-center">
-							{cloudItemsQuery.isSuccess ? (
-								searchTerm.length > 0 ? (
-									<Text>Nothing found</Text>
-								) : (
-									<Text>Directory is empty</Text>
-								)
-							) : (
-								<ActivityIndicator color={colors.foreground} />
-							)}
-						</View>
-					)
-				}}
-				ListFooterComponent={() => {
-					if (items.length === 0) {
-						return undefined
-					}
-
-					return (
-						<View className="h-16 flex-1 flex-row items-center justify-center">
-							<Text className="text-sm">{items.length} items</Text>
-						</View>
-					)
-				}}
-				refreshControl={refreshControl}
-			/>
-		)
-	}, [
-		bottomListContainerPadding,
-		items,
-		keyExtractor,
-		renderItem,
-		refreshing,
-		cloudItemsQuery.status,
-		gridModeEnabled,
-		refreshControl,
-		numColumns,
-		hasInternet,
-		colors.foreground,
-		searchTerm.length,
-		cloudItemsQuery.isSuccess
-	])
-
-	useEffect(() => {
-		if (scrollToUUID && !didScrollToUUIDRef.current) {
-			const index = items.findIndex(item => item.id === scrollToUUID)
-
-			if (index !== -1 && !didScrollToUUIDRef.current) {
-				didScrollToUUIDRef.current = true
-
-				// TODO: Fix
-				listRef?.current?.scrollToIndex({
-					index,
-					animated: false,
-					viewPosition: 0.5
-				})
-			}
+		if (index === -1) {
+			return undefined
 		}
+
+		return index
 	}, [scrollToUUID, items])
 
 	useLayoutEffect(() => {
@@ -272,7 +143,135 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 				onLayout={onLayout}
 				className="flex-1"
 			>
-				{list}
+				{gridModeEnabled ? (
+					<FlashList
+						ref={listRef}
+						data={items}
+						numColumns={numColumns}
+						renderItem={renderItem}
+						keyExtractor={keyExtractor}
+						refreshing={refreshing || cloudItemsQuery.status === "pending"}
+						contentInsetAdjustmentBehavior="automatic"
+						initialScrollIndex={initialScrollIndex}
+						estimatedListSize={
+							listLayout.width > 0 && listLayout.height > 0
+								? {
+										width: listLayout.width,
+										height: listLayout.height
+								  }
+								: undefined
+						}
+						estimatedItemSize={133}
+						drawDistance={0}
+						removeClippedSubviews={true}
+						disableAutoLayout={true}
+						contentContainerStyle={{
+							paddingBottom: bottomListContainerPadding
+						}}
+						ListHeaderComponent={() => {
+							if (hasInternet) {
+								return undefined
+							}
+
+							return (
+								<View className="flex-row items-center justify-center bg-red-500 p-2">
+									<Text>Offline mode</Text>
+								</View>
+							)
+						}}
+						ListEmptyComponent={() => {
+							return (
+								<View className="flex-1 flex-row items-center justify-center">
+									{cloudItemsQuery.isSuccess ? (
+										searchTerm.length > 0 ? (
+											<Text>Nothing found</Text>
+										) : (
+											<Text>Directory is empty</Text>
+										)
+									) : (
+										<ActivityIndicator color={colors.foreground} />
+									)}
+								</View>
+							)
+						}}
+						ListFooterComponent={() => {
+							if (items.length === 0) {
+								return undefined
+							}
+
+							return (
+								<View className="h-16 flex-1 flex-row items-center justify-center">
+									<Text className="text-sm">{items.length} items</Text>
+								</View>
+							)
+						}}
+						refreshControl={refreshControl}
+					/>
+				) : (
+					<List
+						ref={listRef}
+						variant="full-width"
+						data={items}
+						renderItem={renderItem}
+						keyExtractor={keyExtractor}
+						refreshing={refreshing || cloudItemsQuery.status === "pending"}
+						contentInsetAdjustmentBehavior="automatic"
+						initialScrollIndex={initialScrollIndex}
+						contentContainerStyle={{
+							paddingBottom: bottomListContainerPadding
+						}}
+						estimatedListSize={
+							listLayout.width > 0 && listLayout.height > 0
+								? {
+										width: listLayout.width,
+										height: listLayout.height
+								  }
+								: undefined
+						}
+						estimatedItemSize={60}
+						drawDistance={0}
+						removeClippedSubviews={true}
+						disableAutoLayout={true}
+						ListHeaderComponent={() => {
+							if (hasInternet) {
+								return undefined
+							}
+
+							return (
+								<View className="flex-row items-center justify-center bg-red-500 p-2">
+									<Text>Offline mode</Text>
+								</View>
+							)
+						}}
+						ListEmptyComponent={() => {
+							return (
+								<View className="flex-1 flex-row items-center justify-center">
+									{cloudItemsQuery.isSuccess ? (
+										searchTerm.length > 0 ? (
+											<Text>Nothing found</Text>
+										) : (
+											<Text>Directory is empty</Text>
+										)
+									) : (
+										<ActivityIndicator color={colors.foreground} />
+									)}
+								</View>
+							)
+						}}
+						ListFooterComponent={() => {
+							if (items.length === 0) {
+								return undefined
+							}
+
+							return (
+								<View className="h-16 flex-1 flex-row items-center justify-center">
+									<Text className="text-sm">{items.length} items</Text>
+								</View>
+							)
+						}}
+						refreshControl={refreshControl}
+					/>
+				)}
 			</View>
 		</Container>
 	)

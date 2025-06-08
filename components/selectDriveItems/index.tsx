@@ -1,7 +1,7 @@
-import { useCallback, useState, useMemo, Fragment, useEffect, memo } from "react"
+import { useCallback, useState, useMemo, Fragment, useEffect, memo, useRef } from "react"
 import events from "@/lib/events"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
-import { List, type ListDataItem } from "@/components/nativewindui/List"
+import { List, type ListDataItem, ESTIMATED_ITEM_HEIGHT } from "@/components/nativewindui/List"
 import { RefreshControl, View, Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
@@ -19,6 +19,7 @@ import { Button } from "../nativewindui/Button"
 import { useShallow } from "zustand/shallow"
 import { type PreviewType } from "@/stores/gallery.store"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export type ListItemInfo = {
 	title: string
@@ -35,6 +36,8 @@ export const SelectDriveItems = memo(() => {
 	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo } = useRouter()
 	const setSelectedItems = useSelectDriveItemsStore(useShallow(state => state.setSelectedItems))
 	const [{ baseFolderUUID }] = useSDKConfig()
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const maxParsed = useMemo(() => {
 		return typeof max === "string" ? parseInt(max) : 1
@@ -210,46 +213,63 @@ export const SelectDriveItems = memo(() => {
 				/>
 			)}
 			<Container>
-				<List
-					variant="full-width"
-					data={items}
-					renderItem={renderItem}
-					keyExtractor={keyExtractor}
-					refreshing={refreshing}
-					contentInsetAdjustmentBehavior="automatic"
-					contentContainerClassName="pb-16"
-					removeClippedSubviews={true}
-					ListEmptyComponent={
-						<View className="flex-1 items-center justify-center">
-							{query.isSuccess ? (
-								searchTerm.length > 0 ? (
-									<Text>Nothing found</Text>
+				<View
+					className="flex-1"
+					ref={viewRef}
+					onLayout={onLayout}
+				>
+					<List
+						variant="full-width"
+						data={items}
+						renderItem={renderItem}
+						keyExtractor={keyExtractor}
+						refreshing={refreshing}
+						contentInsetAdjustmentBehavior="automatic"
+						contentContainerClassName="pb-16"
+						ListEmptyComponent={
+							<View className="flex-1 items-center justify-center">
+								{query.isSuccess ? (
+									searchTerm.length > 0 ? (
+										<Text>Nothing found</Text>
+									) : (
+										<Text>No items</Text>
+									)
 								) : (
-									<Text>No items</Text>
-								)
-							) : (
-								<ActivityIndicator color={colors.foreground} />
-							)}
-						</View>
-					}
-					ListFooterComponent={
-						<View className="flex flex-row items-center justify-center h-16 p-4">
-							<Text className="text-sm">{items.length} items</Text>
-						</View>
-					}
-					refreshControl={
-						<RefreshControl
-							refreshing={refreshing}
-							onRefresh={async () => {
-								setRefreshing(true)
+									<ActivityIndicator color={colors.foreground} />
+								)}
+							</View>
+						}
+						ListFooterComponent={
+							<View className="flex flex-row items-center justify-center h-16 p-4">
+								<Text className="text-sm">{items.length} items</Text>
+							</View>
+						}
+						refreshControl={
+							<RefreshControl
+								refreshing={refreshing}
+								onRefresh={async () => {
+									setRefreshing(true)
 
-								await query.refetch().catch(() => {})
+									await query.refetch().catch(() => {})
 
-								setRefreshing(false)
-							}}
-						/>
-					}
-				/>
+									setRefreshing(false)
+								}}
+							/>
+						}
+						estimatedListSize={
+							listLayout.width > 0 && listLayout.height > 0
+								? {
+										width: listLayout.width,
+										height: listLayout.height
+								  }
+								: undefined
+						}
+						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
+						drawDistance={0}
+						removeClippedSubviews={true}
+						disableAutoLayout={true}
+					/>
+				</View>
 			</Container>
 		</Fragment>
 	)

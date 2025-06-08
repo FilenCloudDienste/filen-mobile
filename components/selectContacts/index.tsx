@@ -1,8 +1,8 @@
-import { useCallback, useState, useMemo, Fragment, useEffect, memo } from "react"
+import { useCallback, useState, useMemo, Fragment, useEffect, memo, useRef } from "react"
 import events from "@/lib/events"
 import useContactsQuery from "@/queries/useContactsQuery"
-import { List, type ListDataItem } from "@/components/nativewindui/List"
-import { RefreshControl, View, type ListRenderItemInfo } from "react-native"
+import { List, type ListDataItem, type ListRenderItemInfo, ESTIMATED_ITEM_HEIGHT } from "@/components/nativewindui/List"
+import { RefreshControl, View } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -15,6 +15,7 @@ import { useSelectContactsStore } from "@/stores/selectContacts.store"
 import { inputPrompt } from "../prompts/inputPrompt"
 import { contactName } from "@/lib/utils"
 import { useShallow } from "zustand/shallow"
+import useViewLayout from "@/hooks/useViewLayout"
 
 export const SelectContacts = memo(() => {
 	const { colors } = useColorScheme()
@@ -24,6 +25,8 @@ export const SelectContacts = memo(() => {
 	const { back, canGoBack } = useRouter()
 	const selectedContacts = useSelectContactsStore(useShallow(state => state.selectedContacts))
 	const setSelectedContacts = useSelectContactsStore(useShallow(state => state.setSelectedContacts))
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const query = useContactsQuery({
 		type: typeof type === "string" ? (type as "all" | "blocked") : "all"
@@ -148,16 +151,18 @@ export const SelectContacts = memo(() => {
 					persistBlur: true
 				}}
 			/>
-			<View className="flex-1">
-				<Container>
+			<Container>
+				<View
+					className="flex-1"
+					ref={viewRef}
+					onLayout={onLayout}
+				>
 					<List
 						variant="full-width"
 						data={contacts}
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
 						refreshing={refreshing || query.status === "pending"}
-						windowSize={3}
-						removeClippedSubviews={true}
 						contentInsetAdjustmentBehavior="automatic"
 						contentContainerClassName="pb-16"
 						ListEmptyComponent={
@@ -173,6 +178,18 @@ export const SelectContacts = memo(() => {
 								)}
 							</View>
 						}
+						estimatedListSize={
+							listLayout.width > 0 && listLayout.height > 0
+								? {
+										width: listLayout.width,
+										height: listLayout.height
+								  }
+								: undefined
+						}
+						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
+						drawDistance={0}
+						removeClippedSubviews={true}
+						disableAutoLayout={true}
 						ListFooterComponent={
 							<View className="flex flex-row items-center justify-center h-16 p-4">
 								<Text className="text-sm">{contacts.length} contacts</Text>
@@ -191,29 +208,29 @@ export const SelectContacts = memo(() => {
 							/>
 						}
 					/>
-					<Toolbar
-						iosBlurIntensity={100}
-						iosHint={`${selectedContacts.length} selected`}
-						leftView={
-							<ToolbarIcon
-								icon={{
-									name: "plus"
-								}}
-								onPress={add}
-							/>
-						}
-						rightView={
-							<ToolbarCTA
-								disabled={selectedContacts.length === 0}
-								icon={{
-									name: "send-outline"
-								}}
-								onPress={submit}
-							/>
-						}
-					/>
-				</Container>
-			</View>
+				</View>
+				<Toolbar
+					iosBlurIntensity={100}
+					iosHint={`${selectedContacts.length} selected`}
+					leftView={
+						<ToolbarIcon
+							icon={{
+								name: "plus"
+							}}
+							onPress={add}
+						/>
+					}
+					rightView={
+						<ToolbarCTA
+							disabled={selectedContacts.length === 0}
+							icon={{
+								name: "send-outline"
+							}}
+							onPress={submit}
+						/>
+					}
+				/>
+			</Container>
 		</Fragment>
 	)
 })

@@ -140,6 +140,8 @@ export const Playlist = memo(() => {
 						/>
 					}
 					refreshing={refreshing}
+					windowSize={1}
+					maxToRenderPerBatch={3}
 					refreshControl={
 						<RefreshControl
 							refreshing={refreshing}

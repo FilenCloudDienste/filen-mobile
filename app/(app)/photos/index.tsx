@@ -279,6 +279,17 @@ export const Photos = memo(() => {
 						contentInsetAdjustmentBehavior="automatic"
 						showsVerticalScrollIndicator={true}
 						estimatedItemSize={itemSize}
+						estimatedListSize={
+							listLayout.width > 0 && listLayout.height > 0
+								? {
+										width: listLayout.width,
+										height: listLayout.height
+								  }
+								: undefined
+						}
+						drawDistance={0}
+						removeClippedSubviews={true}
+						disableAutoLayout={true}
 						ListHeaderComponent={
 							!hasInternet ? (
 								<View className="flex-row items-center justify-center bg-red-500 p-2">
