@@ -56,9 +56,21 @@ export default function TabsLayout() {
 			}
 		): React.ReactNode => {
 			if (routeName === "drive") {
+				if (Platform.OS === "android") {
+					return (
+						<Icon
+							name={props.focused ? "folder" : "folder-open"}
+							namingScheme="material"
+							size={props.size}
+							color={props.color}
+						/>
+					)
+				}
+
 				return (
 					<Icon
-						name={props.focused ? "folder-account" : "folder-account-outline"}
+						name={props.focused ? "folder.fill" : "folder"}
+						namingScheme="sfSymbol"
 						size={props.size}
 						color={props.color}
 					/>
