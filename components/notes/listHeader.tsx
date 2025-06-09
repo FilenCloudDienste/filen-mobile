@@ -94,7 +94,7 @@ export const ListHeader = memo(() => {
 
 	return (
 		<View
-			className="px-4 h-10 py-2"
+			className="px-4 py-2"
 			onLayout={onLayout}
 			ref={viewRef}
 		>

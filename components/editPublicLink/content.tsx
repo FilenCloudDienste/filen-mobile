@@ -407,9 +407,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 							ios: {
 								name: "square.and.arrow.up"
 							},
-							materialIcon: {
-								name: "share-outline"
-							}
+							name: "link"
 						}}
 						onPress={share}
 					/>

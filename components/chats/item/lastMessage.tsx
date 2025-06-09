@@ -146,9 +146,9 @@ export const LastMessage = memo(({ chat }: { chat: ChatConversation }) => {
 	if (usersTypingSorted.length > 0) {
 		return (
 			<Text
-				className="text-muted-foreground text-sm font-normal italic"
+				className="text-muted-foreground text-sm font-normal italic flex-1"
 				numberOfLines={1}
-				ellipsizeMode="tail"
+				ellipsizeMode="middle"
 			>
 				{`${usersTypingSorted.map(user => user.senderNickName).join(", ")} typing...`}
 			</Text>

@@ -29,7 +29,7 @@ export const Tag = memo(
 		}, [id, setSelectedTag])
 
 		const className = useMemo(() => {
-			return cn("bg-card rounded-full px-2 py-1 flex-row gap-1 items-center", withRightMargin && "mr-2")
+			return cn("bg-card rounded-full px-2.5 py-1.5 flex-row gap-1.5 items-center", withRightMargin && "mr-2")
 		}, [withRightMargin])
 
 		const createTag = useCallback(async () => {
@@ -96,7 +96,7 @@ export const Tag = memo(
 						onPress={createTag}
 						androidRootClassName="rounded-full overflow-hidden"
 					>
-						<Text className="text-xs text-muted-foreground">+</Text>
+						<Text className="text-sm text-muted-foreground">+</Text>
 					</Button>
 				)
 			}
@@ -109,7 +109,7 @@ export const Tag = memo(
 					onPress={select}
 					androidRootClassName="rounded-full overflow-hidden"
 				>
-					<Text className="text-xs text-muted-foreground">{name}</Text>
+					<Text className="text-sm text-muted-foreground">{name}</Text>
 				</Button>
 			)
 		}
@@ -122,7 +122,7 @@ export const Tag = memo(
 					className={className}
 					androidRootClassName="rounded-full overflow-hidden"
 				>
-					<Text className="text-xs text-muted-foreground">...</Text>
+					<Text className="text-sm text-muted-foreground">...</Text>
 				</Button>
 			)
 		}
@@ -140,10 +140,10 @@ export const Tag = memo(
 						<Icon
 							name="heart"
 							color="#ef4444"
-							size={12}
+							size={14}
 						/>
 					)}
-					<Text className="text-xs text-muted-foreground">{tag.name}</Text>
+					<Text className="text-sm text-muted-foreground">{tag.name}</Text>
 				</Button>
 			</Menu>
 		)

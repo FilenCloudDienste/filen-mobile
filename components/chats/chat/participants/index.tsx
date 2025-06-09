@@ -109,6 +109,8 @@ export default function Participants() {
 					<ListItem
 						variant="full-width"
 						removeSeparator={Platform.OS === "android"}
+						isLastInSection={false}
+						isFirstInSection={false}
 						leftView={
 							<View className="flex-1 flex-row items-center justify-center px-4">
 								<Avatar

@@ -37,6 +37,7 @@ import { FETCH_CLOUD_ITEMS_POSSIBLE_OF } from "@/queries/useCloudItemsQuery"
 import { fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatusQuery"
 import { useGalleryStore } from "@/stores/gallery.store"
 import events from "@/lib/events"
+import { useColorScheme } from "@/lib/useColorScheme"
 
 export const Menu = memo(
 	({
@@ -63,6 +64,7 @@ export const Menu = memo(
 		const { isPortrait, isTablet, screen } = useDimensions()
 		const isProUser = useIsProUser()
 		const pathname = usePathname()
+		const { colors } = useColorScheme()
 
 		const menuItems = useMemo(() => {
 			const items: (ContextItem | ContextSubMenu)[] = []
@@ -72,7 +74,17 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "select",
-						title: t("drive.list.item.menu.select")
+						title: t("drive.list.item.menu.select"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "checkmark.circle"
+								  }
+								: {
+										namingScheme: "material",
+										name: "check-circle-outline"
+								  }
 					})
 				)
 			}
@@ -81,7 +93,17 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "openDirectory",
-						title: t("drive.list.item.menu.open")
+						title: t("drive.list.item.menu.open"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "folder"
+								  }
+								: {
+										namingScheme: "material",
+										name: "folder-open"
+								  }
 					})
 				)
 			}
@@ -98,7 +120,11 @@ export const Menu = memo(
 								? [
 										createContextItem({
 											actionKey: "download",
-											title: t("drive.list.item.menu.download")
+											title: t("drive.list.item.menu.download"),
+											icon: {
+												namingScheme: "material",
+												name: "file-download-outline"
+											}
 										})
 								  ]
 								: []),
@@ -106,7 +132,17 @@ export const Menu = memo(
 								? [
 										createContextItem({
 											actionKey: "export",
-											title: t("drive.list.item.menu.export")
+											title: t("drive.list.item.menu.export"),
+											icon:
+												Platform.OS === "ios"
+													? {
+															namingScheme: "sfSymbol",
+															name: "square.and.arrow.up"
+													  }
+													: {
+															namingScheme: "material",
+															name: "send-outline"
+													  }
 										})
 								  ]
 								: []),
@@ -114,7 +150,17 @@ export const Menu = memo(
 								? [
 										createContextItem({
 											actionKey: "saveToGallery",
-											title: t("drive.list.item.menu.saveToGallery")
+											title: t("drive.list.item.menu.saveToGallery"),
+											icon:
+												Platform.OS === "ios"
+													? {
+															namingScheme: "sfSymbol",
+															name: "photo"
+													  }
+													: {
+															namingScheme: "material",
+															name: "image-outline"
+													  }
 										})
 								  ]
 								: []),
@@ -123,11 +169,33 @@ export const Menu = memo(
 										isAvailableOffline
 											? createContextItem({
 													actionKey: "removeOffline",
-													title: t("drive.list.item.menu.removeOffline")
+													title: t("drive.list.item.menu.removeOffline"),
+													icon:
+														Platform.OS === "ios"
+															? {
+																	namingScheme: "sfSymbol",
+																	name: "trash",
+																	color: colors.destructive
+															  }
+															: {
+																	namingScheme: "material",
+																	name: "trash-can-outline",
+																	color: colors.destructive
+															  }
 											  })
 											: createContextItem({
 													actionKey: "makeAvailableOffline",
-													title: t("drive.list.item.menu.makeAvailableOffline")
+													title: t("drive.list.item.menu.makeAvailableOffline"),
+													icon:
+														Platform.OS === "ios"
+															? {
+																	namingScheme: "sfSymbol",
+																	name: "arrow.down.circle"
+															  }
+															: {
+																	namingScheme: "material",
+																	name: "arrow-down-circle-outline"
+															  }
 											  })
 								  ]
 								: [])
@@ -147,11 +215,31 @@ export const Menu = memo(
 							[
 								createContextItem({
 									actionKey: "publicLink",
-									title: t("drive.list.item.menu.publicLink")
+									title: t("drive.list.item.menu.publicLink"),
+									icon:
+										Platform.OS === "ios"
+											? {
+													namingScheme: "sfSymbol",
+													name: "link"
+											  }
+											: {
+													namingScheme: "material",
+													name: "link"
+											  }
 								}),
 								createContextItem({
 									actionKey: "share",
-									title: t("drive.list.item.menu.share")
+									title: t("drive.list.item.menu.share"),
+									icon:
+										Platform.OS === "ios"
+											? {
+													namingScheme: "sfSymbol",
+													name: "square.and.arrow.up"
+											  }
+											: {
+													namingScheme: "material",
+													name: "send-outline"
+											  }
 								})
 							]
 						)
@@ -160,28 +248,42 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "share",
-							title: t("drive.list.item.menu.share")
+							title: t("drive.list.item.menu.share"),
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "square.and.arrow.up"
+									  }
+									: {
+											namingScheme: "material",
+											name: "send-outline"
+									  }
 						})
 					)
 				}
 			}
 
 			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash") {
-				if (item.favorited) {
-					items.push(
-						createContextItem({
-							actionKey: "unfavorite",
-							title: t("drive.list.item.menu.unfavorite")
-						})
-					)
-				} else {
-					items.push(
-						createContextItem({
-							actionKey: "favorite",
-							title: t("drive.list.item.menu.favorite")
-						})
-					)
-				}
+				items.push(
+					createContextItem({
+						actionKey: item.favorited ? "unfavorite" : "favorite",
+						title: t("notes.menu.favorited"),
+						state: {
+							checked: item.favorited
+						},
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "heart"
+								  }
+								: {
+										namingScheme: "material",
+										name: "heart-outline"
+								  }
+					})
+				)
 			}
 
 			if (queryParams.of !== "offline" && queryParams.of !== "trash") {
@@ -189,7 +291,17 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "info",
-							title: t("drive.list.item.menu.info")
+							title: t("drive.list.item.menu.info"),
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "info.circle"
+									  }
+									: {
+											namingScheme: "material",
+											name: "information-outline"
+									  }
 						})
 					)
 				} else {
@@ -197,7 +309,17 @@ export const Menu = memo(
 						items.push(
 							createContextItem({
 								actionKey: "info",
-								title: t("drive.list.item.menu.info")
+								title: t("drive.list.item.menu.info"),
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "info.circle"
+										  }
+										: {
+												namingScheme: "material",
+												name: "information-outline"
+										  }
 							})
 						)
 					} else {
@@ -210,11 +332,31 @@ export const Menu = memo(
 								[
 									createContextItem({
 										actionKey: "info",
-										title: t("drive.list.item.menu.properties")
+										title: t("drive.list.item.menu.properties"),
+										icon:
+											Platform.OS === "ios"
+												? {
+														namingScheme: "sfSymbol",
+														name: "info.circle"
+												  }
+												: {
+														namingScheme: "material",
+														name: "information-outline"
+												  }
 									}),
 									createContextItem({
 										actionKey: "versionHistory",
-										title: t("drive.list.item.menu.versionHistory")
+										title: t("drive.list.item.menu.versionHistory"),
+										icon:
+											Platform.OS === "ios"
+												? {
+														namingScheme: "sfSymbol",
+														name: "clock"
+												  }
+												: {
+														namingScheme: "material",
+														name: "clock-outline"
+												  }
 									})
 								]
 							)
@@ -227,7 +369,17 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "color",
-						title: t("drive.list.item.menu.color")
+						title: t("drive.list.item.menu.color"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "paintpalette"
+								  }
+								: {
+										namingScheme: "material",
+										name: "palette-outline"
+								  }
 					})
 				)
 			}
@@ -236,7 +388,17 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "rename",
-						title: t("drive.list.item.menu.rename")
+						title: t("drive.list.item.menu.rename"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "pencil"
+								  }
+								: {
+										namingScheme: "material",
+										name: "pencil"
+								  }
 					})
 				)
 			}
@@ -245,7 +407,17 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "move",
-						title: t("drive.list.item.menu.move")
+						title: t("drive.list.item.menu.move"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "folder"
+								  }
+								: {
+										namingScheme: "material",
+										name: "folder-cog-outline"
+								  }
 					})
 				)
 			}
@@ -278,7 +450,19 @@ export const Menu = memo(
 					createContextItem({
 						actionKey: "removeSharedOut",
 						title: t("drive.list.item.menu.removeSharedOut"),
-						destructive: true
+						destructive: true,
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "delete.left",
+										color: colors.destructive
+								  }
+								: {
+										namingScheme: "material",
+										name: "delete-off-outline",
+										color: colors.destructive
+								  }
 					})
 				)
 			}
@@ -288,7 +472,19 @@ export const Menu = memo(
 					createContextItem({
 						actionKey: "disablePublicLink",
 						title: t("drive.list.item.menu.disablePublicLink"),
-						destructive: true
+						destructive: true,
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "link",
+										color: colors.destructive
+								  }
+								: {
+										namingScheme: "material",
+										name: "link",
+										color: colors.destructive
+								  }
 					})
 				)
 			}
@@ -299,7 +495,19 @@ export const Menu = memo(
 						createContextItem({
 							actionKey: "trash",
 							title: t("drive.list.item.menu.trash"),
-							destructive: true
+							destructive: true,
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "trash",
+											color: colors.destructive
+									  }
+									: {
+											namingScheme: "material",
+											name: "trash-can-outline",
+											color: colors.destructive
+									  }
 						})
 					)
 				} else {
@@ -307,7 +515,19 @@ export const Menu = memo(
 						createContextItem({
 							actionKey: "removeSharedIn",
 							title: t("drive.list.item.menu.removeSharedIn"),
-							destructive: true
+							destructive: true,
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "delete.left",
+											color: colors.destructive
+									  }
+									: {
+											namingScheme: "material",
+											name: "delete-off-outline",
+											color: colors.destructive
+									  }
 						})
 					)
 				}
@@ -318,7 +538,19 @@ export const Menu = memo(
 					createContextItem({
 						actionKey: "removeOffline",
 						title: t("drive.list.item.menu.removeOffline"),
-						destructive: true
+						destructive: true,
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "delete.left",
+										color: colors.destructive
+								  }
+								: {
+										namingScheme: "material",
+										name: "delete-off-outline",
+										color: colors.destructive
+								  }
 					})
 				)
 			}
@@ -327,7 +559,17 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "restore",
-						title: t("drive.list.item.menu.restore")
+						title: t("drive.list.item.menu.restore"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "repeat"
+								  }
+								: {
+										namingScheme: "material",
+										name: "repeat"
+								  }
 					})
 				)
 
@@ -335,13 +577,25 @@ export const Menu = memo(
 					createContextItem({
 						actionKey: "deletePermanently",
 						title: t("drive.list.item.menu.deletePermanently"),
-						destructive: true
+						destructive: true,
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "trash",
+										color: colors.destructive
+								  }
+								: {
+										namingScheme: "material",
+										name: "trash-can-outline",
+										color: colors.destructive
+								  }
 					})
 				)
 			}
 
 			return items
-		}, [isAvailableOffline, item, queryParams, t, isProUser, fromPreview, fromPhotos, fromSearch])
+		}, [isAvailableOffline, item, queryParams, t, isProUser, fromPreview, fromPhotos, fromSearch, colors.destructive])
 
 		const select = useCallback(() => {
 			const isSelected = useDriveStore.getState().selectedItems.some(i => i.uuid === item.uuid)

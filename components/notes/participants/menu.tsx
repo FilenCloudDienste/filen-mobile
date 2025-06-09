@@ -10,6 +10,9 @@ import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import queryUtils from "@/queries/utils"
+import { useColorScheme } from "@/lib/useColorScheme"
+import { Platform } from "react-native"
+import useSDKConfig from "@/hooks/useSDKConfig"
 
 export const Menu = memo(
 	({
@@ -24,30 +27,56 @@ export const Menu = memo(
 		participant: NoteParticipant
 	}) => {
 		const { t } = useTranslation()
+		const [{ userId }] = useSDKConfig()
+		const { colors } = useColorScheme()
 
 		const menuItems = useMemo(() => {
 			const items: (ContextItem | ContextSubMenu)[] = []
 
-			items.push(
-				createContextItem({
-					actionKey: participant.permissionsWrite ? "revokeWriteAccess" : "allowWriteAccess",
-					title: t("notes.participants.menu.permissionsWrite"),
-					state: {
-						checked: participant.permissionsWrite
-					}
-				})
-			)
+			if (note.isOwner && participant.userId !== userId) {
+				items.push(
+					createContextItem({
+						actionKey: participant.permissionsWrite ? "revokeWriteAccess" : "allowWriteAccess",
+						title: t("notes.participants.menu.permissionsWrite"),
+						state: {
+							checked: participant.permissionsWrite
+						},
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "pencil"
+								  }
+								: {
+										namingScheme: "material",
+										name: "pencil"
+								  }
+					})
+				)
 
-			items.push(
-				createContextItem({
-					actionKey: "remove",
-					title: t("notes.participants.menu.remove"),
-					destructive: true
-				})
-			)
+				items.push(
+					createContextItem({
+						actionKey: "remove",
+						title: t("notes.participants.menu.remove"),
+						destructive: true,
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "delete.left",
+										color: colors.destructive
+								  }
+								: {
+										namingScheme: "material",
+										name: "delete-off-outline",
+										color: colors.destructive
+								  }
+					})
+				)
+			}
 
 			return items
-		}, [t, participant.permissionsWrite])
+		}, [t, participant.permissionsWrite, participant.userId, note.isOwner, userId, colors.destructive])
 
 		const remove = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
@@ -163,6 +192,10 @@ export const Menu = memo(
 			},
 			[remove, changePermissionsWrite]
 		)
+
+		if (menuItems.length === 0) {
+			return children
+		}
 
 		if (type === "context") {
 			return (

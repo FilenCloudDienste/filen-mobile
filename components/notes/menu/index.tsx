@@ -6,7 +6,7 @@ import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { type Note, type NoteType, type NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "expo-router"
-import { View } from "react-native"
+import { View, Platform } from "react-native"
 import Content from "../content"
 import useDimensions from "@/hooks/useDimensions"
 import queryUtils from "@/queries/utils"
@@ -25,6 +25,7 @@ import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { sanitizeFileName } from "@/lib/utils"
 import striptags from "striptags"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
+import { useColorScheme } from "@/lib/useColorScheme"
 
 export const Menu = memo(
 	({
@@ -46,6 +47,7 @@ export const Menu = memo(
 		const router = useRouter()
 		const { screen, isPortrait, isTablet } = useDimensions()
 		const [{ userId }] = useSDKConfig()
+		const { colors } = useColorScheme()
 
 		const notesTagsQuery = useNotesTagsQuery({
 			enabled: false
@@ -73,7 +75,17 @@ export const Menu = memo(
 						title: t("notes.menu.preview"),
 						state: {
 							checked: markdownPreview
-						}
+						},
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "eye"
+								  }
+								: {
+										namingScheme: "material",
+										name: "eye-outline"
+								  }
 					})
 				)
 			}
@@ -82,14 +94,34 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "history",
-						title: t("notes.menu.history")
+						title: t("notes.menu.history"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "clock"
+								  }
+								: {
+										namingScheme: "material",
+										name: "clock-outline"
+								  }
 					})
 				)
 
 				items.push(
 					createContextItem({
 						actionKey: "participants",
-						title: t("notes.menu.participants")
+						title: t("notes.menu.participants"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "person.2"
+								  }
+								: {
+										namingScheme: "material",
+										name: "account-multiple-outline"
+								  }
 					})
 				)
 
@@ -105,35 +137,85 @@ export const Menu = memo(
 								title: t("notes.menu.types.text"),
 								state: {
 									checked: note.type === "text"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "note.text"
+										  }
+										: {
+												namingScheme: "material",
+												name: "note-text-outline"
+										  }
 							}),
 							createContextItem({
 								actionKey: "typeRich",
 								title: t("notes.menu.types.rich"),
 								state: {
 									checked: note.type === "rich"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "doc.richtext"
+										  }
+										: {
+												namingScheme: "material",
+												name: "file-document"
+										  }
 							}),
 							createContextItem({
 								actionKey: "typeChecklist",
 								title: t("notes.menu.types.checklist"),
 								state: {
 									checked: note.type === "checklist"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "list.bullet"
+										  }
+										: {
+												namingScheme: "material",
+												name: "format-list-checks"
+										  }
 							}),
 							createContextItem({
 								actionKey: "typeMd",
 								title: t("notes.menu.types.md"),
 								state: {
 									checked: note.type === "md"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "doc"
+										  }
+										: {
+												namingScheme: "material",
+												name: "file-document"
+										  }
 							}),
 							createContextItem({
 								actionKey: "typeCode",
 								title: t("notes.menu.types.code"),
 								state: {
 									checked: note.type === "code"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "parentheses"
+										  }
+										: {
+												namingScheme: "material",
+												name: "code-json"
+										  }
 							})
 						]
 					)
@@ -146,7 +228,17 @@ export const Menu = memo(
 					title: t("notes.menu.pinned"),
 					state: {
 						checked: note.pinned
-					}
+					},
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "pin"
+							  }
+							: {
+									namingScheme: "material",
+									name: "pin-outline"
+							  }
 				})
 			)
 
@@ -156,7 +248,17 @@ export const Menu = memo(
 					title: t("notes.menu.favorited"),
 					state: {
 						checked: note.favorite
-					}
+					},
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "heart"
+							  }
+							: {
+									namingScheme: "material",
+									name: "heart-outline"
+							  }
 				})
 			)
 
@@ -173,7 +275,17 @@ export const Menu = memo(
 								title: tag.name,
 								state: {
 									checked: note.tags.some(t => t.uuid === tag.uuid)
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "tag"
+										  }
+										: {
+												namingScheme: "material",
+												name: "tag-outline"
+										  }
 							})
 						)
 					)
@@ -184,14 +296,34 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "rename",
-						title: t("notes.menu.rename")
+						title: t("notes.menu.rename"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "pencil"
+								  }
+								: {
+										namingScheme: "material",
+										name: "pencil"
+								  }
 					})
 				)
 
 				items.push(
 					createContextItem({
 						actionKey: "duplicate",
-						title: t("notes.menu.duplicate")
+						title: t("notes.menu.duplicate"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "plus.app"
+								  }
+								: {
+										namingScheme: "material",
+										name: "plus-box-outline"
+								  }
 					})
 				)
 			}
@@ -199,14 +331,17 @@ export const Menu = memo(
 			items.push(
 				createContextItem({
 					actionKey: "export",
-					title: t("notes.menu.export")
-				})
-			)
-
-			items.push(
-				createContextItem({
-					actionKey: "copyId",
-					title: t("notes.menu.copyId")
+					title: t("notes.menu.export"),
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "square.and.arrow.up"
+							  }
+							: {
+									namingScheme: "material",
+									name: "send-outline"
+							  }
 				})
 			)
 
@@ -215,7 +350,17 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "archive",
-							title: t("notes.menu.archive")
+							title: t("notes.menu.archive"),
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "archivebox"
+									  }
+									: {
+											namingScheme: "material",
+											name: "archive-outline"
+									  }
 						})
 					)
 				}
@@ -224,7 +369,17 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "restore",
-							title: t("notes.menu.restore")
+							title: t("notes.menu.restore"),
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "repeat"
+									  }
+									: {
+											namingScheme: "material",
+											name: "repeat"
+									  }
 						})
 					)
 				}
@@ -234,7 +389,19 @@ export const Menu = memo(
 						createContextItem({
 							actionKey: "delete",
 							title: t("notes.menu.delete"),
-							destructive: true
+							destructive: true,
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "trash",
+											color: colors.destructive
+									  }
+									: {
+											namingScheme: "material",
+											name: "trash-can-outline",
+											color: colors.destructive
+									  }
 						})
 					)
 				} else if (!note.archive) {
@@ -242,7 +409,19 @@ export const Menu = memo(
 						createContextItem({
 							actionKey: "trash",
 							title: t("notes.menu.trash"),
-							destructive: true
+							destructive: true,
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "trash",
+											color: colors.destructive
+									  }
+									: {
+											namingScheme: "material",
+											name: "trash-can-outline",
+											color: colors.destructive
+									  }
 						})
 					)
 				}
@@ -251,13 +430,25 @@ export const Menu = memo(
 					createContextItem({
 						actionKey: "leave",
 						title: t("notes.menu.leave"),
-						destructive: true
+						destructive: true,
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "delete.left",
+										color: colors.destructive
+								  }
+								: {
+										namingScheme: "material",
+										name: "delete-off-outline",
+										color: colors.destructive
+								  }
 					})
 				)
 			}
 
 			return items
-		}, [note, t, tags, markdownPreview, insideNote])
+		}, [note, t, tags, markdownPreview, insideNote, colors.destructive])
 
 		const changeNoteType = useCallback(
 			async (type: NoteType) => {
@@ -982,6 +1173,10 @@ export const Menu = memo(
 				</View>
 			)
 		}, [note, screen, noop])
+
+		if (menuItems.length === 0) {
+			return children
+		}
 
 		if (type === "context") {
 			return (

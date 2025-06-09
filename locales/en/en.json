@@ -160,7 +160,8 @@
 				"copyId": "Copy ID",
 				"reply": "Reply",
 				"edit": "Edit",
-				"delete": "Delete"
+				"delete": "Delete",
+				"disableEmbeds": "Disable embeds"
 			},
 			"time": {
 				"now": "Now",
@@ -186,7 +187,8 @@
 			"unpin": "Unpin",
 			"favorite": "Favorite",
 			"unfavorite": "Unfavorite",
-			"markAsRead": "Mark as read"
+			"markAsRead": "Mark as read",
+			"participants": "Participants"
 		},
 		"participants": {
 			"menu": {

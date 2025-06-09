@@ -16,6 +16,8 @@ import { useChatsStore } from "@/stores/chats.store"
 import { useShallow } from "zustand/shallow"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
+import { useColorScheme } from "@/lib/useColorScheme"
+import { Platform } from "react-native"
 
 export const Menu = memo(({ chat, message, children }: { chat: ChatConversation; message: ChatMessage; children: React.ReactNode }) => {
 	const [{ userId }] = useSDKConfig()
@@ -23,6 +25,7 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 	const setReplyToMessage = useChatsStore(useShallow(state => state.setReplyToMessage))
 	const setEditMessage = useChatsStore(useShallow(state => state.setEditMessage))
 	const [, setChatInputValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
+	const { colors } = useColorScheme()
 
 	const menuItems = useMemo(() => {
 		const items: (ContextItem | ContextSubMenu)[] = []
@@ -30,14 +33,34 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 		items.push(
 			createContextItem({
 				actionKey: "reply",
-				title: t("chats.messages.menu.reply")
+				title: t("chats.messages.menu.reply"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "plus.message"
+						  }
+						: {
+								namingScheme: "material",
+								name: "message-plus-outline"
+						  }
 			})
 		)
 
 		items.push(
 			createContextItem({
 				actionKey: "copyText",
-				title: t("chats.messages.menu.copyText")
+				title: t("chats.messages.menu.copyText"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "clipboard"
+						  }
+						: {
+								namingScheme: "material",
+								name: "clipboard-outline"
+						  }
 			})
 		)
 
@@ -45,14 +68,34 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 			items.push(
 				createContextItem({
 					actionKey: "disableEmbeds",
-					title: t("chats.messages.menu.disableEmbeds")
+					title: t("chats.messages.menu.disableEmbeds"),
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "link"
+							  }
+							: {
+									namingScheme: "material",
+									name: "link"
+							  }
 				})
 			)
 
 			items.push(
 				createContextItem({
 					actionKey: "edit",
-					title: t("chats.messages.menu.edit")
+					title: t("chats.messages.menu.edit"),
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "pencil"
+							  }
+							: {
+									namingScheme: "material",
+									name: "pencil"
+							  }
 				})
 			)
 
@@ -60,13 +103,25 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 				createContextItem({
 					actionKey: "delete",
 					title: t("chats.messages.menu.delete"),
-					destructive: true
+					destructive: true,
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "trash",
+									color: colors.destructive
+							  }
+							: {
+									namingScheme: "material",
+									name: "trash-can-outline",
+									color: colors.destructive
+							  }
 				})
 			)
 		}
 
 		return items
-	}, [t, message.senderId, userId])
+	}, [t, message.senderId, userId, colors.destructive])
 
 	const deleteMessage = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
@@ -220,6 +275,10 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 		},
 		[copyText, deleteMessage, reply, disableEmbeds, edit]
 	)
+
+	if (menuItems.length === 0) {
+		return children
+	}
 
 	return (
 		<ContextMenu

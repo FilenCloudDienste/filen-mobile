@@ -1,12 +1,9 @@
 import { memo, useState, Fragment, useMemo, useCallback } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
-import { createDropdownItem, createDropdownSubMenu } from "@/components/nativewindui/DropdownMenu/utils"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Platform, RefreshControl, View, ActivityIndicator, ScrollView } from "react-native"
 import { cn } from "@/lib/cn"
-import { Icon } from "@roninoss/icons"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import Avatar from "../avatar"
 import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
@@ -15,8 +12,6 @@ import { useRouter } from "expo-router"
 import ContainerComponent from "./container"
 import { orderItemsByType } from "@/lib/utils"
 import useAccountQuery from "@/queries/useAccountQuery"
-import * as BackgroundTask from "expo-background-task"
-import { getSDK } from "@/lib/sdk"
 
 export const Home = memo(() => {
 	const { colors } = useColorScheme()
@@ -200,89 +195,6 @@ export const Home = memo(() => {
 						  }
 						: undefined
 				}
-				rightView={() => (
-					<View>
-						<DropdownMenu
-							items={[
-								createDropdownItem({
-									actionKey: "first",
-									title: "Item 1"
-								}),
-								createDropdownItem({
-									actionKey: "item2",
-									title: "Item 1"
-								}),
-								createDropdownItem({
-									actionKey: "trackPlayer",
-									title: "trackPlayer"
-								}),
-								createDropdownItem({
-									actionKey: "testSDK",
-									title: "testSDK"
-								}),
-								createDropdownSubMenu(
-									{
-										title: "Submenu 1",
-										iOSItemSize: "large"
-									},
-									[
-										createDropdownItem({
-											actionKey: "sub-first",
-											title: "Sub Item 1"
-										}),
-										createDropdownItem({
-											actionKey: "sub-second",
-											title: "Sub Item 2"
-										})
-									]
-								)
-							]}
-							onItemPress={async item => {
-								console.log("Item Pressed", item)
-
-								if (item.actionKey === "first") {
-									router.push("/_sitemap")
-								}
-
-								if (item.actionKey === "trackPlayer") {
-									router.push("/trackPlayer")
-								}
-
-								if (item.actionKey === "item2") {
-									BackgroundTask.triggerTaskWorkerForTestingAsync().then(console.log).catch(console.error)
-								}
-
-								if (item.actionKey === "testSDK") {
-									console.log("testSDK")
-
-									const now = Date.now()
-
-									await getSDK()
-										.fs()
-										.writeFile({
-											path: "/polyfilltest2.txt",
-											content: Buffer.from("test", "utf-8")
-										})
-										.catch(console.error)
-
-									console.log("testsdk done", Date.now() - now, "ms")
-								}
-							}}
-						>
-							<Button
-								variant="plain"
-								size="icon"
-							>
-								<Icon
-									size={24}
-									namingScheme="sfSymbol"
-									name="ellipsis.circle"
-									color={colors.foreground}
-								/>
-							</Button>
-						</DropdownMenu>
-					</View>
-				)}
 			/>
 			<Container>
 				{!loadDone ? (

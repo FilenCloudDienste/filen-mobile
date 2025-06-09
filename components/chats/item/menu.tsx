@@ -4,7 +4,7 @@ import { createContextItem } from "@/components/nativewindui/ContextMenu/utils"
 import { type ContextItem, type ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { useTranslation } from "react-i18next"
-import { View } from "react-native"
+import { View, Platform } from "react-native"
 import useDimensions from "@/hooks/useDimensions"
 import alerts from "@/lib/alerts"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
@@ -17,6 +17,7 @@ import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { useRouter } from "expo-router"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 import useChatUnreadCountQuery from "@/queries/useChatUnreadCountQuery"
+import { useColorScheme } from "@/lib/useColorScheme"
 
 export const Menu = memo(
 	({
@@ -34,6 +35,7 @@ export const Menu = memo(
 		const { screen, isPortrait, isTablet } = useDimensions()
 		const [{ userId }] = useSDKConfig()
 		const router = useRouter()
+		const { colors } = useColorScheme()
 
 		const chatUnreadCountQuery = useChatUnreadCountQuery({
 			uuid: chat.uuid,
@@ -55,7 +57,17 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "markAsRead",
-						title: t("chats.menu.markAsRead")
+						title: t("chats.menu.markAsRead"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "envelope"
+								  }
+								: {
+										namingScheme: "material",
+										name: "message-processing-outline"
+								  }
 					})
 				)
 			}
@@ -64,7 +76,17 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "participants",
-						title: t("chats.menu.participants")
+						title: t("chats.menu.participants"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "person.2"
+								  }
+								: {
+										namingScheme: "material",
+										name: "account-multiple-outline"
+								  }
 					})
 				)
 			}
@@ -73,7 +95,17 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "rename",
-						title: t("chats.menu.rename")
+						title: t("chats.menu.rename"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "pencil"
+								  }
+								: {
+										namingScheme: "material",
+										name: "pencil"
+								  }
 					})
 				)
 
@@ -81,7 +113,19 @@ export const Menu = memo(
 					createContextItem({
 						actionKey: "delete",
 						title: t("chats.menu.delete"),
-						destructive: true
+						destructive: true,
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "trash",
+										color: colors.destructive
+								  }
+								: {
+										namingScheme: "material",
+										name: "trash-can-outline",
+										color: colors.destructive
+								  }
 					})
 				)
 			} else {
@@ -89,13 +133,25 @@ export const Menu = memo(
 					createContextItem({
 						actionKey: "leave",
 						title: t("chats.menu.leave"),
-						destructive: true
+						destructive: true,
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "delete.left",
+										color: colors.destructive
+								  }
+								: {
+										namingScheme: "material",
+										name: "delete-off-outline",
+										color: colors.destructive
+								  }
 					})
 				)
 			}
 
 			return items
-		}, [t, chat.ownerId, userId, unreadCount, insideChat])
+		}, [t, chat.ownerId, userId, unreadCount, insideChat, colors.destructive])
 
 		const leave = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
@@ -346,6 +402,10 @@ export const Menu = memo(
 				</View>
 			)
 		}, [chat, screen.width, screen.height])
+
+		if (menuItems.length === 0) {
+			return children
+		}
 
 		if (type === "context") {
 			return (

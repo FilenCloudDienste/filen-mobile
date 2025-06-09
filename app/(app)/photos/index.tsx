@@ -2,7 +2,7 @@ import { memo, useState, useCallback, useMemo, useLayoutEffect, useRef, Fragment
 import { Button } from "@/components/nativewindui/Button"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
-import { createDropdownItem, createDropdownSubMenu } from "@/components/nativewindui/DropdownMenu/utils"
+import { createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator } from "react-native"
@@ -220,24 +220,18 @@ export const Photos = memo(() => {
 						items={[
 							createDropdownItem({
 								actionKey: "settings",
-								title: "Settings"
-							}),
-							createDropdownSubMenu(
-								{
-									title: "Submenu 1",
-									iOSItemSize: "large"
-								},
-								[
-									createDropdownItem({
-										actionKey: "sub-first",
-										title: "Sub Item 1"
-									}),
-									createDropdownItem({
-										actionKey: "sub-second",
-										title: "Sub Item 2"
-									})
-								]
-							)
+								title: "Settings",
+								icon:
+									Platform.OS === "ios"
+										? {
+												name: "gearshape",
+												namingScheme: "sfSymbol"
+										  }
+										: {
+												namingScheme: "material",
+												name: "cog-outline"
+										  }
+							})
 						]}
 						onItemPress={item => {
 							switch (item.actionKey) {

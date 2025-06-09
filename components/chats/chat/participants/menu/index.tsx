@@ -10,6 +10,9 @@ import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import queryUtils from "@/queries/utils"
+import useSDKConfig from "@/hooks/useSDKConfig"
+import { Platform } from "react-native"
+import { useColorScheme } from "@/lib/useColorScheme"
 
 export const Menu = memo(
 	({
@@ -24,20 +27,36 @@ export const Menu = memo(
 		participant: ChatConversationParticipant
 	}) => {
 		const { t } = useTranslation()
+		const [{ userId }] = useSDKConfig()
+		const { colors } = useColorScheme()
 
 		const menuItems = useMemo(() => {
 			const items: (ContextItem | ContextSubMenu)[] = []
 
-			items.push(
-				createContextItem({
-					actionKey: "remove",
-					title: t("chats.participants.menu.remove"),
-					destructive: true
-				})
-			)
+			if (chat.ownerId === userId && participant.userId !== userId) {
+				items.push(
+					createContextItem({
+						actionKey: "remove",
+						title: t("chats.participants.menu.remove"),
+						destructive: true,
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "delete.left",
+										color: colors.destructive
+								  }
+								: {
+										namingScheme: "material",
+										name: "delete-off-outline",
+										color: colors.destructive
+								  }
+					})
+				)
+			}
 
 			return items
-		}, [t])
+		}, [t, chat.ownerId, userId, participant.userId, colors.destructive])
 
 		const remove = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
@@ -64,7 +83,7 @@ export const Menu = memo(
 								? {
 										...c,
 										participants: c.participants.filter(p => p.userId !== participant.userId)
-									}
+								  }
 								: c
 						)
 				})
@@ -101,6 +120,10 @@ export const Menu = memo(
 			},
 			[remove]
 		)
+
+		if (menuItems.length === 0) {
+			return children
+		}
 
 		if (type === "context") {
 			return (

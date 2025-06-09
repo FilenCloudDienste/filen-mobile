@@ -10,9 +10,12 @@ import { type NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
 import { alertPrompt } from "../../prompts/alertPrompt"
 import queryUtils from "@/queries/utils"
 import { inputPrompt } from "../../prompts/inputPrompt"
+import { Platform } from "react-native"
+import { useColorScheme } from "@/lib/useColorScheme"
 
 export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.ReactNode }) => {
 	const { t } = useTranslation()
+	const { colors } = useColorScheme()
 
 	const menuItems = useMemo(() => {
 		const items: ContextItem[] = []
@@ -23,14 +26,34 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 				title: t("notes.tags.menu.favorited"),
 				state: {
 					checked: tag.favorite
-				}
+				},
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "heart"
+						  }
+						: {
+								namingScheme: "material",
+								name: "heart-outline"
+						  }
 			})
 		)
 
 		items.push(
 			createContextItem({
 				actionKey: "rename",
-				title: t("notes.tags.menu.rename")
+				title: t("notes.tags.menu.rename"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "pencil"
+						  }
+						: {
+								namingScheme: "material",
+								name: "pencil"
+						  }
 			})
 		)
 
@@ -38,12 +61,24 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 			createContextItem({
 				actionKey: "delete",
 				title: t("notes.tags.menu.delete"),
-				destructive: true
+				destructive: true,
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "trash",
+								color: colors.destructive
+						  }
+						: {
+								namingScheme: "material",
+								name: "trash-can-outline",
+								color: colors.destructive
+						  }
 			})
 		)
 
 		return items
-	}, [t, tag.favorite])
+	}, [t, tag.favorite, colors.destructive])
 
 	const deleteTag = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
@@ -93,7 +128,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 								? {
 										...t,
 										favorite
-									}
+								  }
 								: t
 						)
 				})
@@ -149,7 +184,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 							? {
 									...t,
 									name
-								}
+							  }
 							: t
 					)
 			})

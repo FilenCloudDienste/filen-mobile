@@ -12,6 +12,7 @@ import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { type OrderByType } from "@/lib/utils"
 import { useShallow } from "zustand/shallow"
+import { Platform } from "react-native"
 
 export const Dropdown = memo(() => {
 	const { colors } = useColorScheme()
@@ -26,30 +27,48 @@ export const Dropdown = memo(() => {
 			createDropdownItem({
 				actionKey: "transfers",
 				title: "Transfers",
-				icon: {
-					namingScheme: "sfSymbol",
-					name: "arrow.up"
-				}
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "wifi"
+						  }
+						: {
+								namingScheme: "material",
+								name: "wifi"
+						  }
 			}),
 			...(gridModeEnabled
 				? [
 						createDropdownItem({
 							actionKey: "listMode",
 							title: "List mode",
-							icon: {
-								name: "list.bullet",
-								namingScheme: "sfSymbol"
-							}
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "list.bullet"
+									  }
+									: {
+											namingScheme: "material",
+											name: "format-list-bulleted"
+									  }
 						})
 				  ]
 				: [
 						createDropdownItem({
 							actionKey: "gridMode",
 							title: "Grid mode",
-							icon: {
-								name: "grid",
-								namingScheme: "sfSymbol"
-							}
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "grid"
+									  }
+									: {
+											namingScheme: "material",
+											name: "grid"
+									  }
 						})
 				  ]),
 			createDropdownSubMenu(
@@ -71,35 +90,85 @@ export const Dropdown = memo(() => {
 								title: t("drive.header.rightView.dropdown.sortBy.name"),
 								state: {
 									checked: orderBy === "nameAsc"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "arrow.up"
+										  }
+										: {
+												namingScheme: "material",
+												name: "arrow-up"
+										  }
 							}),
 							createDropdownItem({
 								actionKey: "sortBySizeAsc",
 								title: t("drive.header.rightView.dropdown.sortBy.size"),
 								state: {
 									checked: orderBy === "sizeAsc"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "arrow.up"
+										  }
+										: {
+												namingScheme: "material",
+												name: "arrow-up"
+										  }
 							}),
 							createDropdownItem({
 								actionKey: "sortByUploadDateAsc",
 								title: t("drive.header.rightView.dropdown.sortBy.uploadDate"),
 								state: {
 									checked: orderBy === "uploadDateAsc"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "arrow.up"
+										  }
+										: {
+												namingScheme: "material",
+												name: "arrow-up"
+										  }
 							}),
 							createDropdownItem({
 								actionKey: "sortByLastModifiedAsc",
 								title: t("drive.header.rightView.dropdown.sortBy.lastModified"),
 								state: {
 									checked: orderBy === "lastModifiedAsc"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "arrow.up"
+										  }
+										: {
+												namingScheme: "material",
+												name: "arrow-up"
+										  }
 							}),
 							createDropdownItem({
 								actionKey: "sortByTypeAsc",
 								title: t("drive.header.rightView.dropdown.sortBy.type"),
 								state: {
 									checked: orderBy === "typeAsc"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "arrow.up"
+										  }
+										: {
+												namingScheme: "material",
+												name: "arrow-up"
+										  }
 							})
 						]
 					),
@@ -115,35 +184,85 @@ export const Dropdown = memo(() => {
 								title: t("drive.header.rightView.dropdown.sortBy.name"),
 								state: {
 									checked: orderBy === "nameDesc"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "arrow.down"
+										  }
+										: {
+												namingScheme: "material",
+												name: "arrow-down"
+										  }
 							}),
 							createDropdownItem({
 								actionKey: "sortBySizeDesc",
 								title: t("drive.header.rightView.dropdown.sortBy.size"),
 								state: {
 									checked: orderBy === "sizeDesc"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "arrow.down"
+										  }
+										: {
+												namingScheme: "material",
+												name: "arrow-down"
+										  }
 							}),
 							createDropdownItem({
 								actionKey: "sortByUploadDateDesc",
 								title: t("drive.header.rightView.dropdown.sortBy.uploadDate"),
 								state: {
 									checked: orderBy === "uploadDateDesc"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "arrow.down"
+										  }
+										: {
+												namingScheme: "material",
+												name: "arrow-down"
+										  }
 							}),
 							createDropdownItem({
 								actionKey: "sortByLastModifiedDesc",
 								title: t("drive.header.rightView.dropdown.sortBy.lastModified"),
 								state: {
 									checked: orderBy === "lastModifiedDesc"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "arrow.down"
+										  }
+										: {
+												namingScheme: "material",
+												name: "arrow-down"
+										  }
 							}),
 							createDropdownItem({
 								actionKey: "sortByTypeDesc",
 								title: t("drive.header.rightView.dropdown.sortBy.type"),
 								state: {
 									checked: orderBy === "typeDesc"
-								}
+								},
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "arrow.down"
+										  }
+										: {
+												namingScheme: "material",
+												name: "arrow-down"
+										  }
 							})
 						]
 					)
@@ -158,70 +277,71 @@ export const Dropdown = memo(() => {
 								iOSType: "dropdown"
 							},
 							[
-								createDropdownSubMenu(
-									{
-										title: "download",
-										iOSItemSize: "large",
-										iOSType: "dropdown"
-									},
-									[
-										createDropdownItem({
-											actionKey: "bulkDownload",
-											title: "download",
-											icon: {
-												namingScheme: "sfSymbol",
-												name: "moon.stars"
-											}
-										}),
-										createDropdownItem({
-											actionKey: "bulkOffline",
-											title: "move",
-											icon: {
-												namingScheme: "sfSymbol",
-												name: "moon.stars"
-											}
-										})
-									]
-								),
 								createDropdownItem({
 									actionKey: "bulkShare",
 									title: "share",
-									icon: {
-										namingScheme: "sfSymbol",
-										name: "moon.stars"
-									}
+									icon:
+										Platform.OS === "ios"
+											? {
+													namingScheme: "sfSymbol",
+													name: "square.and.arrow.up"
+											  }
+											: {
+													namingScheme: "material",
+													name: "send-outline"
+											  }
 								}),
 								createDropdownItem({
 									actionKey: "bulkMove",
 									title: "move",
-									icon: {
-										namingScheme: "sfSymbol",
-										name: "moon.stars"
-									}
+									icon:
+										Platform.OS === "ios"
+											? {
+													namingScheme: "sfSymbol",
+													name: "folder"
+											  }
+											: {
+													namingScheme: "material",
+													name: "folder-cog-outline"
+											  }
 								}),
 								createDropdownItem({
 									actionKey: "bulkFavorite",
 									title: "favorite",
-									icon: {
-										namingScheme: "sfSymbol",
-										name: "moon.stars"
-									}
+									icon:
+										Platform.OS === "ios"
+											? {
+													namingScheme: "sfSymbol",
+													name: "heart"
+											  }
+											: {
+													namingScheme: "material",
+													name: "heart-outline"
+											  }
 								}),
 								createDropdownItem({
 									actionKey: "bulkTrash",
 									title: "trash",
 									destructive: true,
-									icon: {
-										namingScheme: "sfSymbol",
-										name: "moon.stars"
-									}
+									icon:
+										Platform.OS === "ios"
+											? {
+													namingScheme: "sfSymbol",
+													name: "trash",
+													color: colors.destructive
+											  }
+											: {
+													namingScheme: "material",
+													name: "trash-can-outline",
+													color: colors.destructive
+											  }
 								})
 							]
 						)
 				  ]
 				: [])
 		] satisfies (DropdownItem | DropdownSubMenu)[]
-	}, [t, orderBy, gridModeEnabled, selectedItemsCount])
+	}, [t, orderBy, gridModeEnabled, selectedItemsCount, colors.destructive])
 
 	const onItemPress = useCallback(
 		(item: Omit<DropdownItem, "icon">, _?: boolean) => {
