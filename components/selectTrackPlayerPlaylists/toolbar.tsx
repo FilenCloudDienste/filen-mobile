@@ -7,11 +7,28 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import { useRouter, useLocalSearchParams } from "expo-router"
 import { useShallow } from "zustand/shallow"
+import { useTranslation } from "react-i18next"
+import usePlaylistsQuery, { type Playlist, updatePlaylist } from "@/queries/usePlaylistsQuery"
+import { randomUUID } from "expo-crypto"
+import queryUtils from "@/queries/utils"
 
 export const Toolbar = memo(() => {
 	const { canGoBack, dismissTo } = useRouter()
 	const selectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.selectedPlaylists))
 	const { id, max, dismissHref } = useLocalSearchParams()
+	const { t } = useTranslation()
+
+	const playlistsQuery = usePlaylistsQuery({
+		enabled: false
+	})
+
+	const playlists = useMemo(() => {
+		if (playlistsQuery.status !== "success") {
+			return []
+		}
+
+		return playlistsQuery.data
+	}, [playlistsQuery.data, playlistsQuery.status])
 
 	const maxParsed = useMemo(() => {
 		return typeof max === "string" ? parseInt(max) : 1
@@ -52,14 +69,15 @@ export const Toolbar = memo(() => {
 
 	const createPlaylist = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
-			title: "new dir",
+			title: t("drive.header.rightView.actionSheet.create.directory"),
 			materialIcon: {
 				name: "folder-plus-outline"
 			},
 			prompt: {
 				type: "plain-text",
 				keyboardType: "default",
-				defaultValue: ""
+				defaultValue: "",
+				placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
 			}
 		})
 
@@ -67,18 +85,34 @@ export const Toolbar = memo(() => {
 			return
 		}
 
-		const name = inputPromptResponse.text.trim()
+		const title = inputPromptResponse.text.trim()
 
-		if (name.length === 0) {
+		if (
+			title.length === 0 ||
+			title.length > 255 ||
+			playlists.some(playlist => playlist.name.toLowerCase().trim() === title.trim().toLowerCase())
+		) {
 			return
 		}
+
+		const uuid = randomUUID()
+		const date = Date.now()
+		const newPlaylist = {
+			name: title,
+			uuid,
+			created: date,
+			updated: date,
+			files: []
+		} satisfies Playlist
 
 		fullScreenLoadingModal.show()
 
 		try {
-			await new Promise<void>(resolve => setTimeout(resolve, 1000))
+			await updatePlaylist(newPlaylist)
 
-			alerts.normal(`${inputPromptResponse.text} created`)
+			queryUtils.usePlaylistsQuerySet({
+				updater: prev => [...prev.filter(p => p.uuid !== uuid), newPlaylist]
+			})
 		} catch (e) {
 			console.error(e)
 
@@ -88,7 +122,7 @@ export const Toolbar = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [])
+	}, [t, playlists])
 
 	return (
 		<ToolbarComponent

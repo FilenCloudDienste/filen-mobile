@@ -1,15 +1,17 @@
-import { usePlaylistsQuery, type Playlist } from "@/queries/usePlaylistsQuery"
+import { usePlaylistsQuery } from "@/queries/usePlaylistsQuery"
 import { useMemo, Fragment, memo, useCallback, useState, useRef } from "react"
 import Header from "@/components/trackPlayer/header"
-import Item from "./item"
 import { useMMKVNumber } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { RefreshControl, View } from "react-native"
 import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
-import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
+import { type ListRenderItemInfo } from "@shopify/flash-list"
+import { List, type ListDataItem, ESTIMATED_ITEM_HEIGHT } from "../nativewindui/List"
 import Container from "../Container"
 import useViewLayout from "@/hooks/useViewLayout"
+import Item, { type ListItemInfo } from "./item"
+import { formatMessageDate } from "@/lib/utils"
 
 export const TrackPlayer = memo(() => {
 	const [trackPlayerToolbarHeight] = useMMKVNumber("trackPlayerToolbarHeight", mmkvInstance)
@@ -31,15 +33,22 @@ export const TrackPlayer = memo(() => {
 			playlistsSearchTermNormalized.length > 0
 				? playlistsQuery.data.filter(playlist => playlist.name.toLowerCase().trim().includes(playlistsSearchTermNormalized))
 				: playlistsQuery.data
-		).sort((a, b) => b.updated - a.updated)
+		)
+			.sort((a, b) => b.updated - a.updated)
+			.map(playlist => ({
+				id: playlist.uuid,
+				title: playlist.name,
+				subTitle: `${playlist.files.length} files, updated ${formatMessageDate(playlist.updated)}`,
+				playlist
+			})) satisfies ListItemInfo[]
 	}, [playlistsQuery.data, playlistsQuery.status, playlistsSearchTerm])
 
-	const renderItem = useCallback((info: ListRenderItemInfo<Playlist>) => {
-		return <Item playlist={info.item} />
+	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
+		return <Item info={info} />
 	}, [])
 
-	const keyExtractor = useCallback((item: Playlist) => {
-		return item.uuid
+	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
+		return typeof item === "string" ? item : item.id
 	}, [])
 
 	return (
@@ -51,7 +60,7 @@ export const TrackPlayer = memo(() => {
 					ref={viewRef}
 					onLayout={onLayout}
 				>
-					<FlashList
+					<List
 						data={playlists}
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
@@ -65,8 +74,7 @@ export const TrackPlayer = memo(() => {
 							right: 0
 						}}
 						contentContainerStyle={{
-							paddingHorizontal: 16,
-							paddingTop: 16
+							paddingTop: 8
 						}}
 						ListFooterComponent={
 							<View
@@ -97,7 +105,7 @@ export const TrackPlayer = memo(() => {
 								  }
 								: undefined
 						}
-						estimatedItemSize={74}
+						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
 						drawDistance={0}
 						removeClippedSubviews={true}
 						disableAutoLayout={true}

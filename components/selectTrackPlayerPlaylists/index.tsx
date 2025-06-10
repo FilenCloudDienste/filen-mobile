@@ -8,12 +8,14 @@ import Container from "@/components/Container"
 import { useSelectTrackPlayerPlaylistsStore } from "@/stores/selectTrackPlayerPlaylists.store"
 import { AdaptiveSearchHeader } from "../nativewindui/AdaptiveSearchHeader"
 import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
-import Item from "../trackPlayer/item"
+import Item, { type ListItemInfo } from "../trackPlayer/item"
+import { formatMessageDate } from "@/lib/utils"
 import { Button } from "../nativewindui/Button"
 import { useShallow } from "zustand/shallow"
-import { type ListRenderItemInfo, FlashList } from "@shopify/flash-list"
+import { type ListRenderItemInfo } from "@shopify/flash-list"
 import useViewLayout from "@/hooks/useViewLayout"
-import usePlaylistsQuery, { type Playlist } from "@/queries/usePlaylistsQuery"
+import usePlaylistsQuery from "@/queries/usePlaylistsQuery"
+import { List, type ListDataItem, ESTIMATED_ITEM_HEIGHT } from "../nativewindui/List"
 
 export const SelectTrackPlayerPlaylists = memo(() => {
 	const { colors } = useColorScheme()
@@ -42,14 +44,21 @@ export const SelectTrackPlayerPlaylists = memo(() => {
 			playlistsSearchTermNormalized.length > 0
 				? playlistsQuery.data.filter(playlist => playlist.name.toLowerCase().trim().includes(playlistsSearchTermNormalized))
 				: playlistsQuery.data
-		).sort((a, b) => b.updated - a.updated)
+		)
+			.sort((a, b) => b.updated - a.updated)
+			.map(playlist => ({
+				id: playlist.uuid,
+				title: playlist.name,
+				subTitle: `${playlist.files.length} files, updated ${formatMessageDate(playlist.updated)}`,
+				playlist
+			})) satisfies ListItemInfo[]
 	}, [playlistsQuery.data, playlistsQuery.status, searchTerm])
 
 	const renderItem = useCallback(
-		(info: ListRenderItemInfo<Playlist>) => {
+		(info: ListRenderItemInfo<ListItemInfo>) => {
 			return (
 				<Item
-					playlist={info.item}
+					info={info}
 					fromSelect={{
 						max: maxParsed
 					}}
@@ -59,8 +68,8 @@ export const SelectTrackPlayerPlaylists = memo(() => {
 		[maxParsed]
 	)
 
-	const keyExtractor = useCallback((item: Playlist) => {
-		return item.uuid
+	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
+		return typeof item === "string" ? item : item.id
 	}, [])
 
 	const cancel = useCallback(() => {
@@ -147,7 +156,7 @@ export const SelectTrackPlayerPlaylists = memo(() => {
 					ref={viewRef}
 					onLayout={onLayout}
 				>
-					<FlashList
+					<List
 						data={playlists}
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
@@ -155,8 +164,7 @@ export const SelectTrackPlayerPlaylists = memo(() => {
 						showsHorizontalScrollIndicator={false}
 						contentInsetAdjustmentBehavior="automatic"
 						contentContainerStyle={{
-							paddingHorizontal: 16,
-							paddingTop: 16
+							paddingTop: 8
 						}}
 						refreshing={refreshing}
 						refreshControl={
@@ -179,7 +187,7 @@ export const SelectTrackPlayerPlaylists = memo(() => {
 								  }
 								: undefined
 						}
-						estimatedItemSize={74}
+						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
 						drawDistance={0}
 						removeClippedSubviews={true}
 						disableAutoLayout={true}

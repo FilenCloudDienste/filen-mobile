@@ -1,9 +1,7 @@
 import { View, Platform } from "react-native"
-import { Text } from "@/components/nativewindui/Text"
 import { type PlaylistFile, updatePlaylist, type Playlist } from "@/queries/usePlaylistsQuery"
 import { memo, useCallback, useMemo, useRef } from "react"
 import { Button } from "@/components/nativewindui/Button"
-import { formatBytes } from "@/lib/utils"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { type TrackMetadata, trackPlayerService } from "@/lib/trackPlayer"
@@ -22,10 +20,19 @@ import { cn } from "@/lib/cn"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import { selectTrackPlayerPlaylists } from "@/app/selectTrackPlayerPlaylists"
+import { ListItem, type ListRenderItemInfo } from "../../nativewindui/List"
 
-export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index: number; playlist: Playlist }) => {
+export type ListItemInfo = {
+	title: string
+	subTitle: string
+	id: string
+	playlist: Playlist
+	file: PlaylistFile
+}
+
+export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const { colors } = useColorScheme()
-	const [trackPlayerFileMetadata] = useMMKVObject<TrackMetadata>(`trackPlayerFileMetadata:${file.uuid}`, mmkvInstance)
+	const [trackPlayerFileMetadata] = useMMKVObject<TrackMetadata>(`trackPlayerFileMetadata:${info.item.file.uuid}`, mmkvInstance)
 	const drag = useReorderableDrag()
 	const { showActionSheetWithOptions } = useActionSheet()
 	const {
@@ -36,10 +43,6 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 	const trackPlayerControls = useTrackPlayerControls()
 
 	const onPress = useCallback(async () => {
-		if (!playlist) {
-			return
-		}
-
 		try {
 			const silentSoundURI = assets.uri.audio.silent_1h()
 			const audioImageFallbackURI = assets.uri.images.audio_fallback()
@@ -50,7 +53,7 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 
 			await trackPlayerControls.clear()
 			await trackPlayerControls.setQueue({
-				queue: playlist.files.map(file => {
+				queue: info.item.playlist.files.map(file => {
 					const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
 					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
@@ -62,11 +65,11 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 						album: metadataParsed?.album,
 						artwork: metadataParsed?.picture ?? audioImageFallbackURI,
 						file,
-						playlist: playlist.uuid
+						playlist: info.item.playlist.uuid
 					}
 				}),
 				autoPlay: true,
-				startingTrackIndex: index
+				startingTrackIndex: info.index
 			})
 
 			await trackPlayerControls.play()
@@ -77,7 +80,7 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 				alerts.error(e.message)
 			}
 		}
-	}, [trackPlayerControls, playlist, index])
+	}, [trackPlayerControls, info.item.playlist, info.index])
 
 	const actionSheetOptions = useMemo(() => {
 		const options = ["Play", "Add to playlist", "Add to queue", "Remove from playlist", "Cancel"]
@@ -101,8 +104,8 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 
 	const remove = useCallback(async () => {
 		const newPlaylist = {
-			...playlist,
-			files: playlist.files.filter(f => f.uuid !== file.uuid)
+			...info.item.playlist,
+			files: info.item.playlist.files.filter(f => f.uuid !== info.item.file.uuid)
 		} satisfies Playlist
 
 		fullScreenLoadingModal.show()
@@ -116,14 +119,14 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 			})
 
 			queryUtils.usePlaylistsQuerySet({
-				updater: prev => prev.map(p => (p.uuid === playlist.uuid ? newPlaylist : p))
+				updater: prev => prev.map(p => (p.uuid === info.item.playlist.uuid ? newPlaylist : p))
 			})
 		} finally {
 			updatePlaylistRemoteMutex.current.release()
 
 			fullScreenLoadingModal.hide()
 		}
-	}, [playlist, file.uuid])
+	}, [info.item.playlist, info.item.file.uuid])
 
 	const addToQueue = useCallback(async () => {
 		const silentSoundURI = assets.uri.audio.silent_1h()
@@ -133,7 +136,7 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 			return
 		}
 
-		const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
+		const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(info.item.file.uuid))
 		const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 		await trackPlayerControls.setQueue({
@@ -141,25 +144,25 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 				...(await trackPlayerControls.getQueue()),
 				...[
 					{
-						id: file.uuid,
+						id: info.item.file.uuid,
 						url: silentSoundURI,
-						title: metadataParsed?.title ?? file.name,
+						title: metadataParsed?.title ?? info.item.file.name,
 						artist: metadataParsed?.artist,
 						album: metadataParsed?.album,
 						artwork: metadataParsed?.picture ?? audioImageFallbackURI,
-						file,
-						playlist: file.playlist
+						file: info.item.file,
+						playlist: info.item.file.playlist
 					}
 				]
 			],
 			autoPlay: false
 		})
-	}, [file, trackPlayerControls])
+	}, [info.item.file, trackPlayerControls])
 
 	const addToPlaylist = useCallback(async () => {
 		const selectTrackPlayerPlaylistsResponse = await selectTrackPlayerPlaylists({
-			max: 1,
-			dismissHref: `/trackPlayer/${playlist.uuid}`
+			max: 9999,
+			dismissHref: `/trackPlayer/${info.item.playlist.uuid}`
 		})
 
 		if (selectTrackPlayerPlaylistsResponse.cancelled || selectTrackPlayerPlaylistsResponse.playlists.length === 0) {
@@ -171,10 +174,14 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 		try {
 			await Promise.all(
 				selectTrackPlayerPlaylistsResponse.playlists.map(async selectedPlaylist => {
+					if (selectedPlaylist.files.some(f => f.uuid === info.item.file.uuid)) {
+						return
+					}
+
 					const newPlaylist = {
 						...selectedPlaylist,
 						updated: Date.now(),
-						files: [...selectedPlaylist.files.filter(f => f.uuid !== file.uuid), file]
+						files: [...selectedPlaylist.files.filter(f => f.uuid !== info.item.file.uuid), info.item.file]
 					} satisfies Playlist
 
 					await updatePlaylist(newPlaylist)
@@ -193,7 +200,7 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [file, playlist])
+	}, [info.item.file, info.item.playlist])
 
 	const onDotsPress = useCallback(() => {
 		showActionSheetWithOptions(
@@ -258,91 +265,74 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 			return false
 		}
 
-		return playingTrack.file.uuid === file.uuid
-	}, [playingTrack, file.uuid])
+		return playingTrack.file.uuid === info.item.file.uuid
+	}, [playingTrack, info.item.file.uuid])
 
 	return (
-		<Button
-			className="flex-row bg-card/70 rounded-md px-3 py-2 gap-4 justify-between items-start mb-2"
-			onPress={onPress}
-			variant="plain"
-			size="none"
-			unstable_pressDelay={100}
-			onLongPress={drag}
-		>
-			{trackPlayerFileMetadata?.picture ? (
-				<Image
-					source={{
-						uri: trackPlayerFileMetadata.picture
-					}}
-					contentFit="cover"
-					style={{
-						width: 36,
-						height: 36,
-						borderRadius: 6,
-						backgroundColor: colors.card,
-						borderWidth: playing ? 1 : 0,
-						borderColor: playing ? colors.primary : "transparent"
-					}}
-				/>
-			) : (
-				<View
-					className={cn("bg-muted rounded-md items-center justify-center", playing && "border-[1px] border-primary")}
-					style={{
-						width: 36,
-						height: 36
-					}}
-				>
-					<Icon
-						name="music-note"
-						size={16}
-						color={colors.foreground}
-					/>
+		<ListItem
+			{...info}
+			leftView={
+				<View className="flex-row items-center px-4 gap-4">
+					{trackPlayerFileMetadata?.picture ? (
+						<Image
+							source={{
+								uri: trackPlayerFileMetadata.picture
+							}}
+							contentFit="cover"
+							style={{
+								width: 36,
+								height: 36,
+								borderRadius: 6,
+								backgroundColor: colors.card,
+								borderWidth: playing ? 1 : 0,
+								borderColor: playing ? colors.primary : "transparent"
+							}}
+						/>
+					) : (
+						<View
+							className={cn("bg-muted rounded-md items-center justify-center", playing && "border-[1px] border-primary")}
+							style={{
+								width: 36,
+								height: 36
+							}}
+						>
+							<Icon
+								name="music-note"
+								size={16}
+								color={colors.foreground}
+							/>
+						</View>
+					)}
 				</View>
-			)}
-			<View className="flex-col flex-1">
-				<Text
-					numberOfLines={2}
-					ellipsizeMode="middle"
-					className="text-base font-normal"
-				>
-					{trackPlayerFileMetadata?.title
-						? `${trackPlayerFileMetadata.title}${trackPlayerFileMetadata.album ? ` - ${trackPlayerFileMetadata.album}` : ""}`
-						: file.name}
-				</Text>
-				{trackPlayerFileMetadata?.title && (
-					<Text
-						className="text-sm font-normal text-muted-foreground"
-						numberOfLines={2}
-						ellipsizeMode="middle"
+			}
+			rightView={
+				<View className="flex-row items-center px-4">
+					<Button
+						className="flex-row items-center  justify-center"
+						size="icon"
+						variant="plain"
+						unstable_pressDelay={100}
+						onPress={onDotsPress}
 					>
-						{file.name}
-					</Text>
-				)}
-				<Text
-					className="text-xs font-normal text-muted-foreground"
-					numberOfLines={1}
-					ellipsizeMode="middle"
-				>
-					{formatBytes(file.size)}
-				</Text>
-			</View>
-			<View className="flex-row items-center shrink-0 h-full">
-				<Button
-					className="flex-row items-center  justify-center"
-					size="icon"
-					variant="plain"
-					unstable_pressDelay={100}
-					onPress={onDotsPress}
-				>
-					<Icon
-						name="dots-horizontal"
-						size={24}
-						color={colors.foreground}
-					/>
-				</Button>
-			</View>
-		</Button>
+						<Icon
+							name="dots-horizontal"
+							size={24}
+							color={colors.foreground}
+						/>
+					</Button>
+				</View>
+			}
+			subTitleClassName="text-xs pt-1 font-normal"
+			variant="full-width"
+			textNumberOfLines={1}
+			subTitleNumberOfLines={1}
+			isFirstInSection={false}
+			isLastInSection={false}
+			onPress={onPress}
+			removeSeparator={Platform.OS === "android"}
+			innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+			onLongPress={drag}
+		/>
 	)
 })
 

@@ -1,10 +1,8 @@
 import { View, Platform } from "react-native"
-import { Text } from "@/components/nativewindui/Text"
 import { type Playlist, fetchPlaylists } from "@/queries/usePlaylistsQuery"
 import { useMemo, memo, useCallback } from "react"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { formatMessageDate } from "@/lib/utils"
 import { useRouter } from "expo-router"
 import { Button } from "@/components/nativewindui/Button"
 import { type TrackMetadata, trackPlayerService } from "@/lib/trackPlayer"
@@ -25,11 +23,25 @@ import { useSelectTrackPlayerPlaylistsStore } from "@/stores/selectTrackPlayerPl
 import { useShallow } from "zustand/shallow"
 import { Checkbox } from "../nativewindui/Checkbox"
 import { type SelectTrackPlayerPlaylistsParams } from "@/app/selectTrackPlayerPlaylists"
+import { ListItem, type ListRenderItemInfo } from "../nativewindui/List"
+
+export type ListItemInfo = {
+	title: string
+	subTitle: string
+	id: string
+	playlist: Playlist
+}
 
 const IMAGE_SIZE = 42
 
 export const Item = memo(
-	({ playlist, fromSelect }: { playlist: Playlist; fromSelect?: Omit<SelectTrackPlayerPlaylistsParams, "dismissHref"> }) => {
+	({
+		info,
+		fromSelect
+	}: {
+		info: ListRenderItemInfo<ListItemInfo>
+		fromSelect?: Omit<SelectTrackPlayerPlaylistsParams, "dismissHref">
+	}) => {
 		const { colors } = useColorScheme()
 		const router = useRouter()
 		const { playingTrack } = useTrackPlayerState()
@@ -39,7 +51,7 @@ export const Item = memo(
 		} = useDimensions()
 		const trackPlayerControls = useTrackPlayerControls()
 		const isSelected = useSelectTrackPlayerPlaylistsStore(
-			useShallow(state => state.selectedPlaylists.some(p => p.uuid === playlist.uuid))
+			useShallow(state => state.selectedPlaylists.some(p => p.uuid === info.item.playlist.uuid))
 		)
 		const setSelectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.setSelectedPlaylists))
 		const selectedPlaylistsCount = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.selectedPlaylists.length))
@@ -49,13 +61,13 @@ export const Item = memo(
 				return false
 			}
 
-			return playingTrack.playlist === playlist.uuid
-		}, [playingTrack, playlist.uuid, fromSelect])
+			return playingTrack.playlist === info.item.playlist.uuid
+		}, [playingTrack, info.item.playlist.uuid, fromSelect])
 
 		const playlistPictures = useMemo(() => {
 			const pictures: string[] = []
 
-			for (const file of playlist.files) {
+			for (const file of info.item.playlist.files) {
 				try {
 					const metadata = mmkvInstance.getString(`trackPlayerFileMetadata:${file.uuid}`)
 					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
@@ -73,7 +85,7 @@ export const Item = memo(
 			}
 
 			return pictures
-		}, [playlist.files])
+		}, [info.item.playlist.files])
 
 		const actionSheetOptions = useMemo(() => {
 			const options = ["Play", "Add to queue", "Delete", "Cancel"]
@@ -91,7 +103,7 @@ export const Item = memo(
 		}, [])
 
 		const play = useCallback(async () => {
-			if (!playlist || fromSelect) {
+			if (fromSelect) {
 				return
 			}
 
@@ -105,7 +117,7 @@ export const Item = memo(
 
 				await trackPlayerControls.clear()
 				await trackPlayerControls.setQueue({
-					queue: playlist.files.map(file => {
+					queue: info.item.playlist.files.map(file => {
 						const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
 						const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
@@ -117,7 +129,7 @@ export const Item = memo(
 							album: metadataParsed?.album,
 							artwork: metadataParsed?.picture ?? audioImageFallbackURI,
 							file,
-							playlist: playlist.uuid
+							playlist: info.item.playlist.uuid
 						}
 					}),
 					autoPlay: true,
@@ -132,10 +144,10 @@ export const Item = memo(
 					alerts.error(e.message)
 				}
 			}
-		}, [trackPlayerControls, playlist, fromSelect])
+		}, [trackPlayerControls, info.item.playlist, fromSelect])
 
 		const addToQueue = useCallback(async () => {
-			if (!playlist || fromSelect) {
+			if (fromSelect) {
 				return
 			}
 
@@ -150,7 +162,7 @@ export const Item = memo(
 				await trackPlayerControls.setQueue({
 					queue: [
 						...(await trackPlayerControls.getQueue()),
-						...playlist.files.map(file => {
+						...info.item.playlist.files.map(file => {
 							const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
 							const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
@@ -162,7 +174,7 @@ export const Item = memo(
 								album: metadataParsed?.album,
 								artwork: metadataParsed?.picture ?? audioImageFallbackURI,
 								file,
-								playlist: playlist.uuid
+								playlist: info.item.playlist.uuid
 							}
 						})
 					],
@@ -175,10 +187,10 @@ export const Item = memo(
 					alerts.error(e.message)
 				}
 			}
-		}, [trackPlayerControls, playlist, fromSelect])
+		}, [trackPlayerControls, info.item.playlist, fromSelect])
 
 		const deletePlaylist = useCallback(async () => {
-			if (!playlist || fromSelect) {
+			if (fromSelect) {
 				return
 			}
 
@@ -195,7 +207,7 @@ export const Item = memo(
 
 			try {
 				const playlists = await fetchPlaylists()
-				const playlistToDelete = playlists.find(p => p.uuid === playlist.uuid)
+				const playlistToDelete = playlists.find(p => p.uuid === info.item.playlist.uuid)
 
 				if (!playlistToDelete) {
 					return
@@ -213,7 +225,7 @@ export const Item = memo(
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
-		}, [playlist, fromSelect])
+		}, [info.item.playlist, fromSelect])
 
 		const onDotsPress = useCallback(() => {
 			if (fromSelect) {
@@ -289,9 +301,11 @@ export const Item = memo(
 			}
 
 			setSelectedPlaylists(prev =>
-				isSelected ? prev.filter(i => i.uuid !== playlist.uuid) : [...prev.filter(i => i.uuid !== playlist.uuid), playlist]
+				isSelected
+					? prev.filter(i => i.uuid !== info.item.playlist.uuid)
+					: [...prev.filter(i => i.uuid !== info.item.playlist.uuid), info.item.playlist]
 			)
-		}, [setSelectedPlaylists, playlist, isSelected, canSelect])
+		}, [setSelectedPlaylists, info.item.playlist, isSelected, canSelect])
 
 		const onPress = useCallback(() => {
 			if (fromSelect) {
@@ -307,29 +321,25 @@ export const Item = memo(
 			router.push({
 				pathname: "/trackPlayer/[playlist]",
 				params: {
-					playlist: playlist.uuid
+					playlist: info.item.playlist.uuid
 				}
 			})
-		}, [router, fromSelect, playlist, select])
+		}, [router, fromSelect, info.item.playlist, select])
 
 		return (
-			<View className="flex-1 flex-row items-center gap-4">
-				{fromSelect && (
-					<Checkbox
-						checked={isSelected}
-						hitSlop={15}
-						onCheckedChange={select}
-						className="shrink-0"
-					/>
-				)}
-				<Button
-					className="flex-1 flex-row bg-card/70 rounded-md px-3 py-2 gap-4 items-start mb-2"
-					onPress={onPress}
-					variant="plain"
-					size="none"
-					unstable_pressDelay={100}
-				>
-					<View className="flex-row items-center gap-3">
+			<ListItem
+				{...info}
+				leftView={
+					<View className="flex-row items-center px-4 gap-4">
+						{fromSelect && (
+							<Checkbox
+								checked={isSelected}
+								hitSlop={15}
+								onCheckedChange={select}
+								disabled={!canSelect}
+								className="shrink-0"
+							/>
+						)}
 						{playlistPictures.length > 0 ? (
 							<View
 								className={cn("flex-row flex-wrap rounded-md overflow-hidden", playing && "border-[1px] border-primary")}
@@ -392,23 +402,9 @@ export const Item = memo(
 							</View>
 						)}
 					</View>
-					<View className="flex-1 flex-row items-center gap-3">
-						<View className="flex-col flex-1">
-							<Text
-								numberOfLines={2}
-								ellipsizeMode="middle"
-								className="text-base font-normal"
-							>
-								{playlist.name}
-							</Text>
-							<Text
-								className="text-xs font-normal text-muted-foreground"
-								numberOfLines={2}
-								ellipsizeMode="middle"
-							>
-								{playlist.files.length} files, updated {formatMessageDate(playlist.updated)}
-							</Text>
-						</View>
+				}
+				rightView={
+					<View className="flex-row items-center px-4">
 						{!fromSelect && (
 							<Button
 								className="flex-row items-center shrink-0 justify-center"
@@ -425,8 +421,19 @@ export const Item = memo(
 							</Button>
 						)}
 					</View>
-				</Button>
-			</View>
+				}
+				subTitleClassName="text-xs pt-1 font-normal"
+				variant="full-width"
+				textNumberOfLines={1}
+				subTitleNumberOfLines={1}
+				isFirstInSection={false}
+				isLastInSection={false}
+				onPress={onPress}
+				removeSeparator={Platform.OS === "android"}
+				innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+				disabled={fromSelect && !canSelect}
+				onLongPress={fromSelect ? onPress : onDotsPress}
+			/>
 		)
 	}
 )

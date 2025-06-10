@@ -209,6 +209,51 @@ export const Header = memo(() => {
 		}
 	}, [playlist, trackPlayerControls])
 
+	const rightView = useCallback(() => {
+		if (playlist) {
+			return (
+				<View className="flex-row items-center">
+					<Button
+						variant="plain"
+						size="icon"
+						onPress={playPlaylist}
+					>
+						<Icon
+							name="play-circle-outline"
+							size={24}
+							color={colors.primary}
+						/>
+					</Button>
+					<Button
+						variant="plain"
+						size="icon"
+						onPress={addTrackToPlaylist}
+					>
+						<Icon
+							name="plus"
+							size={24}
+							color={colors.primary}
+						/>
+					</Button>
+				</View>
+			)
+		}
+
+		return (
+			<Button
+				variant="plain"
+				size="icon"
+				onPress={createPlaylist}
+			>
+				<Icon
+					name="plus"
+					size={24}
+					color={colors.primary}
+				/>
+			</Button>
+		)
+	}, [playlist, playPlaylist, addTrackToPlaylist, createPlaylist, colors.primary])
+
 	return (
 		<Fragment>
 			{Platform.OS === "ios" ? (
@@ -220,49 +265,7 @@ export const Header = memo(() => {
 					iosBackVisible={playlist !== null}
 					iosBackButtonTitleVisible={false}
 					backgroundColor={colors.card}
-					rightView={() => {
-						if (playlist) {
-							return (
-								<View className="flex-row items-center">
-									<Button
-										variant="plain"
-										size="icon"
-										onPress={playPlaylist}
-									>
-										<Icon
-											name="play-circle-outline"
-											size={24}
-											color={colors.primary}
-										/>
-									</Button>
-									<Button
-										variant="plain"
-										size="icon"
-										onPress={addTrackToPlaylist}
-									>
-										<Icon
-											name="plus"
-											size={24}
-											color={colors.primary}
-										/>
-									</Button>
-								</View>
-							)
-						}
-
-						return (
-							<Button
-								variant="plain"
-								onPress={createPlaylist}
-							>
-								<Icon
-									name="plus"
-									size={24}
-									color={colors.primary}
-								/>
-							</Button>
-						)
-					}}
+					rightView={rightView}
 					searchBar={{
 						iosHideWhenScrolling: false,
 						onChangeText: text => {
@@ -282,20 +285,7 @@ export const Header = memo(() => {
 					materialPreset="inline"
 					backVisible={true}
 					backgroundColor={colors.card}
-					rightView={() => {
-						return (
-							<Button
-								variant="plain"
-								onPress={() => {}}
-							>
-								<Icon
-									name="dots-horizontal-circle-outline"
-									size={24}
-									color={colors.primary}
-								/>
-							</Button>
-						)
-					}}
+					rightView={rightView}
 					searchBar={{
 						iosHideWhenScrolling: false,
 						onChangeText: text => {

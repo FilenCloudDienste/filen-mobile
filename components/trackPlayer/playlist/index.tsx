@@ -1,11 +1,10 @@
 import { type ListRenderItemInfo, RefreshControl, View, Platform } from "react-native"
-import { usePlaylistsQuery, type PlaylistFile, updatePlaylist, type Playlist as PlaylistType } from "@/queries/usePlaylistsQuery"
+import { usePlaylistsQuery, updatePlaylist, type Playlist as PlaylistType } from "@/queries/usePlaylistsQuery"
 import { useMemo, Fragment, memo, useCallback, useRef, useState } from "react"
 import Header from "@/components/trackPlayer/header"
 import { useLocalSearchParams } from "expo-router"
 import { useMMKVNumber } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import Item from "./item"
 import ReorderableList, { type ReorderableListReorderEvent, reorderItems } from "react-native-reorderable-list"
 import queryUtils from "@/queries/utils"
 import Semaphore from "@/lib/semaphore"
@@ -14,6 +13,8 @@ import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import Container from "@/components/Container"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
+import Item, { type ListItemInfo } from "./item"
+import { type ListDataItem } from "@/components/nativewindui/List"
 
 export const Playlist = memo(() => {
 	const { playlist: passedPlaylist } = useLocalSearchParams()
@@ -41,11 +42,17 @@ export const Playlist = memo(() => {
 
 		const playlistSearchTermNormalized = playlistSearchTerm.toLowerCase().trim()
 
-		if (playlistSearchTermNormalized.length > 0) {
-			return playlist.files.filter(file => file.name.toLowerCase().trim().includes(playlistSearchTermNormalized))
-		}
-
-		return playlist.files
+		return (
+			playlistSearchTermNormalized.length > 0
+				? playlist.files.filter(file => file.name.toLowerCase().trim().includes(playlistSearchTermNormalized))
+				: playlist.files
+		).map(file => ({
+			id: file.uuid,
+			title: file.name,
+			subTitle: file.name,
+			playlist,
+			file
+		})) satisfies ListItemInfo[]
 	}, [playlist, playlistSearchTerm])
 
 	const handleReorder = useCallback(
@@ -54,24 +61,23 @@ export const Playlist = memo(() => {
 				return
 			}
 
-			const oldPlaylist = JSON.parse(JSON.stringify(playlist)) as PlaylistType
-			const newPlaylist = {
-				...playlist,
-				files: reorderItems(playlist.files, e.from, e.to)
-			} satisfies PlaylistType
-
-			queryUtils.usePlaylistsQuerySet({
-				updater: prev => prev.map(p => (p.uuid === playlist.uuid ? newPlaylist : p))
-			})
-
 			fullScreenLoadingModal.show()
 
 			await updatePlaylistRemoteMutex.current.acquire()
 
 			try {
+				const newPlaylist = {
+					...playlist,
+					files: reorderItems(playlist.files, e.from, e.to)
+				} satisfies PlaylistType
+
 				await updatePlaylist({
 					...newPlaylist,
 					updated: Date.now()
+				})
+
+				queryUtils.usePlaylistsQuerySet({
+					updater: prev => prev.map(p => (p.uuid === playlist.uuid ? newPlaylist : p))
 				})
 			} catch (e) {
 				console.error(e)
@@ -79,10 +85,6 @@ export const Playlist = memo(() => {
 				if (e instanceof Error) {
 					alerts.error(e.message)
 				}
-
-				queryUtils.usePlaylistsQuerySet({
-					updater: prev => prev.map(p => (p.uuid === playlist.uuid ? oldPlaylist : p))
-				})
 			} finally {
 				fullScreenLoadingModal.hide()
 
@@ -92,25 +94,20 @@ export const Playlist = memo(() => {
 		[playlist]
 	)
 
-	const renderItem = useCallback(
-		(info: ListRenderItemInfo<PlaylistFile>) => {
-			if (!playlist) {
-				return null
-			}
+	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
+		return (
+			<Item
+				info={{
+					item: info.item,
+					index: info.index,
+					target: "Cell"
+				}}
+			/>
+		)
+	}, [])
 
-			return (
-				<Item
-					file={info.item}
-					index={info.index}
-					playlist={playlist}
-				/>
-			)
-		},
-		[playlist]
-	)
-
-	const keyExtractor = useCallback((item: PlaylistFile) => {
-		return item.uuid
+	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
+		return typeof item === "string" ? item : item.id
 	}, [])
 
 	return (
@@ -123,10 +120,8 @@ export const Playlist = memo(() => {
 						onReorder={handleReorder}
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
-						style={{
-							flex: 1,
-							paddingHorizontal: 16,
-							paddingTop: 16
+						contentContainerStyle={{
+							paddingTop: 8
 						}}
 						showsVerticalScrollIndicator={true}
 						showsHorizontalScrollIndicator={false}
@@ -146,8 +141,6 @@ export const Playlist = memo(() => {
 							/>
 						}
 						refreshing={Platform.OS === "ios" ? refreshing : false}
-						windowSize={1}
-						maxToRenderPerBatch={3}
 						refreshControl={
 							Platform.OS === "ios" ? (
 								<RefreshControl
