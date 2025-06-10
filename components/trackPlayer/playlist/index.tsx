@@ -1,4 +1,4 @@
-import { type ListRenderItemInfo, RefreshControl, View } from "react-native"
+import { type ListRenderItemInfo, RefreshControl, View, Platform } from "react-native"
 import { usePlaylistsQuery, type PlaylistFile, updatePlaylist, type Playlist as PlaylistType } from "@/queries/usePlaylistsQuery"
 import { useMemo, Fragment, memo, useCallback, useRef, useState } from "react"
 import Header from "@/components/trackPlayer/header"
@@ -13,6 +13,7 @@ import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import Container from "@/components/Container"
+import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 
 export const Playlist = memo(() => {
 	const { playlist: passedPlaylist } = useLocalSearchParams()
@@ -65,6 +66,8 @@ export const Playlist = memo(() => {
 
 			await updatePlaylistRemoteMutex.current.acquire()
 
+			fullScreenLoadingModal.show()
+
 			try {
 				await updatePlaylist({
 					...newPlaylist,
@@ -81,6 +84,8 @@ export const Playlist = memo(() => {
 					updater: prev => prev.map(p => (p.uuid === playlist.uuid ? oldPlaylist : p))
 				})
 			} finally {
+				fullScreenLoadingModal.hide()
+
 				updatePlaylistRemoteMutex.current.release()
 			}
 		},
@@ -112,49 +117,53 @@ export const Playlist = memo(() => {
 		<Fragment>
 			<Header />
 			<Container>
-				<ReorderableList
-					data={files}
-					onReorder={handleReorder}
-					renderItem={renderItem}
-					keyExtractor={keyExtractor}
-					style={{
-						flex: 1,
-						paddingHorizontal: 16,
-						paddingTop: 16
-					}}
-					showsVerticalScrollIndicator={true}
-					showsHorizontalScrollIndicator={false}
-					contentInsetAdjustmentBehavior="automatic"
-					scrollIndicatorInsets={{
-						top: 0,
-						left: 0,
-						bottom: trackPlayerToolbarHeight ?? 0,
-						right: 0
-					}}
-					ListFooterComponent={
-						<View
-							style={{
-								flex: 1,
-								height: (trackPlayerToolbarHeight ?? 0) + 16
-							}}
-						/>
-					}
-					refreshing={refreshing}
-					windowSize={1}
-					maxToRenderPerBatch={3}
-					refreshControl={
-						<RefreshControl
-							refreshing={refreshing}
-							onRefresh={async () => {
-								setRefreshing(true)
+				<View className="flex-1">
+					<ReorderableList
+						data={files}
+						onReorder={handleReorder}
+						renderItem={renderItem}
+						keyExtractor={keyExtractor}
+						style={{
+							flex: 1,
+							paddingHorizontal: 16,
+							paddingTop: 16
+						}}
+						showsVerticalScrollIndicator={true}
+						showsHorizontalScrollIndicator={false}
+						contentInsetAdjustmentBehavior="automatic"
+						scrollIndicatorInsets={{
+							top: 0,
+							left: 0,
+							bottom: trackPlayerToolbarHeight ?? 0,
+							right: 0
+						}}
+						ListFooterComponent={
+							<View
+								style={{
+									flex: 1,
+									height: (trackPlayerToolbarHeight ?? 0) + 100
+								}}
+							/>
+						}
+						refreshing={Platform.OS === "ios" ? refreshing : false}
+						windowSize={1}
+						maxToRenderPerBatch={3}
+						refreshControl={
+							Platform.OS === "ios" ? (
+								<RefreshControl
+									refreshing={refreshing}
+									onRefresh={async () => {
+										setRefreshing(true)
 
-								await playlistsQuery.refetch().catch(console.error)
+										await playlistsQuery.refetch().catch(console.error)
 
-								setRefreshing(false)
-							}}
-						/>
-					}
-				/>
+										setRefreshing(false)
+									}}
+								/>
+							) : undefined
+						}
+					/>
+				</View>
 			</Container>
 		</Fragment>
 	)

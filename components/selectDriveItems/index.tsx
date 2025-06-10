@@ -126,9 +126,15 @@ export const SelectDriveItems = memo(() => {
 
 	const headerTitle = useMemo(() => {
 		return typeof parent !== "string" || !cache.directoryUUIDToName.has(parent)
-			? "Drive"
+			? typeParsed === "file"
+				? maxParsed === 1
+					? "Select file"
+					: "Select files"
+				: maxParsed === 1
+				? "Select directory"
+				: "Select directories"
 			: cache.directoryUUIDToName.get(parent) ?? "Drive"
-	}, [parent])
+	}, [parent, typeParsed, maxParsed])
 
 	const cancel = useCallback(() => {
 		if (!routerCanGoBack()) {

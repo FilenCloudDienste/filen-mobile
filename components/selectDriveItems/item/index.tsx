@@ -9,6 +9,7 @@ import { useShallow } from "zustand/shallow"
 import { type PreviewType } from "@/stores/gallery.store"
 import { Paths } from "expo-file-system/next"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
+import { Platform } from "react-native"
 
 export type ListItemInfo = {
 	title: string
@@ -139,14 +140,16 @@ export const Item = memo(
 				item={item}
 				className="overflow-hidden"
 				leftView={leftView}
-				subTitleClassName="text-xs"
+				disabled={type === "file" && info.item.item.type === "directory" ? false : !canSelect}
+				subTitleClassName="text-xs pt-1 font-normal"
 				variant="full-width"
 				textNumberOfLines={1}
 				subTitleNumberOfLines={1}
 				isFirstInSection={false}
 				isLastInSection={false}
 				onPress={onPress}
-				disabled={type === "file" && info.item.item.type === "directory" ? false : !canSelect}
+				removeSeparator={Platform.OS === "android"}
+				innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
 			/>
 		)
 	}

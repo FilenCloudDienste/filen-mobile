@@ -12,6 +12,7 @@ import { useRouter } from "expo-router"
 import ContainerComponent from "./container"
 import { orderItemsByType } from "@/lib/utils"
 import useAccountQuery from "@/queries/useAccountQuery"
+import { Icon } from "@roninoss/icons"
 
 export const Home = memo(() => {
 	const { colors } = useColorScheme()
@@ -173,7 +174,7 @@ export const Home = memo(() => {
 				backVisible={false}
 				materialPreset="stack"
 				leftView={
-					account.isSuccess
+					account.status === "success"
 						? () => {
 								return (
 									<View className="flex flex-row items-center">
@@ -195,6 +196,25 @@ export const Home = memo(() => {
 						  }
 						: undefined
 				}
+				rightView={() => {
+					return (
+						<Button
+							variant="plain"
+							size="icon"
+							onPress={() => {
+								router.push({
+									pathname: "/trackPlayer"
+								})
+							}}
+						>
+							<Icon
+								name="music-note"
+								size={24}
+								color={colors.primary}
+							/>
+						</Button>
+					)
+				}}
 			/>
 			<Container>
 				{!loadDone ? (

@@ -46,7 +46,7 @@ export const Toolbar = memo(() => {
 		<View
 			ref={viewRef}
 			onLayout={onLayout}
-			className="rounded-t-lg overflow-hidden absolute bottom-0 left-0 right-0 flex-1"
+			className="rounded-t-lg overflow-hidden flex-1 absolute bottom-0 left-0 right-0"
 		>
 			<BlurView
 				className={cn("flex-col px-4 pt-4", Platform.OS === "android" && "bg-card")}

@@ -58,6 +58,7 @@ export const TrackPlayer = memo(() => {
 						showsVerticalScrollIndicator={true}
 						showsHorizontalScrollIndicator={false}
 						contentInsetAdjustmentBehavior="automatic"
+						scrollEnabled={true}
 						scrollIndicatorInsets={{
 							top: 0,
 							left: 0,
@@ -72,7 +73,7 @@ export const TrackPlayer = memo(() => {
 							<View
 								style={{
 									flex: 1,
-									height: (trackPlayerToolbarHeight ?? 0) + 16
+									height: (trackPlayerToolbarHeight ?? 0) + 100
 								}}
 							/>
 						}
