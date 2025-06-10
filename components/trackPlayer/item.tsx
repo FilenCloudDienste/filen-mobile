@@ -20,6 +20,7 @@ import nodeWorker from "@/lib/nodeWorker"
 import { alertPrompt } from "../prompts/alertPrompt"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
+import events from "@/lib/events"
 
 const IMAGE_SIZE = 42
 
@@ -247,17 +248,23 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 		)
 	}, [actionSheetOptions, colors, showActionSheetWithOptions, bottomInsets, play, deletePlaylist, addToQueue])
 
+	const onPress = useCallback(() => {
+		events.emit("hideSearchBar", {
+			clearText: true
+		})
+
+		router.push({
+			pathname: "/trackPlayer/[playlist]",
+			params: {
+				playlist: playlist.uuid
+			}
+		})
+	}, [router, playlist.uuid])
+
 	return (
 		<Button
 			className="flex-row bg-card rounded-md px-3 py-2 gap-4 items-start mb-2"
-			onPress={() => {
-				router.push({
-					pathname: "/trackPlayer/[playlist]",
-					params: {
-						playlist: playlist.uuid
-					}
-				})
-			}}
+			onPress={onPress}
 			variant="plain"
 			size="none"
 			unstable_pressDelay={100}
