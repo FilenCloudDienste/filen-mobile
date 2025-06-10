@@ -47,20 +47,28 @@ export const Settings = memo((props: SettingsProps) => {
 			}
 
 			return (
-				<Button
-					size="lg"
-					variant="plain"
-					className="justify-start py-5 items-center px-4"
-					onPress={info.item.onPress}
-					android_ripple={props.disableAndroidRipple ? null : undefined}
-				>
-					{info.item.leftView && <View className="flex-row items-center">{info.item.leftView}</View>}
-					<View className={cn("flex-col flex-1", info.item.leftView && "pl-4")}>
-						<Text className="text-xl font-normal">{info.item.title}</Text>
-						{info.item.subTitle && <Text className="text-muted-foreground text-base font-normal">{info.item.subTitle}</Text>}
-					</View>
-					{info.item.rightView && <View className="flex-row items-center">{info.item.rightView}</View>}
-				</Button>
+				<View className="px-4">
+					<Button
+						size="lg"
+						variant="plain"
+						className="justify-start py-5 items-center"
+						onPress={info.item.onPress}
+						{...(props.disableAndroidRipple
+							? {
+									android_ripple: undefined
+							  }
+							: {})}
+					>
+						{info.item.leftView && <View className="flex-row items-center">{info.item.leftView}</View>}
+						<View className={cn("flex-col flex-1", info.item.leftView && "pl-4")}>
+							<Text className="text-xl font-normal">{info.item.title}</Text>
+							{info.item.subTitle && (
+								<Text className="text-muted-foreground text-base font-normal">{info.item.subTitle}</Text>
+							)}
+						</View>
+						{info.item.rightView && <View className="flex-row items-center">{info.item.rightView}</View>}
+					</Button>
+				</View>
 			)
 		},
 		[props.disableAndroidRipple]
@@ -86,9 +94,9 @@ export const Settings = memo((props: SettingsProps) => {
 				onLayout={onLayout}
 			>
 				<List
-					rootClassName="bg-background px-4"
+					rootClassName="bg-background"
 					contentContainerStyle={{
-						paddingBottom: 80
+						paddingBottom: 100
 					}}
 					contentInsetAdjustmentBehavior="automatic"
 					variant="full-width"

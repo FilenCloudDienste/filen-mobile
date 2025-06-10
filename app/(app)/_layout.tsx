@@ -316,7 +316,7 @@ export const MaterialTabItem = memo(
 				<View className="h-8 w-16 items-center justify-center overflow-hidden rounded-full ">
 					<Animated.View
 						style={animatedStyle}
-						className="bg-secondary/70 dark:bg-secondary"
+						className="bg-primary/25 dark:bg-primary-foreground"
 					/>
 					<View>
 						<Icon
