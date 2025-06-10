@@ -48,7 +48,6 @@ export const AuthedListeners = memo(() => {
 					params: {
 						id: e.data.id,
 						type: e.data.type,
-						multiple: e.data.multiple ? 1 : 0,
 						max: e.data.max
 					}
 				})

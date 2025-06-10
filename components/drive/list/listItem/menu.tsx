@@ -920,8 +920,7 @@ export const Menu = memo(
 		const share = useCallback(async () => {
 			const selectContactsResponse = await selectContacts({
 				type: "all",
-				multiple: true,
-				max: 1000
+				max: 9999
 			})
 
 			if (selectContactsResponse.cancelled) {

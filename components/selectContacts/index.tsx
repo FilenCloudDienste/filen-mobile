@@ -19,7 +19,7 @@ import useViewLayout from "@/hooks/useViewLayout"
 
 export const SelectContacts = memo(() => {
 	const { colors } = useColorScheme()
-	const { id, type, multiple, max } = useLocalSearchParams()
+	const { id, type, max } = useLocalSearchParams()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const { back, canGoBack } = useRouter()
@@ -31,6 +31,10 @@ export const SelectContacts = memo(() => {
 	const query = useContactsQuery({
 		type: typeof type === "string" ? (type as "all" | "blocked") : "all"
 	})
+
+	const maxParsed = useMemo(() => {
+		return typeof max === "string" ? parseInt(max) : 1
+	}, [max])
 
 	const contacts = useMemo(() => {
 		if (!query.isSuccess) {
@@ -72,12 +76,11 @@ export const SelectContacts = memo(() => {
 			return (
 				<Contact
 					info={info}
-					multiple={typeof multiple === "string" ? parseInt(multiple) === 1 : false}
-					max={typeof max === "string" ? parseInt(max) : Infinity}
+					max={maxParsed}
 				/>
 			)
 		},
-		[multiple, max]
+		[maxParsed]
 	)
 
 	const submit = useCallback(() => {
@@ -123,6 +126,18 @@ export const SelectContacts = memo(() => {
 		console.log({ email })
 	}, [])
 
+	const iosHint = useMemo(() => {
+		if (selectedContacts.length === 0) {
+			return undefined
+		}
+
+		return selectedContacts.length === 1
+			? selectedContacts.at(0)
+				? `${contactName(selectedContacts.at(0)?.email, selectedContacts.at(0)?.nickName)} selected`
+				: undefined
+			: `${selectedContacts.length} selected`
+	}, [selectedContacts])
+
 	useEffect(() => {
 		return () => {
 			setSelectedContacts([])
@@ -141,7 +156,7 @@ export const SelectContacts = memo(() => {
 		<Fragment>
 			<AdaptiveSearchHeader
 				iosBackButtonTitle="Cancel"
-				iosTitle="Select contacts"
+				iosTitle={maxParsed === 1 ? "Select contact" : "Select contacts"}
 				iosIsLargeTitle={false}
 				backgroundColor={colors.card}
 				searchBar={{
@@ -164,7 +179,7 @@ export const SelectContacts = memo(() => {
 						keyExtractor={keyExtractor}
 						refreshing={refreshing || query.status === "pending"}
 						contentInsetAdjustmentBehavior="automatic"
-						contentContainerClassName="pb-16"
+						contentContainerClassName="pb-40 pt-2"
 						ListEmptyComponent={
 							<View className="flex-1 items-center justify-center">
 								{query.isSuccess ? (
@@ -211,7 +226,7 @@ export const SelectContacts = memo(() => {
 				</View>
 				<Toolbar
 					iosBlurIntensity={100}
-					iosHint={`${selectedContacts.length} selected`}
+					iosHint={iosHint}
 					leftView={
 						<ToolbarIcon
 							icon={{

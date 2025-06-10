@@ -16,7 +16,6 @@ export type SelectContactsResponse =
 	  }
 
 export type SelectContactsParams = { type: "all" | "blocked" } & {
-	multiple: boolean
 	max: number
 }
 

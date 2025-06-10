@@ -159,8 +159,7 @@ export default function Participants() {
 
 		const selectContactsResponse = await selectContacts({
 			type: "all",
-			multiple: true,
-			max: Infinity
+			max: 9999
 		})
 
 		if (selectContactsResponse.cancelled) {
