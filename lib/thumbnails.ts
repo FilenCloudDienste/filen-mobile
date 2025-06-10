@@ -194,7 +194,7 @@ export class Thumbnails {
 					manipulatedFile.move(destinationFile)
 				} else if (EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS.includes(extname)) {
 					const videoThumbnail = await VideoThumbnails.getThumbnailAsync(
-						`http://localhost:${nodeWorker.httpServerPort}/stream?file=${encodeURIComponent(
+						`http://127.0.0.1:${nodeWorker.httpServerPort}/stream?file=${encodeURIComponent(
 							btoa(
 								JSON.stringify({
 									name: item.name,

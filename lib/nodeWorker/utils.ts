@@ -26,7 +26,7 @@ export async function httpHealthCheck({
 			method,
 			headers,
 			signal: abortController.signal,
-			validateStatus: () => true
+			validateStatus: status => (!expectedStatusCode ? true : expectedStatusCode === status)
 		})
 
 		clearTimeout(timeouter)

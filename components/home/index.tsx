@@ -14,6 +14,9 @@ import { orderItemsByType } from "@/lib/utils"
 import useAccountQuery from "@/queries/useAccountQuery"
 import { Icon } from "@roninoss/icons"
 
+import axios from "axios"
+import nodeWorker from "@/lib/nodeWorker"
+
 export const Home = memo(() => {
 	const { colors } = useColorScheme()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
@@ -201,7 +204,17 @@ export const Home = memo(() => {
 						<Button
 							variant="plain"
 							size="icon"
-							onPress={() => {
+							onPress={async () => {
+								console.log(nodeWorker.httpServerPort)
+
+								try {
+									console.log(await nodeWorker.httpServerAlive())
+								} catch (e) {
+									console.error("Error connecting to the server:", e)
+								}
+
+								return
+
 								router.push({
 									pathname: "/trackPlayer"
 								})

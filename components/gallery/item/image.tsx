@@ -27,7 +27,7 @@ export const Image = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 
 		if (item.itemType === "cloudItem" && item.data.item.type === "file") {
 			return {
-				uri: `http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+				uri: `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
 					btoa(
 						JSON.stringify({
 							name: item.data.item.name,

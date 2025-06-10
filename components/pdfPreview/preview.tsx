@@ -20,7 +20,7 @@ export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 			}
 
 			return {
-				uri: `http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+				uri: `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
 					btoa(
 						JSON.stringify({
 							name: item.driveItem.name,

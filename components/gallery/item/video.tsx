@@ -31,7 +31,7 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 		}
 
 		if (item.itemType === "cloudItem" && item.data.item.type === "file") {
-			return `http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+			return `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
 				btoa(
 					JSON.stringify({
 						name: item.data.item.name,

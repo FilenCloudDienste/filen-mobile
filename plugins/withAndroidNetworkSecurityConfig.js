@@ -8,7 +8,7 @@ const isDevelopment = process.env.APP_ENV === "development" || process.env.NODE_
 const networkSecurityConfigContent = `<?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
 	<domain-config cleartextTrafficPermitted="true">
-		<domain includeSubdomains="true">localhost</domain>
+		<domain includeSubdomains="true">127.0.0.1</domain>
 	</domain-config>
 	${
 		isDevelopment

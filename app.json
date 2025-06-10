@@ -27,7 +27,10 @@
 				"usesNonExemptEncryption": false
 			},
 			"infoPlist": {
-				"UIBackgroundModes": ["audio", "fetch", "processing"]
+				"UIBackgroundModes": ["audio", "fetch", "processing"],
+				"NSAppTransportSecurity": {
+					"NSAllowsLocalNetworking": true
+				}
 			}
 		},
 		"android": {

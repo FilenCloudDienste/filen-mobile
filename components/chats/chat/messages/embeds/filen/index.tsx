@@ -105,7 +105,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 			return ""
 		}
 
-		return `http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+		return `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
 			btoa(
 				JSON.stringify({
 					name: query.data.data.info.name,

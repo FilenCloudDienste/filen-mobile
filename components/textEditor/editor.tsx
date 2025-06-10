@@ -65,7 +65,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				return ""
 			}
 
-			return `http://localhost:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+			return `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
 				btoa(
 					JSON.stringify({
 						name: item.driveItem.name,
