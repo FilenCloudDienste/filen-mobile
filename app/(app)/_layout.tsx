@@ -21,7 +21,7 @@ export default function TabsLayout() {
 	const { colors } = useColorScheme()
 
 	const chatUnreadQuery = useChatUnreadQuery({
-		refetchInterval: 5000
+		refetchInterval: 15000
 	})
 
 	const chatUnread = useMemo(() => {
