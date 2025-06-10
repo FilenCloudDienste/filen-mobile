@@ -31,6 +31,10 @@ export const Bottom = memo(() => {
 		return false
 	}, [trackPlayerState.playingTrack, trackPlayerState.queue.length])
 
+	const buttonsDisabled = useMemo(() => {
+		return trackPlayerState.isLoading || !show
+	}, [trackPlayerState.isLoading, show])
+
 	if (!show) {
 		return null
 	}
@@ -72,7 +76,8 @@ export const Bottom = memo(() => {
 					>
 						<View className="flex-row gap-4 p-2 justify-between items-center">
 							<View className="flex-1 flex-row gap-3 items-center">
-								{typeof trackPlayerState.playingTrack?.artwork === "string" ? (
+								{typeof trackPlayerState.playingTrack?.artwork === "string" &&
+								!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png") ? (
 									<Image
 										source={{
 											uri: trackPlayerState.playingTrack.artwork
@@ -87,7 +92,7 @@ export const Bottom = memo(() => {
 									/>
 								) : (
 									<View
-										className="bg-muted rounded-md items-center justify-center"
+										className="bg-muted/30 rounded-md items-center justify-center"
 										style={{
 											width: 36,
 											height: 36
@@ -126,7 +131,7 @@ export const Bottom = memo(() => {
 								variant="plain"
 								size="icon"
 								onPress={() => {
-									if (trackPlayerState.isLoading) {
+									if (buttonsDisabled) {
 										return
 									}
 

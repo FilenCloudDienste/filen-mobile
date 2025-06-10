@@ -58,7 +58,9 @@ export const Toolbar = memo(() => {
 			>
 				<Container>
 					<View className="flex-row gap-3">
-						{active && typeof trackPlayerState.playingTrack?.artwork === "string" ? (
+						{active &&
+						typeof trackPlayerState.playingTrack?.artwork === "string" &&
+						!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png") ? (
 							<Image
 								source={{
 									uri: trackPlayerState.playingTrack.artwork
@@ -73,7 +75,7 @@ export const Toolbar = memo(() => {
 							/>
 						) : (
 							<View
-								className="bg-muted rounded-md items-center justify-center"
+								className="bg-muted/30 rounded-md items-center justify-center"
 								style={{
 									width: 42,
 									height: 42
@@ -113,8 +115,11 @@ export const Toolbar = memo(() => {
 						<Button
 							variant="plain"
 							size="icon"
-							disabled={buttonsDisabled}
 							onPress={() => {
+								if (buttonsDisabled) {
+									return
+								}
+
 								trackPlayerControls.clear().catch(console.error)
 							}}
 						>
@@ -131,12 +136,15 @@ export const Toolbar = memo(() => {
 							minimumValue={0}
 							maximumValue={100}
 							minimumTrackTintColor="white"
-							disabled={buttonsDisabled}
 							style={{
 								flex: 1,
 								width: "100%"
 							}}
 							onSlidingComplete={value => {
+								if (buttonsDisabled) {
+									return
+								}
+
 								trackPlayerControls.seek(Math.round((value / 100) * trackPlayerState.durationSeconds)).catch(console.error)
 							}}
 						/>
@@ -154,9 +162,15 @@ export const Toolbar = memo(() => {
 							variant="plain"
 							size="none"
 							unstable_pressDelay={100}
-							disabled={buttonsDisabled}
 							android_ripple={null}
 							className="active:opacity-70"
+							onPress={() => {
+								if (buttonsDisabled) {
+									return
+								}
+
+								//TODO
+							}}
 						>
 							<Icon
 								name="shuffle"
@@ -168,10 +182,13 @@ export const Toolbar = memo(() => {
 							variant="plain"
 							size="none"
 							unstable_pressDelay={100}
-							disabled={buttonsDisabled}
 							android_ripple={null}
 							className="active:opacity-70"
 							onPress={() => {
+								if (buttonsDisabled) {
+									return
+								}
+
 								trackPlayerControls.skipToPrevious().catch(console.error)
 							}}
 						>
@@ -186,10 +203,9 @@ export const Toolbar = memo(() => {
 							size="none"
 							unstable_pressDelay={100}
 							className="bg-foreground rounded-full p-4 active:opacity-70"
-							disabled={buttonsDisabled}
 							android_ripple={null}
 							onPress={() => {
-								if (trackPlayerState.isLoading) {
+								if (buttonsDisabled) {
 									return
 								}
 
@@ -213,10 +229,13 @@ export const Toolbar = memo(() => {
 							variant="plain"
 							size="none"
 							unstable_pressDelay={100}
-							disabled={buttonsDisabled}
 							android_ripple={null}
 							className="active:opacity-70"
 							onPress={() => {
+								if (buttonsDisabled) {
+									return
+								}
+
 								trackPlayerControls.skipToNext()
 							}}
 						>
@@ -232,8 +251,11 @@ export const Toolbar = memo(() => {
 							unstable_pressDelay={100}
 							android_ripple={null}
 							className="active:opacity-70"
-							disabled={buttonsDisabled}
 							onPress={() => {
+								if (buttonsDisabled) {
+									return
+								}
+
 								// TODO
 							}}
 						>

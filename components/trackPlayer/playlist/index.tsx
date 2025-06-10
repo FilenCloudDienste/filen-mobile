@@ -64,9 +64,9 @@ export const Playlist = memo(() => {
 				updater: prev => prev.map(p => (p.uuid === playlist.uuid ? newPlaylist : p))
 			})
 
-			await updatePlaylistRemoteMutex.current.acquire()
-
 			fullScreenLoadingModal.show()
+
+			await updatePlaylistRemoteMutex.current.acquire()
 
 			try {
 				await updatePlaylist({

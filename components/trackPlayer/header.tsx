@@ -178,6 +178,7 @@ export const Header = memo(() => {
 				return
 			}
 
+			await trackPlayerControls.clear()
 			await trackPlayerControls.setQueue({
 				queue: playlist.files.map(file => {
 					const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))

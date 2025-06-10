@@ -1,7 +1,7 @@
 import { View, Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { type Playlist, fetchPlaylists } from "@/queries/usePlaylistsQuery"
-import { useMemo, memo, Fragment, useCallback } from "react"
+import { useMemo, memo, useCallback } from "react"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { formatMessageDate } from "@/lib/utils"
@@ -46,15 +46,19 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 		const pictures: string[] = []
 
 		for (const file of playlist.files) {
-			const metadata = mmkvInstance.getString(`trackPlayerFileMetadata:${file.uuid}`)
-			const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
+			try {
+				const metadata = mmkvInstance.getString(`trackPlayerFileMetadata:${file.uuid}`)
+				const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
-			if (metadataParsed?.picture) {
-				pictures.push(metadataParsed.picture)
-			}
+				if (metadataParsed?.picture) {
+					pictures.push(metadataParsed.picture)
+				}
 
-			if (pictures.length >= 4) {
-				break
+				if (pictures.length >= 4) {
+					break
+				}
+			} catch {
+				continue
 			}
 		}
 
@@ -89,6 +93,7 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 				return
 			}
 
+			await trackPlayerControls.clear()
 			await trackPlayerControls.setQueue({
 				queue: playlist.files.map(file => {
 					const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
@@ -263,7 +268,7 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 
 	return (
 		<Button
-			className="flex-row bg-card rounded-md px-3 py-2 gap-4 items-start mb-2"
+			className="flex-row bg-card/70 rounded-md px-3 py-2 gap-4 items-start mb-2"
 			onPress={onPress}
 			variant="plain"
 			size="none"
@@ -271,72 +276,51 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 		>
 			<View className="flex-row items-center gap-3">
 				{playlistPictures.length > 0 ? (
-					<Fragment>
-						{playlistPictures.length === 0 ? (
-							<Image
-								source={{
-									uri: playlistPictures[0]
-								}}
-								contentFit="cover"
-								style={{
-									width: IMAGE_SIZE,
-									height: IMAGE_SIZE,
-									borderRadius: 6,
-									backgroundColor: colors.card,
-									borderWidth: playing ? 1 : 0,
-									borderColor: playing ? colors.primary : "transparent"
-								}}
-							/>
-						) : (
-							<View
-								className={cn(
-									"flex-row flex-wrap bg-card rounded-md overflow-hidden",
-									playing && "border-[1px] border-primary"
-								)}
-								style={{
-									width: IMAGE_SIZE,
-									height: IMAGE_SIZE
-								}}
-							>
-								{playlistPictures.map((picture, index) => {
-									return (
-										<Image
-											key={index}
-											source={{
-												uri: picture
-											}}
-											contentFit="cover"
-											style={{
-												width: IMAGE_SIZE / 2 - (playing ? 1 : 0),
-												height: IMAGE_SIZE / 2 - (playing ? 1 : 0)
-											}}
+					<View
+						className={cn("flex-row flex-wrap rounded-md overflow-hidden", playing && "border-[1px] border-primary")}
+						style={{
+							width: IMAGE_SIZE,
+							height: IMAGE_SIZE
+						}}
+					>
+						{playlistPictures.map((picture, index) => {
+							return (
+								<Image
+									key={index}
+									source={{
+										uri: picture
+									}}
+									contentFit="cover"
+									style={{
+										width: IMAGE_SIZE / 2 - (playing ? 1 : 0),
+										height: IMAGE_SIZE / 2 - (playing ? 1 : 0)
+									}}
+								/>
+							)
+						})}
+						{4 - playlistPictures.length > 0 &&
+							new Array(4 - playlistPictures.length).fill(0).map((_, index) => {
+								return (
+									<View
+										key={index}
+										className="bg-muted/30 flex-row items-center justify-center"
+										style={{
+											width: IMAGE_SIZE / 2 - (playing ? 1 : 0),
+											height: IMAGE_SIZE / 2 - (playing ? 1 : 0)
+										}}
+									>
+										<Icon
+											name="music-note"
+											size={IMAGE_SIZE / 2 / 1.75}
+											color={colors.foreground}
 										/>
-									)
-								})}
-								{new Array(4 - playlistPictures.length).fill(0).map((_, index) => {
-									return (
-										<View
-											key={index}
-											className="bg-muted flex-row items-center justify-center"
-											style={{
-												width: IMAGE_SIZE / 2 - (playing ? 1 : 0),
-												height: IMAGE_SIZE / 2 - (playing ? 1 : 0)
-											}}
-										>
-											<Icon
-												name="music-note"
-												size={IMAGE_SIZE / 2 / 1.75}
-												color={colors.foreground}
-											/>
-										</View>
-									)
-								})}
-							</View>
-						)}
-					</Fragment>
+									</View>
+								)
+							})}
+					</View>
 				) : (
 					<View
-						className={cn("bg-muted rounded-md items-center justify-center", playing && "border-[1px] border-primary")}
+						className={cn("bg-muted/30 rounded-md items-center justify-center", playing && "border-[1px] border-primary")}
 						style={{
 							width: IMAGE_SIZE,
 							height: IMAGE_SIZE
@@ -355,6 +339,7 @@ export const Item = memo(({ playlist }: { playlist: Playlist }) => {
 					<Text
 						numberOfLines={2}
 						ellipsizeMode="middle"
+						className="text-base font-normal"
 					>
 						{playlist.name}
 					</Text>

@@ -47,25 +47,23 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 				return
 			}
 
+			await trackPlayerControls.clear()
 			await trackPlayerControls.setQueue({
-				queue: [
-					...(await trackPlayerControls.getQueue()),
-					...playlist.files.map(file => {
-						const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
-						const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
+				queue: playlist.files.map(file => {
+					const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
+					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
-						return {
-							id: file.uuid,
-							url: silentSoundURI,
-							title: metadataParsed?.title ?? file.name,
-							artist: metadataParsed?.artist,
-							album: metadataParsed?.album,
-							artwork: metadataParsed?.picture ?? audioImageFallbackURI,
-							file,
-							playlist: playlist.uuid
-						}
-					})
-				],
+					return {
+						id: file.uuid,
+						url: silentSoundURI,
+						title: metadataParsed?.title ?? file.name,
+						artist: metadataParsed?.artist,
+						album: metadataParsed?.album,
+						artwork: metadataParsed?.picture ?? audioImageFallbackURI,
+						file,
+						playlist: playlist.uuid
+					}
+				}),
 				autoPlay: true,
 				startingTrackIndex: index
 			})
@@ -225,7 +223,7 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 
 	return (
 		<Button
-			className="flex-row bg-card rounded-md px-3 py-2 gap-4 justify-between items-start mb-2"
+			className="flex-row bg-card/70 rounded-md px-3 py-2 gap-4 justify-between items-start mb-2"
 			onPress={onPress}
 			variant="plain"
 			size="none"
@@ -266,6 +264,7 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 				<Text
 					numberOfLines={2}
 					ellipsizeMode="middle"
+					className="text-base font-normal"
 				>
 					{trackPlayerFileMetadata?.title
 						? `${trackPlayerFileMetadata.title}${trackPlayerFileMetadata.album ? ` - ${trackPlayerFileMetadata.album}` : ""}`
