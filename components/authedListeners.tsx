@@ -74,9 +74,23 @@ export const AuthedListeners = memo(() => {
 			}
 		})
 
+		const selectTrackPlayerPlaylistsSub = events.subscribe("selectTrackPlayerPlaylists", e => {
+			if (e.type === "request") {
+				routerPush({
+					pathname: "/selectTrackPlayerPlaylists",
+					params: {
+						id: e.data.id,
+						max: e.data.max,
+						dismissHref: e.data.dismissHref
+					}
+				})
+			}
+		})
+
 		return () => {
 			selectContactsSub.remove()
 			selectDriveItemsSub.remove()
+			selectTrackPlayerPlaylistsSub.remove()
 		}
 	}, [routerPush, baseFolderUUID, userId])
 

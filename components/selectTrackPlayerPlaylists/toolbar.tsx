@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo } from "react"
-import { useSelectDriveItemsStore } from "@/stores/selectDriveItems.store"
+import { useSelectTrackPlayerPlaylistsStore } from "@/stores/selectTrackPlayerPlaylists.store"
 import { Toolbar as ToolbarComponent, ToolbarCTA, ToolbarIcon } from "@/components/nativewindui/Toolbar"
 import events from "@/lib/events"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
@@ -10,59 +10,47 @@ import { useShallow } from "zustand/shallow"
 
 export const Toolbar = memo(() => {
 	const { canGoBack, dismissTo } = useRouter()
-	const selectedItems = useSelectDriveItemsStore(useShallow(state => state.selectedItems))
-	const { id, max, type, dismissHref } = useLocalSearchParams()
+	const selectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.selectedPlaylists))
+	const { id, max, dismissHref } = useLocalSearchParams()
 
 	const maxParsed = useMemo(() => {
 		return typeof max === "string" ? parseInt(max) : 1
 	}, [max])
 
-	const typeParsed = useMemo(() => {
-		return typeof type === "string" ? (type as "file" | "directory") : "directory"
-	}, [type])
-
 	const canSubmit = useMemo(() => {
-		return (
-			canGoBack() &&
-			selectedItems.length > 0 &&
-			typeof id === "string" &&
-			maxParsed >= selectedItems.length &&
-			(typeParsed === "directory"
-				? !selectedItems.some(item => item.type === "file")
-				: !selectedItems.some(item => item.type === "directory"))
-		)
-	}, [canGoBack, selectedItems, id, maxParsed, typeParsed])
+		return canGoBack() && selectedPlaylists.length > 0 && typeof id === "string" && maxParsed >= selectedPlaylists.length
+	}, [canGoBack, selectedPlaylists, id, maxParsed])
 
 	const iosHint = useMemo(() => {
-		if (selectedItems.length === 0) {
+		if (selectedPlaylists.length === 0) {
 			return undefined
 		}
 
-		return selectedItems.length === 1
-			? selectedItems.at(0)
-				? `${selectedItems.at(0)?.name} selected`
+		return selectedPlaylists.length === 1
+			? selectedPlaylists.at(0)
+				? `${selectedPlaylists.at(0)?.name} selected`
 				: undefined
-			: `${selectedItems.length} selected`
-	}, [selectedItems])
+			: `${selectedPlaylists.length} selected`
+	}, [selectedPlaylists])
 
 	const submit = useCallback(() => {
 		if (!canSubmit) {
 			return
 		}
 
-		events.emit("selectDriveItems", {
+		events.emit("selectTrackPlayerPlaylists", {
 			type: "response",
 			data: {
 				id: typeof id === "string" ? id : "none",
 				cancelled: false,
-				items: selectedItems
+				playlists: selectedPlaylists
 			}
 		})
 
 		dismissTo(typeof dismissHref === "string" ? dismissHref : "/drive")
-	}, [id, canSubmit, dismissTo, selectedItems, dismissHref])
+	}, [id, canSubmit, dismissTo, selectedPlaylists, dismissHref])
 
-	const createDirectory = useCallback(async () => {
+	const createPlaylist = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
 			title: "new dir",
 			materialIcon: {
@@ -111,7 +99,7 @@ export const Toolbar = memo(() => {
 					icon={{
 						name: "plus"
 					}}
-					onPress={createDirectory}
+					onPress={createPlaylist}
 				/>
 			}
 			rightView={

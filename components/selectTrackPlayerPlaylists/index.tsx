@@ -1,0 +1,195 @@
+import { useCallback, useState, useMemo, Fragment, useEffect, memo, useRef } from "react"
+import events from "@/lib/events"
+import { RefreshControl, View, Platform } from "react-native"
+import { Text } from "@/components/nativewindui/Text"
+import { useColorScheme } from "@/lib/useColorScheme"
+import { useLocalSearchParams, useRouter } from "expo-router"
+import Container from "@/components/Container"
+import { useSelectTrackPlayerPlaylistsStore } from "@/stores/selectTrackPlayerPlaylists.store"
+import { AdaptiveSearchHeader } from "../nativewindui/AdaptiveSearchHeader"
+import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
+import Item from "../trackPlayer/item"
+import { Button } from "../nativewindui/Button"
+import { useShallow } from "zustand/shallow"
+import { type ListRenderItemInfo, FlashList } from "@shopify/flash-list"
+import useViewLayout from "@/hooks/useViewLayout"
+import usePlaylistsQuery, { type Playlist } from "@/queries/usePlaylistsQuery"
+
+export const SelectTrackPlayerPlaylists = memo(() => {
+	const { colors } = useColorScheme()
+	const { id, max, dismissHref } = useLocalSearchParams()
+	const [refreshing, setRefreshing] = useState<boolean>(false)
+	const [searchTerm, setSearchTerm] = useState<string>("")
+	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo } = useRouter()
+	const setSelectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.setSelectedPlaylists))
+	const viewRef = useRef<View>(null)
+	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
+
+	const playlistsQuery = usePlaylistsQuery({})
+
+	const maxParsed = useMemo(() => {
+		return typeof max === "string" ? parseInt(max) : 1
+	}, [max])
+
+	const playlists = useMemo(() => {
+		if (playlistsQuery.status !== "success") {
+			return []
+		}
+
+		const playlistsSearchTermNormalized = searchTerm.toLowerCase().trim()
+
+		return (
+			playlistsSearchTermNormalized.length > 0
+				? playlistsQuery.data.filter(playlist => playlist.name.toLowerCase().trim().includes(playlistsSearchTermNormalized))
+				: playlistsQuery.data
+		).sort((a, b) => b.updated - a.updated)
+	}, [playlistsQuery.data, playlistsQuery.status, searchTerm])
+
+	const renderItem = useCallback(
+		(info: ListRenderItemInfo<Playlist>) => {
+			return (
+				<Item
+					playlist={info.item}
+					fromSelect={{
+						max: maxParsed
+					}}
+				/>
+			)
+		},
+		[maxParsed]
+	)
+
+	const keyExtractor = useCallback((item: Playlist) => {
+		return item.uuid
+	}, [])
+
+	const cancel = useCallback(() => {
+		if (!routerCanGoBack()) {
+			return
+		}
+
+		events.emit("selectTrackPlayerPlaylists", {
+			type: "response",
+			data: {
+				id: typeof id === "string" ? id : "none",
+				cancelled: true
+			}
+		})
+
+		routerDismissTo(typeof dismissHref === "string" ? dismissHref : "/drive")
+	}, [id, routerCanGoBack, routerDismissTo, dismissHref])
+
+	useEffect(() => {
+		setSelectedPlaylists([])
+
+		return () => {
+			events.emit("selectDriveItems", {
+				type: "response",
+				data: {
+					id: typeof id === "string" ? id : "none",
+					cancelled: true
+				}
+			})
+		}
+	}, [id, setSelectedPlaylists])
+
+	return (
+		<Fragment>
+			{Platform.OS === "ios" ? (
+				<AdaptiveSearchHeader
+					iosTitle={maxParsed === 1 ? "Select playlist" : "Select playlists"}
+					iosIsLargeTitle={false}
+					iosBackButtonMenuEnabled={true}
+					backgroundColor={colors.card}
+					rightView={() => {
+						return (
+							<Button
+								variant="plain"
+								onPress={cancel}
+							>
+								<Text className="text-blue-500">Cancel</Text>
+							</Button>
+						)
+					}}
+					searchBar={{
+						iosHideWhenScrolling: false,
+						onChangeText: text => setSearchTerm(text),
+						contentTransparent: true,
+						persistBlur: true
+					}}
+				/>
+			) : (
+				<LargeTitleHeader
+					title={maxParsed === 1 ? "Select playlist" : "Select playlists"}
+					materialPreset="inline"
+					backVisible={false}
+					backgroundColor={colors.card}
+					rightView={() => {
+						return (
+							<Button
+								variant="plain"
+								onPress={cancel}
+							>
+								<Text className="text-blue-500">Cancel</Text>
+							</Button>
+						)
+					}}
+					searchBar={{
+						onChangeText: text => setSearchTerm(text),
+						contentTransparent: true,
+						persistBlur: true
+					}}
+				/>
+			)}
+			<Container>
+				<View
+					className="flex-1"
+					ref={viewRef}
+					onLayout={onLayout}
+				>
+					<FlashList
+						data={playlists}
+						renderItem={renderItem}
+						keyExtractor={keyExtractor}
+						showsVerticalScrollIndicator={true}
+						showsHorizontalScrollIndicator={false}
+						contentInsetAdjustmentBehavior="automatic"
+						contentContainerStyle={{
+							paddingHorizontal: 16,
+							paddingTop: 16
+						}}
+						refreshing={refreshing}
+						refreshControl={
+							<RefreshControl
+								refreshing={refreshing}
+								onRefresh={async () => {
+									setRefreshing(true)
+
+									await playlistsQuery.refetch().catch(console.error)
+
+									setRefreshing(false)
+								}}
+							/>
+						}
+						estimatedListSize={
+							listLayout.width > 0 && listLayout.height > 0
+								? {
+										width: listLayout.width,
+										height: listLayout.height
+								  }
+								: undefined
+						}
+						estimatedItemSize={74}
+						drawDistance={0}
+						removeClippedSubviews={true}
+						disableAutoLayout={true}
+					/>
+				</View>
+			</Container>
+		</Fragment>
+	)
+})
+
+SelectTrackPlayerPlaylists.displayName = "SelectTrackPlayerPlaylists"
+
+export default SelectTrackPlayerPlaylists

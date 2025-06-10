@@ -117,7 +117,7 @@ export const Header = memo(() => {
 		const selectDriveItemsResponse = await selectDriveItems({
 			type: "file",
 			max: 9999,
-			dismissHref: "/trackPlayer/",
+			dismissHref: `/trackPlayer/${playlist.uuid}`,
 			extensions: REACT_NATIVE_AUDIO_PRO_SUPPORTED_EXTENSIONS,
 			toMove: playlist.files.map(file => file.uuid)
 		})

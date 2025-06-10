@@ -175,6 +175,15 @@ export default function RootLayout() {
 															animation: "slide_from_bottom"
 														}}
 													/>
+													<Stack.Screen
+														name="selectTrackPlayerPlaylists"
+														options={{
+															headerShown: false,
+															headerBlurEffect: "systemChromeMaterial",
+															presentation: "modal",
+															animation: "slide_from_bottom"
+														}}
+													/>
 												</Stack>
 												<Listeners />
 												{isAuthed && (

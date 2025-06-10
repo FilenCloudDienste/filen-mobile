@@ -21,6 +21,7 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { cn } from "@/lib/cn"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
+import { selectTrackPlayerPlaylists } from "@/app/selectTrackPlayerPlaylists"
 
 export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index: number; playlist: Playlist }) => {
 	const { colors } = useColorScheme()
@@ -155,6 +156,45 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 		})
 	}, [file, trackPlayerControls])
 
+	const addToPlaylist = useCallback(async () => {
+		const selectTrackPlayerPlaylistsResponse = await selectTrackPlayerPlaylists({
+			max: 1,
+			dismissHref: `/trackPlayer/${playlist.uuid}`
+		})
+
+		if (selectTrackPlayerPlaylistsResponse.cancelled || selectTrackPlayerPlaylistsResponse.playlists.length === 0) {
+			return
+		}
+
+		fullScreenLoadingModal.show()
+
+		try {
+			await Promise.all(
+				selectTrackPlayerPlaylistsResponse.playlists.map(async selectedPlaylist => {
+					const newPlaylist = {
+						...selectedPlaylist,
+						updated: Date.now(),
+						files: [...selectedPlaylist.files.filter(f => f.uuid !== file.uuid), file]
+					} satisfies Playlist
+
+					await updatePlaylist(newPlaylist)
+
+					queryUtils.usePlaylistsQuerySet({
+						updater: prev => [...prev.filter(p => p.uuid !== selectedPlaylist.uuid), newPlaylist]
+					})
+				})
+			)
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			fullScreenLoadingModal.hide()
+		}
+	}, [file, playlist])
+
 	const onDotsPress = useCallback(() => {
 		showActionSheetWithOptions(
 			{
@@ -185,7 +225,7 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 						}
 
 						case "addToPlaylist": {
-							// TODO
+							await addToPlaylist()
 
 							break
 						}
@@ -211,7 +251,7 @@ export const Item = memo(({ file, index, playlist }: { file: PlaylistFile; index
 				}
 			}
 		)
-	}, [actionSheetOptions, colors, showActionSheetWithOptions, bottomInsets, play, remove, addToQueue])
+	}, [actionSheetOptions, colors, showActionSheetWithOptions, bottomInsets, play, remove, addToQueue, addToPlaylist])
 
 	const playing = useMemo(() => {
 		if (!playingTrack) {

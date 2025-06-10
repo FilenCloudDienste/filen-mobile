@@ -7,6 +7,7 @@ import { type FullScreenLoadingModalEvent } from "@/components/modals/fullScreen
 import { type SelectContactsEvent } from "@/app/selectContacts"
 import { type SelectDriveItemsEvent } from "@/app/selectDriveItems/[parent]"
 import { type AlertPromptEvent } from "@/components/prompts/alertPrompt"
+import { type SelectTrackPlayerPlaylistsEvent } from "@/app/selectTrackPlayerPlaylists"
 
 export type Events = {
 	socketEvent: SocketEvent
@@ -21,6 +22,7 @@ export type Events = {
 	}
 	selectContacts: SelectContactsEvent
 	selectDriveItems: SelectDriveItemsEvent
+	selectTrackPlayerPlaylists: SelectTrackPlayerPlaylistsEvent
 	toggleItemPublicLinkProgress: {
 		linked: number
 		total: number

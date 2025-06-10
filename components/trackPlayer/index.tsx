@@ -58,7 +58,6 @@ export const TrackPlayer = memo(() => {
 						showsVerticalScrollIndicator={true}
 						showsHorizontalScrollIndicator={false}
 						contentInsetAdjustmentBehavior="automatic"
-						scrollEnabled={true}
 						scrollIndicatorInsets={{
 							top: 0,
 							left: 0,
