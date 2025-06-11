@@ -54,6 +54,9 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 					keyExtractor={keyExtractor}
 					contentInsetAdjustmentBehavior="automatic"
 					refreshing={query.status === "pending"}
+					contentContainerStyle={{
+						paddingBottom: 100
+					}}
 					estimatedListSize={
 						listLayout.width > 0 && listLayout.height > 0
 							? {

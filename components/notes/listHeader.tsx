@@ -1,5 +1,5 @@
 import { memo, useRef, useMemo, useEffect, useCallback } from "react"
-import { View } from "react-native"
+import { View, Platform } from "react-native"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
@@ -106,6 +106,9 @@ export const ListHeader = memo(() => {
 				keyExtractor={keyExtractor}
 				data={listTags}
 				renderItem={renderItem}
+				contentContainerStyle={{
+					paddingTop: Platform.OS === "android" ? 8 : 0
+				}}
 				estimatedListSize={
 					listLayout.width > 0 && listLayout.height > 0
 						? {

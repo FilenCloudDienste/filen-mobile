@@ -166,37 +166,23 @@ export const Menu = memo(
 								: []),
 							...(item.type === "file" && queryParams.of !== "offline"
 								? [
-										isAvailableOffline
-											? createContextItem({
-													actionKey: "removeOffline",
-													title: t("drive.list.item.menu.removeOffline"),
-													icon:
-														Platform.OS === "ios"
-															? {
-																	namingScheme: "sfSymbol",
-																	name: "trash",
-																	color: colors.destructive
-															  }
-															: {
-																	namingScheme: "material",
-																	name: "trash-can-outline",
-																	color: colors.destructive
-															  }
-											  })
-											: createContextItem({
-													actionKey: "makeAvailableOffline",
-													title: t("drive.list.item.menu.makeAvailableOffline"),
-													icon:
-														Platform.OS === "ios"
-															? {
-																	namingScheme: "sfSymbol",
-																	name: "arrow.down.circle"
-															  }
-															: {
-																	namingScheme: "material",
-																	name: "arrow-down-circle-outline"
-															  }
-											  })
+										createContextItem({
+											actionKey: "toggleOffline",
+											title: t("drive.list.item.menu.availableOffline"),
+											state: {
+												checked: isAvailableOffline ?? false
+											},
+											icon:
+												Platform.OS === "ios"
+													? {
+															namingScheme: "sfSymbol",
+															name: "arrow.down.circle"
+													  }
+													: {
+															namingScheme: "material",
+															name: "arrow-down-circle-outline"
+													  }
+										})
 								  ]
 								: [])
 						]
@@ -1723,14 +1709,12 @@ export const Menu = memo(
 							break
 						}
 
-						case "makeAvailableOffline": {
-							await makeAvailableOffline()
-
-							break
-						}
-
-						case "removeOffline": {
-							await removeOffline()
+						case "toggleOffline": {
+							if (isAvailableOffline) {
+								await removeOffline()
+							} else {
+								await makeAvailableOffline()
+							}
 
 							break
 						}
@@ -1808,7 +1792,8 @@ export const Menu = memo(
 				removeSharedOut,
 				deletePermanently,
 				restore,
-				disablePublicLink
+				disablePublicLink,
+				isAvailableOffline
 			]
 		)
 

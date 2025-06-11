@@ -85,7 +85,8 @@
 					"withUser": "With user",
 					"removeSharedIn": "Remove",
 					"removeSharedOut": "Stop sharing",
-					"disablePublicLink": "Disable link"
+					"disablePublicLink": "Disable link",
+					"availableOffline": "Available offline"
 				}
 			}
 		}

@@ -196,7 +196,13 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 				keyboardShouldPersistTaps="never"
 				refreshing={isLoading}
 				ListEmptyComponent={
-					<View className="flex-1 flex-row items-center justify-center">
+					<View
+						className="flex-1 flex-row items-center justify-center"
+						style={{
+							height: listLayout.height,
+							width: listLayout.width
+						}}
+					>
 						{!isLoading ? <Text>Nothing found</Text> : <ActivityIndicator color={colors.foreground} />}
 					</View>
 				}

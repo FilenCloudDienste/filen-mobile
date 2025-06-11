@@ -56,17 +56,6 @@ export default function TabsLayout() {
 			}
 		): React.ReactNode => {
 			if (routeName === "drive") {
-				if (Platform.OS === "android") {
-					return (
-						<Icon
-							name={props.focused ? "folder" : "folder-open"}
-							namingScheme="material"
-							size={props.size}
-							color={props.color}
-						/>
-					)
-				}
-
 				return (
 					<Icon
 						name={props.focused ? "folder.fill" : "folder"}
@@ -171,7 +160,7 @@ export const TAB_BAR = Platform.select({
 
 export const TAB_ICON: Record<string, IconProps<"material">["name"]> = {
 	home: "home-outline",
-	drive: "folder",
+	drive: "folder-open",
 	photos: "image-outline",
 	notes: "book-open-outline",
 	chats: "message-outline"
@@ -316,7 +305,7 @@ export const MaterialTabItem = memo(
 				<View className="h-8 w-16 items-center justify-center overflow-hidden rounded-full ">
 					<Animated.View
 						style={animatedStyle}
-						className="bg-primary/25 dark:bg-primary-foreground"
+						className="bg-primary/30 dark:bg-primary-foreground"
 					/>
 					<View>
 						<Icon

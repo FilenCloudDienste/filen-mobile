@@ -543,16 +543,18 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 							<Icon
 								size={24}
 								name="plus"
-								color={colors.foreground}
+								color={colors.primary}
 							/>
 						</Button>
 					)}
 				</Fragment>
 			) : (
-				<View className="flex flex-row items-center">
+				<View className="flex-row items-center pr-2">
 					<Text
 						className="text-blue-500"
 						onPress={onSelectPress}
+						numberOfLines={1}
+						ellipsizeMode="tail"
 					>
 						{selectedItemsCount >= itemsCount ? t("drive.header.rightView.deselectAll") : t("drive.header.rightView.selectAll")}
 					</Text>

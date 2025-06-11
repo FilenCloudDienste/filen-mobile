@@ -92,11 +92,11 @@ export const Tag = memo(
 					<Button
 						variant="plain"
 						size="none"
-						className={className}
+						className={cn(className, "px-3")}
 						onPress={createTag}
 						androidRootClassName="rounded-full overflow-hidden"
 					>
-						<Text className="text-sm text-muted-foreground">+</Text>
+						<Text className="text-sm text-muted-foreground font-bold">+</Text>
 					</Button>
 				)
 			}

@@ -187,7 +187,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 					title: "Enabled",
 					leftView: (
 						<IconView
-							name="play"
+							name="link"
 							className="bg-blue-500"
 						/>
 					),
@@ -311,7 +311,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 				title: "Download button",
 				leftView: (
 					<IconView
-						name="file-document"
+						name="file-download-outline"
 						className="bg-gray-500"
 					/>
 				),

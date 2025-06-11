@@ -35,8 +35,8 @@ export const Toolbar = memo(() => {
 	}, [trackPlayerState.playingTrack, trackPlayerState.queue.length])
 
 	const buttonsDisabled = useMemo(() => {
-		return trackPlayerState.isLoading || !active
-	}, [trackPlayerState.isLoading, active])
+		return trackPlayerState.isLoading || !active || trackPlayerState.queue.length === 0
+	}, [trackPlayerState.isLoading, active, trackPlayerState.queue.length])
 
 	useEffect(() => {
 		setTrackPlayerToolbarHeight(layout.height - insets.bottom)
@@ -140,6 +140,7 @@ export const Toolbar = memo(() => {
 								flex: 1,
 								width: "100%"
 							}}
+							disabled={trackPlayerState.queue.length === 0}
 							onSlidingComplete={value => {
 								if (buttonsDisabled) {
 									return
@@ -164,6 +165,7 @@ export const Toolbar = memo(() => {
 							unstable_pressDelay={100}
 							android_ripple={null}
 							className="active:opacity-70"
+							disabled={trackPlayerState.queue.length === 0}
 							onPress={() => {
 								if (buttonsDisabled) {
 									return
@@ -184,6 +186,7 @@ export const Toolbar = memo(() => {
 							unstable_pressDelay={100}
 							android_ripple={null}
 							className="active:opacity-70"
+							disabled={trackPlayerState.queue.length === 0}
 							onPress={() => {
 								if (buttonsDisabled) {
 									return
@@ -204,6 +207,7 @@ export const Toolbar = memo(() => {
 							unstable_pressDelay={100}
 							className="bg-foreground rounded-full p-4 active:opacity-70"
 							android_ripple={null}
+							disabled={trackPlayerState.queue.length === 0}
 							onPress={() => {
 								if (buttonsDisabled) {
 									return
@@ -231,6 +235,7 @@ export const Toolbar = memo(() => {
 							unstable_pressDelay={100}
 							android_ripple={null}
 							className="active:opacity-70"
+							disabled={trackPlayerState.queue.length === 0}
 							onPress={() => {
 								if (buttonsDisabled) {
 									return
@@ -251,6 +256,7 @@ export const Toolbar = memo(() => {
 							unstable_pressDelay={100}
 							android_ripple={null}
 							className="active:opacity-70"
+							disabled={trackPlayerState.queue.length === 0}
 							onPress={() => {
 								if (buttonsDisabled) {
 									return

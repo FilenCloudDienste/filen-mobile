@@ -235,12 +235,13 @@ export const Photos = memo(() => {
 						]}
 						onItemPress={item => {
 							switch (item.actionKey) {
-								case "settings":
+								case "settings": {
 									router.push({
 										pathname: "/photos/settings"
 									})
 
 									break
+								}
 							}
 						}}
 					>
@@ -250,9 +251,8 @@ export const Photos = memo(() => {
 						>
 							<Icon
 								size={24}
-								namingScheme="sfSymbol"
-								name="ellipsis.circle"
-								color={colors.foreground}
+								name="dots-horizontal-circle-outline"
+								color={colors.primary}
 							/>
 						</Button>
 					</DropdownMenu>

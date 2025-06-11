@@ -104,16 +104,17 @@ export const RightView = memo(({ item, version }: { item: DriveCloudItem; versio
 				<View className="flex-1 flex-row items-center gap-4 px-4">
 					<Button
 						size="sm"
-						onPress={restoreFileVersion}
-					>
-						<Text>{t("fileVersionHistory.list.item.restore")}</Text>
-					</Button>
-					<Button
-						size="sm"
-						variant="tonal"
+						variant="secondary"
 						onPress={deleteItem}
 					>
 						<Text>{t("fileVersionHistory.list.item.delete")}</Text>
+					</Button>
+					<Button
+						size="sm"
+						onPress={restoreFileVersion}
+						variant="primary"
+					>
+						<Text>{t("fileVersionHistory.list.item.restore")}</Text>
 					</Button>
 				</View>
 			)}

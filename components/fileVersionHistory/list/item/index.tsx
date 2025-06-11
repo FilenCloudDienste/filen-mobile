@@ -4,6 +4,7 @@ import { type FileVersion } from "@filen/sdk/dist/types/api/v3/file/versions"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
 import { formatMessageDate } from "@/lib/utils"
 import RightView from "./rightView"
+import { Platform } from "react-native"
 
 export type ListItemInfo = {
 	title: string
@@ -37,12 +38,14 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		<ListItem
 			{...infoAdjusted}
 			className="overflow-hidden"
-			subTitleClassName="text-xs pt-1"
+			subTitleClassName="text-xs pt-1 font-normal"
 			variant="full-width"
 			textNumberOfLines={1}
 			subTitleNumberOfLines={1}
 			isFirstInSection={false}
 			isLastInSection={false}
+			removeSeparator={Platform.OS === "android"}
+			innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
 			rightView={rightView}
 		/>
 	)

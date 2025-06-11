@@ -9,14 +9,14 @@ export function createTextThemes({ backgroundColor, textForegroundColor }: { bac
 		settings: {
 			background: backgroundColor,
 			foreground: textForegroundColor,
-			caret: "#007AFF", // iOS blue
+			caret: "#007AFF", // iOS system blue
 			selection: "#007AFF40", // iOS blue with alpha
 			selectionMatch: "#007AFF40",
 			lineHighlight: "#F2F2F7", // iOS system gray 6
-			gutterBorder: "1px solid #E5E5EA", // iOS system gray 4
+			gutterBorder: "1px solid #C7C7CC", // iOS system gray 3
 			gutterBackground: "#FFFFFF",
 			gutterForeground: "#8E8E93", // iOS system gray
-			fontFamily: '-apple-system, BlinkMacSystemFont, "San Francisco", "SF Pro Text", sans-serif'
+			fontFamily: '-apple-system, BlinkMacSystemFont, "San Francisco", "SF Pro Text", "SF Mono", sans-serif'
 		},
 		styles: [
 			{
@@ -26,27 +26,27 @@ export function createTextThemes({ backgroundColor, textForegroundColor }: { bac
 			{
 				tag: t.variableName,
 				color: "#007AFF"
-			}, // iOS blue
+			}, // iOS system blue
 			{
 				tag: [t.string, t.special(t.brace)],
 				color: "#34C759"
-			}, // iOS green
+			}, // iOS system green
 			{
 				tag: t.number,
 				color: "#FF9500"
-			}, // iOS orange
+			}, // iOS system orange
 			{
 				tag: t.bool,
 				color: "#5856D6"
-			}, // iOS purple
+			}, // iOS system purple
 			{
 				tag: t.null,
 				color: "#5856D6"
-			}, // iOS purple
+			}, // iOS system purple
 			{
 				tag: t.keyword,
 				color: "#FF2D55"
-			}, // iOS pink
+			}, // iOS system pink
 			{
 				tag: t.operator,
 				color: "#8E8E93"
@@ -54,15 +54,15 @@ export function createTextThemes({ backgroundColor, textForegroundColor }: { bac
 			{
 				tag: t.className,
 				color: "#5856D6"
-			}, // iOS purple
+			}, // iOS system purple
 			{
 				tag: t.definition(t.typeName),
 				color: "#FF3B30"
-			}, // iOS red
+			}, // iOS system red
 			{
 				tag: t.typeName,
 				color: "#5856D6"
-			}, // iOS purple
+			}, // iOS system purple
 			{
 				tag: t.angleBracket,
 				color: "#8E8E93"
@@ -70,33 +70,33 @@ export function createTextThemes({ backgroundColor, textForegroundColor }: { bac
 			{
 				tag: t.tagName,
 				color: "#FF9500"
-			}, // iOS orange
+			}, // iOS system orange
 			{
 				tag: t.attributeName,
 				color: "#007AFF"
-			} // iOS blue
+			} // iOS system blue
 		]
 	})
 
 	const iosDarkTheme = createTheme({
 		theme: "dark",
 		settings: {
-			background: backgroundColor, // iOS dark mode background
+			background: backgroundColor,
 			foreground: textForegroundColor,
 			caret: "#0A84FF", // iOS dark mode blue
-			selection: "transparent", // iOS dark mode blue with alpha
-			selectionMatch: "transparent",
-			lineHighlight: "transparent", // iOS dark mode gray 6
-			gutterBorder: "transparent", // iOS dark mode gray 5
+			selection: "#0A84FF40", // iOS dark mode blue with alpha
+			selectionMatch: "#0A84FF40",
+			lineHighlight: "#2C2C2E", // iOS dark mode gray 6
+			gutterBorder: "1px solid #3A3A3C", // iOS dark mode gray 5
 			gutterBackground: "transparent",
-			gutterForeground: "transparent", // iOS system gray
-			fontFamily: '-apple-system, BlinkMacSystemFont, "San Francisco", "SF Pro Text", sans-serif'
+			gutterForeground: "#8E8E93", // iOS system gray (unchanged in dark)
+			fontFamily: '-apple-system, BlinkMacSystemFont, "San Francisco", "SF Pro Text", "SF Mono", sans-serif'
 		},
 		styles: [
 			{
 				tag: t.comment,
-				color: "#98989D"
-			}, // iOS dark mode gray
+				color: "#8E8E93"
+			}, // iOS system gray
 			{
 				tag: t.variableName,
 				color: "#0A84FF"
@@ -123,8 +123,8 @@ export function createTextThemes({ backgroundColor, textForegroundColor }: { bac
 			}, // iOS dark mode pink
 			{
 				tag: t.operator,
-				color: "#98989D"
-			}, // iOS dark mode gray
+				color: "#8E8E93"
+			}, // iOS system gray
 			{
 				tag: t.className,
 				color: "#BF5AF2"
@@ -139,8 +139,8 @@ export function createTextThemes({ backgroundColor, textForegroundColor }: { bac
 			}, // iOS dark mode purple
 			{
 				tag: t.angleBracket,
-				color: "#98989D"
-			}, // iOS dark mode gray
+				color: "#8E8E93"
+			}, // iOS system gray
 			{
 				tag: t.tagName,
 				color: "#FF9F0A"
@@ -156,147 +156,147 @@ export function createTextThemes({ backgroundColor, textForegroundColor }: { bac
 		theme: "light",
 		settings: {
 			background: backgroundColor,
-			foreground: textForegroundColor, // Material design primary text
-			caret: "#6200EE", // Android primary
-			selection: "#6200EE33", // Android primary with alpha
-			selectionMatch: "#6200EE33",
-			lineHighlight: "#0000001A", // Material design divider
-			gutterBorder: "1px solid #0000001F", // Material design divider
-			gutterBackground: "#FFFFFF",
-			gutterForeground: "#00000099", // Material design secondary text
-			fontFamily: 'Roboto, "Roboto Mono", sans-serif'
+			foreground: textForegroundColor,
+			caret: "#6750A4", // Material Design 3 primary
+			selection: "#6750A433", // MD3 primary with alpha
+			selectionMatch: "#6750A433",
+			lineHighlight: "#F7F2FA", // MD3 surface variant
+			gutterBorder: "1px solid #CAC4D0", // MD3 outline
+			gutterBackground: "#FFFBFE", // MD3 surface
+			gutterForeground: "#49454F", // MD3 on surface variant
+			fontFamily: '"Roboto Flex", Roboto, "Roboto Mono", system-ui, sans-serif'
 		},
 		styles: [
 			{
 				tag: t.comment,
-				color: "#00000099"
-			}, // Material design secondary text
+				color: "#79747E"
+			}, // MD3 on surface variant
 			{
 				tag: t.variableName,
-				color: "#6200EE"
-			}, // Android primary
+				color: "#6750A4"
+			}, // MD3 primary
 			{
 				tag: [t.string, t.special(t.brace)],
-				color: "#018786"
-			}, // Android teal
+				color: "#006A6B"
+			}, // MD3 tertiary
 			{
 				tag: t.number,
-				color: "#03DAC6"
-			}, // Android secondary
+				color: "#7D5260"
+			}, // MD3 secondary
 			{
 				tag: t.bool,
-				color: "#3700B3"
-			}, // Android primary variant
+				color: "#6750A4"
+			}, // MD3 primary
 			{
 				tag: t.null,
-				color: "#3700B3"
-			}, // Android primary variant
+				color: "#6750A4"
+			}, // MD3 primary
 			{
 				tag: t.keyword,
-				color: "#6200EE"
-			}, // Android primary
+				color: "#B3261E"
+			}, // MD3 error
 			{
 				tag: t.operator,
-				color: "#00000099"
-			}, // Material design secondary text
+				color: "#79747E"
+			}, // MD3 on surface variant
 			{
 				tag: t.className,
-				color: "#3700B3"
-			}, // Android primary variant
+				color: "#7D5260"
+			}, // MD3 secondary
 			{
 				tag: t.definition(t.typeName),
-				color: "#B00020"
-			}, // Android error
+				color: "#B3261E"
+			}, // MD3 error
 			{
 				tag: t.typeName,
-				color: "#3700B3"
-			}, // Android primary variant
+				color: "#7D5260"
+			}, // MD3 secondary
 			{
 				tag: t.angleBracket,
-				color: "#00000099"
-			}, // Material design secondary text
+				color: "#79747E"
+			}, // MD3 on surface variant
 			{
 				tag: t.tagName,
-				color: "#018786"
-			}, // Android teal
+				color: "#006A6B"
+			}, // MD3 tertiary
 			{
 				tag: t.attributeName,
-				color: "#6200EE"
-			} // Android primary
+				color: "#6750A4"
+			} // MD3 primary
 		]
 	})
 
 	const androidDarkTheme = createTheme({
 		theme: "dark",
 		settings: {
-			background: backgroundColor, // Material dark background
-			foreground: textForegroundColor, // Material design primary text (dark)
-			caret: "#BB86FC", // Material dark primary
-			selection: "#BB86FC33", // Material dark primary with alpha
-			selectionMatch: "#BB86FC33",
-			lineHighlight: "#FFFFFF1A", // Material dark divider
-			gutterBorder: "1px solid #FFFFFF1F", // Material dark divider
-			gutterBackground: "#121212",
-			gutterForeground: "#FFFFFF99", // Material design secondary text (dark)
-			fontFamily: 'Roboto, "Roboto Mono", sans-serif'
+			background: backgroundColor,
+			foreground: textForegroundColor,
+			caret: "#D0BCFF", // Material Design 3 primary (dark)
+			selection: "#D0BCFF33", // MD3 primary (dark) with alpha
+			selectionMatch: "#D0BCFF33",
+			lineHighlight: "#322F37", // MD3 surface variant (dark)
+			gutterBorder: "1px solid #49454F", // MD3 outline (dark)
+			gutterBackground: "#1C1B1F", // MD3 surface (dark)
+			gutterForeground: "#CAC4D0", // MD3 on surface variant (dark)
+			fontFamily: '"Roboto Flex", Roboto, "Roboto Mono", system-ui, sans-serif'
 		},
 		styles: [
 			{
 				tag: t.comment,
-				color: "#FFFFFF99"
-			}, // Material design secondary text (dark)
+				color: "#938F99"
+			}, // MD3 on surface variant (dark)
 			{
 				tag: t.variableName,
-				color: "#BB86FC"
-			}, // Material dark primary
+				color: "#D0BCFF"
+			}, // MD3 primary (dark)
 			{
 				tag: [t.string, t.special(t.brace)],
-				color: "#03DAC6"
-			}, // Material dark secondary
+				color: "#4FD8DA"
+			}, // MD3 tertiary (dark)
 			{
 				tag: t.number,
-				color: "#03DAC6"
-			}, // Material dark secondary
+				color: "#CCC2DC"
+			}, // MD3 secondary (dark)
 			{
 				tag: t.bool,
-				color: "#BB86FC"
-			}, // Material dark primary
+				color: "#D0BCFF"
+			}, // MD3 primary (dark)
 			{
 				tag: t.null,
-				color: "#BB86FC"
-			}, // Material dark primary
+				color: "#D0BCFF"
+			}, // MD3 primary (dark)
 			{
 				tag: t.keyword,
-				color: "#CF6679"
-			}, // Material dark error
+				color: "#F2B8B5"
+			}, // MD3 error (dark)
 			{
 				tag: t.operator,
-				color: "#FFFFFF99"
-			}, // Material design secondary text (dark)
+				color: "#938F99"
+			}, // MD3 on surface variant (dark)
 			{
 				tag: t.className,
-				color: "#BB86FC"
-			}, // Material dark primary
+				color: "#CCC2DC"
+			}, // MD3 secondary (dark)
 			{
 				tag: t.definition(t.typeName),
-				color: "#CF6679"
-			}, // Material dark error
+				color: "#F2B8B5"
+			}, // MD3 error (dark)
 			{
 				tag: t.typeName,
-				color: "#BB86FC"
-			}, // Material dark primary
+				color: "#CCC2DC"
+			}, // MD3 secondary (dark)
 			{
 				tag: t.angleBracket,
-				color: "#FFFFFF99"
-			}, // Material design secondary text (dark)
+				color: "#938F99"
+			}, // MD3 on surface variant (dark)
 			{
 				tag: t.tagName,
-				color: "#03DAC6"
-			}, // Material dark secondary
+				color: "#4FD8DA"
+			}, // MD3 tertiary (dark)
 			{
 				tag: t.attributeName,
-				color: "#BB86FC"
-			} // Material dark primary
+				color: "#D0BCFF"
+			} // MD3 primary (dark)
 		]
 	})
 

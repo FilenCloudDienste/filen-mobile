@@ -393,7 +393,7 @@ export const Dropdown = memo(() => {
 					size={24}
 					namingScheme="sfSymbol"
 					name="ellipsis.circle"
-					color={colors.foreground}
+					color={colors.primary}
 				/>
 			</Button>
 		</DropdownMenu>

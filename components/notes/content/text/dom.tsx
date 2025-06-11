@@ -130,14 +130,13 @@ const TextEditor = memo(
 					wrapperElement={{
 						"data-color-mode": darkMode ? "dark" : "light",
 						style: {
-							maxWidth: "100vw",
-							width: "100vw"
+							width: "calc(100% - 32px)",
+							padding: "16px"
 						}
 					}}
 					style={{
-						padding: 16,
-						maxWidth: "100vw",
-						width: "100vw"
+						width: "calc(100% - 32px)",
+						padding: "16px"
 					}}
 				/>
 			)
@@ -146,15 +145,14 @@ const TextEditor = memo(
 		return (
 			<CodeMirror
 				value={value}
-				width="100vw"
 				onChange={onChange}
 				extensions={extensions}
 				theme={theme}
 				editable={!readOnly}
 				placeholder={placeholder}
 				style={{
-					width: "100vw",
-					padding: type === "text" ? 16 : 0
+					width: "100%",
+					padding: type === "text" ? "16px" : "0px"
 				}}
 			/>
 		)
