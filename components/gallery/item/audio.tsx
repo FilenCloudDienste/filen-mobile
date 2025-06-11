@@ -23,6 +23,7 @@ import * as FileSystemLegacy from "expo-file-system"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
+import useHTTPServer from "@/hooks/useHTTPServer"
 
 export const Audio = memo(({ item, layout }: { item: GalleryItem; layout: WH }) => {
 	useSetExpoAudioMode()
@@ -32,6 +33,7 @@ export const Audio = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 	const [playing, setPlaying] = useState<boolean>(false)
 	const trackPlayerControls = useTrackPlayerControls()
 	const { insets } = useDimensions()
+	const httpServer = useHTTPServer()
 
 	const style = useMemo(() => {
 		return {
@@ -47,7 +49,7 @@ export const Audio = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 		}
 
 		if (item.itemType === "cloudItem" && item.data.item.type === "file") {
-			return `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+			return `http://127.0.0.1:${httpServer.port}/stream?auth=${httpServer.authToken}&file=${encodeURIComponent(
 				btoa(
 					JSON.stringify({
 						name: item.data.item.name,
@@ -65,7 +67,7 @@ export const Audio = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 		}
 
 		return null
-	}, [item])
+	}, [item, httpServer.port, httpServer.authToken])
 
 	const player = useAudioPlayer(source, 100)
 	const playerStatus = useAudioPlayerStatus(player)

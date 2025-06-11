@@ -10,7 +10,7 @@ import { type NodeWorkerHandlers } from "nodeWorker"
 export const nodeChannel: NodeClientChannel = nodejs.channel
 
 export class NodeWorker {
-	protected ready: boolean = false
+	public ready: boolean = false
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private readonly resolves: Map<string, (value: any | PromiseLike<any>) => void> = new Map<
 		string,
@@ -145,7 +145,7 @@ export class NodeWorker {
 			return null
 		}
 
-		return `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+		return `http://127.0.0.1:${this.httpServerPort}/stream?auth=${this.httpAuthToken}&file=${encodeURIComponent(
 			btoa(
 				JSON.stringify({
 					name: file.name,

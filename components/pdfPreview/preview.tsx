@@ -1,15 +1,16 @@
 import { memo, useState, useMemo } from "react"
-import nodeWorker from "@/lib/nodeWorker"
 import { ActivityIndicator, View } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Container from "../Container"
 import PDF from "react-native-pdf"
 import { type PDFPreviewItem } from "."
+import useHTTPServer from "@/hooks/useHTTPServer"
 
 export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 	const { colors } = useColorScheme()
 	const [page, setPage] = useState<number | undefined>(undefined)
-	const [numPages, setNumPages] = useState<number | null>(null)
+	const [, setNumPages] = useState<number | null>(null)
+	const httpServer = useHTTPServer()
 
 	const source = useMemo(() => {
 		if (item.type === "cloud") {
@@ -20,7 +21,7 @@ export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 			}
 
 			return {
-				uri: `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+				uri: `http://127.0.0.1:${httpServer.port}/stream?auth=${httpServer.authToken}&file=${encodeURIComponent(
 					btoa(
 						JSON.stringify({
 							name: item.driveItem.name,
@@ -41,7 +42,7 @@ export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 		return {
 			uri: item.uri
 		}
-	}, [item])
+	}, [item, httpServer.port, httpServer.authToken])
 
 	return (
 		<View className="flex-1">
@@ -57,7 +58,7 @@ export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 							</View>
 						)
 					}}
-					onLoadComplete={(numberOfPages, filePath) => {
+					onLoadComplete={numberOfPages => {
 						setNumPages(numberOfPages)
 					}}
 					onPageChanged={(page, numberOfPages) => {

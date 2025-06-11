@@ -15,6 +15,7 @@ import { KeyboardAvoidingView } from "react-native-keyboard-controller"
 import * as Sharing from "expo-sharing"
 import Container from "../Container"
 import mimeTypes from "mime-types"
+import useHTTPServer from "@/hooks/useHTTPServer"
 
 export const bgColors = {
 	normal: {
@@ -58,6 +59,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 	const [didChange, setDidChange] = useState<boolean>(false)
 	const [value, setValue] = useState<string>("")
 	const queryDataUpdatedRef = useRef<number>(-1)
+	const httpServer = useHTTPServer()
 
 	const uri = useMemo(() => {
 		if (item.type === "cloud") {
@@ -65,7 +67,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				return ""
 			}
 
-			return `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+			return `http://127.0.0.1:${httpServer.port}/stream?auth=${httpServer.authToken}&file=${encodeURIComponent(
 				btoa(
 					JSON.stringify({
 						name: item.driveItem.name,
@@ -83,7 +85,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 		}
 
 		return item.uri
-	}, [item])
+	}, [item, httpServer.port, httpServer.authToken])
 
 	const query = useTextEditorItemContentQuery({
 		uri,

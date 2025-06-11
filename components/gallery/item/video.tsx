@@ -1,5 +1,4 @@
 import { memo, useMemo, useState, Fragment, useEffect } from "react"
-import nodeWorker from "@/lib/nodeWorker"
 import { type GalleryItem } from "@/stores/gallery.store"
 import { View, ActivityIndicator } from "react-native"
 import { type WH } from "."
@@ -9,6 +8,7 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import Animated, { FadeOut } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
+import useHTTPServer from "@/hooks/useHTTPServer"
 
 export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; layout: WH; headerHeight: number }) => {
 	const [loading, setLoading] = useState<boolean>(true)
@@ -16,6 +16,7 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 	const { colors } = useColorScheme()
 	const insets = useSafeAreaInsets()
 	const trackPlayerControls = useTrackPlayerControls()
+	const httpServer = useHTTPServer()
 
 	const style = useMemo(() => {
 		return {
@@ -31,7 +32,7 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 		}
 
 		if (item.itemType === "cloudItem" && item.data.item.type === "file") {
-			return `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+			return `http://127.0.0.1:${httpServer.port}/stream?auth=${httpServer.authToken}&file=${encodeURIComponent(
 				btoa(
 					JSON.stringify({
 						name: item.data.item.name,
@@ -49,7 +50,7 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 		}
 
 		return null
-	}, [item])
+	}, [item, httpServer.port, httpServer.authToken])
 
 	const player = useVideoPlayer(source, player => {
 		player.loop = true
@@ -62,7 +63,7 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 		setLoading(e.status === "loading")
 	})
 
-	useEventListener(player, "playingChange", e => {
+	useEventListener(player, "playingChange", _ => {
 		//setPlaying(e.isPlaying)
 	})
 

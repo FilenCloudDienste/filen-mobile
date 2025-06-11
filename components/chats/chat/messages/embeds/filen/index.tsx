@@ -13,6 +13,7 @@ import { type PreviewType } from "@/stores/gallery.store"
 import { type DirLinkInfoDecryptedResponse } from "@filen/sdk/dist/types/api/v3/dir/link/info"
 import Directory from "./directory"
 import Fallback from "../containers/fallback"
+import useHTTPServer from "@/hooks/useHTTPServer"
 
 export type PublicLinkInfo =
 	| {
@@ -33,6 +34,8 @@ export type PublicLinkInfo =
 	| null
 
 export const Filen = memo(({ link }: { link: string }) => {
+	const httpServer = useHTTPServer()
+
 	const publicLink = useMemo(() => {
 		return parseFilenPublicLink(link)
 	}, [link])
@@ -105,7 +108,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 			return ""
 		}
 
-		return `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+		return `http://127.0.0.1:${httpServer.port}/stream?auth=${httpServer.authToken}&file=${encodeURIComponent(
 			btoa(
 				JSON.stringify({
 					name: query.data.data.info.name,
@@ -120,7 +123,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 				})
 			)
 		)}`
-	}, [query.data, query.status, publicLink])
+	}, [query.data, query.status, publicLink, httpServer.port, httpServer.authToken])
 
 	if (!publicLink || query.status !== "success" || !query.data) {
 		return <Fallback link={link} />

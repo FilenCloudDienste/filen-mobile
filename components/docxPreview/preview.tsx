@@ -4,16 +4,18 @@ import useFileBase64Query from "@/queries/useFileBase64Query"
 import { View, ActivityIndicator } from "react-native"
 import Container from "../Container"
 import { type DOCXPreviewItem } from "."
-import nodeWorker from "@/lib/nodeWorker"
+import useHTTPServer from "@/hooks/useHTTPServer"
 
 export const Preview = memo(({ item }: { item: DOCXPreviewItem }) => {
+	const httpServer = useHTTPServer()
+
 	const uri = useMemo(() => {
 		if (item.type === "cloud") {
 			if (item.driveItem.type === "directory") {
 				return ""
 			}
 
-			return `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+			return `http://127.0.0.1:${httpServer.port}/stream?auth=${httpServer.authToken}&file=${encodeURIComponent(
 				btoa(
 					JSON.stringify({
 						name: item.driveItem.name,
@@ -31,7 +33,7 @@ export const Preview = memo(({ item }: { item: DOCXPreviewItem }) => {
 		}
 
 		return item.uri
-	}, [item])
+	}, [item, httpServer.port, httpServer.authToken])
 
 	const query = useFileBase64Query({
 		uri,

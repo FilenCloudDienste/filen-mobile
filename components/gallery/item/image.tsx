@@ -1,16 +1,17 @@
 import { Image as ExpoImage } from "expo-image"
 import { memo, useMemo, useState, useCallback, Fragment } from "react"
-import nodeWorker from "@/lib/nodeWorker"
 import { type GalleryItem } from "@/stores/gallery.store"
 import { View, ActivityIndicator } from "react-native"
 import { type WH } from "."
 import { useColorScheme } from "@/lib/useColorScheme"
 import Animated, { FadeOut } from "react-native-reanimated"
+import useHTTPServer from "@/hooks/useHTTPServer"
 
 export const Image = memo(({ item, layout }: { item: GalleryItem; layout: WH }) => {
 	const [loading, setLoading] = useState<boolean>(true)
 	const [error, setError] = useState<boolean>(false)
 	const { colors } = useColorScheme()
+	const httpServer = useHTTPServer()
 
 	const style = useMemo(() => {
 		return {
@@ -27,7 +28,7 @@ export const Image = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 
 		if (item.itemType === "cloudItem" && item.data.item.type === "file") {
 			return {
-				uri: `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?auth=${nodeWorker.httpAuthToken}&file=${encodeURIComponent(
+				uri: `http://127.0.0.1:${httpServer.port}/stream?auth=${httpServer.authToken}&file=${encodeURIComponent(
 					btoa(
 						JSON.stringify({
 							name: item.data.item.name,
@@ -46,7 +47,7 @@ export const Image = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 		}
 
 		return null
-	}, [item])
+	}, [item, httpServer.port, httpServer.authToken])
 
 	const onLoadStart = useCallback(() => {
 		setLoading(true)
