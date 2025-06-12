@@ -1,11 +1,12 @@
 import { memo, useCallback, useRef, useEffect } from "react"
-import { View, TextInput, type NativeSyntheticEvent, type TextInputKeyPressEventData } from "react-native"
+import { View, TextInput, type NativeSyntheticEvent, type TextInputKeyPressEventData, Platform } from "react-native"
 import MaterialIcons from "@expo/vector-icons/MaterialIcons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { type ChecklistItem } from "./parser"
 import events from "@/lib/events"
 import { Button } from "@/components/nativewindui/Button"
 import * as Haptics from "expo-haptics"
+import { cn } from "@/lib/cn"
 
 export const Item = memo(
 	({
@@ -96,8 +97,8 @@ export const Item = memo(
 		}, [focusItemEnd, item.id])
 
 		return (
-			<View className="flex-row gap-2 flex-1 items-center">
-				<View className="flex-row items-center self-start pt-[5px] shrink-0">
+			<View className={cn("flex-row flex-1 items-center", Platform.OS === "android" ? "gap-2" : "gap-3")}>
+				<View className="flex-row items-center self-start pt-[4px] shrink-0">
 					{item.checked ? (
 						<Button
 							variant="plain"
@@ -129,7 +130,7 @@ export const Item = memo(
 				</View>
 				<TextInput
 					ref={textInputRef}
-					className="text-foreground text-[17px] shrink-0 flex-1"
+					className={cn("text-foreground text-[17px] shrink-0 flex-1", Platform.OS === "android" && "-mt-[7.5px]")}
 					value={item.content}
 					onChangeText={onChangeText}
 					multiline={true}
