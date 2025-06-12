@@ -1,5 +1,5 @@
 import { useMemo, Fragment, useCallback, memo, useRef } from "react"
-import { View } from "react-native"
+import { View, Platform } from "react-native"
 import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
 import { type NoteHistory } from "@filen/sdk/dist/types/api/v3/notes/history"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
@@ -16,6 +16,7 @@ import queryUtils from "@/queries/utils"
 import useNoteHistoryQuery from "@/queries/useNoteHistoryQuery"
 import { useTranslation } from "react-i18next"
 import useViewLayout from "@/hooks/useViewLayout"
+import { alertPrompt } from "@/components/prompts/alertPrompt"
 
 export type ListItemInfo = {
 	title: string
@@ -54,6 +55,15 @@ export const History = memo(({ note }: { note: Note }) => {
 
 	const restore = useCallback(
 		async (history: NoteHistory) => {
+			const alertPromptResponse = await alertPrompt({
+				title: "disableEmbeds",
+				message: "Are u sure"
+			})
+
+			if (alertPromptResponse.cancelled) {
+				return
+			}
+
 			fullScreenLoadingModal.show()
 
 			try {
@@ -105,7 +115,16 @@ export const History = memo(({ note }: { note: Note }) => {
 		(info: ListRenderItemInfo<ListItemInfo>) => {
 			return (
 				<ListItem
+					{...info}
 					variant="full-width"
+					className="overflow-hidden"
+					subTitleClassName="text-xs pt-1 font-normal"
+					textNumberOfLines={1}
+					subTitleNumberOfLines={1}
+					isFirstInSection={false}
+					isLastInSection={false}
+					removeSeparator={Platform.OS === "android"}
+					innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
 					rightView={
 						<View className="flex-1 flex-row items-center px-4">
 							<Button
@@ -116,7 +135,6 @@ export const History = memo(({ note }: { note: Note }) => {
 							</Button>
 						</View>
 					}
-					{...info}
 				/>
 			)
 		},
@@ -133,7 +151,12 @@ export const History = memo(({ note }: { note: Note }) => {
 
 	return (
 		<Fragment>
-			<LargeTitleHeader title="History" />
+			<LargeTitleHeader
+				title="History"
+				backVisible={true}
+				iosBackButtonMenuEnabled={false}
+				iosBlurEffect="systemChromeMaterial"
+			/>
 			<Container>
 				<View
 					className="flex-1"
