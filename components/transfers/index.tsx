@@ -1,6 +1,6 @@
 import { memo, Fragment, useCallback, useState, useMemo, useRef } from "react"
 import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
-import { View, RefreshControl } from "react-native"
+import { View, RefreshControl, Platform } from "react-native"
 import { useTransfersStore } from "@/stores/transfers.store"
 import { Toolbar, ToolbarIcon } from "../nativewindui/Toolbar"
 import { List, ESTIMATED_ITEM_HEIGHT, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
@@ -12,6 +12,8 @@ import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
 import useViewLayout from "@/hooks/useViewLayout"
+import { AdaptiveSearchHeader } from "../nativewindui/AdaptiveSearchHeader"
+import { useColorScheme } from "@/lib/useColorScheme"
 
 export const Transfers = memo(() => {
 	const transfers = useTransfersStore(useShallow(state => state.transfers))
@@ -21,6 +23,7 @@ export const Transfers = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
+	const { colors } = useColorScheme()
 
 	const data = useMemo(() => {
 		return transfers
@@ -65,7 +68,10 @@ export const Transfers = memo(() => {
 
 			await promiseAllChunked(
 				transfers.map(async transfer => {
-					if (transfer.state !== "started" || normalizeTransferProgress(transfer.size, transfer.bytes) >= 95) {
+					if (
+						!(transfer.state === "queued" || transfer.state === "started") ||
+						normalizeTransferProgress(transfer.size, transfer.bytes) >= 95
+					) {
 						return
 					}
 
@@ -90,7 +96,10 @@ export const Transfers = memo(() => {
 
 			await promiseAllChunked(
 				transfers.map(async transfer => {
-					if (transfer.state !== "paused" || normalizeTransferProgress(transfer.size, transfer.bytes) >= 95) {
+					if (
+						!(transfer.state === "queued" || transfer.state === "paused") ||
+						normalizeTransferProgress(transfer.size, transfer.bytes) >= 95
+					) {
 						return
 					}
 
@@ -109,8 +118,36 @@ export const Transfers = memo(() => {
 		}
 	}, [])
 
-	const paused = useMemo(() => {
-		return ongoingTransfers.some(transfers => transfers.state === "paused")
+	const stopAll = useCallback(async () => {
+		try {
+			const transfers = useTransfersStore.getState().transfers
+
+			await promiseAllChunked(
+				transfers.map(async transfer => {
+					if (
+						!(transfer.state === "queued" || transfer.state === "started") ||
+						normalizeTransferProgress(transfer.size, transfer.bytes) >= 95
+					) {
+						return
+					}
+
+					await nodeWorker.proxy("transferAction", {
+						id: transfer.id,
+						action: "stop"
+					})
+				})
+			)
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
+	}, [])
+
+	const allPaused = useMemo(() => {
+		return ongoingTransfers.every(transfers => transfers.state === "paused")
 	}, [ongoingTransfers])
 
 	const canStop = useMemo(() => {
@@ -121,16 +158,35 @@ export const Transfers = memo(() => {
 		return ongoingTransfers.length > 0 && ongoingTransfers.some(transfer => transfer.state === "paused")
 	}, [ongoingTransfers])
 
+	const info = useMemo(() => {
+		if (ongoingTransfers.length === 0) {
+			return null
+		}
+
+		return `Transferring ${ongoingTransfers.length} items at ${bpsToReadable(speed)}, ${remaining} remaining`
+	}, [ongoingTransfers.length, speed, remaining])
+
 	return (
 		<Fragment>
-			<LargeTitleHeader
-				title="Transfers"
-				backVisible={true}
-				materialPreset="stack"
-				iosBackButtonTitle="Back"
-				iosBackButtonMenuEnabled={false}
-				iosBackButtonTitleVisible={true}
-			/>
+			{Platform.OS === "android" ? (
+				<LargeTitleHeader
+					title="Transfers"
+					backVisible={true}
+					materialPreset="stack"
+					iosBackButtonTitle="Back"
+					iosBackButtonMenuEnabled={false}
+					iosBackButtonTitleVisible={true}
+				/>
+			) : (
+				<AdaptiveSearchHeader
+					iosTitle="Transfers"
+					backVisible={true}
+					iosBackButtonTitle="Back"
+					iosBackButtonMenuEnabled={false}
+					iosBackButtonTitleVisible={true}
+					backgroundColor={colors.card}
+				/>
+			)}
 			<Container>
 				<View
 					className="flex-1"
@@ -146,20 +202,26 @@ export const Transfers = memo(() => {
 						contentInsetAdjustmentBehavior="automatic"
 						contentContainerClassName="pb-16"
 						ListHeaderComponent={
-							ongoingTransfers.length > 0 ? (
+							Platform.OS === "android" && info ? (
 								<View className="flex-1 flex-row px-4 pb-4">
 									<Text
 										numberOfLines={1}
 										ellipsizeMode="middle"
-										className="text-sm text-muted-foreground"
+										className="text-sm text-muted-foreground flex-1"
 									>
-										Transferring {ongoingTransfers.length} items at {bpsToReadable(speed)}, {remaining} remaining
+										{info}
 									</Text>
 								</View>
 							) : undefined
 						}
 						ListEmptyComponent={
-							<View className="flex-1 items-center justify-center">
+							<View
+								className="flex-1 items-center justify-center"
+								style={{
+									height: listLayout.height,
+									width: listLayout.width
+								}}
+							>
 								<Text>No transfers</Text>
 							</View>
 						}
@@ -191,17 +253,22 @@ export const Transfers = memo(() => {
 				</View>
 			</Container>
 			<Toolbar
+				iosHint={info ?? undefined}
 				leftView={
 					<ToolbarIcon
-						disabled={!canResume}
+						disabled={!canStop}
 						icon={{
-							name: "delete-circle-outline"
+							ios: {
+								name: "stop"
+							},
+							name: "stop",
+							color: colors.destructive
 						}}
-						onPress={resumeAll}
+						onPress={stopAll}
 					/>
 				}
 				rightView={
-					paused ? (
+					allPaused ? (
 						<ToolbarIcon
 							disabled={!canResume}
 							icon={{
@@ -213,7 +280,8 @@ export const Transfers = memo(() => {
 						<ToolbarIcon
 							disabled={!canStop}
 							icon={{
-								name: "stop-circle-outline"
+								name: "pause",
+								color: colors.destructive
 							}}
 							onPress={pauseAll}
 						/>

@@ -13,6 +13,7 @@ import ContainerComponent from "./container"
 import { orderItemsByType } from "@/lib/utils"
 import useAccountQuery from "@/queries/useAccountQuery"
 import { Icon } from "@roninoss/icons"
+import Transfers from "../drive/header/transfers"
 
 export const Home = memo(() => {
 	const { colors } = useColorScheme()
@@ -198,21 +199,24 @@ export const Home = memo(() => {
 				}
 				rightView={() => {
 					return (
-						<Button
-							variant="plain"
-							size="icon"
-							onPress={() => {
-								router.push({
-									pathname: "/trackPlayer"
-								})
-							}}
-						>
-							<Icon
-								name="music-note"
-								size={24}
-								color={colors.primary}
-							/>
-						</Button>
+						<View className="flex-row items-center">
+							<Transfers />
+							<Button
+								variant="plain"
+								size="icon"
+								onPress={() => {
+									router.push({
+										pathname: "/trackPlayer"
+									})
+								}}
+							>
+								<Icon
+									name="music-note"
+									size={24}
+									color={colors.primary}
+								/>
+							</Button>
+						</View>
 					)
 				}}
 			/>

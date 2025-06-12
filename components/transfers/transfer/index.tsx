@@ -1,6 +1,6 @@
 import { memo, Fragment, useCallback } from "react"
 import { ListItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
-import { View, ActivityIndicator } from "react-native"
+import { View, ActivityIndicator, Platform } from "react-native"
 import { ColoredFolderSVGIcon, FileNameToSVGIcon } from "@/assets/fileIcons"
 import { Text } from "@/components/nativewindui/Text"
 import { normalizeTransferProgress } from "@/lib/utils"
@@ -9,6 +9,7 @@ import { Icon } from "@roninoss/icons"
 import { useActionSheet } from "@expo/react-native-action-sheet"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
+import useDimensions from "@/hooks/useDimensions"
 
 export type ListItemInfo = {
 	title: string
@@ -22,22 +23,33 @@ export const ICON_HEIGHT: number = 42
 export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const { colors } = useColorScheme()
 	const { showActionSheetWithOptions } = useActionSheet()
+	const {
+		insets: { bottom: bottomInsets }
+	} = useDimensions()
 
 	const onPress = useCallback(() => {
-		if (
-			info.item.transfer.state === "finished" ||
-			info.item.transfer.state === "error" ||
-			info.item.transfer.state === "stopped" ||
-			info.item.transfer.state === "queued"
-		) {
+		if (info.item.transfer.state === "finished" || info.item.transfer.state === "error") {
 			return
 		}
 
+		const options = [info.item.transfer.state === "paused" ? "Resume" : "Pause", "Stop", "Cancel"]
+
 		showActionSheetWithOptions(
 			{
-				options: [info.item.transfer.state === "paused" ? "Resume" : "Pause", "Stop", "Cancel"],
-				cancelButtonIndex: 2,
-				destructiveButtonIndex: 2
+				options,
+				cancelButtonIndex: options.length - 1,
+				destructiveButtonIndex: options.length - 1,
+				...(Platform.OS === "android"
+					? {
+							containerStyle: {
+								paddingBottom: bottomInsets,
+								backgroundColor: colors.card
+							},
+							textStyle: {
+								color: colors.foreground
+							}
+					  }
+					: {})
 			},
 			async buttonIndex => {
 				const progressNormalized = normalizeTransferProgress(info.item.transfer.size, info.item.transfer.bytes)
@@ -63,19 +75,30 @@ export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo>
 				}
 			}
 		)
-	}, [showActionSheetWithOptions, info.item.transfer.id, info.item.transfer.size, info.item.transfer.bytes, info.item.transfer.state])
+	}, [
+		showActionSheetWithOptions,
+		info.item.transfer.id,
+		info.item.transfer.size,
+		info.item.transfer.bytes,
+		info.item.transfer.state,
+		bottomInsets,
+		colors.foreground,
+		colors.card
+	])
 
 	return (
 		<ListItem
 			className="overflow-hidden"
 			{...info}
 			onPress={onPress}
-			subTitleClassName="text-sm"
+			subTitleClassName="text-xs pt-1 font-normal"
 			variant="full-width"
 			textNumberOfLines={1}
 			subTitleNumberOfLines={1}
 			isFirstInSection={false}
 			isLastInSection={false}
+			removeSeparator={Platform.OS === "android"}
+			innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
 			leftView={
 				<View className="flex-1 flex-row items-center px-4">
 					{info.item.transfer.itemType === "directory" ? (
@@ -93,29 +116,32 @@ export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo>
 				</View>
 			}
 			rightView={
-				<View className="flex-1 flex-row items-center px-4 gap-2">
+				<View className="flex-1 flex-row items-center px-4 gap-4">
 					{info.item.transfer.state === "started" ? (
 						<Fragment>
+							<Text>{normalizeTransferProgress(info.item.transfer.size, info.item.transfer.bytes)}%</Text>
 							<ActivityIndicator
 								color={colors.foreground}
 								size="small"
 							/>
-							<Text>{normalizeTransferProgress(info.item.transfer.size, info.item.transfer.bytes)}%</Text>
 						</Fragment>
 					) : info.item.transfer.state === "finished" ? (
 						<Icon
 							name="check-circle-outline"
 							color={colors.primary}
+							size={24}
 						/>
 					) : info.item.transfer.state === "error" ? (
 						<Icon
-							name="stop-circle-outline"
-							color={colors.primary}
+							name="exclamation"
+							color={colors.destructive}
+							size={24}
 						/>
 					) : info.item.transfer.state === "paused" ? (
 						<Icon
-							name="stop-circle-outline"
+							name="pause"
 							color={colors.primary}
+							size={24}
 						/>
 					) : info.item.transfer.state === "queued" ? (
 						<ActivityIndicator
@@ -123,7 +149,11 @@ export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo>
 							size="small"
 						/>
 					) : info.item.transfer.state === "stopped" ? (
-						<Text>Stopped</Text>
+						<Icon
+							name="stop"
+							color={colors.destructive}
+							size={24}
+						/>
 					) : null}
 				</View>
 			}

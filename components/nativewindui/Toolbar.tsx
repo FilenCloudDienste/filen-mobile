@@ -47,7 +47,9 @@ function Toolbar({ leftView, rightView, iosHint, className, iosBlurIntensity = 6
 					{Platform.OS === "ios" && !!iosHint && (
 						<Text
 							variant="caption2"
-							className="font-medium"
+							className="font-medium max-w-[70%]"
+							numberOfLines={1}
+							ellipsizeMode="middle"
 						>
 							{iosHint}
 						</Text>

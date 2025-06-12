@@ -26,6 +26,7 @@ import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { useShallow } from "zustand/shallow"
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 import Menu from "@/components/drive/list/listItem/menu"
+import Transfers from "@/components/drive/header/transfers"
 
 export const Photos = memo(() => {
 	const { colors } = useColorScheme()
@@ -216,46 +217,50 @@ export const Photos = memo(() => {
 					)
 				}}
 				rightView={() => (
-					<DropdownMenu
-						items={[
-							createDropdownItem({
-								actionKey: "settings",
-								title: "Settings",
-								icon:
-									Platform.OS === "ios"
-										? {
-												name: "gearshape",
-												namingScheme: "sfSymbol"
-										  }
-										: {
-												namingScheme: "material",
-												name: "cog-outline"
-										  }
-							})
-						]}
-						onItemPress={item => {
-							switch (item.actionKey) {
-								case "settings": {
-									router.push({
-										pathname: "/photos/settings"
-									})
+					<View className="flex-row items-center">
+						<Transfers />
+						<DropdownMenu
+							items={[
+								createDropdownItem({
+									actionKey: "settings",
+									title: "Settings",
+									icon:
+										Platform.OS === "ios"
+											? {
+													name: "gearshape",
+													namingScheme: "sfSymbol"
+											  }
+											: {
+													namingScheme: "material",
+													name: "cog-outline"
+											  }
+								})
+							]}
+							onItemPress={item => {
+								switch (item.actionKey) {
+									case "settings": {
+										router.push({
+											pathname: "/photos/settings"
+										})
 
-									break
+										break
+									}
 								}
-							}
-						}}
-					>
-						<Button
-							variant="plain"
-							size="icon"
+							}}
 						>
-							<Icon
-								size={24}
-								name="dots-horizontal-circle-outline"
-								color={colors.primary}
-							/>
-						</Button>
-					</DropdownMenu>
+							<Button
+								variant="plain"
+								size="icon"
+								hitSlop={10}
+							>
+								<Icon
+									size={24}
+									name="dots-horizontal-circle-outline"
+									color={colors.primary}
+								/>
+							</Button>
+						</DropdownMenu>
+					</View>
 				)}
 			/>
 			<Container>

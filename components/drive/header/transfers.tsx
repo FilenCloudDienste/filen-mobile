@@ -42,6 +42,7 @@ export const Transfers = memo(() => {
 			variant="plain"
 			size="icon"
 			onPress={onPress}
+			hitSlop={10}
 		>
 			<ActivityIndicator size="small" />
 		</Button>
