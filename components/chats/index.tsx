@@ -146,7 +146,7 @@ export const Chats = memo(() => {
 						renderItem={renderItem}
 						refreshing={refreshing || chatsQuery.status === "pending"}
 						contentContainerStyle={{
-							paddingBottom: bottomListContainerPadding
+							paddingBottom: bottomListContainerPadding + 100
 						}}
 						ListEmptyComponent={ListEmpty}
 						ListFooterComponent={ListFooter}

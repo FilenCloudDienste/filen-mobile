@@ -331,7 +331,7 @@ export const Photos = memo(() => {
 							</View>
 						}
 						contentContainerStyle={{
-							paddingBottom: bottomListContainerPadding,
+							paddingBottom: bottomListContainerPadding + 100,
 							paddingHorizontal: 0,
 							paddingVertical: 0
 						}}

@@ -8,7 +8,7 @@ import { View, ActivityIndicator, Platform } from "react-native"
 import { ProgressIndicator } from "../nativewindui/ProgressIndicator"
 import { Image } from "expo-image"
 import { Icon } from "@roninoss/icons"
-import { useRouter } from "expo-router"
+import { useRouter, usePathname } from "expo-router"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Button } from "../nativewindui/Button"
 import { formatBytes, normalizeFilePathForExpo } from "@/lib/utils"
@@ -24,14 +24,19 @@ export const Bottom = memo(() => {
 	const router = useRouter()
 	const { colors } = useColorScheme()
 	const trackPlayerControls = useTrackPlayerControls()
+	const pathname = usePathname()
 
 	const show = useMemo(() => {
-		if (trackPlayerState.playingTrack && trackPlayerState.queue.length > 0) {
+		if (
+			trackPlayerState.playingTrack &&
+			trackPlayerState.queue.length > 0 &&
+			!(pathname.startsWith("/notes/") || pathname.startsWith("/home/settings") || pathname.startsWith("/photos/settings"))
+		) {
 			return true
 		}
 
 		return false
-	}, [trackPlayerState.playingTrack, trackPlayerState.queue.length])
+	}, [trackPlayerState.playingTrack, trackPlayerState.queue.length, pathname])
 
 	const buttonsDisabled = useMemo(() => {
 		return trackPlayerState.isLoading || !show
@@ -99,7 +104,10 @@ export const Bottom = memo(() => {
 									/>
 								) : (
 									<View
-										className="bg-muted/30 rounded-md items-center justify-center"
+										className={cn(
+											"rounded-md items-center justify-center",
+											Platform.OS === "android" ? "bg-muted/30" : "bg-card"
+										)}
 										style={{
 											width: 36,
 											height: 36

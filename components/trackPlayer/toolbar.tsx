@@ -79,7 +79,10 @@ export const Toolbar = memo(() => {
 							/>
 						) : (
 							<View
-								className="bg-muted/30 rounded-md items-center justify-center"
+								className={cn(
+									"rounded-md items-center justify-center",
+									Platform.OS === "android" ? "bg-muted/30" : "bg-muted/50"
+								)}
 								style={{
 									width: 42,
 									height: 42

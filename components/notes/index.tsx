@@ -142,7 +142,7 @@ export const Notes = memo(() => {
 						renderItem={renderItem}
 						refreshing={refreshing}
 						contentContainerStyle={{
-							paddingBottom: bottomListContainerPadding
+							paddingBottom: bottomListContainerPadding + 100
 						}}
 						ListFooterComponent={() => {
 							return notes.length > 0 ? (

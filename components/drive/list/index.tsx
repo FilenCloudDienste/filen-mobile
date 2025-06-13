@@ -166,7 +166,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						removeClippedSubviews={true}
 						disableAutoLayout={true}
 						contentContainerStyle={{
-							paddingBottom: bottomListContainerPadding
+							paddingBottom: bottomListContainerPadding + 100
 						}}
 						ListHeaderComponent={() => {
 							if (hasInternet) {
@@ -218,7 +218,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						contentInsetAdjustmentBehavior="automatic"
 						initialScrollIndex={initialScrollIndex}
 						contentContainerStyle={{
-							paddingBottom: bottomListContainerPadding
+							paddingBottom: bottomListContainerPadding + 100
 						}}
 						estimatedListSize={
 							listLayout.width > 0 && listLayout.height > 0
