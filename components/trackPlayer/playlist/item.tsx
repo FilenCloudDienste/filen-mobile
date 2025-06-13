@@ -21,6 +21,9 @@ import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import { selectTrackPlayerPlaylists } from "@/app/selectTrackPlayerPlaylists"
 import { ListItem, type ListRenderItemInfo } from "../../nativewindui/List"
+import { Paths } from "expo-file-system/next"
+import { normalizeFilePathForExpo } from "@/lib/utils"
+import paths from "@/lib/paths"
 
 export type ListItemInfo = {
 	title: string
@@ -276,7 +279,9 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 					{trackPlayerFileMetadata?.picture ? (
 						<Image
 							source={{
-								uri: trackPlayerFileMetadata.picture
+								uri: normalizeFilePathForExpo(
+									Paths.join(paths.trackPlayerPictures(), Paths.basename(trackPlayerFileMetadata.picture))
+								)
 							}}
 							contentFit="cover"
 							style={{

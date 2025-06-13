@@ -24,6 +24,9 @@ import { useShallow } from "zustand/shallow"
 import { Checkbox } from "../nativewindui/Checkbox"
 import { type SelectTrackPlayerPlaylistsParams } from "@/app/selectTrackPlayerPlaylists"
 import { ListItem, type ListRenderItemInfo } from "../nativewindui/List"
+import { Paths } from "expo-file-system/next"
+import { normalizeFilePathForExpo } from "@/lib/utils"
+import paths from "@/lib/paths"
 
 export type ListItemInfo = {
 	title: string
@@ -73,7 +76,9 @@ export const Item = memo(
 					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 					if (metadataParsed?.picture) {
-						pictures.push(metadataParsed.picture)
+						pictures.push(
+							normalizeFilePathForExpo(Paths.join(paths.trackPlayerPictures(), Paths.basename(metadataParsed.picture)))
+						)
 					}
 
 					if (pictures.length >= 4) {

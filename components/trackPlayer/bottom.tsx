@@ -11,10 +11,12 @@ import { Icon } from "@roninoss/icons"
 import { useRouter } from "expo-router"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Button } from "../nativewindui/Button"
-import { formatBytes } from "@/lib/utils"
+import { formatBytes, normalizeFilePathForExpo } from "@/lib/utils"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { cn } from "@/lib/cn"
 import Container from "../Container"
+import paths from "@/lib/paths"
+import { Paths } from "expo-file-system/next"
 
 export const Bottom = memo(() => {
 	const trackPlayerState = useTrackPlayerState()
@@ -80,7 +82,12 @@ export const Bottom = memo(() => {
 								!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png") ? (
 									<Image
 										source={{
-											uri: trackPlayerState.playingTrack.artwork
+											uri: normalizeFilePathForExpo(
+												Paths.join(
+													paths.trackPlayerPictures(),
+													Paths.basename(trackPlayerState.playingTrack.artwork)
+												)
+											)
 										}}
 										contentFit="cover"
 										style={{

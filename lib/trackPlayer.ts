@@ -578,7 +578,13 @@ export class TrackPlayerService {
 				metadata.picture && new FileSystem.File(metadata.picture).exists ? metadata.picture : assets.uri.images.audio_fallback()
 
 			if (artwork && metadata.picture && artwork !== metadata.picture) {
-				mmkvInstance.delete(this.getTrackMetadataKeyFromUUID(track.file.uuid))
+				mmkvInstance.set(
+					this.getTrackMetadataKeyFromUUID(track.file.uuid),
+					JSON.stringify({
+						...metadata,
+						picture: artwork
+					})
+				)
 			}
 
 			return {

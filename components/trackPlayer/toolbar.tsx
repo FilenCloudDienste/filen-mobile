@@ -11,11 +11,13 @@ import useDimensions from "@/hooks/useDimensions"
 import useViewLayout from "@/hooks/useViewLayout"
 import { useMMKVNumber } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { formatSecondsToMMSS, formatBytes } from "@/lib/utils"
+import { formatSecondsToMMSS, formatBytes, normalizeFilePathForExpo } from "@/lib/utils"
 import { cn } from "@/lib/cn"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import Container from "../Container"
+import paths from "@/lib/paths"
+import { Paths } from "expo-file-system/next"
 
 export const Toolbar = memo(() => {
 	const { colors } = useColorScheme()
@@ -63,7 +65,9 @@ export const Toolbar = memo(() => {
 						!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png") ? (
 							<Image
 								source={{
-									uri: trackPlayerState.playingTrack.artwork
+									uri: normalizeFilePathForExpo(
+										Paths.join(paths.trackPlayerPictures(), Paths.basename(trackPlayerState.playingTrack.artwork))
+									)
 								}}
 								contentFit="cover"
 								style={{
