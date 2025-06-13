@@ -185,12 +185,6 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 				{
 					id: "0",
 					title: "Enabled",
-					leftView: (
-						<IconView
-							name="link"
-							className="bg-blue-500"
-						/>
-					),
 					rightView: (
 						<Toggle
 							onChange={toggle}
@@ -206,12 +200,6 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 			{
 				id: "0",
 				title: "Enabled",
-				leftView: (
-					<IconView
-						name="play"
-						className="bg-blue-500"
-					/>
-				),
 				rightView: (
 					<Toggle
 						onChange={toggle}

@@ -44,7 +44,7 @@ export const SILENT_1H_AUDIO_FILE: string = "silent_1h.mp3"
 
 export const EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS = Platform.select({
 	ios: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".heic", ".heif", ".webp"],
-	android: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"],
+	android: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".heic", ".heif"],
 	default: [".jpg", ".jpeg", ".png", ".gif", ".bmp"]
 }) as string[]
 
