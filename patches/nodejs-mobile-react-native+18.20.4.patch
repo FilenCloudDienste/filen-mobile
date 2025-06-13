@@ -1,0 +1,71 @@
+diff --git a/node_modules/nodejs-mobile-react-native/android/build.gradle b/node_modules/nodejs-mobile-react-native/android/build.gradle
+index 14be607..dcb2538 100644
+--- a/node_modules/nodejs-mobile-react-native/android/build.gradle
++++ b/node_modules/nodejs-mobile-react-native/android/build.gradle
+@@ -409,9 +409,9 @@ if ("1".equals(shouldRebuildNativeModules)) {
+             if (nodeVersionResult.exitValue != 0) {
+                 throw new GradleException("Failed to get node version: ${nodeVersionResult.errorOutput}")
+             }
+-            if (nodeVersionStdout.toString().trim() != "${_nodeVersionRequired}") {
+-                throw new GradleException("nodejs-mobile-react-native requires Node.js version ${_nodeVersionRequired}, but found ${nodeVersionStdout.toString().trim()}")
+-            }
++            //if (nodeVersionStdout.toString().trim() != "${_nodeVersionRequired}") {
++            //    throw new GradleException("nodejs-mobile-react-native requires Node.js version ${_nodeVersionRequired}, but found ${nodeVersionStdout.toString().trim()}")
++            //}
+             inputs.file "${rootProject.buildDir}/nodejs-native-assets-temp-build/nodejs-native-assets-${abi_name}/copy.timestamp"
+             outputs.dir "${rootProject.buildDir}/nodejs-native-assets-temp-build/nodejs-native-assets-${abi_name}/nodejs-project/"
+             workingDir "${rootProject.buildDir}/nodejs-native-assets-temp-build/nodejs-native-assets-${abi_name}/nodejs-project/"
+diff --git a/node_modules/nodejs-mobile-react-native/scripts/ios-build-native-modules.sh b/node_modules/nodejs-mobile-react-native/scripts/ios-build-native-modules.sh
+index e743704..63d07ff 100644
+--- a/node_modules/nodejs-mobile-react-native/scripts/ios-build-native-modules.sh
++++ b/node_modules/nodejs-mobile-react-native/scripts/ios-build-native-modules.sh
+@@ -8,14 +8,14 @@ if [ -f ./.xcode.env.local ]; then
+   source "./.xcode.env.local";
+ fi
+ 
+-DESIRED_NODE_VERSION="18"
+-CURRENT_NODE_VERSION="$(node -p "process.versions.node.split('.')[0]")"
+-if [ "$CURRENT_NODE_VERSION" -ne "$DESIRED_NODE_VERSION" ]; then
+-  echo "nodejs-mobile-react-native requires Node.js version \
+-$DESIRED_NODE_VERSION accessible from Xcode, but found \
+-$(node -p 'process.versions.node')"
+-  exit 1
+-fi
++#DESIRED_NODE_VERSION="18"
++#CURRENT_NODE_VERSION="$(node -p "process.versions.node.split('.')[0]")"
++#if [ "$CURRENT_NODE_VERSION" -ne "$DESIRED_NODE_VERSION" ]; then
++#  echo "nodejs-mobile-react-native requires Node.js version \
++#$DESIRED_NODE_VERSION accessible from Xcode, but found \
++#$(node -p 'process.versions.node')"
++#  exit 1
++#fi
+ 
+ # This is our nodejs-project folder that was copied to the Xcode build folder
+ NODEPROJ="$CODESIGNING_FOLDER_PATH/nodejs-project"
+diff --git a/node_modules/nodejs-mobile-react-native/scripts/ios-sign-native-modules.sh b/node_modules/nodejs-mobile-react-native/scripts/ios-sign-native-modules.sh
+index 81c033b..444c06a 100644
+--- a/node_modules/nodejs-mobile-react-native/scripts/ios-sign-native-modules.sh
++++ b/node_modules/nodejs-mobile-react-native/scripts/ios-sign-native-modules.sh
+@@ -8,14 +8,14 @@ if [ -f ./.xcode.env.local ]; then
+   source "./.xcode.env.local";
+ fi
+ 
+-DESIRED_NODE_VERSION="18"
+-CURRENT_NODE_VERSION="$(node -p "process.versions.node.split('.')[0]")"
+-if [ "$CURRENT_NODE_VERSION" -ne "$DESIRED_NODE_VERSION" ]; then
+-  echo "nodejs-mobile-react-native's ios-build-native-modules script requires \
+-Node.js version $DESIRED_NODE_VERSION, but found \
+-$(node -p 'process.versions.node')"
+-  exit 1
+-fi
++#DESIRED_NODE_VERSION="18"
++#CURRENT_NODE_VERSION="$(node -p "process.versions.node.split('.')[0]")"
++#if [ "$CURRENT_NODE_VERSION" -ne "$DESIRED_NODE_VERSION" ]; then
++#  echo "nodejs-mobile-react-native's ios-build-native-modules script requires \
++#Node.js version $DESIRED_NODE_VERSION, but found \
++#$(node -p 'process.versions.node')"
++#  exit 1
++#fi
+ 
+ if [ -z "$NODEJS_MOBILE_BUILD_NATIVE_MODULES" ]; then
+ # If build native modules preference is not set, look for it in the project's

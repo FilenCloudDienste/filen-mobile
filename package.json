@@ -31,11 +31,12 @@
 		"test": "jest --watchAll",
 		"lint": "eslint . --ext ts,tsx,js,jsx --report-unused-disable-directives --max-warnings 0",
 		"postinstall": "patch-package",
-		"prebuild": "expo prebuild",
-		"prebuild:clean": "expo prebuild --clean",
+		"prebuild": "npm run install:prebuilds && expo prebuild",
+		"prebuild:clean": "npm run install:prebuilds && expo prebuild --clean",
 		"tsc:check": "tsc -p ./tsconfig.json",
 		"install:filen": "npm install @filen/sdk@latest",
-		"ncu": "ncu --interactive --format group"
+		"ncu": "ncu --interactive --format group",
+		"install:prebuilds": "tsx ./installPrebuilds.ts"
 	},
 	"jest": {
 		"preset": "jest-expo"
@@ -215,6 +216,7 @@
 		"react-native-svg-transformer": "^1.5.1",
 		"react-test-renderer": "19.1.0",
 		"readable-stream": "^4.7.0",
+		"tsx": "^4.20.3",
 		"typescript": "~5.8.3",
 		"util": "^0.12.5"
 	}
