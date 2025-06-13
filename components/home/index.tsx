@@ -230,7 +230,7 @@ export const Home = memo(() => {
 						contentInsetAdjustmentBehavior="automatic"
 						contentContainerClassName={cn("pt-2", Platform.OS === "ios" && "pt-4")}
 						contentContainerStyle={{
-							paddingBottom: bottomListContainerPadding
+							paddingBottom: bottomListContainerPadding + 100
 						}}
 						showsVerticalScrollIndicator={false}
 						showsHorizontalScrollIndicator={false}
