@@ -5,7 +5,6 @@ import useNotesQuery from "@/queries/useNotesQuery"
 import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
 import { View, RefreshControl, ActivityIndicator } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
-import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
 import { useNotesStore } from "@/stores/notes.store"
 import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
 import { validate as validateUUID } from "uuid"
@@ -22,7 +21,6 @@ export const Notes = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const [selectedTag] = useMMKVString("selectedTag", mmkvInstance)
-	const bottomListContainerPadding = useBottomListContainerPadding()
 	const setNotes = useNotesStore(useShallow(state => state.setNotes))
 	const { colors } = useColorScheme()
 	const listRef = useRef<FlashList<Note>>(null)
@@ -142,7 +140,7 @@ export const Notes = memo(() => {
 						renderItem={renderItem}
 						refreshing={refreshing}
 						contentContainerStyle={{
-							paddingBottom: bottomListContainerPadding + 100
+							paddingBottom: 100
 						}}
 						ListFooterComponent={() => {
 							return notes.length > 0 ? (

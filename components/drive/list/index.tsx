@@ -7,7 +7,6 @@ import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { simpleDate, formatBytes, orderItemsByType, type OrderByType } from "@/lib/utils"
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
 import { Container } from "@/components/Container"
-import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
 import ListItem, { type ListItemInfo } from "./listItem"
 import { useFocusEffect } from "expo-router"
 import { useDriveStore } from "@/stores/drive.store"
@@ -22,7 +21,6 @@ import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: FetchCloudItemsParams; scrollToUUID?: string }) => {
 	const { colors } = useColorScheme()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
-	const bottomListContainerPadding = useBottomListContainerPadding()
 	const searchTerm = useDriveStore(useShallow(state => state.searchTerm))
 	const setSelectedItems = useDriveStore(useShallow(state => state.setSelectedItems))
 	const { hasInternet } = useNetInfo()
@@ -166,7 +164,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						removeClippedSubviews={true}
 						disableAutoLayout={true}
 						contentContainerStyle={{
-							paddingBottom: bottomListContainerPadding + 100
+							paddingBottom: 100
 						}}
 						ListHeaderComponent={() => {
 							if (hasInternet) {
@@ -218,7 +216,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						contentInsetAdjustmentBehavior="automatic"
 						initialScrollIndex={initialScrollIndex}
 						contentContainerStyle={{
-							paddingBottom: bottomListContainerPadding + 100
+							paddingBottom: 100
 						}}
 						estimatedListSize={
 							listLayout.width > 0 && listLayout.height > 0

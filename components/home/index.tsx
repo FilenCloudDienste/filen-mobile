@@ -6,7 +6,6 @@ import { Platform, RefreshControl, View, ActivityIndicator, ScrollView } from "r
 import { cn } from "@/lib/cn"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import Avatar from "../avatar"
-import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
 import { Container } from "@/components/Container"
 import { useRouter } from "expo-router"
 import ContainerComponent from "./container"
@@ -18,7 +17,6 @@ import Transfers from "../drive/header/transfers"
 export const Home = memo(() => {
 	const { colors } = useColorScheme()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
-	const bottomListContainerPadding = useBottomListContainerPadding()
 	const router = useRouter()
 
 	const recents = useCloudItemsQuery({
@@ -230,7 +228,7 @@ export const Home = memo(() => {
 						contentInsetAdjustmentBehavior="automatic"
 						contentContainerClassName={cn("pt-2", Platform.OS === "ios" && "pt-4")}
 						contentContainerStyle={{
-							paddingBottom: bottomListContainerPadding + 100
+							paddingBottom: 100
 						}}
 						showsVerticalScrollIndicator={false}
 						showsHorizontalScrollIndicator={false}

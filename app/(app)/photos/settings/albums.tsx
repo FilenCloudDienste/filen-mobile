@@ -11,7 +11,6 @@ import { Toggle } from "@/components/nativewindui/Toggle"
 import { cn } from "@/lib/cn"
 import useCameraUpload from "@/hooks/useCameraUpload"
 import { Image } from "expo-image"
-import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
 import useViewLayout from "@/hooks/useViewLayout"
 
 export type ListItemInfo = {
@@ -27,7 +26,6 @@ export type ListItemInfo = {
 export const Albums = memo(() => {
 	const { colors } = useColorScheme()
 	const [cameraUpload, setCameraUpload] = useCameraUpload()
-	const bottomListContainerPadding = useBottomListContainerPadding()
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
@@ -129,7 +127,7 @@ export const Albums = memo(() => {
 						ListEmptyComponent={<ActivityIndicator color={colors.foreground} />}
 						extraData={cameraUpload.albums}
 						contentContainerStyle={{
-							paddingBottom: bottomListContainerPadding
+							paddingBottom: 100
 						}}
 						estimatedListSize={
 							listLayout.width > 0 && listLayout.height > 0

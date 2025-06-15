@@ -9,7 +9,6 @@ import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator }
 import Thumbnail from "@/components/thumbnail/item"
 import { cn } from "@/lib/cn"
 import { Container } from "@/components/Container"
-import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { getPreviewType, orderItemsByType } from "@/lib/utils"
 import { useGalleryStore } from "@/stores/gallery.store"
@@ -31,7 +30,6 @@ import Transfers from "@/components/drive/header/transfers"
 export const Photos = memo(() => {
 	const { colors } = useColorScheme()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
-	const bottomListContainerPadding = useBottomListContainerPadding()
 	const { hasInternet } = useNetInfo()
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
@@ -331,7 +329,7 @@ export const Photos = memo(() => {
 							</View>
 						}
 						contentContainerStyle={{
-							paddingBottom: bottomListContainerPadding + 100,
+							paddingBottom: 100,
 							paddingHorizontal: 0,
 							paddingVertical: 0
 						}}

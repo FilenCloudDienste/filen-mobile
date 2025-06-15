@@ -27,12 +27,17 @@ export default function TabsLayout() {
 	}
 
 	return (
-		<Tabs initialRouteName="home">
+		<Tabs
+			initialRouteName="home"
+			screenOptions={{
+				tabBarActiveTintColor: colors.primary
+			}}
+		>
 			<Tabs.Screen
 				name="home"
 				options={{
 					tabBarLabel: "Home",
-					tabBarActiveTintColor: colors.primary,
+					title: "Home",
 					tabBarIcon: ({ focused }) =>
 						Platform.OS === "ios"
 							? {
@@ -47,7 +52,7 @@ export default function TabsLayout() {
 				name="drive"
 				options={{
 					tabBarLabel: "Drive",
-					tabBarActiveTintColor: colors.primary,
+					title: "Drive",
 					tabBarIcon: ({ focused }) =>
 						Platform.OS === "ios"
 							? {
@@ -62,7 +67,7 @@ export default function TabsLayout() {
 				name="photos"
 				options={{
 					tabBarLabel: "Photos",
-					tabBarActiveTintColor: colors.primary,
+					title: "Photos",
 					tabBarIcon: ({ focused }) =>
 						Platform.OS === "ios"
 							? {
@@ -77,7 +82,7 @@ export default function TabsLayout() {
 				name="notes"
 				options={{
 					tabBarLabel: "Notes",
-					tabBarActiveTintColor: colors.primary,
+					title: "Notes",
 					tabBarIcon: ({ focused }) =>
 						Platform.OS === "ios"
 							? {
@@ -92,7 +97,7 @@ export default function TabsLayout() {
 				name="chats"
 				options={{
 					tabBarLabel: "Chats",
-					tabBarActiveTintColor: colors.primary,
+					title: "Chats",
 					tabBarBadge: chatUnread > 0 ? chatUnread.toString() : undefined,
 					tabBarIcon: ({ focused }) =>
 						Platform.OS === "ios"

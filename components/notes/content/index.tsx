@@ -6,7 +6,6 @@ import Container from "@/components/Container"
 import TextEditorDOM from "./text/dom"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { bgColors } from "@/components/textEditor/editor"
-import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
 import RichTextEditorDOM from "./richtext/dom"
 import Checklist from "./checklist"
 import nodeWorker from "@/lib/nodeWorker"
@@ -30,7 +29,6 @@ export const Content = memo(
 		markdownPreview: boolean
 	}) => {
 		const { isDarkColorScheme, colors } = useColorScheme()
-		const bottomListContainerPadding = useBottomListContainerPadding()
 		const lastValueRef = useRef<string | null>(null)
 		const noteContentQuery = useNoteContentQueryNoFocusRefresh({
 			uuid: note.uuid
@@ -250,14 +248,6 @@ export const Content = memo(
 							</KeyboardAvoidingView>
 						)}
 					</View>
-					{Platform.OS === "ios" && !isPreview && (
-						<View
-							className="bg-background w-full"
-							style={{
-								height: bottomListContainerPadding
-							}}
-						/>
-					)}
 				</View>
 			</Container>
 		)

@@ -3,7 +3,6 @@ import useChatsQuery from "@/queries/useChatsQuery"
 import Header from "./header"
 import Container from "../Container"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
-import useBottomListContainerPadding from "@/hooks/useBottomListContainerPadding"
 import { View, RefreshControl, ActivityIndicator } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { contactName } from "@/lib/utils"
@@ -17,7 +16,6 @@ export const Chats = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const listRef = useRef<FlashList<ChatConversation>>(null)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
-	const bottomListContainerPadding = useBottomListContainerPadding()
 	const { colors } = useColorScheme()
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
@@ -146,7 +144,7 @@ export const Chats = memo(() => {
 						renderItem={renderItem}
 						refreshing={refreshing || chatsQuery.status === "pending"}
 						contentContainerStyle={{
-							paddingBottom: bottomListContainerPadding + 100
+							paddingBottom: 100
 						}}
 						ListEmptyComponent={ListEmpty}
 						ListFooterComponent={ListFooter}
