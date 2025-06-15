@@ -49,16 +49,20 @@
 		},
 		"plugins": [
 			"expo-router",
+			"react-native-bottom-tabs",
 			[
 				"expo-build-properties",
 				{
 					"android": {
 						"compileSdkVersion": 35,
 						"targetSdkVersion": 35,
-						"minSdkVersion": 31
+						"minSdkVersion": 31,
+						"enableProguardInReleaseBuilds": true,
+						"enableShrinkResourcesInReleaseBuilds": true
 					},
 					"ios": {
-						"deploymentTarget": "16.0"
+						"deploymentTarget": "16.0",
+						"useFrameworks": "static"
 					}
 				}
 			],
@@ -110,7 +114,6 @@
 					"faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
 				}
 			],
-			"expo-font",
 			[
 				"expo-sqlite",
 				{
@@ -121,8 +124,8 @@
 			"expo-background-task",
 			"@config-plugins/react-native-blob-util",
 			"@config-plugins/react-native-pdf",
-			["./plugins/withAndroidNetworkSecurityConfig"],
-			["./plugins/withAndroidLargeHeapAndHardwareAcceleration"],
+			"./plugins/withAndroidNetworkSecurityConfig",
+			"./plugins/withAndroidLargeHeapAndHardwareAcceleration",
 			[
 				"./plugins/withAndroidArchitectures",
 				{
@@ -133,12 +136,12 @@
 				"expo-share-intent",
 				{
 					"iosActivationRules": {
-						"NSExtensionActivationSupportsWebURLWithMaxCount": 1,
-						"NSExtensionActivationSupportsWebPageWithMaxCount": 1,
+						"NSExtensionActivationSupportsWebURLWithMaxCount": 0,
+						"NSExtensionActivationSupportsWebPageWithMaxCount": 0,
 						"NSExtensionActivationSupportsImageWithMaxCount": 10000,
 						"NSExtensionActivationSupportsMovieWithMaxCount": 10000,
 						"NSExtensionActivationSupportsFileWithMaxCount": 10000,
-						"NSExtensionActivationSupportsText": true
+						"NSExtensionActivationSupportsText": false
 					},
 					"androidIntentFilters": ["*/*"],
 					"androidMultiIntentFilters": ["*/*"],
@@ -151,7 +154,8 @@
 				{
 					"assets": ["./assets/images/avatar_fallback.png", "./assets/audio/silent_1h.mp3", "./assets/images/audio_fallback.png"]
 				}
-			]
+			],
+			"expo-font"
 		],
 		"experiments": {
 			"typedRoutes": true,
