@@ -103,6 +103,24 @@ import { readFileAsString, writeFileAsString } from "./fs"
 
 import { parseAudioMetadata } from "./utils"
 
+import {
+	uploadAvatar,
+	updateNickname,
+	updatePersonalInformation,
+	changeEmail,
+	changePassword,
+	fetchEvent,
+	fetchEvents,
+	fetchGDPR,
+	toggleLoginAlerts,
+	toggleVersioning,
+	enableTwoFactorAuthentication,
+	disableTwoFactorAuthentication,
+	deleteAccount,
+	deleteAllVersionedFiles,
+	deleteEverything
+} from "./user"
+
 export {
 	ping,
 	login,
@@ -205,5 +223,20 @@ export {
 	directorySizePublicLink,
 	readFileAsString,
 	writeFileAsString,
-	parseAudioMetadata
+	parseAudioMetadata,
+	uploadAvatar,
+	updateNickname,
+	updatePersonalInformation,
+	changeEmail,
+	changePassword,
+	fetchEvent,
+	fetchEvents,
+	fetchGDPR,
+	toggleLoginAlerts,
+	toggleVersioning,
+	enableTwoFactorAuthentication,
+	disableTwoFactorAuthentication,
+	deleteAccount,
+	deleteAllVersionedFiles,
+	deleteEverything
 }

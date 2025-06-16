@@ -34,6 +34,7 @@ export const UNCACHED_QUERY_KEYS: string[] = [
 ]
 
 export const WEB_APP_BASE_URL: string = "https://app.filen.io"
+export const WEB_APP_ACCOUNT_SETTINGS_URL: string = `${WEB_APP_BASE_URL}/#/settings/account`
 export const FILE_PUBLIC_LINK_BASE_URL: string = `${WEB_APP_BASE_URL}/#/d/`
 export const DIRECTORY_PUBLIC_LINK_BASE_URL: string = `${WEB_APP_BASE_URL}/#/f/`
 

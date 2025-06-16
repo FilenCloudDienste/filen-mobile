@@ -5,6 +5,7 @@ export type SettingsItem =
 			subTitle?: string
 			leftView?: React.ReactNode
 			rightView?: React.ReactNode
+			destructive?: boolean
 			rightText?: string
 			badge?: number
 			onPress?: () => void
@@ -17,6 +18,7 @@ export type SettingsProps = {
 	showSearchBar: boolean
 	hideHeader?: boolean
 	disableAndroidRipple?: boolean
+	loading?: boolean
 }
 
 export * from "./settings"

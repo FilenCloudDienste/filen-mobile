@@ -1,5 +1,5 @@
 import { Icon, MaterialIconName } from "@roninoss/icons"
-import { View } from "react-native"
+import { View, ActivityIndicator } from "react-native"
 import { memo, Fragment, useCallback, useRef } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { ESTIMATED_ITEM_HEIGHT, List, ListDataItem, ListItem, ListSectionHeader } from "@/components/nativewindui/List"
@@ -41,6 +41,7 @@ IconView.displayName = "IconView"
 export const Settings = memo((props: SettingsProps) => {
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
+	const { colors } = useColorScheme()
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
 		return typeof item === "string" ? item : item.id
@@ -54,8 +55,8 @@ export const Settings = memo((props: SettingsProps) => {
 		return (
 			<ListItem
 				className={cn("ios:pl-0 pl-2", info.index === 0 && "ios:border-t-0 border-border/25 dark:border-border/80 border-t")}
-				innerClassName="py-2 ios:py-2 android:py-2"
-				titleClassName="text-lg"
+				innerClassName={cn("py-2 ios:py-2 android:py-2", info.item.destructive && "text-destructive")}
+				titleClassName={cn("text-lg", info.item.destructive && "text-destructive")}
 				leftView={info.item.leftView ? <View className="flex-1 flex-row items-center px-4">{info.item.leftView}</View> : undefined}
 				rightView={
 					info.item.rightView ? (
@@ -65,7 +66,7 @@ export const Settings = memo((props: SettingsProps) => {
 							{info.item.rightText && (
 								<Text
 									variant="callout"
-									className="ios:px-0 text-muted-foreground px-2"
+									className="ios:px-0 text-muted-foreground px-2 max-w-[100px] font-normal"
 									numberOfLines={1}
 								>
 									{info.item.rightText}
@@ -117,10 +118,28 @@ export const Settings = memo((props: SettingsProps) => {
 					contentContainerStyle={{
 						paddingBottom: 100
 					}}
-					data={props.items}
+					data={props.loading ? [] : props.items}
+					extraData={__DEV__ ? (props.loading ? [] : props.items) : undefined}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
 					sectionHeaderAsGap={true}
+					refreshing={props.loading}
+					ListEmptyComponent={() => {
+						return (
+							<View
+								className="flex-1 items-center justify-center"
+								style={{
+									width: listLayout.width,
+									height: listLayout.height
+								}}
+							>
+								<ActivityIndicator
+									size="large"
+									color={colors.foreground}
+								/>
+							</View>
+						)
+					}}
 					estimatedListSize={
 						listLayout.width > 0 && listLayout.height > 0
 							? {

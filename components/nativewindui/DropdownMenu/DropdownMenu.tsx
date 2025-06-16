@@ -2,10 +2,10 @@ import * as DropdownMenuPrimitive from "@rn-primitives/dropdown-menu"
 import { useAugmentedRef } from "@rn-primitives/hooks"
 import { Icon } from "@roninoss/icons"
 import * as React from "react"
-import { Image, LayoutChangeEvent, StyleSheet, View } from "react-native"
+import { Image, LayoutChangeEvent, StyleSheet, View, ScrollView } from "react-native"
 import Animated, { FadeIn, FadeInLeft, FadeOut, FadeOutLeft, LayoutAnimationConfig, LinearTransition } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-
+import useDimensions from "@/hooks/useDimensions"
 import { DropdownItem, DropdownMenuProps, DropdownMenuRef, DropdownSubMenu } from "./types"
 
 import { ActivityIndicator } from "~/components/nativewindui/ActivityIndicator"
@@ -153,9 +153,18 @@ function useDropdownContext() {
 function DropdownMenuInnerContent({ items }: { items: (DropdownItem | DropdownSubMenu)[] }) {
 	const { materialLoadingText } = useDropdownContext()
 	const id = React.useId()
+	const { screen, insets } = useDimensions()
 
 	return (
-		<View>
+		<ScrollView
+			style={{
+				maxHeight: screen.height - insets.top - insets.bottom
+			}}
+			showsHorizontalScrollIndicator={false}
+			directionalLockEnabled={true}
+			removeClippedSubviews={true}
+			contentInsetAdjustmentBehavior="automatic"
+		>
 			{items.map((item, index) => {
 				if (item.loading) {
 					return (
@@ -195,7 +204,7 @@ function DropdownMenuInnerContent({ items }: { items: (DropdownItem | DropdownSu
 					/>
 				)
 			})}
-		</View>
+		</ScrollView>
 	)
 }
 

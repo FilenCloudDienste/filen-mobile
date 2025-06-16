@@ -394,7 +394,22 @@ export class NodeWorker {
 		directorySizePublicLink: handlers.directorySizePublicLink.bind(this),
 		readFileAsString: handlers.readFileAsString.bind(this),
 		writeFileAsString: handlers.writeFileAsString.bind(this),
-		parseAudioMetadata: handlers.parseAudioMetadata.bind(this)
+		parseAudioMetadata: handlers.parseAudioMetadata.bind(this),
+		uploadAvatar: handlers.uploadAvatar.bind(this),
+		updateNickname: handlers.updateNickname.bind(this),
+		updatePersonalInformation: handlers.updatePersonalInformation.bind(this),
+		changeEmail: handlers.changeEmail.bind(this),
+		changePassword: handlers.changePassword.bind(this),
+		fetchEvent: handlers.fetchEvent.bind(this),
+		fetchEvents: handlers.fetchEvents.bind(this),
+		fetchGDPR: handlers.fetchGDPR.bind(this),
+		toggleLoginAlerts: handlers.toggleLoginAlerts.bind(this),
+		toggleVersioning: handlers.toggleVersioning.bind(this),
+		enableTwoFactorAuthentication: handlers.enableTwoFactorAuthentication.bind(this),
+		disableTwoFactorAuthentication: handlers.disableTwoFactorAuthentication.bind(this),
+		deleteAccount: handlers.deleteAccount.bind(this),
+		deleteAllVersionedFiles: handlers.deleteAllVersionedFiles.bind(this),
+		deleteEverything: handlers.deleteEverything.bind(this)
 	}
 }
 

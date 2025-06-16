@@ -1,5 +1,5 @@
 import { Icon, MaterialIconName } from "@roninoss/icons"
-import { View } from "react-native"
+import { View, ActivityIndicator } from "react-native"
 import { type SettingsItem, type SettingsProps } from "."
 import { Button } from "~/components/nativewindui/Button"
 import { List, ListDataItem, ListRenderItemInfo } from "~/components/nativewindui/List"
@@ -35,6 +35,7 @@ IconView.displayName = "IconView"
 export const Settings = memo((props: SettingsProps) => {
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
+	const { colors } = useColorScheme()
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
 		return typeof item === "string" ? item : item.id
@@ -61,7 +62,9 @@ export const Settings = memo((props: SettingsProps) => {
 					>
 						{info.item.leftView && <View className="flex-row items-center">{info.item.leftView}</View>}
 						<View className={cn("flex-col flex-1", info.item.leftView && "pl-4")}>
-							<Text className="text-xl font-normal">{info.item.title}</Text>
+							<Text className={cn("text-xl font-normal", info.item.destructive && "text-destructive")}>
+								{info.item.title}
+							</Text>
 							{info.item.subTitle && (
 								<Text className="text-muted-foreground text-base font-normal">{info.item.subTitle}</Text>
 							)}
@@ -100,10 +103,28 @@ export const Settings = memo((props: SettingsProps) => {
 					}}
 					contentInsetAdjustmentBehavior="automatic"
 					variant="full-width"
-					data={props.items}
+					data={props.loading ? [] : props.items}
+					extraData={__DEV__ ? (props.loading ? [] : props.items) : undefined}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
 					sectionHeaderAsGap={true}
+					refreshing={props.loading}
+					ListEmptyComponent={() => {
+						return (
+							<View
+								className="flex-1 items-center justify-center"
+								style={{
+									width: listLayout.width,
+									height: listLayout.height
+								}}
+							>
+								<ActivityIndicator
+									size="large"
+									color={colors.foreground}
+								/>
+							</View>
+						)
+					}}
 					estimatedListSize={
 						listLayout.width > 0 && listLayout.height > 0
 							? {
