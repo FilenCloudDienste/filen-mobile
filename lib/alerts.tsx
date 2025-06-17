@@ -11,7 +11,12 @@ export const NotifierErrorContainer = memo(({ children }: { children: React.Reac
 		<View
 			style={{
 				paddingTop: insets.top,
-				backgroundColor: "rgb(255, 59, 48)"
+				backgroundColor: "rgb(255, 59, 48)",
+				zIndex: 1000,
+				position: "absolute",
+				top: 0,
+				left: 0,
+				right: 0
 			}}
 		>
 			{children}
@@ -33,7 +38,21 @@ export class Alerts {
 				ContainerComponent: NotifierErrorContainer,
 				maxDescriptionLines: 10,
 				maxTitleLines: 1
+			},
+			containerStyle: {
+				zIndex: 1000
 			}
+		})
+	}
+
+	public nativeError(title: string): void {
+		Burnt.toast({
+			title,
+			duration: 3,
+			preset: "error",
+			shouldDismissByDrag: true,
+			from: "bottom",
+			haptic: "error"
 		})
 	}
 

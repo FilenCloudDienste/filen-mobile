@@ -19,6 +19,7 @@ import * as FileSystem from "expo-file-system/next"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import * as Sharing from "expo-sharing"
+import { logout as logoutFn } from "@/lib/auth"
 
 export const Account = memo(() => {
 	const router = useRouter()
@@ -507,8 +508,12 @@ export const Account = memo(() => {
 			return
 		}
 
-		//TODO: Implement logout functionality
-	}, [])
+		logoutFn()
+
+		router.replace({
+			pathname: "/(auth)"
+		})
+	}, [router])
 
 	return (
 		<SettingsComponent

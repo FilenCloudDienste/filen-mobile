@@ -95,7 +95,7 @@ const Alert = React.forwardRef<AlertRef, AlertProps>(
 							entering={FadeIn}
 							exiting={FadeOut}
 							style={bottomPaddingStyle}
-							className={cn("bg-popover/80 absolute bottom-0 left-0 right-0 top-0 items-center justify-center px-3")}
+							className="bg-popover/80 absolute bottom-0 left-0 right-0 top-0 items-center justify-center px-3 z-[1000]"
 						>
 							<AlertDialogPrimitive.Content>
 								<Animated.View

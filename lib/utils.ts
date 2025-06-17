@@ -816,3 +816,36 @@ export async function readStreamToBuffer(stream: ReadableStream<Uint8Array>, max
 
 	return result
 }
+
+export function ratePasswordStrength(password: string): {
+	strength: "weak" | "normal" | "strong" | "best"
+	uppercase: boolean
+	lowercase: boolean
+	specialChars: boolean
+	length: boolean
+} {
+	const hasUppercase = /[A-Z]/.test(password)
+	const hasLowercase = /[a-z]/.test(password)
+	const hasSpecialChars = /[!@#$%^&*(),.?":{}|<>]/.test(password)
+	const length = password.length
+
+	let strength: "weak" | "normal" | "strong" | "best" = "weak"
+
+	if (length >= 10 && hasUppercase && hasLowercase && hasSpecialChars) {
+		if (length >= 16) {
+			strength = "best"
+		} else {
+			strength = "strong"
+		}
+	} else if (length >= 10 && ((hasUppercase && hasLowercase) || (hasUppercase && hasSpecialChars) || (hasLowercase && hasSpecialChars))) {
+		strength = "normal"
+	}
+
+	return {
+		strength,
+		uppercase: hasUppercase,
+		lowercase: hasLowercase,
+		specialChars: hasSpecialChars,
+		length: length >= 10
+	}
+}

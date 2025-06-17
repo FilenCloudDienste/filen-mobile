@@ -152,6 +152,7 @@ export const Settings = memo((props: SettingsProps) => {
 					drawDistance={0}
 					removeClippedSubviews={true}
 					disableAutoLayout={true}
+					ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
 				/>
 			</View>
 		</Fragment>

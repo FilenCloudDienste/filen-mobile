@@ -1,0 +1,207 @@
+import { memo, useCallback, useMemo } from "react"
+import { Settings as SettingsComponent } from "@/components/settings"
+import useAccountQuery from "@/queries/useAccountQuery"
+import { Toggle } from "@/components/nativewindui/Toggle"
+import alerts from "@/lib/alerts"
+import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
+import nodeWorker from "@/lib/nodeWorker"
+import { inputPrompt } from "@/components/prompts/inputPrompt"
+import { useTranslation } from "react-i18next"
+import { View } from "react-native"
+import QRCode from "react-native-qrcode-svg"
+import useDimensions from "@/hooks/useDimensions"
+import * as Clipboard from "expo-clipboard"
+import { Button } from "@/components/nativewindui/Button"
+import { Icon } from "@roninoss/icons"
+import { useColorScheme } from "@/lib/useColorScheme"
+import { Text } from "@/components/nativewindui/Text"
+import { sanitizeFileName } from "@/lib/utils"
+import * as FileSystem from "expo-file-system/next"
+import paths from "@/lib/paths"
+import * as Sharing from "expo-sharing"
+
+export const TwoFactor = memo(() => {
+	const { t } = useTranslation()
+	const { screen } = useDimensions()
+	const { colors } = useColorScheme()
+
+	const account = useAccountQuery({
+		enabled: false
+	})
+
+	const twoFactorEnabled = useMemo(() => {
+		return account.data?.settings.twoFactorEnabled ? account.data?.settings.twoFactorEnabled === 1 : false
+	}, [account.data?.settings.twoFactorEnabled])
+
+	const qrCodeValue = useMemo(() => {
+		if (!account.data?.settings.twoFactorKey || !account.data?.account.email) {
+			return ""
+		}
+
+		return `otpauth://totp/Filen:${encodeURIComponent(account.data?.account.email)}?secret=${encodeURIComponent(
+			account.data?.settings.twoFactorKey
+		)}&issuer=Filen&digits=6&period=30&algorithm=SHA1`
+	}, [account])
+
+	const exportRecoveryKeys = useCallback(
+		async (recoveryKeys: string) => {
+			const fileName = `${sanitizeFileName(`Two_Factor_Recovery_Keys_${account.data?.account.email ?? ""}_${Date.now()}`)}.txt`
+			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.exports(), fileName))
+
+			try {
+				fullScreenLoadingModal.show()
+
+				try {
+					if (tmpFile.exists) {
+						tmpFile.delete()
+					}
+
+					tmpFile.write(recoveryKeys)
+				} finally {
+					fullScreenLoadingModal.hide()
+				}
+
+				await new Promise<void>(resolve => setTimeout(resolve, 250))
+
+				await Sharing.shareAsync(tmpFile.uri, {
+					mimeType: "text/plain",
+					dialogTitle: fileName
+				})
+			} catch (e) {
+				console.error(e)
+
+				if (e instanceof Error) {
+					alerts.error(e.message)
+				}
+			} finally {
+				if (tmpFile.exists) {
+					tmpFile.delete()
+				}
+			}
+		},
+		[account.data?.account.email]
+	)
+
+	const toggleTwoFactor = useCallback(async () => {
+		const twoFactorPrompt = await inputPrompt({
+			title: t("drive.header.rightView.actionSheet.create.directory"),
+			materialIcon: {
+				name: "lock-outline"
+			},
+			prompt: {
+				type: "secure-text",
+				keyboardType: "default",
+				defaultValue: "",
+				placeholder: "Two-factor code"
+			}
+		})
+
+		if (twoFactorPrompt.cancelled || twoFactorPrompt.type !== "text") {
+			return
+		}
+
+		const twoFactorCode = twoFactorPrompt.text.trim()
+
+		if (twoFactorCode.length === 0) {
+			return
+		}
+
+		fullScreenLoadingModal.show()
+
+		try {
+			if (twoFactorEnabled) {
+				await nodeWorker.proxy("disableTwoFactorAuthentication", {
+					twoFactorCode
+				})
+			} else {
+				const recoveryKeys = await nodeWorker.proxy("enableTwoFactorAuthentication", {
+					twoFactorCode
+				})
+
+				await exportRecoveryKeys(recoveryKeys)
+			}
+
+			await account.refetch()
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			fullScreenLoadingModal.hide()
+		}
+	}, [account, t, twoFactorEnabled, exportRecoveryKeys])
+
+	const copyKeyToClipboard = useCallback(async () => {
+		if (!account.data?.settings.twoFactorKey) {
+			return
+		}
+
+		try {
+			await Clipboard.setStringAsync(account.data.settings.twoFactorKey)
+
+			alerts.normal("Two-factor key copied to clipboard")
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
+	}, [account.data?.settings.twoFactorKey])
+
+	return (
+		<SettingsComponent
+			title="Security"
+			showSearchBar={false}
+			loading={account.status !== "success"}
+			items={[
+				{
+					id: "0",
+					title: "Two Factor Authentication",
+					rightView: (
+						<Toggle
+							value={twoFactorEnabled}
+							onValueChange={toggleTwoFactor}
+						/>
+					)
+				}
+			]}
+			listFooter={
+				!twoFactorEnabled &&
+				account.data?.settings.twoFactorKey && (
+					<View className="flex-1 flex-col pt-10 gap-10">
+						<View className="rounded-lg items-center justify-center">
+							<View className="p-4 bg-white rounded-lg">
+								<QRCode
+									value={qrCodeValue}
+									backgroundColor="white"
+									size={screen.width / 2}
+								/>
+							</View>
+						</View>
+						<View className="flex-1 flex-row items-center gap-2 justify-center">
+							<Button
+								variant="plain"
+								size="sm"
+								onPress={copyKeyToClipboard}
+							>
+								<Text className="text-primary">Copy Key</Text>
+								<Icon
+									name="clipboard-outline"
+									size={24}
+									color={colors.primary}
+								/>
+							</Button>
+						</View>
+					</View>
+				)
+			}
+		/>
+	)
+})
+
+TwoFactor.displayName = "TwoFactor"
+
+export default TwoFactor

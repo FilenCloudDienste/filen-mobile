@@ -13,6 +13,7 @@ import { orderItemsByType } from "@/lib/utils"
 import useAccountQuery from "@/queries/useAccountQuery"
 import { Icon } from "@roninoss/icons"
 import Transfers from "../drive/header/transfers"
+import alerts from "@/lib/alerts"
 
 export const Home = memo(() => {
 	const { colors } = useColorScheme()
@@ -210,6 +211,19 @@ export const Home = memo(() => {
 							>
 								<Icon
 									name="music-note"
+									size={24}
+									color={colors.primary}
+								/>
+							</Button>
+							<Button
+								variant="plain"
+								size="icon"
+								onPress={() => {
+									alerts.error("This feature is not implemented yet.")
+								}}
+							>
+								<Icon
+									name="access-point-network"
 									size={24}
 									color={colors.primary}
 								/>

@@ -27,6 +27,7 @@ import GalleryModal from "@/components/gallery/modal"
 import Background from "@/components/background"
 import SocketEvents from "@/components/socketEvents"
 import { NotifierWrapper } from "react-native-notifier"
+import Biometric from "@/components/biometric"
 
 export default function RootLayout() {
 	const { colorScheme, colors } = useColorScheme()
@@ -56,7 +57,7 @@ export default function RootLayout() {
 						<ActionSheetProvider>
 							<BottomSheetModalProvider>
 								<NavThemeProvider value={NAV_THEME[colorScheme]}>
-									<NotifierWrapper>
+									<NotifierWrapper useRNScreensOverlay={true}>
 										{setupDone && (
 											<ShareIntentProvider>
 												<Stack
@@ -192,6 +193,7 @@ export default function RootLayout() {
 														<AuthedListeners />
 														<SocketEvents />
 														<Background />
+														<Biometric />
 													</Fragment>
 												)}
 												<InputPrompt />
