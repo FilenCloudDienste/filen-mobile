@@ -18,6 +18,7 @@ export type BiometricAuth = {
 	lockAfter: number
 	tries: number
 	triesLockedUntil: number
+	triesLockedUntilMultiplier: number
 	pinOnly: boolean
 }
 

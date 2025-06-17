@@ -59,10 +59,11 @@ export const Biometric = memo(() => {
 					enabled: true,
 					code,
 					lastLock: Date.now(),
-					lockAfter: Number.MAX_SAFE_INTEGER,
+					lockAfter: 300,
 					tries: 0,
 					triesLockedUntil: 0,
-					pinOnly: false
+					pinOnly: false,
+					triesLockedUntilMultiplier: 1
 				})
 			} else {
 				const alertPromptResponse = await alertPrompt({

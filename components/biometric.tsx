@@ -13,49 +13,43 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { inputPrompt } from "./prompts/inputPrompt"
 import { useTranslation } from "react-i18next"
 
-export const Action = memo(
-	({ biometricsLockedForSeconds, pinAuth }: { biometricsLockedForSeconds: number | null; pinAuth: () => Promise<void> }) => {
-		const [seconds, setSeconds] = useState<number>(biometricsLockedForSeconds ?? 0)
+export const Action = memo(({ lockedSeconds, pinAuth }: { lockedSeconds: number; pinAuth: () => Promise<void> }) => {
+	const [seconds, setSeconds] = useState<number>(lockedSeconds)
 
-		useEffect(() => {
-			if (biometricsLockedForSeconds === null) {
-				setSeconds(0)
+	useEffect(() => {
+		if (lockedSeconds <= 0) {
+			return
+		}
 
-				return
-			}
+		const interval = setInterval(() => {
+			setSeconds(prev => {
+				if (prev <= 1) {
+					clearInterval(interval)
 
-			setSeconds(biometricsLockedForSeconds)
+					return 0
+				}
 
-			const interval = setInterval(() => {
-				setSeconds(prev => {
-					if (prev <= 1) {
-						clearInterval(interval)
+				return prev - 1
+			})
+		}, 1000)
 
-						return 0
-					}
+		return () => {
+			clearInterval(interval)
+		}
+	}, [lockedSeconds])
 
-					return prev - 1
-				})
-			}, 1000)
-
-			return () => {
-				clearInterval(interval)
-			}
-		}, [biometricsLockedForSeconds])
-
-		return seconds > 0 ? (
-			<Text className="text-foreground font-normal">App locked for {seconds} seconds.</Text>
-		) : (
-			<Button
-				variant="plain"
-				size={Platform.OS === "ios" ? "none" : "md"}
-				onPress={pinAuth}
-			>
-				<Text className="text-primary">Authenticate using PIN</Text>
-			</Button>
-		)
-	}
-)
+	return seconds > 0 ? (
+		<Text className="text-foreground font-normal">App locked for {seconds} seconds.</Text>
+	) : (
+		<Button
+			variant="plain"
+			size={Platform.OS === "ios" ? "none" : "md"}
+			onPress={pinAuth}
+		>
+			<Text className="text-primary">Authenticate using PIN</Text>
+		</Button>
+	)
+})
 
 Action.displayName = "Action"
 
@@ -70,24 +64,18 @@ export const Biometric = memo(() => {
 		return biometricAuth?.enabled ?? false
 	}, [biometricAuth])
 
-	const biometricsLockedForSeconds = useMemo(() => {
-		if (!enabled || !show || !biometricAuth) {
-			return null
+	const biometricsLockedForSeconds = useCallback(() => {
+		if (!enabled || !biometricAuth) {
+			return 0
 		}
 
 		const lockedFor = Math.ceil((biometricAuth.triesLockedUntil - Date.now()) / 1000)
 
-		return lockedFor > 0 ? lockedFor : null
-	}, [enabled, show, biometricAuth])
+		return lockedFor > 0 ? lockedFor : 0
+	}, [enabled, biometricAuth])
 
 	const canPromptLocalAuthentication = useMemo(() => {
-		if (
-			!show ||
-			!enabled ||
-			(biometricsLockedForSeconds && biometricsLockedForSeconds > 0) ||
-			!biometricAuth ||
-			biometricAuth.pinOnly
-		) {
+		if (!show || !enabled || biometricsLockedForSeconds() > 0 || !biometricAuth || biometricAuth.pinOnly) {
 			return false
 		}
 
@@ -117,6 +105,21 @@ export const Biometric = memo(() => {
 		[enabled, show, setBiometricAuth, biometricAuth]
 	)
 
+	const authenticated = useCallback(() => {
+		setShow(false)
+		setBiometricAuth(prev =>
+			prev
+				? {
+						...prev,
+						lastLock: Date.now(),
+						tries: 0,
+						triesLockedUntil: 0,
+						triesLockedUntilMultiplier: 1
+				  }
+				: prev
+		)
+	}, [setBiometricAuth])
+
 	const promptLocalAuthentication = useCallback(async () => {
 		if (!canPromptLocalAuthentication) {
 			return
@@ -137,20 +140,14 @@ export const Biometric = memo(() => {
 				cancelLabel: "Cancel",
 				promptMessage: "Authenticate to unlock the app",
 				disableDeviceFallback: true,
-				fallbackLabel: "Use Passcode"
+				fallbackLabel: ""
 			})
 
-			if (result.success) {
-				setShow(false)
-				setBiometricAuth(prev =>
-					prev
-						? {
-								...prev,
-								lastLock: Date.now()
-						  }
-						: prev
-				)
+			if (!result.success) {
+				return
 			}
+
+			authenticated()
 		} catch (e) {
 			console.error(e)
 
@@ -158,7 +155,7 @@ export const Biometric = memo(() => {
 				alerts.error(e.message)
 			}
 		}
-	}, [canPromptLocalAuthentication, setBiometricAuth])
+	}, [canPromptLocalAuthentication, authenticated])
 
 	const onBackButtonPress = useCallback(() => {
 		if (show) {
@@ -169,7 +166,7 @@ export const Biometric = memo(() => {
 	}, [show])
 
 	const pinAuth = useCallback(async () => {
-		if (!enabled || !show || !biometricAuth || (biometricsLockedForSeconds && biometricsLockedForSeconds > 0)) {
+		if (!biometricAuth || biometricsLockedForSeconds() > 0) {
 			return
 		}
 
@@ -197,15 +194,18 @@ export const Biometric = memo(() => {
 		}
 
 		if (code !== biometricAuth.code) {
-			const currentTries = biometricAuth.tries ?? 0
+			const currentTries = biometricAuth.tries
 
 			if (currentTries >= BIOMETRIC_MAX_TRIES) {
+				const lockedUntil = Math.round(60 * 1000 * biometricAuth.triesLockedUntilMultiplier)
+
 				setBiometricAuth(prev =>
 					prev
 						? {
 								...prev,
 								tries: 0,
-								triesLockedUntil: Date.now() + 5 * 60 * 1000
+								triesLockedUntil: Date.now() + lockedUntil,
+								triesLockedUntilMultiplier: prev.triesLockedUntilMultiplier * 2
 						  }
 						: prev
 				)
@@ -229,18 +229,8 @@ export const Biometric = memo(() => {
 			return
 		}
 
-		setShow(false)
-		setBiometricAuth(prev =>
-			prev
-				? {
-						...prev,
-						lastLock: Date.now(),
-						tries: 0,
-						triesLockedUntil: 0
-				  }
-				: prev
-		)
-	}, [enabled, show, biometricAuth, setBiometricAuth, t, biometricsLockedForSeconds])
+		authenticated()
+	}, [biometricAuth, setBiometricAuth, t, biometricsLockedForSeconds, authenticated])
 
 	useEffect(() => {
 		if (!canPromptLocalAuthentication) {
@@ -294,7 +284,7 @@ export const Biometric = memo(() => {
 					color={colors.foreground}
 				/>
 				<Action
-					biometricsLockedForSeconds={biometricsLockedForSeconds}
+					lockedSeconds={biometricsLockedForSeconds()}
 					pinAuth={pinAuth}
 				/>
 			</View>
