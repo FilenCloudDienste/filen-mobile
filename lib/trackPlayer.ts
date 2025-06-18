@@ -10,7 +10,7 @@ import mimeTypes from "mime-types"
 import { AudioPro } from "./audioPro"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import assets from "./assets"
-import downloadService from "@/services/downloadService"
+import downloadService from "@/services/download.service"
 import { getAudioMetadata } from "@missingcore/audio-metadata"
 
 export type AudioProTrackExtended = AudioProTrack & {
