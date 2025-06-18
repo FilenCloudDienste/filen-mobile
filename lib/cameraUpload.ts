@@ -15,7 +15,7 @@ import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS } from "./constants"
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator"
 import { type FileMetadata } from "@filen/sdk"
 import { getSDK } from "./sdk"
-import uploadService from "./services/uploadService"
+import uploadService from "@/services/uploadService"
 
 export type TreeItem = (
 	| {

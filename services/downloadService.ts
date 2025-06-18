@@ -3,7 +3,7 @@ import * as FileSystem from "expo-file-system/next"
 import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
 import { getSDK } from "@/lib/sdk"
-import Semaphore from "../semaphore"
+import Semaphore from "@/lib/semaphore"
 import { type NodeWorkerHandlers } from "nodeWorker"
 import type Cloud from "@filen/sdk/dist/types/cloud"
 
