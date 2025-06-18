@@ -13,6 +13,9 @@ import { Text } from "@/components/nativewindui/Text"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils"
 import { Platform } from "react-native"
+import * as LocalAuthentication from "expo-local-authentication"
+import { Icon } from "@roninoss/icons"
+import { useColorScheme } from "@/lib/useColorScheme"
 
 export const LockAppAfterDropdownItems = [0, 60, 300, 600, 900, 1800, 3600, Number.MAX_SAFE_INTEGER].map(seconds =>
 	createDropdownItem({
@@ -24,6 +27,7 @@ export const LockAppAfterDropdownItems = [0, 60, 300, 600, 900, 1800, 3600, Numb
 export const Biometric = memo(() => {
 	const [biometricAuth, setBiometricAuth] = useMMKVObject<BiometricAuth>(BIOMETRIC_AUTH_KEY, mmkvInstance)
 	const { t } = useTranslation()
+	const { colors } = useColorScheme()
 
 	const account = useAccountQuery({
 		enabled: false
@@ -53,6 +57,25 @@ export const Biometric = memo(() => {
 
 				if (code.length === 0) {
 					return
+				}
+
+				const [hasHardware, isEnrolled, supportedTypes] = await Promise.all([
+					LocalAuthentication.hasHardwareAsync(),
+					LocalAuthentication.isEnrolledAsync(),
+					LocalAuthentication.supportedAuthenticationTypesAsync()
+				])
+
+				if (hasHardware && isEnrolled && supportedTypes.length > 0) {
+					const result = await LocalAuthentication.authenticateAsync({
+						cancelLabel: "Cancel",
+						promptMessage: "Authenticate to unlock the app",
+						disableDeviceFallback: true,
+						fallbackLabel: ""
+					})
+
+					if (!result.success) {
+						return
+					}
 				}
 
 				setBiometricAuth({
@@ -126,8 +149,9 @@ export const Biometric = memo(() => {
 										<Button
 											size={Platform.OS === "ios" ? "none" : "md"}
 											variant="plain"
+											className="items-center justify-start"
 										>
-											<Text className="text-primary">
+											<Text className="ios:px-0 text-primary px-2 font-normal">
 												{biometricAuth &&
 												biometricAuth.enabled &&
 												biometricAuth.lockAfter >= Number.MAX_SAFE_INTEGER
@@ -136,6 +160,11 @@ export const Biometric = memo(() => {
 													? "Immediately"
 													: `${biometricAuth.lockAfter / 60} minutes`}
 											</Text>
+											<Icon
+												name="pencil"
+												size={24}
+												color={colors.primary}
+											/>
 										</Button>
 									</DropdownMenu>
 								)

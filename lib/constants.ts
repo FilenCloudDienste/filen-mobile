@@ -78,3 +78,5 @@ export const REACT_NATIVE_AUDIO_PRO_SUPPORTED_EXTENSIONS = Platform.select({
 	android: [".mp3", ".m4a", ".aac", ".wav", ".ogg", ".3gp", ".flac"],
 	default: [".mp3", ".m4a", ".aac", ".wav"]
 }) as string[]
+
+export const CONTACTS_ONLINE_TIMEOUT: number = 300000

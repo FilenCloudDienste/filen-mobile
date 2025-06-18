@@ -59,6 +59,7 @@ export const Biometric = memo(() => {
 	const [show, setShow] = useState<boolean>(false)
 	const { colors } = useColorScheme()
 	const { t } = useTranslation()
+	const lastAppStateRef = useRef<AppStateStatus>("active")
 
 	const enabled = useMemo(() => {
 		return biometricAuth?.enabled ?? false
@@ -84,10 +85,21 @@ export const Biometric = memo(() => {
 
 	const onNextAppState = useCallback(
 		(nextAppState: AppStateStatus) => {
-			const now = Date.now()
-			const lockTimeout = (biometricAuth?.lastLock ?? 0) + (biometricAuth?.lockAfter ?? 0)
+			if (!biometricAuth) {
+				return
+			}
 
-			if ((nextAppState === "active" || nextAppState === "background") && enabled && !show) {
+			const now = Date.now()
+			const lockTimeout = biometricAuth.lastLock + biometricAuth.lockAfter
+
+			if (
+				(nextAppState === "active" || nextAppState === "background") &&
+				lastAppStateRef.current !== "extension" &&
+				lastAppStateRef.current !== "inactive" &&
+				lastAppStateRef.current !== "unknown" &&
+				enabled &&
+				!show
+			) {
 				if (now >= lockTimeout) {
 					setShow(true)
 				}
@@ -101,6 +113,8 @@ export const Biometric = memo(() => {
 						: prev
 				)
 			}
+
+			lastAppStateRef.current = nextAppState
 		},
 		[enabled, show, setBiometricAuth, biometricAuth]
 	)
@@ -241,11 +255,15 @@ export const Biometric = memo(() => {
 	}, [canPromptLocalAuthentication, promptLocalAuthentication])
 
 	useEffect(() => {
-		if (!enabled || didRunOnStartRef.current || show) {
+		if (didRunOnStartRef.current) {
 			return
 		}
 
 		didRunOnStartRef.current = true
+
+		if (!enabled || didRunOnStartRef.current || show) {
+			return
+		}
 
 		setShow(true)
 		setBiometricAuth(prev =>

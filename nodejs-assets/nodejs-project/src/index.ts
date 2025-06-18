@@ -409,7 +409,16 @@ export class NodeWorker {
 		disableTwoFactorAuthentication: handlers.disableTwoFactorAuthentication.bind(this),
 		deleteAccount: handlers.deleteAccount.bind(this),
 		deleteAllVersionedFiles: handlers.deleteAllVersionedFiles.bind(this),
-		deleteEverything: handlers.deleteEverything.bind(this)
+		deleteEverything: handlers.deleteEverything.bind(this),
+		deleteOutgoingContactRequest: handlers.deleteOutgoingContactRequest.bind(this),
+		fetchIncomingContactRequests: handlers.fetchIncomingContactRequests.bind(this),
+		fetchOutgoingContactRequests: handlers.fetchOutgoingContactRequests.bind(this),
+		acceptContactRequest: handlers.acceptContactRequest.bind(this),
+		blockContact: handlers.blockContact.bind(this),
+		denyContactRequest: handlers.denyContactRequest.bind(this),
+		sendContactRequest: handlers.sendContactRequest.bind(this),
+		removeContact: handlers.removeContact.bind(this),
+		unblockContact: handlers.unblockContact.bind(this)
 	}
 }
 

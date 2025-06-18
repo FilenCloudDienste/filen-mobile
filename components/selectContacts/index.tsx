@@ -2,7 +2,7 @@ import { useCallback, useState, useMemo, Fragment, useEffect, memo, useRef } fro
 import events from "@/lib/events"
 import useContactsQuery from "@/queries/useContactsQuery"
 import { List, type ListDataItem, type ListRenderItemInfo, ESTIMATED_ITEM_HEIGHT } from "@/components/nativewindui/List"
-import { RefreshControl, View } from "react-native"
+import { RefreshControl, View, Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -10,12 +10,14 @@ import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHe
 import { useLocalSearchParams, useRouter } from "expo-router"
 import Container from "@/components/Container"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "@/components/nativewindui/Toolbar"
-import Contact, { type ListItemInfo } from "./contact"
+import Contact, { type ListItemInfo } from "@/components/contacts/contact"
 import { useSelectContactsStore } from "@/stores/selectContacts.store"
-import { inputPrompt } from "../prompts/inputPrompt"
 import { contactName } from "@/lib/utils"
 import { useShallow } from "zustand/shallow"
 import useViewLayout from "@/hooks/useViewLayout"
+import { Button } from "@/components/nativewindui/Button"
+import contactsService from "@/services/contacts.service"
+import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
 
 export const SelectContacts = memo(() => {
 	const { colors } = useColorScheme()
@@ -42,11 +44,12 @@ export const SelectContacts = memo(() => {
 		}
 
 		let contacts = query.data
-			.map(contact => ({
-				id: contact.uuid,
-				title: contactName(contact.email, contact.nickName),
-				subTitle: contact.email,
-				contact
+			.map(item => ({
+				id: item.uuid,
+				title: contactName(item.email, item.nickName),
+				subTitle: item.email,
+				contact: item,
+				type: type === "blocked" ? ("blocked" as const) : ("contact" as const)
 			}))
 			.sort((a, b) =>
 				a.title.localeCompare(b.title, "en", {
@@ -65,7 +68,7 @@ export const SelectContacts = memo(() => {
 		}
 
 		return contacts
-	}, [query.isSuccess, query.data, searchTerm])
+	}, [query.isSuccess, query.data, searchTerm, type])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
 		return typeof item === "string" ? item : item.id
@@ -76,7 +79,9 @@ export const SelectContacts = memo(() => {
 			return (
 				<Contact
 					info={info}
-					max={maxParsed}
+					fromSelect={{
+						max: maxParsed
+					}}
 				/>
 			)
 		},
@@ -100,31 +105,25 @@ export const SelectContacts = memo(() => {
 		back()
 	}, [id, selectedContacts, canGoBack, back])
 
-	const add = useCallback(async () => {
-		const inputPromptResponse = await inputPrompt({
-			title: "Contact email",
-			materialIcon: {
-				name: "email-outline"
-			},
-			prompt: {
-				type: "plain-text",
-				keyboardType: "default",
-				defaultValue: ""
+	const add = useCallback(() => {
+		contactsService.sendRequest()
+	}, [])
+
+	const cancel = useCallback(() => {
+		if (!canGoBack() || typeof id !== "string") {
+			return
+		}
+
+		events.emit("selectContacts", {
+			type: "response",
+			data: {
+				id,
+				cancelled: true
 			}
 		})
 
-		if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
-			return
-		}
-
-		const email = inputPromptResponse.text.trim()
-
-		if (email.length === 0) {
-			return
-		}
-
-		console.log({ email })
-	}, [])
+		back()
+	}, [id, canGoBack, back])
 
 	const iosHint = useMemo(() => {
 		if (selectedContacts.length === 0) {
@@ -154,18 +153,52 @@ export const SelectContacts = memo(() => {
 
 	return (
 		<Fragment>
-			<AdaptiveSearchHeader
-				iosBackButtonTitle="Cancel"
-				iosTitle={maxParsed === 1 ? "Select contact" : "Select contacts"}
-				iosIsLargeTitle={false}
-				backgroundColor={colors.card}
-				searchBar={{
-					iosHideWhenScrolling: false,
-					onChangeText: text => setSearchTerm(text),
-					contentTransparent: true,
-					persistBlur: true
-				}}
-			/>
+			{Platform.OS === "ios" ? (
+				<AdaptiveSearchHeader
+					iosTitle={maxParsed === 1 ? "Select contact" : "Select contacts"}
+					iosIsLargeTitle={false}
+					iosBackButtonMenuEnabled={true}
+					backgroundColor={colors.card}
+					rightView={() => {
+						return (
+							<Button
+								variant="plain"
+								onPress={cancel}
+							>
+								<Text className="text-blue-500">Cancel</Text>
+							</Button>
+						)
+					}}
+					searchBar={{
+						iosHideWhenScrolling: false,
+						onChangeText: text => setSearchTerm(text),
+						contentTransparent: true,
+						persistBlur: true
+					}}
+				/>
+			) : (
+				<LargeTitleHeader
+					title={maxParsed === 1 ? "Select contact" : "Select contacts"}
+					materialPreset="inline"
+					backVisible={true}
+					backgroundColor={colors.card}
+					rightView={() => {
+						return (
+							<Button
+								variant="plain"
+								onPress={cancel}
+							>
+								<Text className="text-blue-500">Cancel</Text>
+							</Button>
+						)
+					}}
+					searchBar={{
+						onChangeText: setSearchTerm,
+						contentTransparent: true,
+						persistBlur: true
+					}}
+				/>
+			)}
 			<Container>
 				<View
 					className="flex-1"

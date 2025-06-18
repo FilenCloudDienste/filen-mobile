@@ -11,6 +11,7 @@ import { createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Icon } from "@roninoss/icons"
+import { Text } from "@/components/nativewindui/Text"
 
 export const countries: string[] = [
 	"Afghanistan",
@@ -265,6 +266,8 @@ export const Personal = memo(() => {
 					vatId: type === "vatId" ? value : account.data?.account.personal.vatId ?? undefined,
 					country: account.data?.account.personal.country ?? undefined
 				})
+
+				await account.refetch()
 			} catch (e) {
 				console.error(e)
 
@@ -275,7 +278,7 @@ export const Personal = memo(() => {
 				fullScreenLoadingModal.hide()
 			}
 		},
-		[account.data?.account.personal]
+		[account]
 	)
 
 	const changeCountry = useCallback(
@@ -298,6 +301,8 @@ export const Personal = memo(() => {
 					vatId: account.data?.account.personal.vatId ?? undefined,
 					country
 				})
+
+				await account.refetch()
 			} catch (e) {
 				console.error(e)
 
@@ -308,7 +313,7 @@ export const Personal = memo(() => {
 				fullScreenLoadingModal.hide()
 			}
 		},
-		[account.data?.account.personal]
+		[account]
 	)
 
 	return (
@@ -376,7 +381,6 @@ export const Personal = memo(() => {
 				{
 					id: "8",
 					title: "Country",
-					rightText: account.data?.account.personal.country ?? "",
 					subTitle: Platform.OS === "android" ? account.data?.account.personal.country ?? "" : undefined,
 					rightView: (
 						<DropdownMenu
@@ -386,7 +390,17 @@ export const Personal = memo(() => {
 							<Button
 								size={Platform.OS === "ios" ? "none" : "icon"}
 								variant="plain"
+								className="items-center justify-start"
 							>
+								{Platform.OS === "ios" && account.data?.account.personal.country && (
+									<Text
+										variant="callout"
+										className="ios:px-0 text-muted-foreground px-2 font-normal"
+										numberOfLines={1}
+									>
+										{account.data?.account.personal.country}
+									</Text>
+								)}
 								<Icon
 									name="pencil"
 									size={24}

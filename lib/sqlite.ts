@@ -56,7 +56,8 @@ export class SQLite {
 			this.db = await ExpoSQLite.openDatabaseAsync(
 				this.dbName,
 				{
-					enableChangeListener: false
+					enableChangeListener: false,
+					useNewConnection: true
 				},
 				paths.db()
 			)
@@ -81,7 +82,8 @@ export class SQLite {
 		this.db = ExpoSQLite.openDatabaseSync(
 			this.dbName,
 			{
-				enableChangeListener: false
+				enableChangeListener: false,
+				useNewConnection: true
 			},
 			paths.db()
 		)

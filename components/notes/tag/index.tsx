@@ -17,7 +17,7 @@ import { cn } from "@/lib/cn"
 
 export const Tag = memo(
 	({ tag, name, id, withRightMargin }: { tag: NoteTag | null; name: string; id: string; withRightMargin?: boolean }) => {
-		const [, setSelectedTag] = useMMKVString("selectedTag", mmkvInstance)
+		const [selectedTag, setSelectedTag] = useMMKVString("selectedTag", mmkvInstance)
 		const { t } = useTranslation()
 
 		const isValidUUID = useMemo(() => {
@@ -29,8 +29,12 @@ export const Tag = memo(
 		}, [id, setSelectedTag])
 
 		const className = useMemo(() => {
-			return cn("bg-card rounded-full px-2.5 py-1.5 flex-row gap-1.5 items-center", withRightMargin && "mr-2")
-		}, [withRightMargin])
+			return cn(
+				"bg-card rounded-full px-2.5 py-1.5 flex-row gap-1.5 items-center",
+				withRightMargin && "mr-2",
+				selectedTag === id ? "border border-border" : "border border-transparent"
+			)
+		}, [withRightMargin, selectedTag, id])
 
 		const createTag = useCallback(async () => {
 			const inputPromptResponse = await inputPrompt({

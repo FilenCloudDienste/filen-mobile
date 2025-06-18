@@ -354,7 +354,7 @@ export const Account = memo(() => {
 			await new Promise<void>(resolve => setTimeout(resolve, 250))
 
 			await Sharing.shareAsync(tmpFile.uri, {
-				mimeType: "text/plain",
+				mimeType: "application/json",
 				dialogTitle: fileName
 			})
 		} catch (e) {

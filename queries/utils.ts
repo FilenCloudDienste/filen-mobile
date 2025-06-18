@@ -7,6 +7,8 @@ import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/convers
 import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import { type ChatLastFocusValues } from "@filen/sdk/dist/types/api/v3/chat/lastFocusUpdate"
 import { type Playlist } from "./usePlaylistsQuery"
+import { type Contact } from "@filen/sdk/dist/types/api/v3/contacts"
+import { type ContactRequest } from "@filen/sdk/dist/types/api/v3/contacts/requests/in"
 
 export type NoteContentResult = {
 	content: string
@@ -184,6 +186,51 @@ export class QueryUtils {
 	public usePlaylistsQuerySet({ updater }: { updater: Playlist[] | ((prev: Playlist[]) => Playlist[]) }): void {
 		this.set<Playlist[]>(["usePlaylistsQuery"], prev => {
 			const currentData = prev ?? ([] satisfies Playlist[])
+
+			return typeof updater === "function" ? updater(currentData) : updater
+		})
+	}
+
+	public useContactsQuerySet({
+		type,
+		updater
+	}: {
+		type: "all" | "blocked"
+		updater: Contact[] | ((prev: Contact[]) => Contact[])
+	}): void {
+		this.set<Contact[]>(["useContactsQuery", type], prev => {
+			const currentData = prev ?? ([] satisfies Contact[])
+
+			return typeof updater === "function" ? updater(currentData) : updater
+		})
+	}
+
+	public useContactsRequestsQuerySet({
+		updater
+	}: {
+		updater:
+			| {
+					incoming: ContactRequest[]
+					outgoing: ContactRequest[]
+			  }
+			| ((prev: { incoming: ContactRequest[]; outgoing: ContactRequest[] }) => {
+					incoming: ContactRequest[]
+					outgoing: ContactRequest[]
+			  })
+	}): void {
+		this.set<{
+			incoming: ContactRequest[]
+			outgoing: ContactRequest[]
+		}>(["useContactsRequestsQuery"], prev => {
+			const currentData =
+				prev ??
+				({
+					incoming: [],
+					outgoing: []
+				} satisfies {
+					incoming: ContactRequest[]
+					outgoing: ContactRequest[]
+				})
 
 			return typeof updater === "function" ? updater(currentData) : updater
 		})

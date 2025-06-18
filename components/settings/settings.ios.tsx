@@ -134,7 +134,7 @@ export const Settings = memo((props: SettingsProps) => {
 								}}
 							>
 								<ActivityIndicator
-									size="large"
+									size="small"
 									color={colors.foreground}
 								/>
 							</View>

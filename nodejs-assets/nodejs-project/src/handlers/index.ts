@@ -121,6 +121,18 @@ import {
 	deleteEverything
 } from "./user"
 
+import {
+	deleteOutgoingContactRequest,
+	fetchIncomingContactRequests,
+	fetchOutgoingContactRequests,
+	acceptContactRequest,
+	blockContact,
+	denyContactRequest,
+	sendContactRequest,
+	removeContact,
+	unblockContact
+} from "./contacts"
+
 export {
 	ping,
 	login,
@@ -238,5 +250,14 @@ export {
 	disableTwoFactorAuthentication,
 	deleteAccount,
 	deleteAllVersionedFiles,
-	deleteEverything
+	deleteEverything,
+	deleteOutgoingContactRequest,
+	fetchIncomingContactRequests,
+	fetchOutgoingContactRequests,
+	acceptContactRequest,
+	blockContact,
+	denyContactRequest,
+	sendContactRequest,
+	removeContact,
+	unblockContact
 }

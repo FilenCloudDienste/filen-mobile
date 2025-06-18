@@ -112,7 +112,7 @@ export default function ShareIntent() {
 						return
 					}
 
-					let source = fsFile
+					let source: FileSystem.File = fsFile
 
 					// Android requires a temporary copy of the file to be uploaded, on iOS the Share Intent provides a temporary file
 					if (Platform.OS === "android") {
@@ -138,14 +138,16 @@ export default function ShareIntent() {
 					})
 				})
 			)
-
-			resetShareIntent()
 		} catch (e) {
 			console.error(e)
 
 			if (e instanceof Error) {
 				alerts.error(e.message)
 			}
+		} finally {
+			fullScreenLoadingModal.hide()
+
+			resetShareIntent()
 		}
 	}, [shareIntent.files, resetShareIntent])
 
