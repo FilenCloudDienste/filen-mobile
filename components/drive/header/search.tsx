@@ -1,25 +1,21 @@
-import { memo, useCallback, useEffect, useState, useMemo, useRef } from "react"
+import { memo, useCallback, useEffect, useState, useMemo } from "react"
 import nodeWorker from "@/lib/nodeWorker"
 import { View, ActivityIndicator } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import alerts from "@/lib/alerts"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { List, ESTIMATED_ITEM_HEIGHT, type ListDataItem } from "@/components/nativewindui/List"
+import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import ListItem, { type ListItemInfo } from "@/components/drive/list/listItem"
 import { orderItemsByType, simpleDate, formatBytes } from "@/lib/utils"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
 import { useDebouncedCallback } from "use-debounce"
 import cache from "@/lib/cache"
 import { type SearchFindItemDecrypted } from "@filen/sdk/dist/types/api/v3/search/find"
-import useViewLayout from "@/hooks/useViewLayout"
 
 export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; queryParams: FetchCloudItemsParams }) => {
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const [result, setResults] = useState<SearchFindItemDecrypted[]>([])
 	const { colors } = useColorScheme()
-	const viewRef = useRef<View>(null)
-	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const query = useCloudItemsQuery({
 		...queryParams,
@@ -181,52 +177,28 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 	}, [searchTerm, debouncedSearch])
 
 	return (
-		<View
-			className="flex-1"
-			ref={viewRef}
-			onLayout={onLayout}
-		>
-			<List
-				variant="full-width"
-				data={items}
-				renderItem={renderItem}
-				keyExtractor={keyExtractor}
-				contentInsetAdjustmentBehavior="automatic"
-				keyboardDismissMode="none"
-				keyboardShouldPersistTaps="never"
-				refreshing={isLoading}
-				ListEmptyComponent={
-					<View
-						className="flex-1 flex-row items-center justify-center"
-						style={{
-							height: listLayout.height,
-							width: listLayout.width
-						}}
-					>
-						{!isLoading ? <Text>Nothing found</Text> : <ActivityIndicator color={colors.foreground} />}
+		<List
+			variant="full-width"
+			data={items}
+			renderItem={renderItem}
+			keyExtractor={keyExtractor}
+			contentInsetAdjustmentBehavior="automatic"
+			keyboardDismissMode="none"
+			keyboardShouldPersistTaps="never"
+			refreshing={isLoading}
+			ListEmptyComponent={
+				<View className="flex-1 flex-row items-center justify-center">
+					{!isLoading ? <Text>Nothing found</Text> : <ActivityIndicator color={colors.foreground} />}
+				</View>
+			}
+			ListFooterComponent={
+				items.length > 0 ? (
+					<View className="h-16 pb-2 flex flex-row items-center justify-center">
+						<Text className="text-sm">{items.length} items</Text>
 					</View>
-				}
-				ListFooterComponent={
-					items.length > 0 ? (
-						<View className="h-16 pb-2 flex flex-row items-center justify-center">
-							<Text className="text-sm">{items.length} items</Text>
-						</View>
-					) : undefined
-				}
-				estimatedListSize={
-					listLayout.width > 0 && listLayout.height > 0
-						? {
-								width: listLayout.width,
-								height: listLayout.height
-						  }
-						: undefined
-				}
-				estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
-				drawDistance={0}
-				removeClippedSubviews={true}
-				disableAutoLayout={true}
-			/>
-		</View>
+				) : undefined
+			}
+		/>
 	)
 })
 

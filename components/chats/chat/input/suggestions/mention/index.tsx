@@ -54,7 +54,7 @@ export const Mention = memo(({ chat }: { chat: ChatConversation }) => {
 					onPress={resetSuggestions}
 				>
 					<Icon
-						name="cancel"
+						name="close"
 						size={16}
 						color={colors.foreground}
 					/>

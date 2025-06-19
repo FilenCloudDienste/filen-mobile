@@ -1,11 +1,10 @@
 import { useLocalSearchParams, Redirect } from "expo-router"
-import { useMemo, Fragment, useCallback, useState, useRef } from "react"
-import { View, Platform, RefreshControl } from "react-native"
+import { useMemo, Fragment, useCallback, useState } from "react"
+import { View, Platform, RefreshControl, type ListRenderItemInfo } from "react-native"
 import { type Note, type NoteParticipant } from "@filen/sdk/dist/types/api/v3/notes"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { ListItem, List, ESTIMATED_ITEM_HEIGHT, type ListDataItem } from "@/components/nativewindui/List"
+import { ListItem, List, type ListDataItem } from "@/components/nativewindui/List"
 import Container from "@/components/Container"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
 import { contactName } from "@/lib/utils"
 import Avatar from "@/components/avatar"
 import { Text } from "@/components/nativewindui/Text"
@@ -21,7 +20,6 @@ import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import queryUtils from "@/queries/utils"
-import useViewLayout from "@/hooks/useViewLayout"
 
 export type ListItemInfo = {
 	title: string
@@ -36,8 +34,6 @@ export default function Participants() {
 	const { colors } = useColorScheme()
 	const [{ userId }] = useSDKConfig()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
-	const viewRef = useRef<View>(null)
-	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const noteUUIDParsed = useMemo((): string | null => {
 		try {
@@ -252,51 +248,33 @@ export default function Participants() {
 				}}
 			/>
 			<Container>
-				<View
-					className="flex-1"
-					ref={viewRef}
-					onLayout={onLayout}
-				>
-					<List
-						contentContainerClassName="pb-20"
-						contentInsetAdjustmentBehavior="automatic"
-						variant="full-width"
-						data={participants}
-						renderItem={renderItem}
-						keyExtractor={keyExtractor}
-						ListFooterComponent={
-							<View className="h-16 flex-row items-center justify-center">
-								<Text className="text-sm">
-									{participants.length} {participants.length === 1 ? "participant" : "participants"}
-								</Text>
-							</View>
-						}
-						refreshControl={
-							<RefreshControl
-								refreshing={refreshing}
-								onRefresh={async () => {
-									setRefreshing(true)
+				<List
+					contentContainerClassName="pb-20"
+					contentInsetAdjustmentBehavior="automatic"
+					variant="full-width"
+					data={participants}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					ListFooterComponent={
+						<View className="h-16 flex-row items-center justify-center">
+							<Text className="text-sm">
+								{participants.length} {participants.length === 1 ? "participant" : "participants"}
+							</Text>
+						</View>
+					}
+					refreshControl={
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={async () => {
+								setRefreshing(true)
 
-									await notesQuery.refetch().catch(console.error)
+								await notesQuery.refetch().catch(console.error)
 
-									setRefreshing(false)
-								}}
-							/>
-						}
-						estimatedListSize={
-							listLayout.width > 0 && listLayout.height > 0
-								? {
-										width: listLayout.width,
-										height: listLayout.height
-								  }
-								: undefined
-						}
-						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
-						drawDistance={0}
-						removeClippedSubviews={true}
-						disableAutoLayout={true}
-					/>
-				</View>
+								setRefreshing(false)
+							}}
+						/>
+					}
+				/>
 			</Container>
 		</Fragment>
 	)

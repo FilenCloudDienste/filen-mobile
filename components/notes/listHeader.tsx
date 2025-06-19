@@ -1,12 +1,10 @@
 import { memo, useRef, useMemo, useEffect, useCallback } from "react"
-import { View, Platform } from "react-native"
+import { Platform, FlatList, type ListRenderItemInfo } from "react-native"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
 import { useTranslation } from "react-i18next"
 import Tag from "./tag"
-import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
-import useViewLayout from "@/hooks/useViewLayout"
 
 export const Item = memo((info: ListRenderItemInfo<string>) => {
 	const { t } = useTranslation()
@@ -51,10 +49,8 @@ export const Item = memo((info: ListRenderItemInfo<string>) => {
 Item.displayName = "Item"
 
 export const ListHeader = memo(() => {
-	const tagsListRef = useRef<FlashList<string>>(null)
+	const tagsListRef = useRef<FlatList<string>>(null)
 	const [selectedTag] = useMMKVString("selectedTag", mmkvInstance)
-	const viewRef = useRef<View>(null)
-	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const notesTagsQuery = useNotesTagsQuery({
 		enabled: false
@@ -93,36 +89,19 @@ export const ListHeader = memo(() => {
 	}, [selectedTag])
 
 	return (
-		<View
-			className="px-4 py-2"
-			onLayout={onLayout}
-			ref={viewRef}
-		>
-			<FlashList
-				ref={tagsListRef}
-				horizontal={true}
-				showsHorizontalScrollIndicator={false}
-				showsVerticalScrollIndicator={false}
-				keyExtractor={keyExtractor}
-				data={listTags}
-				renderItem={renderItem}
-				contentContainerStyle={{
-					paddingTop: Platform.OS === "android" ? 8 : 0
-				}}
-				estimatedListSize={
-					listLayout.width > 0 && listLayout.height > 0
-						? {
-								width: listLayout.width,
-								height: listLayout.height
-						  }
-						: undefined
-				}
-				estimatedItemSize={listLayout.height > 0 ? listLayout.height : 40}
-				drawDistance={0}
-				removeClippedSubviews={true}
-				disableAutoLayout={true}
-			/>
-		</View>
+		<FlatList
+			ref={tagsListRef}
+			horizontal={true}
+			showsHorizontalScrollIndicator={false}
+			showsVerticalScrollIndicator={false}
+			keyExtractor={keyExtractor}
+			data={listTags}
+			renderItem={renderItem}
+			contentContainerStyle={{
+				paddingTop: Platform.OS === "android" ? 8 : 0,
+				paddingHorizontal: 16
+			}}
+		/>
 	)
 })
 

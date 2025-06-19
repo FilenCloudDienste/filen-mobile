@@ -1,11 +1,10 @@
-import { useMemo, Fragment, useCallback, memo, useRef } from "react"
+import { useMemo, Fragment, useCallback, memo } from "react"
 import { View, Platform } from "react-native"
 import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
 import { type NoteHistory } from "@filen/sdk/dist/types/api/v3/notes/history"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { ListItem, List, ESTIMATED_ITEM_HEIGHT, type ListDataItem } from "@/components/nativewindui/List"
+import { ListItem, List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import Container from "@/components/Container"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
 import { simpleDate } from "@/lib/utils"
 import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
@@ -15,7 +14,6 @@ import alerts from "@/lib/alerts"
 import queryUtils from "@/queries/utils"
 import useNoteHistoryQuery from "@/queries/useNoteHistoryQuery"
 import { useTranslation } from "react-i18next"
-import useViewLayout from "@/hooks/useViewLayout"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 
 export type ListItemInfo = {
@@ -27,8 +25,6 @@ export type ListItemInfo = {
 
 export const History = memo(({ note }: { note: Note }) => {
 	const { t } = useTranslation()
-	const viewRef = useRef<View>(null)
-	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const noteHistoryQuery = useNoteHistoryQuery({
 		uuid: note.uuid
@@ -158,33 +154,15 @@ export const History = memo(({ note }: { note: Note }) => {
 				iosBlurEffect="systemChromeMaterial"
 			/>
 			<Container>
-				<View
-					className="flex-1"
-					ref={viewRef}
-					onLayout={onLayout}
-				>
-					<List
-						contentContainerClassName="pb-20"
-						contentInsetAdjustmentBehavior="automatic"
-						variant="full-width"
-						data={history}
-						renderItem={renderItem}
-						keyExtractor={keyExtractor}
-						ListFooterComponent={ListFooter}
-						estimatedListSize={
-							listLayout.width > 0 && listLayout.height > 0
-								? {
-										width: listLayout.width,
-										height: listLayout.height
-								  }
-								: undefined
-						}
-						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
-						drawDistance={0}
-						removeClippedSubviews={true}
-						disableAutoLayout={true}
-					/>
-				</View>
+				<List
+					contentContainerClassName="pb-20"
+					contentInsetAdjustmentBehavior="automatic"
+					variant="full-width"
+					data={history}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					ListFooterComponent={ListFooter}
+				/>
 			</Container>
 		</Fragment>
 	)

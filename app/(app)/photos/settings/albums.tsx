@@ -1,7 +1,6 @@
-import { memo, Fragment, useCallback, useMemo, useRef } from "react"
+import { memo, Fragment, useCallback, useMemo } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
-import { ESTIMATED_ITEM_HEIGHT, List, type ListDataItem, ListItem, ListSectionHeader } from "@/components/nativewindui/List"
+import { List, type ListDataItem, ListItem, ListSectionHeader, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useLocalAlbumsQuery from "@/queries/useLocalAlbumsQuery"
 import * as MediaLibrary from "expo-media-library"
 import Container from "@/components/Container"
@@ -11,7 +10,6 @@ import { Toggle } from "@/components/nativewindui/Toggle"
 import { cn } from "@/lib/cn"
 import useCameraUpload from "@/hooks/useCameraUpload"
 import { Image } from "expo-image"
-import useViewLayout from "@/hooks/useViewLayout"
 
 export type ListItemInfo = {
 	title: string
@@ -26,8 +24,6 @@ export type ListItemInfo = {
 export const Albums = memo(() => {
 	const { colors } = useColorScheme()
 	const [cameraUpload, setCameraUpload] = useCameraUpload()
-	const viewRef = useRef<View>(null)
-	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const localAlbumsQuery = useLocalAlbumsQuery({})
 
@@ -111,38 +107,20 @@ export const Albums = memo(() => {
 		<Fragment>
 			<LargeTitleHeader title="Albums" />
 			<Container>
-				<View
-					className="flex-1"
-					ref={viewRef}
-					onLayout={onLayout}
-				>
-					<List
-						contentContainerClassName="pt-4 pb-20"
-						contentInsetAdjustmentBehavior="automatic"
-						variant="insets"
-						data={items}
-						renderItem={renderItem}
-						keyExtractor={keyExtractor}
-						sectionHeaderAsGap={true}
-						ListEmptyComponent={<ActivityIndicator color={colors.foreground} />}
-						extraData={cameraUpload.albums}
-						contentContainerStyle={{
-							paddingBottom: 100
-						}}
-						estimatedListSize={
-							listLayout.width > 0 && listLayout.height > 0
-								? {
-										width: listLayout.width,
-										height: listLayout.height
-								  }
-								: undefined
-						}
-						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
-						drawDistance={0}
-						removeClippedSubviews={true}
-						disableAutoLayout={true}
-					/>
-				</View>
+				<List
+					contentContainerClassName="pt-4 pb-20"
+					contentInsetAdjustmentBehavior="automatic"
+					variant="insets"
+					data={items}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					sectionHeaderAsGap={true}
+					ListEmptyComponent={<ActivityIndicator color={colors.foreground} />}
+					extraData={cameraUpload.albums}
+					contentContainerStyle={{
+						paddingBottom: 100
+					}}
+				/>
 			</Container>
 		</Fragment>
 	)

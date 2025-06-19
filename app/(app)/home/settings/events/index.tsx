@@ -1,8 +1,7 @@
-import { memo, Fragment, useRef, useMemo, useCallback } from "react"
+import { memo, Fragment, useMemo, useCallback } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { List, ESTIMATED_ITEM_HEIGHT, ListItem, type ListRenderItemInfo, type ListDataItem } from "@/components/nativewindui/List"
+import { List, ListItem, type ListRenderItemInfo, type ListDataItem } from "@/components/nativewindui/List"
 import { View, ActivityIndicator, Platform } from "react-native"
-import useViewLayout from "@/hooks/useViewLayout"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useEventsQuery from "@/queries/useEventsQuery"
 import { type UserEvent } from "@filen/sdk/dist/types/api/v3/user/events"
@@ -17,8 +16,6 @@ export type ListItemInfo = {
 }
 
 export const Events = memo(() => {
-	const viewRef = useRef<View>(null)
-	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 	const { colors } = useColorScheme()
 
 	const events = useEventsQuery({})
@@ -229,46 +226,28 @@ export const Events = memo(() => {
 	return (
 		<Fragment>
 			<LargeTitleHeader title="Events" />
-			<View
-				className="flex-1"
-				ref={viewRef}
-				onLayout={onLayout}
-			>
-				<List
-					contentInsetAdjustmentBehavior="automatic"
-					variant="full-width"
-					contentContainerStyle={{
-						paddingBottom: 100
-					}}
-					data={eventsSorted}
-					renderItem={renderItem}
-					keyExtractor={keyExtractor}
-					ListEmptyComponent={() => {
-						return (
-							<View className="flex-1 items-center justify-center">
-								<ActivityIndicator
-									size="small"
-									color={colors.foreground}
-								/>
-							</View>
-						)
-					}}
-					estimatedListSize={
-						listLayout.width > 0 && listLayout.height > 0
-							? {
-									width: listLayout.width,
-									height: listLayout.height
-							  }
-							: undefined
-					}
-					estimatedItemSize={ESTIMATED_ITEM_HEIGHT.titleOnly}
-					drawDistance={0}
-					removeClippedSubviews={true}
-					disableAutoLayout={true}
-					onEndReachedThreshold={0.3}
-					onEndReached={() => console.log("End reached")}
-				/>
-			</View>
+			<List
+				contentInsetAdjustmentBehavior="automatic"
+				variant="full-width"
+				contentContainerStyle={{
+					paddingBottom: 100
+				}}
+				data={eventsSorted}
+				renderItem={renderItem}
+				keyExtractor={keyExtractor}
+				ListEmptyComponent={() => {
+					return (
+						<View className="flex-1 items-center justify-center">
+							<ActivityIndicator
+								size="small"
+								color={colors.foreground}
+							/>
+						</View>
+					)
+				}}
+				onEndReachedThreshold={0.3}
+				onEndReached={() => console.log("End reached")}
+			/>
 		</Fragment>
 	)
 })

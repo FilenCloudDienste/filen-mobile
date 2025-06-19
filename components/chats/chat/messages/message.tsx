@@ -3,7 +3,7 @@ import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import { Button } from "@/components/nativewindui/Button"
 import { Text } from "@/components/nativewindui/Text"
 import Avatar from "@/components/avatar"
-import { View, Platform } from "react-native"
+import { View, Platform, type ListRenderItemInfo } from "react-native"
 import { contactName, isTimestampSameDay, isTimestampSameMinute, simpleDateNoTime } from "@/lib/utils"
 import Menu from "./menu"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
@@ -29,7 +29,6 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import * as Haptics from "expo-haptics"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
 
 export const Message = memo(
 	({

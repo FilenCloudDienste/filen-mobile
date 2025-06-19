@@ -1,10 +1,9 @@
 import { memo, useMemo } from "react"
 import { ListItem } from "@/components/nativewindui/List"
 import { type FileVersion } from "@filen/sdk/dist/types/api/v3/file/versions"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
 import { formatMessageDate } from "@/lib/utils"
 import RightView from "./rightView"
-import { Platform } from "react-native"
+import { Platform, type ListRenderItemInfo } from "react-native"
 
 export type ListItemInfo = {
 	title: string

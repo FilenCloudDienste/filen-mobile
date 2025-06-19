@@ -5,10 +5,9 @@ import { Button } from "~/components/nativewindui/Button"
 import { List, ListDataItem, ListRenderItemInfo } from "~/components/nativewindui/List"
 import { Text } from "~/components/nativewindui/Text"
 import { useColorScheme } from "~/lib/useColorScheme"
-import { useCallback, Fragment, memo, useRef } from "react"
+import { useCallback, Fragment, memo } from "react"
 import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
 import { cn } from "@/lib/cn"
-import useViewLayout from "@/hooks/useViewLayout"
 
 export const ChevronRight = memo(() => {
 	return null
@@ -33,8 +32,6 @@ export const IconView = memo(({ name, className }: { name: MaterialIconName; cla
 IconView.displayName = "IconView"
 
 export const Settings = memo((props: SettingsProps) => {
-	const viewRef = useRef<View>(null)
-	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 	const { colors } = useColorScheme()
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
@@ -91,55 +88,31 @@ export const Settings = memo((props: SettingsProps) => {
 					}
 				/>
 			)}
-			<View
-				className="flex-1"
-				ref={viewRef}
-				onLayout={onLayout}
-			>
-				<List
-					rootClassName="bg-background"
-					contentContainerStyle={{
-						paddingBottom: 100
-					}}
-					contentInsetAdjustmentBehavior="automatic"
-					variant="full-width"
-					data={props.loading ? [] : props.items}
-					extraData={__DEV__ ? (props.loading ? [] : props.items) : undefined}
-					renderItem={renderItem}
-					keyExtractor={keyExtractor}
-					sectionHeaderAsGap={true}
-					refreshing={props.loading}
-					ListEmptyComponent={() => {
-						return (
-							<View
-								className="flex-1 items-center justify-center"
-								style={{
-									width: listLayout.width,
-									height: listLayout.height
-								}}
-							>
-								<ActivityIndicator
-									size="small"
-									color={colors.foreground}
-								/>
-							</View>
-						)
-					}}
-					estimatedListSize={
-						listLayout.width > 0 && listLayout.height > 0
-							? {
-									width: listLayout.width,
-									height: listLayout.height
-							  }
-							: undefined
-					}
-					estimatedItemSize={92}
-					drawDistance={0}
-					removeClippedSubviews={true}
-					disableAutoLayout={true}
-					ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
-				/>
-			</View>
+			<List
+				rootClassName="bg-background"
+				contentContainerStyle={{
+					paddingBottom: 100
+				}}
+				contentInsetAdjustmentBehavior="automatic"
+				variant="full-width"
+				data={props.loading ? [] : props.items}
+				extraData={__DEV__ ? (props.loading ? [] : props.items) : undefined}
+				renderItem={renderItem}
+				keyExtractor={keyExtractor}
+				sectionHeaderAsGap={true}
+				refreshing={props.loading}
+				ListEmptyComponent={() => {
+					return (
+						<View className="flex-1 items-center justify-center">
+							<ActivityIndicator
+								size="small"
+								color={colors.foreground}
+							/>
+						</View>
+					)
+				}}
+				ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
+			/>
 		</Fragment>
 	)
 })

@@ -1,6 +1,6 @@
-import { useCallback, useState, useMemo, Fragment, useEffect, memo, useRef } from "react"
+import { useCallback, useState, useMemo, Fragment, useEffect, memo } from "react"
 import events from "@/lib/events"
-import { RefreshControl, View, Platform } from "react-native"
+import { RefreshControl, Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useLocalSearchParams, useRouter } from "expo-router"
@@ -12,10 +12,8 @@ import Item, { type ListItemInfo } from "../trackPlayer/item"
 import { formatMessageDate } from "@/lib/utils"
 import { Button } from "../nativewindui/Button"
 import { useShallow } from "zustand/shallow"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
-import useViewLayout from "@/hooks/useViewLayout"
 import usePlaylistsQuery from "@/queries/usePlaylistsQuery"
-import { List, type ListDataItem, ESTIMATED_ITEM_HEIGHT } from "../nativewindui/List"
+import { List, type ListDataItem, type ListRenderItemInfo } from "../nativewindui/List"
 
 export const SelectTrackPlayerPlaylists = memo(() => {
 	const { colors } = useColorScheme()
@@ -24,8 +22,6 @@ export const SelectTrackPlayerPlaylists = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo } = useRouter()
 	const setSelectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.setSelectedPlaylists))
-	const viewRef = useRef<View>(null)
-	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const playlistsQuery = usePlaylistsQuery({})
 
@@ -151,48 +147,30 @@ export const SelectTrackPlayerPlaylists = memo(() => {
 				/>
 			)}
 			<Container>
-				<View
-					className="flex-1"
-					ref={viewRef}
-					onLayout={onLayout}
-				>
-					<List
-						data={playlists}
-						renderItem={renderItem}
-						keyExtractor={keyExtractor}
-						showsVerticalScrollIndicator={true}
-						showsHorizontalScrollIndicator={false}
-						contentInsetAdjustmentBehavior="automatic"
-						contentContainerStyle={{
-							paddingTop: 8
-						}}
-						refreshing={refreshing}
-						refreshControl={
-							<RefreshControl
-								refreshing={refreshing}
-								onRefresh={async () => {
-									setRefreshing(true)
+				<List
+					data={playlists}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					showsVerticalScrollIndicator={true}
+					showsHorizontalScrollIndicator={false}
+					contentInsetAdjustmentBehavior="automatic"
+					contentContainerStyle={{
+						paddingTop: 8
+					}}
+					refreshing={refreshing}
+					refreshControl={
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={async () => {
+								setRefreshing(true)
 
-									await playlistsQuery.refetch().catch(console.error)
+								await playlistsQuery.refetch().catch(console.error)
 
-									setRefreshing(false)
-								}}
-							/>
-						}
-						estimatedListSize={
-							listLayout.width > 0 && listLayout.height > 0
-								? {
-										width: listLayout.width,
-										height: listLayout.height
-								  }
-								: undefined
-						}
-						estimatedItemSize={ESTIMATED_ITEM_HEIGHT.withSubTitle}
-						drawDistance={0}
-						removeClippedSubviews={true}
-						disableAutoLayout={true}
-					/>
-				</View>
+								setRefreshing(false)
+							}}
+						/>
+					}
+				/>
 			</Container>
 		</Fragment>
 	)

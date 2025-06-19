@@ -1,8 +1,7 @@
-import { memo, Fragment, useRef, useMemo, useCallback, useState } from "react"
+import { memo, Fragment, useMemo, useCallback, useState } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { List, ESTIMATED_ITEM_HEIGHT, type ListRenderItemInfo, type ListDataItem } from "@/components/nativewindui/List"
-import { View, RefreshControl } from "react-native"
-import useViewLayout from "@/hooks/useViewLayout"
+import { List, type ListRenderItemInfo, type ListDataItem } from "@/components/nativewindui/List"
+import { RefreshControl, Platform } from "react-native"
 import useContactsQuery from "@/queries/useContactsQuery"
 import { contactName, convertTimestampToMs } from "@/lib/utils"
 import { useMMKVString } from "react-native-mmkv"
@@ -16,14 +15,14 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import contactsService from "@/services/contacts.service"
 import { CONTACTS_ONLINE_TIMEOUT } from "@/lib/constants"
+import useDimensions from "@/hooks/useDimensions"
 
 export const Contacts = memo(() => {
-	const viewRef = useRef<View>(null)
-	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const [contactsActiveTab] = useMMKVString("contactsActiveTab", mmkvInstance)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { colors } = useColorScheme()
+	const { screen } = useDimensions()
 
 	const allContactsQuery = useContactsQuery({
 		type: "all"
@@ -158,67 +157,78 @@ export const Contacts = memo(() => {
 					)
 				}}
 			/>
-			<View
-				className="flex-1"
-				ref={viewRef}
-				onLayout={onLayout}
-			>
-				<List
-					contentInsetAdjustmentBehavior="automatic"
-					variant="full-width"
-					contentContainerStyle={{
-						paddingBottom: 100
-					}}
-					data={listData}
-					renderItem={renderItem}
-					keyExtractor={keyExtractor}
-					ListEmptyComponent={
-						<ListEmpty
-							activeTab={activeTab}
-							pending={
-								allContactsQuery.status === "pending" ||
-								blockedContactsQuery.status === "pending" ||
-								contactsRequestsQuery.status === "pending"
-							}
-						/>
-					}
-					estimatedListSize={
-						listLayout.width > 0 && listLayout.height > 0
-							? {
-									width: listLayout.width,
-									height: listLayout.height
-							  }
-							: undefined
-					}
-					estimatedItemSize={ESTIMATED_ITEM_HEIGHT.titleOnly}
-					drawDistance={0}
-					removeClippedSubviews={true}
-					disableAutoLayout={true}
-					refreshing={
-						refreshing ||
-						allContactsQuery.status === "pending" ||
-						blockedContactsQuery.status === "pending" ||
-						contactsRequestsQuery.status === "pending"
-					}
-					refreshControl={
-						<RefreshControl
-							refreshing={refreshing}
-							onRefresh={async () => {
-								setRefreshing(true)
+			<List
+				contentInsetAdjustmentBehavior="automatic"
+				variant="full-width"
+				contentContainerStyle={{
+					paddingBottom: 100
+				}}
+				data={listData}
+				renderItem={renderItem}
+				keyExtractor={keyExtractor}
+				ListEmptyComponent={
+					<ListEmpty
+						activeTab={activeTab}
+						pending={
+							allContactsQuery.status === "pending" ||
+							blockedContactsQuery.status === "pending" ||
+							contactsRequestsQuery.status === "pending"
+						}
+					/>
+				}
+				refreshing={
+					refreshing ||
+					allContactsQuery.status === "pending" ||
+					blockedContactsQuery.status === "pending" ||
+					contactsRequestsQuery.status === "pending"
+				}
+				refreshControl={
+					<RefreshControl
+						refreshing={refreshing}
+						onRefresh={async () => {
+							setRefreshing(true)
 
-								await Promise.all([
-									blockedContactsQuery.refetch(),
-									allContactsQuery.refetch(),
-									contactsRequestsQuery.refetch()
-								]).catch(console.error)
+							await Promise.all([
+								blockedContactsQuery.refetch(),
+								allContactsQuery.refetch(),
+								contactsRequestsQuery.refetch()
+							]).catch(console.error)
 
-								setRefreshing(false)
-							}}
-						/>
+							setRefreshing(false)
+						}}
+					/>
+				}
+				ListHeaderComponent={ListHeader}
+				removeClippedSubviews={true}
+				initialNumToRender={Math.round(
+					screen.height /
+						Platform.select({
+							ios: 61,
+							default: 60
+						})
+				)}
+				maxToRenderPerBatch={Math.round(
+					screen.height /
+						Platform.select({
+							ios: 61,
+							default: 60
+						})
+				)}
+				updateCellsBatchingPeriod={100}
+				windowSize={3}
+				getItemLayout={(_, index) => {
+					const height = Platform.select({
+						ios: 61,
+						default: 60
+					})
+
+					return {
+						length: height,
+						offset: height * index,
+						index
 					}
-					ListHeaderComponent={<ListHeader />}
-				/>
-			</View>
+				}}
+			/>
 		</Fragment>
 	)
 })

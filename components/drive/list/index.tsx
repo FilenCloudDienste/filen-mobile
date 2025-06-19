@@ -1,4 +1,4 @@
-import { View, RefreshControl } from "react-native"
+import { View, RefreshControl, FlatList, type ListRenderItemInfo } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react"
@@ -16,7 +16,6 @@ import mmkvInstance from "@/lib/mmkv"
 import useViewLayout from "@/hooks/useViewLayout"
 import useDimensions from "@/hooks/useDimensions"
 import { useShallow } from "zustand/shallow"
-import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 
 export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: FetchCloudItemsParams; scrollToUUID?: string }) => {
 	const { colors } = useColorScheme()
@@ -25,7 +24,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	const setSelectedItems = useDriveStore(useShallow(state => state.setSelectedItems))
 	const { hasInternet } = useNetInfo()
 	const [orderBy] = useMMKVString("orderBy", mmkvInstance) as [OrderByType | undefined, (value: OrderByType) => void]
-	const listRef = useRef<FlashList<ListItemInfo>>(null)
+	const listRef = useRef<FlatList<ListItemInfo>>(null)
 	const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
@@ -142,7 +141,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 				className="flex-1"
 			>
 				{gridModeEnabled ? (
-					<FlashList
+					<FlatList
 						ref={listRef}
 						data={items}
 						numColumns={numColumns}
@@ -151,18 +150,6 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						refreshing={refreshing || cloudItemsQuery.status === "pending"}
 						contentInsetAdjustmentBehavior="automatic"
 						initialScrollIndex={initialScrollIndex}
-						estimatedListSize={
-							listLayout.width > 0 && listLayout.height > 0
-								? {
-										width: listLayout.width,
-										height: listLayout.height
-								  }
-								: undefined
-						}
-						estimatedItemSize={133}
-						drawDistance={0}
-						removeClippedSubviews={true}
-						disableAutoLayout={true}
 						contentContainerStyle={{
 							paddingBottom: 100
 						}}
@@ -218,18 +205,6 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						contentContainerStyle={{
 							paddingBottom: 100
 						}}
-						estimatedListSize={
-							listLayout.width > 0 && listLayout.height > 0
-								? {
-										width: listLayout.width,
-										height: listLayout.height
-								  }
-								: undefined
-						}
-						estimatedItemSize={60}
-						drawDistance={0}
-						removeClippedSubviews={true}
-						disableAutoLayout={true}
 						ListHeaderComponent={() => {
 							if (hasInternet) {
 								return undefined

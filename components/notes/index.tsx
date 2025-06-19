@@ -3,7 +3,7 @@ import Container from "@/components/Container"
 import ListHeader from "./listHeader"
 import useNotesQuery from "@/queries/useNotesQuery"
 import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
-import { View, RefreshControl, ActivityIndicator } from "react-native"
+import { View, RefreshControl, ActivityIndicator, type ListRenderItemInfo, FlatList } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useNotesStore } from "@/stores/notes.store"
 import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
@@ -14,8 +14,6 @@ import Item from "./item"
 import Header from "./header"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useShallow } from "zustand/shallow"
-import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
-import useViewLayout from "@/hooks/useViewLayout"
 
 export const Notes = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
@@ -23,9 +21,7 @@ export const Notes = memo(() => {
 	const [selectedTag] = useMMKVString("selectedTag", mmkvInstance)
 	const setNotes = useNotesStore(useShallow(state => state.setNotes))
 	const { colors } = useColorScheme()
-	const listRef = useRef<FlashList<Note>>(null)
-	const viewRef = useRef<View>(null)
-	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
+	const listRef = useRef<FlatList<Note>>(null)
 
 	const notesQuery = useNotesQuery({})
 	const notesTagsQuery = useNotesTagsQuery({})
@@ -128,67 +124,55 @@ export const Notes = memo(() => {
 		<Fragment>
 			<Header setSearchTerm={setSearchTerm} />
 			<Container>
-				<View
-					className="flex-1"
-					ref={viewRef}
-					onLayout={onLayout}
-				>
-					<FlashList
-						ref={listRef}
-						data={notes}
-						contentInsetAdjustmentBehavior="automatic"
-						renderItem={renderItem}
-						refreshing={refreshing}
-						contentContainerStyle={{
-							paddingBottom: 100
-						}}
-						ListFooterComponent={() => {
-							return notes.length > 0 ? (
+				<FlatList
+					ref={listRef}
+					data={notes}
+					contentInsetAdjustmentBehavior="automatic"
+					renderItem={renderItem}
+					refreshing={refreshing}
+					contentContainerStyle={{
+						paddingBottom: 100
+					}}
+					ListFooterComponent={() => {
+						return notes.length > 0 ? (
+							<View className="flex-row items-center justify-center h-16">
+								<Text className="text-sm">{notes.length} items</Text>
+							</View>
+						) : undefined
+					}}
+					ListEmptyComponent={() => {
+						if (notesQuery.status === "pending") {
+							return (
 								<View className="flex-row items-center justify-center h-16">
-									<Text className="text-sm">{notes.length} items</Text>
+									<ActivityIndicator
+										size="small"
+										color={colors.foreground}
+									/>
 								</View>
-							) : undefined
-						}}
-						ListEmptyComponent={() => {
-							if (notesQuery.status === "pending") {
+							)
+						}
+
+						if (notesQuery.status === "error") {
+							return (
+								<View className="flex-row items-center justify-center h-16">
+									<Text className="text-sm">Error loading notes</Text>
+								</View>
+							)
+						}
+
+						if (notes.length === 0) {
+							if (searchTerm.length > 0) {
 								return (
 									<View className="flex-row items-center justify-center h-16">
-										<ActivityIndicator
-											size="small"
-											color={colors.foreground}
-										/>
+										<Text className="text-sm">No notes found for this search</Text>
 									</View>
 								)
 							}
 
-							if (notesQuery.status === "error") {
+							if (selectedTag !== "all") {
 								return (
 									<View className="flex-row items-center justify-center h-16">
-										<Text className="text-sm">Error loading notes</Text>
-									</View>
-								)
-							}
-
-							if (notes.length === 0) {
-								if (searchTerm.length > 0) {
-									return (
-										<View className="flex-row items-center justify-center h-16">
-											<Text className="text-sm">No notes found for this search</Text>
-										</View>
-									)
-								}
-
-								if (selectedTag !== "all") {
-									return (
-										<View className="flex-row items-center justify-center h-16">
-											<Text className="text-sm">No notes found for this tag</Text>
-										</View>
-									)
-								}
-
-								return (
-									<View className="flex-row items-center justify-center h-16">
-										<Text className="text-sm">No notes found</Text>
+										<Text className="text-sm">No notes found for this tag</Text>
 									</View>
 								)
 							}
@@ -198,23 +182,17 @@ export const Notes = memo(() => {
 									<Text className="text-sm">No notes found</Text>
 								</View>
 							)
-						}}
-						ListHeaderComponent={() => <ListHeader />}
-						refreshControl={refreshControl}
-						estimatedListSize={
-							listLayout.width > 0 && listLayout.height > 0
-								? {
-										width: listLayout.width,
-										height: listLayout.height
-								  }
-								: undefined
 						}
-						estimatedItemSize={100}
-						drawDistance={0}
-						removeClippedSubviews={true}
-						disableAutoLayout={true}
-					/>
-				</View>
+
+						return (
+							<View className="flex-row items-center justify-center h-16">
+								<Text className="text-sm">No notes found</Text>
+							</View>
+						)
+					}}
+					ListHeaderComponent={<ListHeader />}
+					refreshControl={refreshControl}
+				/>
 			</Container>
 		</Fragment>
 	)

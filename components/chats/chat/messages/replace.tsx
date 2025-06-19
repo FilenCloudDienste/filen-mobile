@@ -54,7 +54,7 @@ export const Mention = memo(({ name, participant }: { name: string; participant?
 			size="none"
 			onPress={onPress}
 		>
-			<View className="bg-primary rounded-md p-[1px] px-1 shrink-0">
+			<View className="bg-blue-500 rounded-md p-[1px] px-1 shrink-0">
 				<Text className="text-white text-sm font-normal">@{name}</Text>
 			</View>
 		</Button>

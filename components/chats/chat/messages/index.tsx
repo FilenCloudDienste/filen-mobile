@@ -11,7 +11,15 @@ import useHeaderHeight from "@/hooks/useHeaderHeight"
 import useChatsLastFocusQuery from "@/queries/useChatsLastFocusQuery"
 import Top from "./top"
 import useDimensions from "@/hooks/useDimensions"
-import { type ViewabilityConfig, View, type NativeSyntheticEvent, type NativeScrollEvent, type ViewToken } from "react-native"
+import {
+	type ViewabilityConfig,
+	View,
+	type NativeSyntheticEvent,
+	type NativeScrollEvent,
+	type ViewToken,
+	FlatList,
+	type ListRenderItemInfo
+} from "react-native"
 import Animated, { useAnimatedStyle, interpolate, FadeIn, FadeOut } from "react-native-reanimated"
 import { useReanimatedKeyboardAnimation } from "react-native-keyboard-controller"
 import Emojis from "../input/suggestions/emojis"
@@ -22,8 +30,6 @@ import { useShallow } from "zustand/shallow"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
-import useViewLayout from "@/hooks/useViewLayout"
 
 export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConversation; isPreview: boolean; inputHeight: number }) => {
 	const headerHeight = useHeaderHeight()
@@ -53,11 +59,9 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const emojisSuggestions = useChatsStore(useShallow(state => state.emojisSuggestions[chat.uuid] ?? []))
 	const mentionSuggestions = useChatsStore(useShallow(state => state.mentionSuggestions[chat.uuid] ?? []))
 	const replyToMessage = useChatsStore(useShallow(state => state.replyToMessage[chat.uuid] ?? null))
-	const listRef = useRef<FlashList<ChatMessage>>(null)
+	const listRef = useRef<FlatList<ChatMessage>>(null)
 	const { colors } = useColorScheme()
 	const [showScrollToBottom, setShowScrollToBottom] = useState<boolean>(false)
-	const viewRef = useRef<View>(null)
-	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const suggestionsVisible = useMemo(() => {
 		return (
@@ -198,7 +202,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const scrollToBottom = useCallback(() => {
 		listRef.current?.scrollToOffset({
 			offset: 0,
-			animated: false
+			animated: true
 		})
 
 		setShowScrollToBottom(false)
@@ -233,51 +237,45 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 					/>
 				</Button>
 			</Animated.View>
-			<View
-				ref={viewRef}
-				className="flex-1"
-				onLayout={onLayout}
-			>
-				<FlashList
-					ref={listRef}
-					onScroll={onScroll}
-					onEndReached={fetchMoreMessages}
-					data={messages}
-					keyExtractor={keyExtractor}
-					renderItem={renderItem}
-					inverted={true}
-					initialScrollIndex={initialScrollIndex}
-					keyboardDismissMode={suggestionsVisible ? "none" : "on-drag"}
-					keyboardShouldPersistTaps={suggestionsVisible ? "always" : "never"}
-					showsHorizontalScrollIndicator={false}
-					showsVerticalScrollIndicator={false}
-					extraData={lastFocus}
-					ListFooterComponent={
-						isPreview ? undefined : (
-							<View
-								style={{
-									height: headerHeight + 8
-								}}
-							/>
-						)
-					}
-					ListHeaderComponent={isPreview ? undefined : <Animated.View style={headerComponentStyle} />}
-					viewabilityConfig={viewabilityConfig}
-					onViewableItemsChanged={onViewableItemsChanged}
-					estimatedListSize={
-						listLayout.width > 0 && listLayout.height > 0
-							? {
-									width: listLayout.width,
-									height: listLayout.height
-							  }
-							: undefined
-					}
-					estimatedItemSize={150}
-					drawDistance={screen.height}
-					removeClippedSubviews={true}
-					disableAutoLayout={true}
-				/>
-			</View>
+			<FlatList
+				ref={listRef}
+				onScroll={onScroll}
+				onEndReached={fetchMoreMessages}
+				data={messages}
+				keyExtractor={keyExtractor}
+				renderItem={renderItem}
+				inverted={true}
+				initialScrollIndex={initialScrollIndex}
+				keyboardDismissMode={suggestionsVisible ? "none" : "on-drag"}
+				keyboardShouldPersistTaps={suggestionsVisible ? "always" : "never"}
+				showsHorizontalScrollIndicator={false}
+				showsVerticalScrollIndicator={false}
+				extraData={lastFocus}
+				ListFooterComponent={
+					isPreview ? undefined : (
+						<View
+							style={{
+								height: headerHeight + 8
+							}}
+						/>
+					)
+				}
+				ListHeaderComponent={isPreview ? undefined : <Animated.View style={headerComponentStyle} />}
+				viewabilityConfig={viewabilityConfig}
+				onViewableItemsChanged={onViewableItemsChanged}
+				removeClippedSubviews={true}
+				maxToRenderPerBatch={15}
+				initialNumToRender={15}
+				updateCellsBatchingPeriod={100}
+				windowSize={3}
+				maintainVisibleContentPosition={
+					scrollToBottomStyle.display === "flex"
+						? {
+								minIndexForVisible: 0
+						  }
+						: undefined
+				}
+			/>
 			{!isPreview && (
 				<Animated.View style={toolbarStyle}>
 					<Typing chat={chat} />

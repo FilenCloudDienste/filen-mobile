@@ -76,7 +76,7 @@ export const ReplyTo = memo(({ chat }: { chat: ChatConversation }) => {
 					onPress={reset}
 				>
 					<Icon
-						name="cancel"
+						name="close"
 						size={16}
 						color={colors.foreground}
 					/>

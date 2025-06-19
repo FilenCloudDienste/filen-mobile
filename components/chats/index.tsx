@@ -3,22 +3,18 @@ import useChatsQuery from "@/queries/useChatsQuery"
 import Header from "./header"
 import Container from "../Container"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
-import { View, RefreshControl, ActivityIndicator } from "react-native"
+import { View, RefreshControl, ActivityIndicator, type ListRenderItemInfo, FlatList } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { contactName } from "@/lib/utils"
 import { useColorScheme } from "@/lib/useColorScheme"
 import alerts from "@/lib/alerts"
 import Item from "./item"
-import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
-import useViewLayout from "@/hooks/useViewLayout"
 
 export const Chats = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
-	const listRef = useRef<FlashList<ChatConversation>>(null)
+	const listRef = useRef<FlatList<ChatConversation>>(null)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { colors } = useColorScheme()
-	const viewRef = useRef<View>(null)
-	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 
 	const chatsQuery = useChatsQuery({})
 
@@ -131,38 +127,20 @@ export const Chats = memo(() => {
 		<Fragment>
 			<Header setSearchTerm={setSearchTerm} />
 			<Container>
-				<View
-					ref={viewRef}
-					onLayout={onLayout}
-					className="flex-1"
-				>
-					<FlashList
-						ref={listRef}
-						data={chats}
-						contentInsetAdjustmentBehavior="automatic"
-						keyExtractor={keyExtractor}
-						renderItem={renderItem}
-						refreshing={refreshing || chatsQuery.status === "pending"}
-						contentContainerStyle={{
-							paddingBottom: 100
-						}}
-						ListEmptyComponent={ListEmpty}
-						ListFooterComponent={ListFooter}
-						refreshControl={refreshControl}
-						estimatedListSize={
-							listLayout.width > 0 && listLayout.height > 0
-								? {
-										width: listLayout.width,
-										height: listLayout.height
-								  }
-								: undefined
-						}
-						estimatedItemSize={78}
-						drawDistance={0}
-						removeClippedSubviews={true}
-						disableAutoLayout={true}
-					/>
-				</View>
+				<FlatList
+					ref={listRef}
+					data={chats}
+					contentInsetAdjustmentBehavior="automatic"
+					keyExtractor={keyExtractor}
+					renderItem={renderItem}
+					refreshing={refreshing || chatsQuery.status === "pending"}
+					contentContainerStyle={{
+						paddingBottom: 100
+					}}
+					ListEmptyComponent={ListEmpty}
+					ListFooterComponent={ListFooter}
+					refreshControl={refreshControl}
+				/>
 			</Container>
 		</Fragment>
 	)

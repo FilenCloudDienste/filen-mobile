@@ -5,7 +5,7 @@ import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator } from "react-native"
+import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator, type ListRenderItemInfo, FlatList } from "react-native"
 import Thumbnail from "@/components/thumbnail/item"
 import { cn } from "@/lib/cn"
 import { Container } from "@/components/Container"
@@ -23,7 +23,6 @@ import { useRouter } from "expo-router"
 import { validate as validateUUID } from "uuid"
 import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { useShallow } from "zustand/shallow"
-import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 import Menu from "@/components/drive/list/listItem/menu"
 import Transfers from "@/components/drive/header/transfers"
 
@@ -267,26 +266,24 @@ export const Photos = memo(() => {
 					onLayout={onLayout}
 					className="flex-1"
 				>
-					<FlashList
-						key={`list:${numColumns}:${itemSize}`}
+					<FlatList
 						data={items}
 						renderItem={renderItem}
 						numColumns={numColumns}
 						keyExtractor={keyExtractor}
 						contentInsetAdjustmentBehavior="automatic"
 						showsVerticalScrollIndicator={true}
-						estimatedItemSize={itemSize}
-						estimatedListSize={
-							listLayout.width > 0 && listLayout.height > 0
-								? {
-										width: listLayout.width,
-										height: listLayout.height
-								  }
-								: undefined
-						}
-						drawDistance={0}
+						showsHorizontalScrollIndicator={false}
+						extraData={{
+							numColumns,
+							itemSize
+						}}
+						getItemLayout={(_, index) => ({
+							length: itemSize + spacing,
+							offset: (itemSize + spacing) * index,
+							index
+						})}
 						removeClippedSubviews={true}
-						disableAutoLayout={true}
 						ListHeaderComponent={
 							!hasInternet ? (
 								<View className="flex-row items-center justify-center bg-red-500 p-2">
