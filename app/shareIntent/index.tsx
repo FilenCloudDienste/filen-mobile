@@ -74,7 +74,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 			isLastInSection={false}
 			removeSeparator={Platform.OS === "android"}
 			innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
-			onLayout={e => console.log("onLayout", e.nativeEvent.layout, Platform.OS)}
 		/>
 	)
 })

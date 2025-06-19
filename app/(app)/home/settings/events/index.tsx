@@ -206,7 +206,6 @@ export const Events = memo(() => {
 		return (
 			<ListItem
 				{...info}
-				onLayout={e => console.log("onLayout", e.nativeEvent.layout, Platform.OS)}
 				className="overflow-hidden"
 				subTitleClassName="text-xs pt-1 font-normal"
 				variant="full-width"
