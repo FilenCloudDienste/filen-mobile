@@ -2,7 +2,7 @@ import { memo, useMemo, useCallback } from "react"
 import { Settings as SettingsComponent } from "@/components/settings"
 import Avatar from "@/components/avatar"
 import useAccountQuery from "@/queries/useAccountQuery"
-import { contactName, formatBytes, sanitizeFileName } from "@/lib/utils"
+import { contactName, formatBytes, sanitizeFileName, normalizeFilePathForNode } from "@/lib/utils"
 import { useRouter } from "expo-router"
 import { Platform } from "react-native"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
@@ -55,14 +55,15 @@ export const Account = memo(() => {
 				allowsMultipleSelection: false,
 				selectionLimit: 1,
 				base64: false,
-				exif: false
+				exif: false,
+				quality: 0.7
 			})
 
 			if (imagePickerResult.canceled) {
 				return
 			}
 
-			const asset = imagePickerResult.assets[0]
+			const asset = imagePickerResult.assets.at(0)
 
 			if (!asset || !asset.uri) {
 				throw new Error("No image selected.")
@@ -89,8 +90,13 @@ export const Account = memo(() => {
 					throw new Error(`Could not get size of file at "${tmpFile.uri}".`)
 				}
 
+				if (tmpFile.size > 2.99 * 1024 * 1024) {
+					// 3 MB limit
+					throw new Error("File size exceeds 3 MiB limit.")
+				}
+
 				await nodeWorker.proxy("uploadAvatar", {
-					uri: tmpFile.uri
+					uri: normalizeFilePathForNode(tmpFile.uri)
 				})
 
 				await account.refetch()

@@ -1,4 +1,5 @@
 import * as FileSystem from "expo-file-system/next"
+import cache from "./cache"
 
 export const PREFIX: string = "filenv3_"
 export const THUMBNAILS_VERSION: number = 1
@@ -46,6 +47,10 @@ export class Paths {
 		const tempUploads = new FileSystem.Directory(TEMPORARY_UPLOADS_BASE_PATH)
 		const exportsDir = new FileSystem.Directory(EXPORTS_BASE_PATH)
 
+		this.created.temporaryDownloads = false
+		this.created.temporaryUploads = false
+		this.created.exports = false
+
 		if (tempDownloads.exists) {
 			tempDownloads.delete()
 		}
@@ -57,10 +62,44 @@ export class Paths {
 		if (exportsDir.exists) {
 			exportsDir.delete()
 		}
+	}
 
-		this.created.temporaryDownloads = false
-		this.created.temporaryUploads = false
-		this.created.exports = false
+	public clearThumbnails(): void {
+		const thumbnailsDir = new FileSystem.Directory(THUMBNAILS_BASE_PATH)
+
+		this.created.thumbnails = false
+
+		if (thumbnailsDir.exists) {
+			thumbnailsDir.delete()
+		}
+
+		cache.availableThumbnails.clear()
+	}
+
+	public clearTrackPlayer(): void {
+		const trackPlayerDir = new FileSystem.Directory(TRACK_PLAYER_BASE_PATH)
+		const trackPlayerPicturesDir = new FileSystem.Directory(TRACK_PLAYER_PICTURES_BASE_PATH)
+
+		this.created.trackPlayer = false
+		this.created.trackPlayerPictures = false
+
+		if (trackPlayerDir.exists) {
+			trackPlayerDir.delete()
+		}
+
+		if (trackPlayerPicturesDir.exists) {
+			trackPlayerPicturesDir.delete()
+		}
+	}
+
+	public clearOfflineFiles(): void {
+		const offlineFilesDir = new FileSystem.Directory(OFFLINE_FILES_BASE_PATH)
+
+		this.created.offlineFiles = false
+
+		if (offlineFilesDir.exists) {
+			offlineFilesDir.delete()
+		}
 	}
 
 	public db(): string {

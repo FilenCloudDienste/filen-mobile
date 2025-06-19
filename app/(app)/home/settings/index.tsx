@@ -49,7 +49,7 @@ export const Settings = memo(() => {
 
 	const onPressAdvanced = useCallback(() => {
 		router.push({
-			pathname: "/(app)/home/settings/account"
+			pathname: "/(app)/home/settings/advanced"
 		})
 	}, [router])
 
