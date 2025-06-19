@@ -17,6 +17,11 @@ import Date from "../chat/messages/date"
 import events from "@/lib/events"
 import { cn } from "@/lib/cn"
 
+export const LIST_ITEM_HEIGHT = Platform.select({
+	ios: 71,
+	default: 71
+})
+
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation> }) => {
 	const [{ userId }] = useSDKConfig()
 	const { push: routerPush } = useRouter()
@@ -74,7 +79,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 		markAsRead().catch(console.error)
 
 		events.emit("hideSearchBar", {
-			clearText: false
+			clearText: true
 		})
 
 		routerPush({
@@ -92,12 +97,12 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 			insideChat={false}
 		>
 			<Button
-				className="bg-background justify-start flex-1 px-4"
+				className="bg-background"
 				variant="plain"
 				size="none"
 				onPress={onPress}
 			>
-				<View className="flex-row gap-4 flex-1 pt-3">
+				<View className="flex-row gap-4 flex-1 pt-3 pl-4">
 					<Avatar
 						source={avatarSource}
 						style={{
@@ -106,7 +111,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 						}}
 					/>
 					<View className={cn("flex-col flex-1 pb-3", Platform.OS === "ios" && "border-b border-border/80")}>
-						<View className="flex-1 flex-row items-center justify-between">
+						<View className="flex-1 flex-row items-center justify-between pr-4">
 							<Text
 								variant="heading"
 								numberOfLines={1}
@@ -123,7 +128,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 								)}
 							</Text>
 						</View>
-						<View className="flex-row flex-1 items-center pt-0.5 gap-4">
+						<View className="flex-row flex-1 items-center pt-0.5 gap-4 pr-4">
 							<LastMessage chat={info.item} />
 							<Unread chat={info.item} />
 						</View>

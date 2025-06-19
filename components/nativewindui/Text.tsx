@@ -1,10 +1,12 @@
 import { VariantProps, cva } from "class-variance-authority"
 import { cssInterop } from "nativewind"
 import * as React from "react"
-import { Text as UITextView } from "react-native"
 import { cn } from "~/lib/cn"
+import { NativeText } from "react-native-boost/runtime"
 
-cssInterop(UITextView, { className: "style" })
+cssInterop(NativeText, {
+	className: "style"
+})
 
 const textVariants = cva("text-foreground", {
 	variants: {
@@ -41,11 +43,18 @@ function Text({
 	variant,
 	color,
 	...props
-}: React.ComponentPropsWithoutRef<typeof UITextView> & VariantProps<typeof textVariants>) {
+}: React.ComponentPropsWithoutRef<typeof NativeText> & VariantProps<typeof textVariants>) {
 	const textClassName = React.useContext(TextClassContext)
 	return (
-		<UITextView
-			className={cn(textVariants({ variant, color }), textClassName, className)}
+		<NativeText
+			className={cn(
+				textVariants({
+					variant,
+					color
+				}),
+				textClassName,
+				className
+			)}
 			{...props}
 		/>
 	)

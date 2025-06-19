@@ -149,6 +149,7 @@
     "react-native": "0.79.3",
     "react-native-audio-pro": "^9.9.1",
     "react-native-blob-util": "^0.22.2",
+    "react-native-boost": "^0.6.2",
     "react-native-bottom-tabs": "^0.9.2",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-ios-context-menu": "^3.1.2",

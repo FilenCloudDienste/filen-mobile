@@ -52,7 +52,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 
 	const onPress = useCallback(() => {
 		events.emit("hideSearchBar", {
-			clearText: false
+			clearText: true
 		})
 
 		routerPush({
@@ -79,8 +79,8 @@ export const Item = memo(({ note }: { note: Note }) => {
 				size="none"
 				onPress={onPress}
 			>
-				<View className="flex-1 flex-row gap-4 px-4 pt-3">
-					<View className="flex-col gap-2 pt-0.5 pb-2">
+				<View className="flex-1 flex-row gap-4 pt-3">
+					<View className="flex-col gap-2 pt-0.5 pb-2 pl-4">
 						{!note.isOwner ? (
 							<Fragment>
 								{hasWriteAccess ? (
@@ -155,11 +155,12 @@ export const Item = memo(({ note }: { note: Note }) => {
 							/>
 						)}
 					</View>
-					<View className={cn("flex-row gap-4 flex-1 pb-4", Platform.OS === "ios" && "border-b border-border/80")}>
+					<View className={cn("flex-row gap-4 flex-1 pb-4 pr-4", Platform.OS === "ios" && "border-b border-border/80")}>
 						<View className="flex-1 flex-col gap-0">
 							<Text
 								numberOfLines={1}
 								ellipsizeMode="middle"
+								className="font-normal text-base"
 							>
 								{note.title}
 							</Text>
@@ -168,7 +169,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 									numberOfLines={2}
 									ellipsizeMode="tail"
 									variant="subhead"
-									className="text-muted-foreground py-0.5"
+									className="text-muted-foreground py-0.5 font-normal text-sm"
 								>
 									{note.preview}
 								</Text>
@@ -177,7 +178,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 								numberOfLines={1}
 								ellipsizeMode="middle"
 								variant="footnote"
-								className="text-muted-foreground mt-0.5"
+								className="text-muted-foreground mt-0.5 font-normal text-xs"
 							>
 								{simpleDate(note.editedTimestamp)}
 							</Text>

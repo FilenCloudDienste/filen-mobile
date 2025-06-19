@@ -129,7 +129,7 @@ export const ListItem = memo(
 		const onPressFromSearch = useCallback(async () => {
 			if (info.item.item.type === "directory") {
 				events.emit("hideSearchBar", {
-					clearText: false
+					clearText: true
 				})
 
 				routerPush({
@@ -152,7 +152,7 @@ export const ListItem = memo(
 				cache.directoryUUIDToName.set(info.item.item.parent, parent.metadataDecrypted.name)
 
 				events.emit("hideSearchBar", {
-					clearText: false
+					clearText: true
 				})
 
 				routerPush({
@@ -192,7 +192,7 @@ export const ListItem = memo(
 				}
 
 				events.emit("hideSearchBar", {
-					clearText: false
+					clearText: true
 				})
 
 				routerPush({
@@ -230,7 +230,7 @@ export const ListItem = memo(
 				info.item.item.size > 0
 			) {
 				events.emit("hideSearchBar", {
-					clearText: false
+					clearText: true
 				})
 
 				viewDocument({
@@ -271,7 +271,7 @@ export const ListItem = memo(
 
 			if ((previewType === "text" || previewType === "code") && hasInternet) {
 				events.emit("hideSearchBar", {
-					clearText: false
+					clearText: true
 				})
 
 				routerPush({
@@ -287,7 +287,7 @@ export const ListItem = memo(
 
 			if (previewType === "pdf" && hasInternet && info.item.item.size > 0) {
 				events.emit("hideSearchBar", {
-					clearText: false
+					clearText: true
 				})
 
 				routerPush({
@@ -303,7 +303,7 @@ export const ListItem = memo(
 
 			if (previewType === "docx" && hasInternet && info.item.item.size > 0) {
 				events.emit("hideSearchBar", {
-					clearText: false
+					clearText: true
 				})
 
 				routerPush({

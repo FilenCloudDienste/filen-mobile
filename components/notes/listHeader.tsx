@@ -1,5 +1,5 @@
 import { memo, useRef, useMemo, useEffect, useCallback } from "react"
-import { Platform, FlatList, type ListRenderItemInfo } from "react-native"
+import { FlatList, type ListRenderItemInfo } from "react-native"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
@@ -98,8 +98,9 @@ export const ListHeader = memo(() => {
 			data={listTags}
 			renderItem={renderItem}
 			contentContainerStyle={{
-				paddingTop: Platform.OS === "android" ? 8 : 0,
-				paddingHorizontal: 16
+				paddingTop: 8,
+				paddingHorizontal: 16,
+				paddingBottom: 8
 			}}
 			windowSize={3}
 			removeClippedSubviews={true}

@@ -599,7 +599,7 @@ export const Menu = memo(
 			}
 
 			events.emit("hideSearchBar", {
-				clearText: false
+				clearText: true
 			})
 
 			router.push({

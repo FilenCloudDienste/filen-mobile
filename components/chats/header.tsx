@@ -1,56 +1,42 @@
-import { memo, Fragment, useCallback } from "react"
+import { memo, useCallback } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { Button } from "../nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { inputPrompt } from "../prompts/inputPrompt"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "../modals/fullScreenLoadingModal"
-import { useTranslation } from "react-i18next"
 import { randomUUID } from "expo-crypto"
 import useChatsQuery from "@/queries/useChatsQuery"
 import alerts from "@/lib/alerts"
+import { selectContacts } from "@/app/selectContacts"
 
 export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<React.SetStateAction<string>> }) => {
 	const { colors } = useColorScheme()
-	const { t } = useTranslation()
 
 	const chatsQuery = useChatsQuery({
 		enabled: false
 	})
 
 	const createChat = useCallback(async () => {
-		const inputPromptResponse = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
-			materialIcon: {
-				name: "folder-plus-outline"
-			},
-			prompt: {
-				type: "plain-text",
-				keyboardType: "default",
-				defaultValue: "",
-				placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
-			}
+		const selectContactsResponse = await selectContacts({
+			type: "all",
+			max: 9999
 		})
 
-		if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
+		if (selectContactsResponse.cancelled) {
 			return
 		}
 
-		const title = inputPromptResponse.text.trim()
-
-		if (title.length === 0) {
+		if (selectContactsResponse.contacts.length === 0) {
 			return
 		}
 
 		fullScreenLoadingModal.show()
 
 		try {
-			const uuid = randomUUID()
-
-			await nodeWorker.proxy("createNote", {
-				uuid,
-				title
+			await nodeWorker.proxy("createChat", {
+				uuid: randomUUID(),
+				contacts: selectContactsResponse.contacts
 			})
 
 			await chatsQuery.refetch()
@@ -63,7 +49,7 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [t, chatsQuery])
+	}, [chatsQuery])
 
 	return (
 		<LargeTitleHeader
@@ -75,24 +61,22 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 				placeholder: "Search chats...",
 				iosCancelButtonText: "Abort",
 				iosHideWhenScrolling: true,
-				onChangeText: text => setSearchTerm(text),
+				onChangeText: setSearchTerm,
 				persistBlur: true,
 				materialBlurOnSubmit: false
 			}}
 			rightView={() => (
-				<Fragment>
-					<Button
-						variant="plain"
-						size="icon"
-						onPress={createChat}
-					>
-						<Icon
-							name="plus"
-							size={24}
-							color={colors.primary}
-						/>
-					</Button>
-				</Fragment>
+				<Button
+					variant="plain"
+					size="icon"
+					onPress={createChat}
+				>
+					<Icon
+						name="plus"
+						size={24}
+						color={colors.primary}
+					/>
+				</Button>
 			)}
 		/>
 	)

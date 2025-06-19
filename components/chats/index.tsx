@@ -8,13 +8,15 @@ import { Text } from "@/components/nativewindui/Text"
 import { contactName } from "@/lib/utils"
 import { useColorScheme } from "@/lib/useColorScheme"
 import alerts from "@/lib/alerts"
-import Item from "./item"
+import Item, { LIST_ITEM_HEIGHT } from "./item"
+import useDimensions from "@/hooks/useDimensions"
 
 export const Chats = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const listRef = useRef<FlatList<ChatConversation>>(null)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { colors } = useColorScheme()
+	const { screen } = useDimensions()
 
 	const chatsQuery = useChatsQuery({})
 
@@ -140,11 +142,18 @@ export const Chats = memo(() => {
 					ListEmptyComponent={ListEmpty}
 					ListFooterComponent={ListFooter}
 					refreshControl={refreshControl}
-					windowSize={3}
 					removeClippedSubviews={true}
-					initialNumToRender={32}
-					maxToRenderPerBatch={16}
+					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
 					updateCellsBatchingPeriod={100}
+					windowSize={3}
+					getItemLayout={(_, index) => {
+						return {
+							length: LIST_ITEM_HEIGHT,
+							offset: LIST_ITEM_HEIGHT * index,
+							index
+						}
+					}}
 				/>
 			</Container>
 		</Fragment>
