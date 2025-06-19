@@ -7,6 +7,7 @@ import useEventsQuery from "@/queries/useEventsQuery"
 import { type UserEvent } from "@filen/sdk/dist/types/api/v3/user/events"
 import { simpleDate } from "@/lib/utils"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
+import useDimensions from "@/hooks/useDimensions"
 
 export type ListItemInfo = {
 	title: string
@@ -15,8 +16,14 @@ export type ListItemInfo = {
 	event: UserEvent
 }
 
+export const LIST_ITEM_HEIGHT = Platform.select({
+	ios: 61,
+	default: 60
+})
+
 export const Events = memo(() => {
 	const { colors } = useColorScheme()
+	const { screen } = useDimensions()
 
 	const events = useEventsQuery({})
 
@@ -199,6 +206,7 @@ export const Events = memo(() => {
 		return (
 			<ListItem
 				{...info}
+				onLayout={e => console.log("onLayout", e.nativeEvent.layout, Platform.OS)}
 				className="overflow-hidden"
 				subTitleClassName="text-xs pt-1 font-normal"
 				variant="full-width"
@@ -247,6 +255,18 @@ export const Events = memo(() => {
 				}}
 				onEndReachedThreshold={0.3}
 				onEndReached={() => console.log("End reached")}
+				removeClippedSubviews={true}
+				initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+				maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+				updateCellsBatchingPeriod={100}
+				windowSize={3}
+				getItemLayout={(_, index) => {
+					return {
+						length: LIST_ITEM_HEIGHT,
+						offset: LIST_ITEM_HEIGHT * index,
+						index
+					}
+				}}
 			/>
 		</Fragment>
 	)

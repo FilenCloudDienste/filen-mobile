@@ -140,6 +140,7 @@ export const Gallery = memo(
 					initialNumToRender={3}
 					windowSize={3}
 					maxToRenderPerBatch={3}
+					updateCellsBatchingPeriod={100}
 					getItemLayout={getItemLayout}
 					viewabilityConfig={viewabilityConfig}
 					onViewableItemsChanged={onViewableItemsChanged}

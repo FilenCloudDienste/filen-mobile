@@ -15,6 +15,7 @@ import queryUtils from "@/queries/utils"
 import useNoteHistoryQuery from "@/queries/useNoteHistoryQuery"
 import { useTranslation } from "react-i18next"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
+import useDimensions from "@/hooks/useDimensions"
 
 export type ListItemInfo = {
 	title: string
@@ -23,8 +24,14 @@ export type ListItemInfo = {
 	history: NoteHistory
 }
 
+export const LIST_ITEM_HEIGHT = Platform.select({
+	ios: 61,
+	default: 60
+})
+
 export const History = memo(({ note }: { note: Note }) => {
 	const { t } = useTranslation()
+	const { screen } = useDimensions()
 
 	const noteHistoryQuery = useNoteHistoryQuery({
 		uuid: note.uuid
@@ -162,6 +169,18 @@ export const History = memo(({ note }: { note: Note }) => {
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
 					ListFooterComponent={ListFooter}
+					removeClippedSubviews={true}
+					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					updateCellsBatchingPeriod={100}
+					windowSize={3}
+					getItemLayout={(_, index) => {
+						return {
+							length: LIST_ITEM_HEIGHT,
+							offset: LIST_ITEM_HEIGHT * index,
+							index
+						}
+					}}
 				/>
 			</Container>
 		</Fragment>

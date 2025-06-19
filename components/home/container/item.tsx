@@ -190,12 +190,16 @@ export const Item = memo(
 				isAvailableOffline={isAvailableOffline}
 			>
 				<ListItem
-					target="Cell"
 					item={{
 						title: item.name,
 						subTitle: `${simpleDate(item.lastModified)} - ${formatBytes(
 							item.type === "directory" ? directorySize.data?.size ?? 0 : item.size
 						)}`
+					}}
+					separators={{
+						highlight: () => {},
+						unhighlight: () => {},
+						updateProps: () => {}
 					}}
 					index={index}
 					className="overflow-hidden bg-background"

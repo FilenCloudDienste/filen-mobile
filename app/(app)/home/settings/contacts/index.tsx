@@ -1,13 +1,13 @@
 import { memo, Fragment, useMemo, useCallback, useState } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { List, type ListRenderItemInfo, type ListDataItem } from "@/components/nativewindui/List"
-import { RefreshControl, Platform } from "react-native"
+import { RefreshControl } from "react-native"
 import useContactsQuery from "@/queries/useContactsQuery"
 import { contactName, convertTimestampToMs } from "@/lib/utils"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import useContactsRequestsQuery from "@/queries/useContactsRequestsQuery"
-import Contact, { type ListItemInfo } from "@/components/contacts/contact"
+import Contact, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/contacts/contact"
 import ListHeader from "@/components/contacts/listHeader"
 import ListEmpty from "@/components/contacts/listEmpty"
 import { Button } from "@/components/nativewindui/Button"
@@ -200,31 +200,14 @@ export const Contacts = memo(() => {
 				}
 				ListHeaderComponent={ListHeader}
 				removeClippedSubviews={true}
-				initialNumToRender={Math.round(
-					screen.height /
-						Platform.select({
-							ios: 61,
-							default: 60
-						})
-				)}
-				maxToRenderPerBatch={Math.round(
-					screen.height /
-						Platform.select({
-							ios: 61,
-							default: 60
-						})
-				)}
+				initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+				maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
 				updateCellsBatchingPeriod={100}
 				windowSize={3}
 				getItemLayout={(_, index) => {
-					const height = Platform.select({
-						ios: 61,
-						default: 60
-					})
-
 					return {
-						length: height,
-						offset: height * index,
+						length: LIST_ITEM_HEIGHT,
+						offset: LIST_ITEM_HEIGHT * index,
 						index
 					}
 				}}

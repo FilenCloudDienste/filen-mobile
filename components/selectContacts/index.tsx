@@ -10,13 +10,14 @@ import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHe
 import { useLocalSearchParams, useRouter } from "expo-router"
 import Container from "@/components/Container"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "@/components/nativewindui/Toolbar"
-import Contact, { type ListItemInfo } from "@/components/contacts/contact"
+import Contact, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/contacts/contact"
 import { useSelectContactsStore } from "@/stores/selectContacts.store"
 import { contactName } from "@/lib/utils"
 import { useShallow } from "zustand/shallow"
 import { Button } from "@/components/nativewindui/Button"
 import contactsService from "@/services/contacts.service"
 import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
+import useDimensions from "@/hooks/useDimensions"
 
 export const SelectContacts = memo(() => {
 	const { colors } = useColorScheme()
@@ -26,6 +27,7 @@ export const SelectContacts = memo(() => {
 	const { back, canGoBack } = useRouter()
 	const selectedContacts = useSelectContactsStore(useShallow(state => state.selectedContacts))
 	const setSelectedContacts = useSelectContactsStore(useShallow(state => state.setSelectedContacts))
+	const { screen } = useDimensions()
 
 	const query = useContactsQuery({
 		type: typeof type === "string" ? (type as "all" | "blocked") : "all"
@@ -235,6 +237,18 @@ export const SelectContacts = memo(() => {
 							}}
 						/>
 					}
+					removeClippedSubviews={true}
+					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					updateCellsBatchingPeriod={100}
+					windowSize={3}
+					getItemLayout={(_, index) => {
+						return {
+							length: LIST_ITEM_HEIGHT,
+							offset: LIST_ITEM_HEIGHT * index,
+							index
+						}
+					}}
 				/>
 				<Toolbar
 					iosBlurIntensity={100}

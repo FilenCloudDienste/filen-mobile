@@ -8,13 +8,15 @@ import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import { List, type ListDataItem, type ListRenderItemInfo } from "../nativewindui/List"
 import Container from "../Container"
-import Item, { type ListItemInfo } from "./item"
+import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "./item"
 import { formatMessageDate } from "@/lib/utils"
+import useDimensions from "@/hooks/useDimensions"
 
 export const TrackPlayer = memo(() => {
 	const [trackPlayerToolbarHeight] = useMMKVNumber("trackPlayerToolbarHeight", mmkvInstance)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const playlistsSearchTerm = useTrackPlayerStore(useShallow(state => state.playlistsSearchTerm))
+	const { screen } = useDimensions()
 
 	const playlistsQuery = usePlaylistsQuery({})
 
@@ -88,6 +90,18 @@ export const TrackPlayer = memo(() => {
 							}}
 						/>
 					}
+					removeClippedSubviews={true}
+					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					updateCellsBatchingPeriod={100}
+					windowSize={3}
+					getItemLayout={(_, index) => {
+						return {
+							length: LIST_ITEM_HEIGHT,
+							offset: LIST_ITEM_HEIGHT * index,
+							index
+						}
+					}}
 				/>
 			</Container>
 		</Fragment>

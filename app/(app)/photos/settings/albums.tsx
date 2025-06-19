@@ -5,11 +5,12 @@ import useLocalAlbumsQuery from "@/queries/useLocalAlbumsQuery"
 import * as MediaLibrary from "expo-media-library"
 import Container from "@/components/Container"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { ActivityIndicator, View } from "react-native"
+import { ActivityIndicator, View, Platform } from "react-native"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import { cn } from "@/lib/cn"
 import useCameraUpload from "@/hooks/useCameraUpload"
 import { Image } from "expo-image"
+import useDimensions from "@/hooks/useDimensions"
 
 export type ListItemInfo = {
 	title: string
@@ -21,9 +22,15 @@ export type ListItemInfo = {
 	}
 }
 
+export const LIST_ITEM_HEIGHT = Platform.select({
+	ios: 61,
+	default: 61
+})
+
 export const Albums = memo(() => {
 	const { colors } = useColorScheme()
 	const [cameraUpload, setCameraUpload] = useCameraUpload()
+	const { screen } = useDimensions()
 
 	const localAlbumsQuery = useLocalAlbumsQuery({})
 
@@ -59,6 +66,8 @@ export const Albums = memo(() => {
 					className={cn("ios:pl-0 pl-2", info.index === 0 && "ios:border-t-0 border-border/25 dark:border-border/80 border-t")}
 					titleClassName="text-lg"
 					innerClassName="py-1.5 ios:py-1.5 android:py-1.5"
+					textNumberOfLines={1}
+					subTitleNumberOfLines={1}
 					leftView={
 						<View className="flex-row items-center px-4">
 							{info.item.album.lastAssetURI ? (
@@ -69,12 +78,12 @@ export const Albums = memo(() => {
 									contentFit="cover"
 									style={{
 										borderRadius: 6,
-										width: 32,
-										height: 32
+										width: 38,
+										height: 38
 									}}
 								/>
 							) : (
-								<View className="bg-background rounded-md w-8 h-8" />
+								<View className="bg-background rounded-md w-[38px] h-[38px]" />
 							)}
 						</View>
 					}
@@ -119,6 +128,18 @@ export const Albums = memo(() => {
 					extraData={cameraUpload.albums}
 					contentContainerStyle={{
 						paddingBottom: 100
+					}}
+					removeClippedSubviews={true}
+					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					updateCellsBatchingPeriod={100}
+					windowSize={3}
+					getItemLayout={(_, index) => {
+						return {
+							length: LIST_ITEM_HEIGHT,
+							offset: LIST_ITEM_HEIGHT * index,
+							index
+						}
 					}}
 				/>
 			</Container>

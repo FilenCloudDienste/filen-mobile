@@ -75,13 +75,23 @@ export const Item = memo(
 
 		const onKeyPress = useCallback(
 			(e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+				if (e.nativeEvent.key === "Enter") {
+					e.preventDefault()
+					e.stopPropagation()
+
+					onSubmitEditing()
+				}
+
 				if (e.nativeEvent.key === "Backspace" && item.content.length === 0) {
+					e.preventDefault()
+					e.stopPropagation()
+
 					removeItem(item)
 				}
 
 				onDidType()
 			},
-			[item, removeItem, onDidType]
+			[item, removeItem, onDidType, onSubmitEditing]
 		)
 
 		useEffect(() => {

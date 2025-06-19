@@ -33,6 +33,11 @@ export type ListItemInfo = {
 	file: PlaylistFile
 }
 
+export const LIST_ITEM_HEIGHT = Platform.select({
+	ios: 61,
+	default: 60
+})
+
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const { colors } = useColorScheme()
 	const [trackPlayerFileMetadata] = useMMKVObject<TrackMetadata>(`trackPlayerFileMetadata:${info.item.file.uuid}`, mmkvInstance)

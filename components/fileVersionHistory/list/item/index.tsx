@@ -13,6 +13,11 @@ export type ListItemInfo = {
 	version: FileVersion
 }
 
+export const LIST_ITEM_HEIGHT = Platform.select({
+	ios: 61,
+	default: 60
+})
+
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const infoAdjusted = useMemo((): ListRenderItemInfo<ListItemInfo> => {
 		return {

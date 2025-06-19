@@ -140,6 +140,11 @@ export const Chats = memo(() => {
 					ListEmptyComponent={ListEmpty}
 					ListFooterComponent={ListFooter}
 					refreshControl={refreshControl}
+					windowSize={3}
+					removeClippedSubviews={true}
+					initialNumToRender={32}
+					maxToRenderPerBatch={16}
+					updateCellsBatchingPeriod={100}
 				/>
 			</Container>
 		</Fragment>

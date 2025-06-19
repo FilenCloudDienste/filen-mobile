@@ -126,6 +126,11 @@ export const Settings = memo((props: SettingsProps) => {
 					)
 				}}
 				ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
+				windowSize={3}
+				maxToRenderPerBatch={16}
+				initialNumToRender={32}
+				removeClippedSubviews={true}
+				updateCellsBatchingPeriod={100}
 			/>
 		</Fragment>
 	)

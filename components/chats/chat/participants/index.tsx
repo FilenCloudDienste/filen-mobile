@@ -20,6 +20,12 @@ import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import queryUtils from "@/queries/utils"
+import useDimensions from "@/hooks/useDimensions"
+
+export const LIST_ITEM_HEIGHT = Platform.select({
+	ios: 61,
+	default: 60
+})
 
 export type ListItemInfo = {
 	title: string
@@ -34,6 +40,7 @@ export default function Participants() {
 	const { colors } = useColorScheme()
 	const [{ userId }] = useSDKConfig()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
+	const { screen } = useDimensions()
 
 	const chatUUIDParsed = useMemo((): string | null => {
 		try {
@@ -267,6 +274,18 @@ export default function Participants() {
 							}}
 						/>
 					}
+					removeClippedSubviews={true}
+					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					updateCellsBatchingPeriod={100}
+					windowSize={3}
+					getItemLayout={(_, index) => {
+						return {
+							length: LIST_ITEM_HEIGHT,
+							offset: LIST_ITEM_HEIGHT * index,
+							index
+						}
+					}}
 				/>
 			</Container>
 		</Fragment>

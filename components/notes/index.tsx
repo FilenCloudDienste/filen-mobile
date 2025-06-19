@@ -190,8 +190,13 @@ export const Notes = memo(() => {
 							</View>
 						)
 					}}
-					ListHeaderComponent={<ListHeader />}
+					ListHeaderComponent={ListHeader}
 					refreshControl={refreshControl}
+					windowSize={3}
+					removeClippedSubviews={true}
+					initialNumToRender={32}
+					maxToRenderPerBatch={16}
+					updateCellsBatchingPeriod={100}
 				/>
 			</Container>
 		</Fragment>

@@ -32,6 +32,11 @@ export type ListItemInfo = {
 	item: DriveCloudItem
 }
 
+export const LIST_ITEM_HEIGHT = Platform.select({
+	ios: 61,
+	default: 60
+})
+
 export const ListItem = memo(
 	({
 		info,

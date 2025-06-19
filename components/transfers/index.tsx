@@ -6,13 +6,14 @@ import { Toolbar, ToolbarIcon } from "../nativewindui/Toolbar"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import Container from "../Container"
 import { Text } from "../nativewindui/Text"
-import Transfer, { type ListItemInfo } from "./transfer"
+import Transfer, { type ListItemInfo, LIST_ITEM_HEIGHT } from "./transfer"
 import { formatBytes, promiseAllChunked, normalizeTransferProgress, bpsToReadable } from "@/lib/utils"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
 import { AdaptiveSearchHeader } from "../nativewindui/AdaptiveSearchHeader"
 import { useColorScheme } from "@/lib/useColorScheme"
+import useDimensions from "@/hooks/useDimensions"
 
 export const Transfers = memo(() => {
 	const transfers = useTransfersStore(useShallow(state => state.transfers))
@@ -21,6 +22,7 @@ export const Transfers = memo(() => {
 	const remaining = useTransfersStore(useShallow(state => state.remaining))
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { colors } = useColorScheme()
+	const { screen } = useDimensions()
 
 	const data = useMemo(() => {
 		return transfers
@@ -223,6 +225,18 @@ export const Transfers = memo(() => {
 							}}
 						/>
 					}
+					removeClippedSubviews={true}
+					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					updateCellsBatchingPeriod={100}
+					windowSize={3}
+					getItemLayout={(_, index) => {
+						return {
+							length: LIST_ITEM_HEIGHT,
+							offset: LIST_ITEM_HEIGHT * index,
+							index
+						}
+					}}
 				/>
 			</Container>
 			<Toolbar

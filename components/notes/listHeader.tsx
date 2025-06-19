@@ -101,6 +101,11 @@ export const ListHeader = memo(() => {
 				paddingTop: Platform.OS === "android" ? 8 : 0,
 				paddingHorizontal: 16
 			}}
+			windowSize={3}
+			removeClippedSubviews={true}
+			initialNumToRender={16}
+			maxToRenderPerBatch={8}
+			updateCellsBatchingPeriod={100}
 		/>
 	)
 })

@@ -6,16 +6,18 @@ import alerts from "@/lib/alerts"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
-import ListItem, { type ListItemInfo } from "@/components/drive/list/listItem"
+import ListItem, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/drive/list/listItem"
 import { orderItemsByType, simpleDate, formatBytes } from "@/lib/utils"
 import { useDebouncedCallback } from "use-debounce"
 import cache from "@/lib/cache"
 import { type SearchFindItemDecrypted } from "@filen/sdk/dist/types/api/v3/search/find"
+import useDimensions from "@/hooks/useDimensions"
 
 export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; queryParams: FetchCloudItemsParams }) => {
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const [result, setResults] = useState<SearchFindItemDecrypted[]>([])
 	const { colors } = useColorScheme()
+	const { screen } = useDimensions()
 
 	const query = useCloudItemsQuery({
 		...queryParams,
@@ -198,6 +200,18 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 					</View>
 				) : undefined
 			}
+			removeClippedSubviews={true}
+			initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+			maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+			updateCellsBatchingPeriod={100}
+			windowSize={3}
+			getItemLayout={(_, index) => {
+				return {
+					length: LIST_ITEM_HEIGHT,
+					offset: LIST_ITEM_HEIGHT * index,
+					index
+				}
+			}}
 		/>
 	)
 })

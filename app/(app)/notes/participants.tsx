@@ -20,6 +20,7 @@ import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import queryUtils from "@/queries/utils"
+import useDimensions from "@/hooks/useDimensions"
 
 export type ListItemInfo = {
 	title: string
@@ -29,11 +30,17 @@ export type ListItemInfo = {
 	name: string
 }
 
+export const LIST_ITEM_HEIGHT = Platform.select({
+	ios: 61,
+	default: 60
+})
+
 export default function Participants() {
 	const { uuid } = useLocalSearchParams()
 	const { colors } = useColorScheme()
 	const [{ userId }] = useSDKConfig()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
+	const { screen } = useDimensions()
 
 	const noteUUIDParsed = useMemo((): string | null => {
 		try {
@@ -103,10 +110,16 @@ export default function Participants() {
 					participant={info.item.participant}
 				>
 					<ListItem
+						{...info}
+						className="overflow-hidden"
+						subTitleClassName="text-xs pt-1 font-normal"
 						variant="full-width"
-						removeSeparator={Platform.OS === "android"}
-						isLastInSection={false}
+						textNumberOfLines={1}
+						subTitleNumberOfLines={1}
 						isFirstInSection={false}
+						isLastInSection={false}
+						removeSeparator={Platform.OS === "android"}
+						innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
 						leftView={
 							<View className="flex-1 flex-row items-center justify-center px-4">
 								<Avatar
@@ -140,7 +153,6 @@ export default function Participants() {
 								</View>
 							) : undefined
 						}
-						{...info}
 					/>
 				</Menu>
 			)
@@ -274,6 +286,18 @@ export default function Participants() {
 							}}
 						/>
 					}
+					removeClippedSubviews={true}
+					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					updateCellsBatchingPeriod={100}
+					windowSize={3}
+					getItemLayout={(_, index) => {
+						return {
+							length: LIST_ITEM_HEIGHT,
+							offset: LIST_ITEM_HEIGHT * index,
+							index
+						}
+					}}
 				/>
 			</Container>
 		</Fragment>

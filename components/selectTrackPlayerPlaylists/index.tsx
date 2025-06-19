@@ -8,12 +8,13 @@ import Container from "@/components/Container"
 import { useSelectTrackPlayerPlaylistsStore } from "@/stores/selectTrackPlayerPlaylists.store"
 import { AdaptiveSearchHeader } from "../nativewindui/AdaptiveSearchHeader"
 import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
-import Item, { type ListItemInfo } from "../trackPlayer/item"
+import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "../trackPlayer/item"
 import { formatMessageDate } from "@/lib/utils"
 import { Button } from "../nativewindui/Button"
 import { useShallow } from "zustand/shallow"
 import usePlaylistsQuery from "@/queries/usePlaylistsQuery"
 import { List, type ListDataItem, type ListRenderItemInfo } from "../nativewindui/List"
+import useDimensions from "@/hooks/useDimensions"
 
 export const SelectTrackPlayerPlaylists = memo(() => {
 	const { colors } = useColorScheme()
@@ -22,6 +23,7 @@ export const SelectTrackPlayerPlaylists = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo } = useRouter()
 	const setSelectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.setSelectedPlaylists))
+	const { screen } = useDimensions()
 
 	const playlistsQuery = usePlaylistsQuery({})
 
@@ -170,6 +172,18 @@ export const SelectTrackPlayerPlaylists = memo(() => {
 							}}
 						/>
 					}
+					removeClippedSubviews={true}
+					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					updateCellsBatchingPeriod={100}
+					windowSize={3}
+					getItemLayout={(_, index) => {
+						return {
+							length: LIST_ITEM_HEIGHT,
+							offset: LIST_ITEM_HEIGHT * index,
+							index
+						}
+					}}
 				/>
 			</Container>
 		</Fragment>

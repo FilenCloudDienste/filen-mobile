@@ -18,6 +18,7 @@ import { List, type ListRenderItemInfo, ListItem } from "@/components/nativewind
 import { useColorScheme } from "@/lib/useColorScheme"
 import Container from "@/components/Container"
 import paths from "@/lib/paths"
+import useDimensions from "@/hooks/useDimensions"
 
 export type ListItemInfo = {
 	title: string
@@ -27,6 +28,11 @@ export type ListItemInfo = {
 }
 
 export const ICON_HEIGHT: number = 42
+
+export const LIST_ITEM_HEIGHT = Platform.select({
+	ios: 61,
+	default: 60
+})
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const { colors } = useColorScheme()
@@ -68,6 +74,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 			isLastInSection={false}
 			removeSeparator={Platform.OS === "android"}
 			innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+			onLayout={e => console.log("onLayout", e.nativeEvent.layout, Platform.OS)}
 		/>
 	)
 })
@@ -76,6 +83,7 @@ Item.displayName = "Item"
 
 export default function ShareIntent() {
 	const { shareIntent, resetShareIntent } = useShareIntentContext()
+	const { screen } = useDimensions()
 
 	const upload = useCallback(async () => {
 		if (!shareIntent.files) {
@@ -222,6 +230,18 @@ export default function ShareIntent() {
 					renderItem={renderItem}
 					keyExtractor={item => item.item.path}
 					contentInsetAdjustmentBehavior="automatic"
+					removeClippedSubviews={true}
+					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					updateCellsBatchingPeriod={100}
+					windowSize={3}
+					getItemLayout={(_, index) => {
+						return {
+							length: LIST_ITEM_HEIGHT,
+							offset: LIST_ITEM_HEIGHT * index,
+							index
+						}
+					}}
 				/>
 			</Container>
 		</Fragment>

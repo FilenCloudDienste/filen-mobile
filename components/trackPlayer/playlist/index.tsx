@@ -13,8 +13,9 @@ import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import Container from "@/components/Container"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
-import Item, { type ListItemInfo } from "./item"
+import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "./item"
 import { type ListDataItem } from "@/components/nativewindui/List"
+import useDimensions from "@/hooks/useDimensions"
 
 export const Playlist = memo(() => {
 	const { playlist: passedPlaylist } = useLocalSearchParams()
@@ -22,6 +23,7 @@ export const Playlist = memo(() => {
 	const updatePlaylistRemoteMutex = useRef<Semaphore>(new Semaphore(1))
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const playlistSearchTerm = useTrackPlayerStore(useShallow(state => state.playlistSearchTerm))
+	const { screen } = useDimensions()
 
 	const playlistsQuery = usePlaylistsQuery({
 		enabled: false
@@ -95,15 +97,7 @@ export const Playlist = memo(() => {
 	)
 
 	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
-		return (
-			<Item
-				info={{
-					item: info.item,
-					index: info.index,
-					target: "Cell"
-				}}
-			/>
-		)
+		return <Item info={info} />
 	}, [])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
@@ -155,6 +149,17 @@ export const Playlist = memo(() => {
 								/>
 							) : undefined
 						}
+						initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+						maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+						updateCellsBatchingPeriod={100}
+						windowSize={3}
+						getItemLayout={(_, index) => {
+							return {
+								length: LIST_ITEM_HEIGHT,
+								offset: LIST_ITEM_HEIGHT * index,
+								index
+							}
+						}}
 					/>
 				</View>
 			</Container>

@@ -7,7 +7,7 @@ import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { simpleDate, formatBytes, orderItemsByType, type OrderByType } from "@/lib/utils"
 import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
 import { Container } from "@/components/Container"
-import ListItem, { type ListItemInfo } from "./listItem"
+import ListItem, { type ListItemInfo, LIST_ITEM_HEIGHT } from "./listItem"
 import { useFocusEffect } from "expo-router"
 import { useDriveStore } from "@/stores/drive.store"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -28,7 +28,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
-	const { isTablet, isPortrait } = useDimensions()
+	const { isTablet, isPortrait, screen } = useDimensions()
 	const setDriveItems = useDriveStore(useShallow(state => state.setItems))
 
 	const cloudItemsQuery = useCloudItemsQuery(queryParams)
@@ -191,6 +191,11 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 							)
 						}}
 						refreshControl={refreshControl}
+						windowSize={3}
+						initialNumToRender={32}
+						maxToRenderPerBatch={16}
+						removeClippedSubviews={true}
+						updateCellsBatchingPeriod={100}
 					/>
 				) : (
 					<List
@@ -243,6 +248,18 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 							)
 						}}
 						refreshControl={refreshControl}
+						removeClippedSubviews={true}
+						initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+						maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+						updateCellsBatchingPeriod={100}
+						windowSize={3}
+						getItemLayout={(_, index) => {
+							return {
+								length: LIST_ITEM_HEIGHT,
+								offset: LIST_ITEM_HEIGHT * index,
+								index
+							}
+						}}
 					/>
 				)}
 			</View>

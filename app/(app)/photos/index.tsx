@@ -25,6 +25,7 @@ import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { useShallow } from "zustand/shallow"
 import Menu from "@/components/drive/list/listItem/menu"
 import Transfers from "@/components/drive/header/transfers"
+import useDimensions from "@/hooks/useDimensions"
 
 export const Photos = memo(() => {
 	const { colors } = useColorScheme()
@@ -35,6 +36,7 @@ export const Photos = memo(() => {
 	const [cameraUpload] = useCameraUpload()
 	const router = useRouter()
 	const syncState = useCameraUploadStore(useShallow(state => state.syncState))
+	const { screen } = useDimensions()
 
 	const queryParams = useMemo(
 		(): FetchCloudItemsParams => ({
@@ -284,6 +286,10 @@ export const Photos = memo(() => {
 							index
 						})}
 						removeClippedSubviews={true}
+						maxToRenderPerBatch={Math.round(screen.height / (itemSize + spacing) / 2)}
+						initialNumToRender={Math.round(screen.height / (itemSize + spacing))}
+						updateCellsBatchingPeriod={100}
+						windowSize={3}
 						ListHeaderComponent={
 							!hasInternet ? (
 								<View className="flex-row items-center justify-center bg-red-500 p-2">

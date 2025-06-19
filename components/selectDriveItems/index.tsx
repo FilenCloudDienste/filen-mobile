@@ -14,10 +14,11 @@ import useSDKConfig from "@/hooks/useSDKConfig"
 import { AdaptiveSearchHeader } from "../nativewindui/AdaptiveSearchHeader"
 import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
 import cache from "@/lib/cache"
-import Item from "./item"
+import Item, { LIST_ITEM_HEIGHT } from "./item"
 import { Button } from "../nativewindui/Button"
 import { useShallow } from "zustand/shallow"
 import { type PreviewType } from "@/stores/gallery.store"
+import useDimensions from "@/hooks/useDimensions"
 
 export type ListItemInfo = {
 	title: string
@@ -34,6 +35,7 @@ export const SelectDriveItems = memo(() => {
 	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo } = useRouter()
 	const setSelectedItems = useSelectDriveItemsStore(useShallow(state => state.setSelectedItems))
 	const [{ baseFolderUUID }] = useSDKConfig()
+	const { screen } = useDimensions()
 
 	const maxParsed = useMemo(() => {
 		return typeof max === "string" ? parseInt(max) : 1
@@ -253,6 +255,18 @@ export const SelectDriveItems = memo(() => {
 							}}
 						/>
 					}
+					removeClippedSubviews={true}
+					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
+					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					updateCellsBatchingPeriod={100}
+					windowSize={3}
+					getItemLayout={(_, index) => {
+						return {
+							length: LIST_ITEM_HEIGHT,
+							offset: LIST_ITEM_HEIGHT * index,
+							index
+						}
+					}}
 				/>
 			</Container>
 		</Fragment>
