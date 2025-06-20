@@ -9,11 +9,6 @@
 		"userInterfaceStyle": "automatic",
 		"newArchEnabled": true,
 		"jsEngine": "hermes",
-		"splash": {
-			"image": "./assets/images/splash.png",
-			"resizeMode": "contain",
-			"backgroundColor": "#ffffff"
-		},
 		"ios": {
 			"buildNumber": "3001",
 			"supportsTablet": true,
@@ -31,6 +26,11 @@
 				"NSAppTransportSecurity": {
 					"NSAllowsLocalNetworking": true
 				}
+			},
+			"icon": {
+				"dark": "./assets/images/ios-dark.png",
+				"light": "./assets/images/ios-light.png",
+				"tinted": "./assets/images/ios-tinted.png"
 			}
 		},
 		"android": {
@@ -155,7 +155,19 @@
 					"assets": ["./assets/images/avatar_fallback.png", "./assets/audio/silent_1h.mp3", "./assets/images/audio_fallback.png"]
 				}
 			],
-			"expo-font"
+			"expo-font",
+			[
+				"expo-splash-screen",
+				{
+					"backgroundColor": "#FFFFFF",
+					"image": "./assets/images/splash-icon.png",
+					"dark": {
+						"image": "./assets/images/splash-icon-dark.png",
+						"backgroundColor": "#000000"
+					},
+					"imageWidth": 128
+				}
+			]
 		],
 		"experiments": {
 			"typedRoutes": true,

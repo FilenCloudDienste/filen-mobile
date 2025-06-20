@@ -28,6 +28,14 @@ import Background from "@/components/background"
 import SocketEvents from "@/components/socketEvents"
 import { NotifierWrapper } from "react-native-notifier"
 import Biometric from "@/components/biometric"
+import * as SplashScreen from "expo-splash-screen"
+
+SplashScreen.setOptions({
+	duration: 400,
+	fade: true
+})
+
+SplashScreen.preventAutoHideAsync().catch(console.error)
 
 export default function RootLayout() {
 	const { colorScheme, colors } = useColorScheme()
@@ -36,7 +44,13 @@ export default function RootLayout() {
 
 	useEffect(() => {
 		Promise.all([setup(), restoreQueries()])
-			.then(() => setSetupDone(true))
+			.then(() => {
+				setSetupDone(true)
+
+				setTimeout(() => {
+					SplashScreen.hideAsync().catch(console.error)
+				}, 1000)
+			})
 			.catch(console.error)
 	}, [])
 
