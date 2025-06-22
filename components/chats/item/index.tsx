@@ -16,6 +16,8 @@ import LastMessage from "./lastMessage"
 import Date from "../chat/messages/date"
 import events from "@/lib/events"
 import { cn } from "@/lib/cn"
+import { Icon } from "@roninoss/icons"
+import { useColorScheme } from "@/lib/useColorScheme"
 
 export const LIST_ITEM_HEIGHT = Platform.select({
 	ios: 71,
@@ -25,6 +27,7 @@ export const LIST_ITEM_HEIGHT = Platform.select({
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation> }) => {
 	const [{ userId }] = useSDKConfig()
 	const { push: routerPush } = useRouter()
+	const { colors } = useColorScheme()
 
 	const avatarSource = useMemo(() => {
 		const participants = info.item.participants
@@ -111,15 +114,27 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 						}}
 					/>
 					<View className={cn("flex-col flex-1 pb-3", Platform.OS === "ios" && "border-b border-border/80")}>
-						<View className="flex-1 flex-row items-center justify-between pr-4">
-							<Text
-								variant="heading"
-								numberOfLines={1}
-								className="flex-1"
-								ellipsizeMode="middle"
-							>
-								{name}
-							</Text>
+						<View className="flex-1 flex-row items-center justify-between pr-4 gap-4">
+							<View className="flex-1 flex-row items-center gap-2">
+								{info.item.muted && (
+									<Icon
+										name="volume-variant-off"
+										ios={{
+											name: "bell.slash"
+										}}
+										size={17}
+										color={colors.grey}
+									/>
+								)}
+								<Text
+									variant="heading"
+									numberOfLines={1}
+									className="flex-1"
+									ellipsizeMode="middle"
+								>
+									{name}
+								</Text>
+							</View>
 							<Text className="text-muted-foreground font-normal text-xs">
 								{info.item.lastMessageTimestamp && info.item.lastMessageTimestamp > 0 ? (
 									<Date timestamp={info.item.lastMessageTimestamp} />

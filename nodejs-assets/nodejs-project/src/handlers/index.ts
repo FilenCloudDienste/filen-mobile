@@ -94,7 +94,8 @@ import {
 	removeChatParticipant,
 	fetchChatMessages,
 	fetchChatsLastFocus,
-	updateChatsLastFocus
+	updateChatsLastFocus,
+	muteChat
 } from "./chats"
 
 import { filePublicLinkHasPassword, filePublicLinkInfo, directoryPublicLinkInfo, directorySizePublicLink } from "./cloud"
@@ -259,5 +260,6 @@ export {
 	denyContactRequest,
 	sendContactRequest,
 	removeContact,
-	unblockContact
+	unblockContact,
+	muteChat
 }

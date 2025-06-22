@@ -189,7 +189,8 @@
 			"favorite": "Favorite",
 			"unfavorite": "Unfavorite",
 			"markAsRead": "Mark as read",
-			"participants": "Participants"
+			"participants": "Participants",
+			"muted": "Muted"
 		},
 		"participants": {
 			"menu": {

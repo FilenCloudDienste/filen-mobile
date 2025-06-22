@@ -77,3 +77,7 @@ export async function updateChatsLastFocus(this: NodeWorker, params: Parameters<
 export async function fetchChatsLastFocus(this: NodeWorker) {
 	return await sdk.get().chats().lastFocus()
 }
+
+export async function muteChat(this: NodeWorker, params: Parameters<Chats["mute"]>[0]) {
+	return await sdk.get().chats().mute(params)
+}

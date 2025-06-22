@@ -418,7 +418,8 @@ export class NodeWorker {
 		denyContactRequest: handlers.denyContactRequest.bind(this),
 		sendContactRequest: handlers.sendContactRequest.bind(this),
 		removeContact: handlers.removeContact.bind(this),
-		unblockContact: handlers.unblockContact.bind(this)
+		unblockContact: handlers.unblockContact.bind(this),
+		muteChat: handlers.muteChat.bind(this)
 	}
 }
 

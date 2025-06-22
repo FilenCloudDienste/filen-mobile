@@ -65,18 +65,6 @@ export const Settings = memo(() => {
 		}, 1)
 	}, [router])
 
-	const onPressChats = useCallback(() => {
-		router.push({
-			pathname: "/(app)/chats"
-		})
-
-		setTimeout(() => {
-			router.push({
-				pathname: "/(app)/chats/settings"
-			})
-		}, 1)
-	}, [router])
-
 	return (
 		<SettingsComponent
 			title="Settings"
@@ -155,17 +143,6 @@ export const Settings = memo(() => {
 						<IconView
 							name="account-multiple-outline"
 							className="bg-blue-500"
-						/>
-					)
-				},
-				{
-					id: "1112",
-					title: "Chat settings",
-					onPress: onPressChats,
-					leftView: (
-						<IconView
-							name="message-outline"
-							className="bg-cyan-500"
 						/>
 					)
 				},

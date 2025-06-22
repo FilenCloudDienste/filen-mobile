@@ -91,6 +91,26 @@ export const Menu = memo(
 				)
 			}
 
+			items.push(
+				createContextItem({
+					actionKey: "mute",
+					title: t("chats.menu.muted"),
+					state: {
+						checked: chat.muted
+					},
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "bell"
+							  }
+							: {
+									namingScheme: "material",
+									name: "bell-outline"
+							  }
+				})
+			)
+
 			if (chat.ownerId === userId) {
 				items.push(
 					createContextItem({
@@ -151,7 +171,7 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [t, chat.ownerId, userId, unreadCount, insideChat, colors.destructive])
+		}, [t, chat.ownerId, userId, unreadCount, insideChat, colors.destructive, chat.muted])
 
 		const leave = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
@@ -337,31 +357,79 @@ export const Menu = memo(
 			}
 		}, [chat.uuid])
 
+		const mute = useCallback(
+			async (mute: boolean) => {
+				fullScreenLoadingModal.show()
+
+				try {
+					await nodeWorker.proxy("muteChat", {
+						uuid: chat.uuid,
+						mute
+					})
+
+					queryUtils.useChatsQuerySet({
+						updater: prev =>
+							prev.map(c =>
+								c.uuid === chat.uuid
+									? {
+											...c,
+											muted: mute
+									  }
+									: c
+							)
+					})
+				} catch (e) {
+					console.error(e)
+
+					if (e instanceof Error) {
+						alerts.error(e.message)
+					}
+				} finally {
+					fullScreenLoadingModal.hide()
+
+					if (insideChat && router.canGoBack()) {
+						router.back()
+					}
+				}
+			},
+			[chat.uuid, insideChat, router]
+		)
+
 		const onItemPress = useCallback(
 			async (item: Omit<ContextItem, "icon">, _?: boolean) => {
 				try {
 					switch (item.actionKey) {
-						case "rename":
+						case "rename": {
 							await rename()
 
 							break
+						}
 
-						case "leave":
+						case "leave": {
 							await leave()
 
 							break
+						}
 
-						case "delete":
+						case "delete": {
 							await deleteChat()
 
 							break
+						}
 
-						case "markAsRead":
+						case "markAsRead": {
 							await markAsRead()
 
 							break
+						}
 
-						case "participants":
+						case "mute": {
+							await mute(!chat.muted)
+
+							break
+						}
+
+						case "participants": {
 							router.push({
 								pathname: "/chats/[uuid]/participants",
 								params: {
@@ -370,9 +438,7 @@ export const Menu = memo(
 							})
 
 							break
-
-						default:
-							break
+						}
 					}
 				} catch (e) {
 					console.error(e)
@@ -382,7 +448,7 @@ export const Menu = memo(
 					}
 				}
 			},
-			[rename, leave, deleteChat, markAsRead, chat.uuid, router]
+			[rename, leave, deleteChat, markAsRead, chat.uuid, router, mute, chat.muted]
 		)
 
 		const iosRenderPreview = useCallback(() => {

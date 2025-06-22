@@ -17,7 +17,7 @@ export const Unread = memo(({ chat }: { chat: ChatConversation }) => {
 		return chatUnreadCountQuery.data
 	}, [chatUnreadCountQuery.data, chatUnreadCountQuery.status])
 
-	if (unreadCount === 0) {
+	if (unreadCount === 0 || chat.muted) {
 		return null
 	}
 
