@@ -419,7 +419,10 @@ export class NodeWorker {
 		sendContactRequest: handlers.sendContactRequest.bind(this),
 		removeContact: handlers.removeContact.bind(this),
 		unblockContact: handlers.unblockContact.bind(this),
-		muteChat: handlers.muteChat.bind(this)
+		muteChat: handlers.muteChat.bind(this),
+		register: handlers.register.bind(this),
+		resendConfirmation: handlers.resendConfirmation.bind(this),
+		forgotPassword: handlers.forgotPassword.bind(this)
 	}
 }
 

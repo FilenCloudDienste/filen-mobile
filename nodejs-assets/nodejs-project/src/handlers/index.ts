@@ -104,6 +104,10 @@ import { readFileAsString, writeFileAsString } from "./fs"
 
 import { parseAudioMetadata } from "./utils"
 
+import register from "./register"
+import resendConfirmation from "./resendConfirmation"
+import forgotPassword from "./forgotPassword"
+
 import {
 	uploadAvatar,
 	updateNickname,
@@ -261,5 +265,8 @@ export {
 	sendContactRequest,
 	removeContact,
 	unblockContact,
-	muteChat
+	muteChat,
+	register,
+	resendConfirmation,
+	forgotPassword
 }
