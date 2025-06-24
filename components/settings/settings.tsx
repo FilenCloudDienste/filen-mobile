@@ -111,6 +111,7 @@ export const Settings = memo((props: SettingsProps) => {
 						</View>
 					)
 				}}
+				ListHeaderComponent={props.listHeader ? () => props.listHeader : undefined}
 				ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
 				removeClippedSubviews={true}
 				windowSize={3}

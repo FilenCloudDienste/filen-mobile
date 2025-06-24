@@ -9,9 +9,11 @@ import { randomUUID } from "expo-crypto"
 import useChatsQuery from "@/queries/useChatsQuery"
 import alerts from "@/lib/alerts"
 import { selectContacts } from "@/app/selectContacts"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<React.SetStateAction<string>> }) => {
 	const { colors } = useColorScheme()
+	const { hasInternet } = useNetInfo()
 
 	const chatsQuery = useChatsQuery({
 		enabled: false
@@ -65,19 +67,25 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 				persistBlur: true,
 				materialBlurOnSubmit: false
 			}}
-			rightView={() => (
-				<Button
-					variant="plain"
-					size="icon"
-					onPress={createChat}
-				>
-					<Icon
-						name="plus"
-						size={24}
-						color={colors.primary}
-					/>
-				</Button>
-			)}
+			rightView={() => {
+				if (!hasInternet) {
+					return undefined
+				}
+
+				return (
+					<Button
+						variant="plain"
+						size="icon"
+						onPress={createChat}
+					>
+						<Icon
+							name="plus"
+							size={24}
+							color={colors.primary}
+						/>
+					</Button>
+				)
+			}}
 		/>
 	)
 })

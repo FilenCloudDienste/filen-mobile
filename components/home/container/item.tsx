@@ -57,9 +57,9 @@ export const Item = memo(
 			enabled: item.type === "file"
 		})
 
-		const isAvailableOffline = useMemo(() => {
-			return item.type === "file" && fileOfflineStatus.isSuccess ? fileOfflineStatus.data.exists : false
-		}, [item.type, fileOfflineStatus.isSuccess, fileOfflineStatus.data?.exists])
+		const offlineStatus = useMemo(() => {
+			return item.type === "file" && fileOfflineStatus.status === "success" ? fileOfflineStatus.data : null
+		}, [item.type, fileOfflineStatus.status, fileOfflineStatus.data])
 
 		const onPress = useCallback(() => {
 			if (item.type === "directory") {
@@ -104,18 +104,25 @@ export const Item = memo(
 
 			const previewType = getPreviewType(item.name)
 
-			if (
-				((!["image", "video"].includes(previewType) && isAvailableOffline && fileOfflineStatus.data?.exists) ||
-					(!hasInternet && isAvailableOffline && fileOfflineStatus.data?.exists)) &&
-				item.size > 0
-			) {
+			if (!hasInternet || offlineStatus?.exists) {
+				if (!offlineStatus || !offlineStatus.exists) {
+					alerts.error("You are offline.")
+
+					return
+				}
+
 				viewDocument({
-					uri: fileOfflineStatus.data.path,
-					mimeType: item.mime
+					uri: offlineStatus.path,
+					grantPermissions: "read",
+					headerTitle: item.name,
+					mimeType: item.mime,
+					presentationStyle: "pageSheet"
 				}).catch(err => {
 					console.error(err)
 
-					alerts.error("Failed to view file")
+					if (err instanceof Error) {
+						alerts.error(err.message)
+					}
 				})
 
 				return
@@ -180,14 +187,13 @@ export const Item = memo(
 					}
 				})
 			}
-		}, [routerPush, item, hasInternet, isAvailableOffline, fileOfflineStatus.data, items, type, queryParams])
+		}, [routerPush, item, hasInternet, offlineStatus, items, type, queryParams])
 
 		return (
 			<Menu
 				type="context"
 				item={item}
 				queryParams={queryParams}
-				isAvailableOffline={isAvailableOffline}
 			>
 				<ListItem
 					item={{
@@ -206,7 +212,7 @@ export const Item = memo(
 					leftView={
 						<View className="flex-1 flex-row items-center gap-4 justify-center px-4">
 							<View className="flex-row items-center">
-								{isAvailableOffline && (
+								{offlineStatus?.exists && (
 									<View className="w-[16px] h-[16px] absolute -bottom-[1px] -left-[1px] bg-green-500 rounded-full z-50 flex-row items-center justify-center border-white border-[1px]">
 										<Icon
 											name="arrow-down"
@@ -250,7 +256,6 @@ export const Item = memo(
 										parent: type,
 										receiverId: item.isShared ? item.receiverId : 0
 									}}
-									isAvailableOffline={isAvailableOffline}
 								>
 									<Button
 										variant="plain"

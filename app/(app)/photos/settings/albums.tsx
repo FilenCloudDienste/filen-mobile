@@ -1,4 +1,4 @@
-import { memo, Fragment, useCallback, useMemo } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { List, type ListDataItem, ListItem, ListSectionHeader, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useLocalAlbumsQuery from "@/queries/useLocalAlbumsQuery"
@@ -11,6 +11,7 @@ import { cn } from "@/lib/cn"
 import useCameraUpload from "@/hooks/useCameraUpload"
 import { Image } from "expo-image"
 import useDimensions from "@/hooks/useDimensions"
+import RequireInternet from "@/components/requireInternet"
 
 export type ListItemInfo = {
 	title: string
@@ -113,7 +114,7 @@ export const Albums = memo(() => {
 	)
 
 	return (
-		<Fragment>
+		<RequireInternet>
 			<LargeTitleHeader title="Albums" />
 			<Container>
 				<List
@@ -143,7 +144,7 @@ export const Albums = memo(() => {
 					}}
 				/>
 			</Container>
-		</Fragment>
+		</RequireInternet>
 	)
 })
 

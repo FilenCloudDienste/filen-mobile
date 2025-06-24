@@ -1,5 +1,5 @@
 import { useLocalSearchParams, Redirect } from "expo-router"
-import { useMemo, Fragment, useCallback, useState } from "react"
+import { useMemo, useCallback, useState } from "react"
 import { View, Platform, RefreshControl, type ListRenderItemInfo } from "react-native"
 import { type Note, type NoteParticipant } from "@filen/sdk/dist/types/api/v3/notes"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
@@ -21,6 +21,7 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import queryUtils from "@/queries/utils"
 import useDimensions from "@/hooks/useDimensions"
+import RequireInternet from "@/components/requireInternet"
 
 export type ListItemInfo = {
 	title: string
@@ -239,7 +240,7 @@ export default function Participants() {
 	}
 
 	return (
-		<Fragment>
+		<RequireInternet>
 			<LargeTitleHeader
 				title="Participants"
 				iosBlurEffect="systemChromeMaterial"
@@ -300,6 +301,6 @@ export default function Participants() {
 					}}
 				/>
 			</Container>
-		</Fragment>
+		</RequireInternet>
 	)
 }

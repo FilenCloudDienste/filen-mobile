@@ -14,6 +14,7 @@ import { type DirLinkInfoDecryptedResponse } from "@filen/sdk/dist/types/api/v3/
 import Directory from "./directory"
 import Fallback from "../containers/fallback"
 import useHTTPServer from "@/hooks/useHTTPServer"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export type PublicLinkInfo =
 	| {
@@ -35,6 +36,7 @@ export type PublicLinkInfo =
 
 export const Filen = memo(({ link }: { link: string }) => {
 	const httpServer = useHTTPServer()
+	const { hasInternet } = useNetInfo()
 
 	const publicLink = useMemo(() => {
 		return parseFilenPublicLink(link)
@@ -42,7 +44,7 @@ export const Filen = memo(({ link }: { link: string }) => {
 
 	const query = useQuery({
 		queryKey: ["chatEmbedFilenInfo", publicLink],
-		enabled: publicLink !== null,
+		enabled: publicLink !== null && hasInternet,
 		queryFn: async (): Promise<PublicLinkInfo> => {
 			if (!publicLink) {
 				throw new Error("No publicLink provided.")

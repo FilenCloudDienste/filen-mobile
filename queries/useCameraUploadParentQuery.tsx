@@ -6,6 +6,7 @@ import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import { DEFAULT_QUERY_OPTIONS } from "./client"
 import { getCameraUploadState } from "@/hooks/useCameraUpload"
 import { validate as validateUUID } from "uuid"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export default function useCameraUploadParentQuery({
 	refetchOnMount = DEFAULT_QUERY_OPTIONS.refetchOnMount,
@@ -22,6 +23,7 @@ export default function useCameraUploadParentQuery({
 	gcTime?: number
 	enabled?: boolean
 }) {
+	const { hasInternet } = useNetInfo()
 	const isFocused = useQueryFocusAware()
 	const notifyOnChangeProps = useFocusNotifyOnChangeProps()
 	const query = useQuery({
@@ -45,7 +47,7 @@ export default function useCameraUploadParentQuery({
 			return state.remote
 		},
 		notifyOnChangeProps,
-		enabled: typeof enabled === "boolean" ? enabled : isFocused,
+		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,
 		refetchOnReconnect,
 		refetchOnWindowFocus,

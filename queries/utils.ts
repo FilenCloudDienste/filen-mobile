@@ -117,6 +117,10 @@ export class QueryUtils {
 		})
 	}
 
+	public useNoteContentQueryGet({ uuid }: { uuid: string }): NoteContentResult | undefined {
+		return this.get<NoteContentResult>(["useNoteContentQuery", uuid])
+	}
+
 	public useNotesQuerySet({ updater }: { updater: Note[] | ((prev: Note[]) => Note[]) }): void {
 		this.set<Note[]>(["useNotesQuery"], prev => {
 			const currentData = prev ?? ([] satisfies Note[])
@@ -153,6 +157,10 @@ export class QueryUtils {
 
 			return typeof updater === "function" ? updater(currentData) : updater
 		})
+	}
+
+	public useChatMessagesQueryGet({ uuid }: { uuid: string }): ChatMessage[] | undefined {
+		return this.get<ChatMessage[]>(["useChatMessagesQuery", uuid])
 	}
 
 	public useChatUnreadCountQuerySet({ uuid, updater }: { uuid: string; updater: number | ((prev: number) => number) }): void {

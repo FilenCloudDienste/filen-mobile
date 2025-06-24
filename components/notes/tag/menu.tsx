@@ -12,12 +12,18 @@ import queryUtils from "@/queries/utils"
 import { inputPrompt } from "../../prompts/inputPrompt"
 import { Platform } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.ReactNode }) => {
 	const { t } = useTranslation()
 	const { colors } = useColorScheme()
+	const { hasInternet } = useNetInfo()
 
 	const menuItems = useMemo(() => {
+		if (!hasInternet) {
+			return []
+		}
+
 		const items: ContextItem[] = []
 
 		items.push(
@@ -78,7 +84,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 		)
 
 		return items
-	}, [t, tag.favorite, colors.destructive])
+	}, [t, tag.favorite, colors.destructive, hasInternet])
 
 	const deleteTag = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
@@ -236,6 +242,10 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 		},
 		[deleteTag, favorite, rename]
 	)
+
+	if (menuItems.length === 0) {
+		return children
+	}
 
 	return (
 		<ContextMenu

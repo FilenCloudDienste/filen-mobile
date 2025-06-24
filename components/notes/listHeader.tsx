@@ -1,10 +1,10 @@
-import { memo, useRef, useMemo, useEffect, useCallback } from "react"
+import { memo, useRef, useMemo, useCallback, Fragment } from "react"
 import { FlatList, type ListRenderItemInfo } from "react-native"
-import { useMMKVString } from "react-native-mmkv"
-import mmkvInstance from "@/lib/mmkv"
 import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
 import { useTranslation } from "react-i18next"
 import Tag from "./tag"
+import useNetInfo from "@/hooks/useNetInfo"
+import OfflineListHeader from "../offlineListHeader"
 
 export const Item = memo((info: ListRenderItemInfo<string>) => {
 	const { t } = useTranslation()
@@ -50,7 +50,7 @@ Item.displayName = "Item"
 
 export const ListHeader = memo(() => {
 	const tagsListRef = useRef<FlatList<string>>(null)
-	const [selectedTag] = useMMKVString("selectedTag", mmkvInstance)
+	const { hasInternet } = useNetInfo()
 
 	const notesTagsQuery = useNotesTagsQuery({
 		enabled: false
@@ -69,8 +69,17 @@ export const ListHeader = memo(() => {
 	}, [notesTagsQuery.data, notesTagsQuery.status])
 
 	const listTags = useMemo(() => {
-		return ["all", "favorited", "pinned", "archived", "shared", "trash", ...tags.map(tag => tag.uuid), "plus"]
-	}, [tags])
+		return [
+			"all",
+			"favorited",
+			"pinned",
+			"archived",
+			"shared",
+			"trash",
+			...tags.map(tag => tag.uuid),
+			...(hasInternet ? ["plus"] : [])
+		] satisfies string[]
+	}, [tags, hasInternet])
 
 	const renderItem = useCallback((info: ListRenderItemInfo<string>) => {
 		return <Item {...info} />
@@ -78,36 +87,29 @@ export const ListHeader = memo(() => {
 
 	const keyExtractor = useCallback((item: string) => item, [])
 
-	useEffect(() => {
-		if (selectedTag) {
-			tagsListRef?.current?.scrollToItem({
-				animated: true,
-				viewPosition: 0.5,
-				item: selectedTag
-			})
-		}
-	}, [selectedTag])
-
 	return (
-		<FlatList
-			ref={tagsListRef}
-			horizontal={true}
-			showsHorizontalScrollIndicator={false}
-			showsVerticalScrollIndicator={false}
-			keyExtractor={keyExtractor}
-			data={listTags}
-			renderItem={renderItem}
-			contentContainerStyle={{
-				paddingTop: 8,
-				paddingHorizontal: 16,
-				paddingBottom: 8
-			}}
-			windowSize={3}
-			removeClippedSubviews={true}
-			initialNumToRender={16}
-			maxToRenderPerBatch={8}
-			updateCellsBatchingPeriod={100}
-		/>
+		<Fragment>
+			{!hasInternet && <OfflineListHeader />}
+			<FlatList
+				ref={tagsListRef}
+				horizontal={true}
+				showsHorizontalScrollIndicator={false}
+				showsVerticalScrollIndicator={false}
+				keyExtractor={keyExtractor}
+				data={listTags}
+				renderItem={renderItem}
+				contentContainerStyle={{
+					paddingTop: !hasInternet ? 16 : 8,
+					paddingHorizontal: 16,
+					paddingBottom: 8
+				}}
+				windowSize={3}
+				removeClippedSubviews={true}
+				initialNumToRender={16}
+				maxToRenderPerBatch={8}
+				updateCellsBatchingPeriod={100}
+			/>
+		</Fragment>
 	)
 })
 

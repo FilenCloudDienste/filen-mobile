@@ -12,6 +12,7 @@ import { getSDKConfig } from "@/lib/auth"
 import * as FileSystem from "expo-file-system/next"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const PlaylistFileSchema = Type.Object({
 	uuid: Type.String(),
@@ -222,13 +223,14 @@ export function usePlaylistsQuery({
 	gcTime?: number
 	enabled?: boolean
 }) {
+	const { hasInternet } = useNetInfo()
 	const isFocused = useQueryFocusAware()
 	const notifyOnChangeProps = useFocusNotifyOnChangeProps()
 	const query = useQuery({
 		queryKey: ["usePlaylistsQuery"],
 		queryFn: () => fetchPlaylists(),
 		notifyOnChangeProps,
-		enabled: typeof enabled === "boolean" ? enabled : isFocused,
+		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,
 		refetchOnReconnect,
 		refetchOnWindowFocus,

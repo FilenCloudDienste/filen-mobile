@@ -1,5 +1,10 @@
 import TransfersComponent from "@/components/transfers"
+import RequireInternet from "@/components/requireInternet"
 
 export default function Transfers() {
-	return <TransfersComponent />
+	return (
+		<RequireInternet>
+			<TransfersComponent />
+		</RequireInternet>
+	)
 }

@@ -2,6 +2,9 @@ import events from "@/lib/events"
 import { randomUUID } from "expo-crypto"
 import SelectDriveItemsComponent from "@/components/selectDriveItems"
 import { type PreviewType } from "@/stores/gallery.store"
+import RequireInternet from "@/components/requireInternet"
+import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
+import { Platform } from "react-native"
 
 export type SelectDriveItemsResponse =
 	| {
@@ -59,5 +62,10 @@ export function selectDriveItems(params: SelectDriveItemsParams): Promise<Select
 }
 
 export default function SelectDriveItems() {
-	return <SelectDriveItemsComponent />
+	return (
+		<RequireInternet>
+			<SelectDriveItemsComponent />
+			{Platform.OS === "ios" && <FullScreenLoadingModal />}
+		</RequireInternet>
+	)
 }

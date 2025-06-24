@@ -18,6 +18,8 @@ import events from "@/lib/events"
 import { cn } from "@/lib/cn"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
+import useNetInfo from "@/hooks/useNetInfo"
+import alerts from "@/lib/alerts"
 
 export const LIST_ITEM_HEIGHT = Platform.select({
 	ios: 71,
@@ -28,6 +30,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 	const [{ userId }] = useSDKConfig()
 	const { push: routerPush } = useRouter()
 	const { colors } = useColorScheme()
+	const { hasInternet } = useNetInfo()
 
 	const avatarSource = useMemo(() => {
 		const participants = info.item.participants
@@ -79,11 +82,23 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 	}, [info.item.uuid])
 
 	const onPress = useCallback(() => {
-		markAsRead().catch(console.error)
-
 		events.emit("hideSearchBar", {
 			clearText: true
 		})
+
+		if (!hasInternet) {
+			const cachedChat = queryUtils.useChatMessagesQueryGet({
+				uuid: info.item.uuid
+			})
+
+			if (!cachedChat) {
+				alerts.error("You are offline.")
+
+				return
+			}
+		}
+
+		markAsRead().catch(console.error)
 
 		routerPush({
 			pathname: "/chat",
@@ -91,7 +106,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 				uuid: info.item.uuid
 			}
 		})
-	}, [info.item.uuid, routerPush, markAsRead])
+	}, [info.item.uuid, routerPush, markAsRead, hasInternet])
 
 	return (
 		<Menu

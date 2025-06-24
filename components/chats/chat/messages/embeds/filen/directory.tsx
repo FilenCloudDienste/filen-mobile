@@ -13,6 +13,7 @@ import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Directory = memo(
 	({
@@ -30,10 +31,11 @@ export const Directory = memo(
 	}) => {
 		const { colors } = useColorScheme()
 		const chatEmbedContainerStyle = useChatEmbedContainerStyle()
+		const { hasInternet } = useNetInfo()
 
 		const query = useQuery({
 			queryKey: ["chatEmbedFilenPublicLinkDirectorySize", [info, parsedLink]],
-			enabled: info !== null && info.type === "directory" && parsedLink.type === "directory",
+			enabled: info !== null && info.type === "directory" && parsedLink.type === "directory" && hasInternet,
 			queryFn: async () => {
 				if (!info || info.type === "file" || parsedLink.type === "file") {
 					throw new Error("No directory provided.")

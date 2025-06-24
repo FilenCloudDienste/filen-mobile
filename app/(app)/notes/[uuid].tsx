@@ -9,12 +9,14 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import Menu from "@/components/notes/menu"
 import useNotesQuery from "@/queries/useNotesQuery"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export default function Note() {
 	const { uuid } = useLocalSearchParams()
 	const { colors } = useColorScheme()
 	const [syncing, setSyncing] = useState<boolean>(false)
 	const [markdownPreview, setMarkdownPreview] = useState<boolean>(false)
+	const { hasInternet } = useNetInfo()
 
 	const uuidParsed = useMemo((): string | null => {
 		try {
@@ -37,7 +39,7 @@ export default function Note() {
 	}, [notesQuery.status, notesQuery.data, uuidParsed])
 
 	const headerRight = useCallback(() => {
-		if (!note) {
+		if (!note || (!hasInternet && note.type !== "md")) {
 			return null
 		}
 
@@ -75,7 +77,7 @@ export default function Note() {
 				)}
 			</View>
 		)
-	}, [note, syncing, colors.foreground, markdownPreview, colors.primary])
+	}, [note, syncing, colors.foreground, markdownPreview, colors.primary, hasInternet])
 
 	const header = useMemo(() => {
 		if (!note) {

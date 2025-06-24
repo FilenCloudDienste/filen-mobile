@@ -18,6 +18,7 @@ import { useRouter } from "expo-router"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 import useChatUnreadCountQuery from "@/queries/useChatUnreadCountQuery"
 import { useColorScheme } from "@/lib/useColorScheme"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Menu = memo(
 	({
@@ -36,6 +37,7 @@ export const Menu = memo(
 		const [{ userId }] = useSDKConfig()
 		const router = useRouter()
 		const { colors } = useColorScheme()
+		const { hasInternet } = useNetInfo()
 
 		const chatUnreadCountQuery = useChatUnreadCountQuery({
 			uuid: chat.uuid,
@@ -51,6 +53,10 @@ export const Menu = memo(
 		}, [chatUnreadCountQuery.data, chatUnreadCountQuery.status])
 
 		const menuItems = useMemo(() => {
+			if (!hasInternet) {
+				return []
+			}
+
 			const items: (ContextItem | ContextSubMenu)[] = []
 
 			if (unreadCount > 0 && !insideChat) {
@@ -171,7 +177,7 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [t, chat.ownerId, userId, unreadCount, insideChat, colors.destructive, chat.muted])
+		}, [t, chat.ownerId, userId, unreadCount, insideChat, colors.destructive, chat.muted, hasInternet])
 
 		const leave = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
@@ -478,7 +484,8 @@ export const Menu = memo(
 				<ContextMenu
 					items={menuItems}
 					onItemPress={onItemPress}
-					iosRenderPreview={isPortrait || isTablet ? iosRenderPreview : undefined}
+					key={!hasInternet ? undefined : `${isPortrait}:${isTablet}`}
+					iosRenderPreview={hasInternet && (isPortrait || isTablet) ? iosRenderPreview : undefined}
 				>
 					{children}
 				</ContextMenu>

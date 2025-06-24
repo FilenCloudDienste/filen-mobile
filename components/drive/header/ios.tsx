@@ -6,12 +6,14 @@ import { useDriveStore } from "@/stores/drive.store"
 import RightView from "./rightView"
 import Search from "./search"
 import { useShallow } from "zustand/shallow"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const IOS = memo(({ headerTitle, queryParams }: { headerTitle: string; queryParams: FetchCloudItemsParams }) => {
 	const searchBarRef = useRef<AdaptiveSearchBarRef>(null)
 	const { uuid } = useLocalSearchParams()
 	const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
 	const [searchTerm, setSearchTerm] = useState<string>("")
+	const { hasInternet } = useNetInfo()
 
 	const rightView = useCallback(() => {
 		return <RightView queryParams={queryParams} />
@@ -53,7 +55,7 @@ export const IOS = memo(({ headerTitle, queryParams }: { headerTitle: string; qu
 			iosBackVisible={backVisible}
 			rightView={rightView}
 			iosBlurEffect="systemChromeMaterial"
-			searchBar={searchBar}
+			searchBar={hasInternet ? searchBar : undefined}
 		/>
 	)
 })

@@ -8,6 +8,7 @@ import sqlite from "@/lib/sqlite"
 import { getCameraUploadState } from "@/hooks/useCameraUpload"
 import { validate as validateUUID } from "uuid"
 import cache from "@/lib/cache"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const FETCH_CLOUD_ITEMS_POSSIBLE_OF: string[] = [
 	"drive",
@@ -39,6 +40,7 @@ export default function useCloudItemsQuery({
 	gcTime?: number
 	enabled?: boolean
 }) {
+	const { hasInternet } = useNetInfo()
 	const isFocused = useQueryFocusAware()
 	const notifyOnChangeProps = useFocusNotifyOnChangeProps()
 	const query = useQuery({
@@ -96,7 +98,7 @@ export default function useCloudItemsQuery({
 			return items
 		},
 		notifyOnChangeProps,
-		enabled: typeof enabled === "boolean" ? enabled : isFocused,
+		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,
 		refetchOnReconnect,
 		refetchOnWindowFocus,

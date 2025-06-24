@@ -17,6 +17,7 @@ import useViewLayout from "@/hooks/useViewLayout"
 import { useChatsStore } from "@/stores/chats.store"
 import { useShallow } from "zustand/shallow"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const MENTION_REGEX = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/g
 export const customEmojisList = customEmojis.map(emoji => emoji.id)
@@ -125,6 +126,7 @@ export const Link = memo(({ match, embedsDisabled }: { match: string; embedsDisa
 	const viewRef = useRef<View>(null)
 	const setEmbedContainerWidth = useChatsStore(useShallow(state => state.setEmbedContainerWidth))
 	const { onLayout, layout } = useViewLayout(viewRef)
+	const { hasInternet } = useNetInfo()
 
 	const url = useMemo(() => {
 		return match.trim()
@@ -142,7 +144,7 @@ export const Link = memo(({ match, embedsDisabled }: { match: string; embedsDisa
 		setEmbedContainerWidth(layout.width)
 	}, [layout.width, setEmbedContainerWidth])
 
-	if (embedsDisabled) {
+	if (embedsDisabled || !hasInternet) {
 		return <Fallback link={url} />
 	}
 

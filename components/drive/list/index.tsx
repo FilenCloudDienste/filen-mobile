@@ -16,6 +16,7 @@ import mmkvInstance from "@/lib/mmkv"
 import useViewLayout from "@/hooks/useViewLayout"
 import useDimensions from "@/hooks/useDimensions"
 import { useShallow } from "zustand/shallow"
+import OfflineListHeader from "@/components/offlineListHeader"
 
 export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: FetchCloudItemsParams; scrollToUUID?: string }) => {
 	const { colors } = useColorScheme()
@@ -158,11 +159,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 								return undefined
 							}
 
-							return (
-								<View className="flex-row items-center justify-center bg-red-500 p-2">
-									<Text>Offline mode</Text>
-								</View>
-							)
+							return <OfflineListHeader />
 						}}
 						ListEmptyComponent={() => {
 							return (

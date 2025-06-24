@@ -28,6 +28,7 @@ import { customEmojis } from "../messages/customEmojis"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 import { useShallow } from "zustand/shallow"
 import useIsProUser from "@/hooks/useIsProUser"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Input = memo(
 	({ chat, setInputHeight }: { chat: ChatConversation; setInputHeight: React.Dispatch<React.SetStateAction<number>> }) => {
@@ -59,6 +60,7 @@ export const Input = memo(
 		const isProUser = useIsProUser()
 		const setEditMessage = useChatsStore(useShallow(state => state.setEditMessage))
 		const editMessage = useChatsStore(useShallow(state => state.editMessage[chat.uuid] ?? null))
+		const { hasInternet } = useNetInfo()
 
 		const suggestionsOrReplyOrEditVisible = useMemo(() => {
 			return (
@@ -492,7 +494,7 @@ export const Input = memo(
 					<Container>
 						<View className="flex-col flex-1">
 							<View className="flex-1 flex-row items-end gap-0 px-4 py-3">
-								{isProUser && (
+								{isProUser && hasInternet && (
 									<Button
 										size="icon"
 										variant="plain"
@@ -513,6 +515,7 @@ export const Input = memo(
 									multiline={true}
 									scrollEnabled={true}
 									autoFocus={false}
+									readOnly={!hasInternet}
 									keyboardType="default"
 									returnKeyType="default"
 									className="ios:pt-[8px] ios:pb-2 border-border bg-card text-foreground min-h-10 flex-1 rounded-[18px] border py-1 pl-3 pr-12 text-base leading-5"
@@ -535,7 +538,7 @@ export const Input = memo(
 									<Button
 										size="icon"
 										className="ios:rounded-full rounded-full h-7 w-7"
-										disabled={(value ?? "").length === 0}
+										disabled={(value ?? "").length === 0 || !hasInternet}
 										onPress={send}
 										hitSlop={15}
 									>

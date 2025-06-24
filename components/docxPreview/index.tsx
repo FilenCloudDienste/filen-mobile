@@ -1,9 +1,10 @@
-import { memo, Fragment, useMemo } from "react"
+import { memo, useMemo } from "react"
 import { Stack, useLocalSearchParams, Redirect } from "expo-router"
 import { Platform } from "react-native"
 import Preview from "./preview"
 import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
 import { useColorScheme } from "@/lib/useColorScheme"
+import RequireInternet from "../requireInternet"
 
 export type DOCXPreviewItem =
 	| {
@@ -76,10 +77,10 @@ export const DOCXPreview = memo(() => {
 	}
 
 	return (
-		<Fragment>
+		<RequireInternet>
 			{header}
 			<Preview item={itemParsed} />
-		</Fragment>
+		</RequireInternet>
 	)
 })
 

@@ -14,11 +14,14 @@ import useAccountQuery from "@/queries/useAccountQuery"
 import { Icon } from "@roninoss/icons"
 import Transfers from "../drive/header/transfers"
 import alerts from "@/lib/alerts"
+import useNetInfo from "@/hooks/useNetInfo"
+import OfflineListHeader from "../offlineListHeader"
 
 export const Home = memo(() => {
 	const { colors } = useColorScheme()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const router = useRouter()
+	const { hasInternet } = useNetInfo()
 
 	const recents = useCloudItemsQuery({
 		parent: "recents",
@@ -174,7 +177,7 @@ export const Home = memo(() => {
 				backVisible={false}
 				materialPreset="stack"
 				leftView={
-					account.status === "success"
+					account.status === "success" && hasInternet
 						? () => {
 								return (
 									<View className="flex flex-row items-center">
@@ -197,6 +200,10 @@ export const Home = memo(() => {
 						: undefined
 				}
 				rightView={() => {
+					if (!hasInternet) {
+						return undefined
+					}
+
 					return (
 						<View className="flex-row items-center">
 							<Transfers />
@@ -268,6 +275,7 @@ export const Home = memo(() => {
 							/>
 						}
 					>
+						{!hasInternet && <OfflineListHeader className="mb-4" />}
 						{(["recents", "favorites", "links", "sharedIn", "sharedOut", "offline", "trash", "bottom"] as const).map(type => {
 							if (type === "bottom") {
 								return (

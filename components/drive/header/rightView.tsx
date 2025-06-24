@@ -29,6 +29,7 @@ import useAllowed from "@/hooks/useAllowed"
 import { useRouter } from "expo-router"
 import { useShallow } from "zustand/shallow"
 import { type TextEditorItem } from "@/components/textEditor/editor"
+import useNetInfo from "@/hooks/useNetInfo"
 
 const options: string[] = [
 	t("drive.header.rightView.actionSheet.upload.files"),
@@ -73,6 +74,7 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 	const { t } = useTranslation()
 	const allowed = useAllowed()
 	const { push: routerPush } = useRouter()
+	const { hasInternet } = useNetInfo()
 
 	const { refetch: refetchQuery } = useCloudItemsQuery({
 		...queryParams,
@@ -528,6 +530,10 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 			setSelectedItems(useDriveStore.getState().items)
 		}
 	}, [itemsCount, setSelectedItems, selectedItemsCount])
+
+	if (!hasInternet) {
+		return null
+	}
 
 	return (
 		<View className="flex-row items-center">

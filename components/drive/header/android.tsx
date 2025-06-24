@@ -6,11 +6,13 @@ import RightView from "./rightView"
 import Search from "./search"
 import { type AdaptiveSearchHeaderProps } from "@/components/nativewindui/AdaptiveSearchHeader/types"
 import { useShallow } from "zustand/shallow"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Android = memo(({ headerTitle, queryParams }: { headerTitle: string; queryParams: FetchCloudItemsParams }) => {
 	const { uuid } = useLocalSearchParams()
 	const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
 	const [searchTerm, setSearchTerm] = useState<string>("")
+	const { hasInternet } = useNetInfo()
 
 	const rightView = useCallback(() => {
 		return <RightView queryParams={queryParams} />
@@ -51,7 +53,7 @@ export const Android = memo(({ headerTitle, queryParams }: { headerTitle: string
 			materialPreset="inline"
 			backVisible={backVisible}
 			rightView={rightView}
-			searchBar={searchBar}
+			searchBar={hasInternet ? searchBar : undefined}
 		/>
 	)
 })

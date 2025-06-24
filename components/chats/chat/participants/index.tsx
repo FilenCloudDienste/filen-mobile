@@ -1,5 +1,5 @@
 import { useLocalSearchParams, Redirect } from "expo-router"
-import { useMemo, Fragment, useCallback, useState } from "react"
+import { useMemo, useCallback, useState } from "react"
 import { View, Platform, RefreshControl } from "react-native"
 import { type ChatConversation, type ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
@@ -21,6 +21,7 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import queryUtils from "@/queries/utils"
 import useDimensions from "@/hooks/useDimensions"
+import RequireInternet from "@/components/requireInternet"
 
 export const LIST_ITEM_HEIGHT = Platform.select({
 	ios: 61,
@@ -227,7 +228,7 @@ export default function Participants() {
 	}
 
 	return (
-		<Fragment>
+		<RequireInternet>
 			<LargeTitleHeader
 				title="Participants"
 				iosBlurEffect="systemChromeMaterial"
@@ -288,6 +289,6 @@ export default function Participants() {
 					}}
 				/>
 			</Container>
-		</Fragment>
+		</RequireInternet>
 	)
 }

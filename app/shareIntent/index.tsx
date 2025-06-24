@@ -1,7 +1,7 @@
 import { View, Platform } from "react-native"
 import { Stack } from "expo-router"
 import { useShareIntentContext, type ShareIntentFile } from "expo-share-intent"
-import { Fragment, useMemo, useCallback, memo } from "react"
+import { useMemo, useCallback, memo } from "react"
 import { Text } from "@/components/nativewindui/Text"
 import { Image } from "expo-image"
 import { getPreviewType, formatBytes } from "@/lib/utils"
@@ -19,6 +19,7 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import Container from "@/components/Container"
 import paths from "@/lib/paths"
 import useDimensions from "@/hooks/useDimensions"
+import RequireInternet from "@/components/requireInternet"
 
 export type ListItemInfo = {
 	title: string
@@ -213,7 +214,7 @@ export default function ShareIntent() {
 	}, [headerRight, headerLeft])
 
 	return (
-		<Fragment>
+		<RequireInternet>
 			{header}
 			<Container>
 				<List
@@ -243,6 +244,6 @@ export default function ShareIntent() {
 					}}
 				/>
 			</Container>
-		</Fragment>
+		</RequireInternet>
 	)
 }

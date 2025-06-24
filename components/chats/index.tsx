@@ -10,6 +10,8 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import alerts from "@/lib/alerts"
 import Item, { LIST_ITEM_HEIGHT } from "./item"
 import useDimensions from "@/hooks/useDimensions"
+import useNetInfo from "@/hooks/useNetInfo"
+import OfflineListHeader from "../offlineListHeader"
 
 export const Chats = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
@@ -17,6 +19,7 @@ export const Chats = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { colors } = useColorScheme()
 	const { screen } = useDimensions()
+	const { hasInternet } = useNetInfo()
 
 	const chatsQuery = useChatsQuery({})
 
@@ -142,6 +145,7 @@ export const Chats = memo(() => {
 					ListEmptyComponent={ListEmpty}
 					ListFooterComponent={ListFooter}
 					refreshControl={refreshControl}
+					ListHeaderComponent={!hasInternet ? <OfflineListHeader /> : undefined}
 					removeClippedSubviews={true}
 					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
 					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}

@@ -5,6 +5,7 @@ import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import * as FileSystem from "expo-file-system/next"
 import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export type UseFileBufferQuery = {
 	item: DriveCloudItem
@@ -27,6 +28,7 @@ export default function useFileBufferQuery({
 	gcTime?: number
 	enabled?: boolean
 }) {
+	const { hasInternet } = useNetInfo()
 	const isFocused = useQueryFocusAware()
 	const notifyOnChangeProps = useFocusNotifyOnChangeProps()
 	const query = useQuery({
@@ -81,7 +83,7 @@ export default function useFileBufferQuery({
 					})
 			}),
 		notifyOnChangeProps,
-		enabled: typeof enabled === "boolean" ? enabled : isFocused,
+		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,
 		refetchOnReconnect,
 		refetchOnWindowFocus,

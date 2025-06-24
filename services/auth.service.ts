@@ -30,11 +30,11 @@ export class AuthService {
 			console.error(e)
 
 			if (e instanceof Error) {
-				if (e.message.toLowerCase().includes("enter_2fa") || e.message.toLowerCase().includes("two factor")) {
+				if (e.message.toLowerCase().includes("please enter your two factor authentication code")) {
 					const twoFactorCodePrompt = await inputPrompt({
 						title: t("drive.header.rightView.actionSheet.create.directory"),
 						materialIcon: {
-							name: "pencil"
+							name: "lock-outline"
 						},
 						prompt: {
 							type: "secure-text",

@@ -26,6 +26,7 @@ import { sanitizeFileName } from "@/lib/utils"
 import striptags from "striptags"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { useColorScheme } from "@/lib/useColorScheme"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Menu = memo(
 	({
@@ -48,6 +49,7 @@ export const Menu = memo(
 		const { screen, isPortrait, isTablet } = useDimensions()
 		const [{ userId }] = useSDKConfig()
 		const { colors } = useColorScheme()
+		const { hasInternet } = useNetInfo()
 
 		const notesTagsQuery = useNotesTagsQuery({
 			enabled: false
@@ -90,7 +92,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (note.isOwner) {
+			if (note.isOwner && hasInternet) {
 				items.push(
 					createContextItem({
 						actionKey: "history",
@@ -222,47 +224,49 @@ export const Menu = memo(
 				)
 			}
 
-			items.push(
-				createContextItem({
-					actionKey: note.pinned ? "unpin" : "pin",
-					title: t("notes.menu.pinned"),
-					state: {
-						checked: note.pinned
-					},
-					icon:
-						Platform.OS === "ios"
-							? {
-									namingScheme: "sfSymbol",
-									name: "pin"
-							  }
-							: {
-									namingScheme: "material",
-									name: "pin-outline"
-							  }
-				})
-			)
+			if (hasInternet) {
+				items.push(
+					createContextItem({
+						actionKey: note.pinned ? "unpin" : "pin",
+						title: t("notes.menu.pinned"),
+						state: {
+							checked: note.pinned
+						},
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "pin"
+								  }
+								: {
+										namingScheme: "material",
+										name: "pin-outline"
+								  }
+					})
+				)
 
-			items.push(
-				createContextItem({
-					actionKey: note.favorite ? "unfavorite" : "favorite",
-					title: t("notes.menu.favorited"),
-					state: {
-						checked: note.favorite
-					},
-					icon:
-						Platform.OS === "ios"
-							? {
-									namingScheme: "sfSymbol",
-									name: "heart"
-							  }
-							: {
-									namingScheme: "material",
-									name: "heart-outline"
-							  }
-				})
-			)
+				items.push(
+					createContextItem({
+						actionKey: note.favorite ? "unfavorite" : "favorite",
+						title: t("notes.menu.favorited"),
+						state: {
+							checked: note.favorite
+						},
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "heart"
+								  }
+								: {
+										namingScheme: "material",
+										name: "heart-outline"
+								  }
+					})
+				)
+			}
 
-			if (tags.length > 0) {
+			if (tags.length > 0 && hasInternet) {
 				items.push(
 					createContextSubMenu(
 						{
@@ -292,7 +296,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (note.isOwner) {
+			if (note.isOwner && hasInternet) {
 				items.push(
 					createContextItem({
 						actionKey: "rename",
@@ -328,127 +332,129 @@ export const Menu = memo(
 				)
 			}
 
-			items.push(
-				createContextItem({
-					actionKey: "export",
-					title: t("notes.menu.export"),
-					icon:
-						Platform.OS === "ios"
-							? {
-									namingScheme: "sfSymbol",
-									name: "square.and.arrow.up"
-							  }
-							: {
-									namingScheme: "material",
-									name: "send-outline"
-							  }
-				})
-			)
-
-			if (note.isOwner) {
-				if (!note.trash && !note.archive) {
-					items.push(
-						createContextItem({
-							actionKey: "archive",
-							title: t("notes.menu.archive"),
-							icon:
-								Platform.OS === "ios"
-									? {
-											namingScheme: "sfSymbol",
-											name: "archivebox"
-									  }
-									: {
-											namingScheme: "material",
-											name: "archive-outline"
-									  }
-						})
-					)
-				}
-
-				if (note.archive || note.trash) {
-					items.push(
-						createContextItem({
-							actionKey: "restore",
-							title: t("notes.menu.restore"),
-							icon:
-								Platform.OS === "ios"
-									? {
-											namingScheme: "sfSymbol",
-											name: "repeat"
-									  }
-									: {
-											namingScheme: "material",
-											name: "repeat"
-									  }
-						})
-					)
-				}
-
-				if (note.trash) {
-					items.push(
-						createContextItem({
-							actionKey: "delete",
-							title: t("notes.menu.delete"),
-							destructive: true,
-							icon:
-								Platform.OS === "ios"
-									? {
-											namingScheme: "sfSymbol",
-											name: "trash",
-											color: colors.destructive
-									  }
-									: {
-											namingScheme: "material",
-											name: "trash-can-outline",
-											color: colors.destructive
-									  }
-						})
-					)
-				} else if (!note.archive) {
-					items.push(
-						createContextItem({
-							actionKey: "trash",
-							title: t("notes.menu.trash"),
-							destructive: true,
-							icon:
-								Platform.OS === "ios"
-									? {
-											namingScheme: "sfSymbol",
-											name: "trash",
-											color: colors.destructive
-									  }
-									: {
-											namingScheme: "material",
-											name: "trash-can-outline",
-											color: colors.destructive
-									  }
-						})
-					)
-				}
-			} else {
+			if (hasInternet) {
 				items.push(
 					createContextItem({
-						actionKey: "leave",
-						title: t("notes.menu.leave"),
-						destructive: true,
+						actionKey: "export",
+						title: t("notes.menu.export"),
 						icon:
 							Platform.OS === "ios"
 								? {
 										namingScheme: "sfSymbol",
-										name: "delete.left",
-										color: colors.destructive
+										name: "square.and.arrow.up"
 								  }
 								: {
 										namingScheme: "material",
-										name: "delete-off-outline",
-										color: colors.destructive
+										name: "send-outline"
 								  }
 					})
 				)
+
+				if (note.isOwner) {
+					if (!note.trash && !note.archive) {
+						items.push(
+							createContextItem({
+								actionKey: "archive",
+								title: t("notes.menu.archive"),
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "archivebox"
+										  }
+										: {
+												namingScheme: "material",
+												name: "archive-outline"
+										  }
+							})
+						)
+					}
+
+					if (note.archive || note.trash) {
+						items.push(
+							createContextItem({
+								actionKey: "restore",
+								title: t("notes.menu.restore"),
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "repeat"
+										  }
+										: {
+												namingScheme: "material",
+												name: "repeat"
+										  }
+							})
+						)
+					}
+
+					if (note.trash) {
+						items.push(
+							createContextItem({
+								actionKey: "delete",
+								title: t("notes.menu.delete"),
+								destructive: true,
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "trash",
+												color: colors.destructive
+										  }
+										: {
+												namingScheme: "material",
+												name: "trash-can-outline",
+												color: colors.destructive
+										  }
+							})
+						)
+					} else if (!note.archive) {
+						items.push(
+							createContextItem({
+								actionKey: "trash",
+								title: t("notes.menu.trash"),
+								destructive: true,
+								icon:
+									Platform.OS === "ios"
+										? {
+												namingScheme: "sfSymbol",
+												name: "trash",
+												color: colors.destructive
+										  }
+										: {
+												namingScheme: "material",
+												name: "trash-can-outline",
+												color: colors.destructive
+										  }
+							})
+						)
+					}
+				} else {
+					items.push(
+						createContextItem({
+							actionKey: "leave",
+							title: t("notes.menu.leave"),
+							destructive: true,
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "delete.left",
+											color: colors.destructive
+									  }
+									: {
+											namingScheme: "material",
+											name: "delete-off-outline",
+											color: colors.destructive
+									  }
+						})
+					)
+				}
 			}
 
 			return items
-		}, [note, t, tags, markdownPreview, insideNote, colors.destructive])
+		}, [note, t, tags, markdownPreview, insideNote, colors.destructive, hasInternet])
 
 		const changeNoteType = useCallback(
 			async (type: NoteType) => {
@@ -983,7 +989,7 @@ export const Menu = memo(
 			async (item: Omit<ContextItem, "icon">, _?: boolean) => {
 				try {
 					switch (item.actionKey) {
-						case "preview":
+						case "preview": {
 							if (note.type !== "md") {
 								break
 							}
@@ -991,8 +997,9 @@ export const Menu = memo(
 							setMarkdownPreview(!markdownPreview)
 
 							break
+						}
 
-						case "history":
+						case "history": {
 							router.push({
 								pathname: "/notes/history",
 								params: {
@@ -1001,8 +1008,9 @@ export const Menu = memo(
 							})
 
 							break
+						}
 
-						case "participants":
+						case "participants": {
 							router.push({
 								pathname: "/notes/participants",
 								params: {
@@ -1011,98 +1019,117 @@ export const Menu = memo(
 							})
 
 							break
+						}
 
-						case "typeText":
+						case "typeText": {
 							await changeNoteType("text")
 
 							break
+						}
 
-						case "typeRich":
+						case "typeRich": {
 							await changeNoteType("rich")
 
 							break
+						}
 
-						case "typeChecklist":
+						case "typeChecklist": {
 							await changeNoteType("checklist")
 
 							break
+						}
 
-						case "typeMd":
+						case "typeMd": {
 							await changeNoteType("md")
 
 							break
+						}
 
-						case "typeCode":
+						case "typeCode": {
 							await changeNoteType("code")
 
 							break
+						}
 
-						case "pin":
+						case "pin": {
 							await pin(true)
 
 							break
+						}
 
-						case "unpin":
+						case "unpin": {
 							await pin(false)
 
 							break
+						}
 
-						case "favorite":
+						case "favorite": {
 							await favorite(true)
 
 							break
+						}
 
-						case "unfavorite":
+						case "unfavorite": {
 							await favorite(false)
 
 							break
+						}
 
-						case "duplicate":
+						case "duplicate": {
 							await duplicate()
 
 							break
+						}
 
-						case "export":
+						case "export": {
 							await exportNote()
 
 							break
+						}
 
-						case "copyId":
+						case "copyId": {
 							await copyId()
 
 							break
+						}
 
-						case "archive":
+						case "archive": {
 							await archive()
 
 							break
+						}
 
-						case "restore":
+						case "restore": {
 							await restore()
 
 							break
+						}
 
-						case "trash":
+						case "trash": {
 							await trash()
 
 							break
+						}
 
-						case "delete":
+						case "delete": {
 							await deleteNote()
 
 							break
+						}
 
-						case "leave":
+						case "leave": {
 							await leave()
 
 							break
+						}
 
-						case "rename":
+						case "rename": {
 							await rename()
 
 							break
+						}
 
-						default:
+						default: {
 							if (item.actionKey.startsWith("tag_")) {
 								const tagUUID = item.actionKey.split("_")[1]
 
@@ -1122,6 +1149,7 @@ export const Menu = memo(
 							console.log("Unknown action key", item.actionKey)
 
 							break
+						}
 					}
 				} catch (e) {
 					console.error(e)
@@ -1183,8 +1211,8 @@ export const Menu = memo(
 				<ContextMenu
 					items={menuItems}
 					onItemPress={onItemPress}
-					key={`${isPortrait}:${isTablet}`}
-					iosRenderPreview={isPortrait || isTablet ? iosRenderPreview : undefined}
+					key={!hasInternet ? undefined : `${isPortrait}:${isTablet}`}
+					iosRenderPreview={hasInternet && (isPortrait || isTablet) ? iosRenderPreview : undefined}
 				>
 					{children}
 				</ContextMenu>

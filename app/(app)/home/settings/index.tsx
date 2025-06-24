@@ -3,11 +3,13 @@ import { Settings as SettingsComponent, IconView } from "@/components/settings"
 import Avatar from "@/components/avatar"
 import useAccountQuery from "@/queries/useAccountQuery"
 import { formatBytes } from "@/lib/utils"
-import { useRouter } from "expo-router"
+import { useRouter, Redirect } from "expo-router"
 import { Toggle } from "@/components/nativewindui/Toggle"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Settings = memo(() => {
 	const router = useRouter()
+	const { hasInternet } = useNetInfo()
 
 	const account = useAccountQuery({})
 
@@ -64,6 +66,10 @@ export const Settings = memo(() => {
 			})
 		}, 1)
 	}, [router])
+
+	if (!hasInternet) {
+		return <Redirect href="/(app)/home" />
+	}
 
 	return (
 		<SettingsComponent

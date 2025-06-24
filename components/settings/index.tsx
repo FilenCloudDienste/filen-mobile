@@ -20,6 +20,7 @@ export type SettingsProps = {
 	disableAndroidRipple?: boolean
 	loading?: boolean
 	listFooter?: React.ReactNode
+	listHeader?: React.ReactNode
 }
 
 export * from "./settings"

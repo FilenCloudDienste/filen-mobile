@@ -18,6 +18,7 @@ import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Platform } from "react-native"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Menu = memo(({ chat, message, children }: { chat: ChatConversation; message: ChatMessage; children: React.ReactNode }) => {
 	const [{ userId }] = useSDKConfig()
@@ -26,8 +27,13 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 	const setEditMessage = useChatsStore(useShallow(state => state.setEditMessage))
 	const [, setChatInputValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
 	const { colors } = useColorScheme()
+	const { hasInternet } = useNetInfo()
 
 	const menuItems = useMemo(() => {
+		if (!hasInternet) {
+			return []
+		}
+
 		const items: (ContextItem | ContextSubMenu)[] = []
 
 		items.push(
@@ -121,7 +127,7 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 		}
 
 		return items
-	}, [t, message.senderId, userId, colors.destructive])
+	}, [t, message.senderId, userId, colors.destructive, hasInternet])
 
 	const deleteMessage = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({

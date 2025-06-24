@@ -2,6 +2,9 @@ import events from "@/lib/events"
 import { randomUUID } from "expo-crypto"
 import { type Playlist } from "@/queries/usePlaylistsQuery"
 import SelectTrackPlayerPlaylistsComponent from "@/components/selectTrackPlayerPlaylists"
+import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
+import { Platform } from "react-native"
+import RequireInternet from "@/components/requireInternet"
 
 export type SelectTrackPlayerPlaylistsResponse =
 	| {
@@ -54,5 +57,10 @@ export function selectTrackPlayerPlaylists(params: SelectTrackPlayerPlaylistsPar
 }
 
 export default function SelectTrackPlayerPlaylists() {
-	return <SelectTrackPlayerPlaylistsComponent />
+	return (
+		<RequireInternet>
+			<SelectTrackPlayerPlaylistsComponent />
+			{Platform.OS === "ios" && <FullScreenLoadingModal />}
+		</RequireInternet>
+	)
 }

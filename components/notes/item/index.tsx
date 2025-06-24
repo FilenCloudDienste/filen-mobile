@@ -17,6 +17,9 @@ import { simpleDate, contactName } from "@/lib/utils"
 import { Text } from "@/components/nativewindui/Text"
 import Tag from "../tag"
 import events from "@/lib/events"
+import queryUtils from "@/queries/utils"
+import useNetInfo from "@/hooks/useNetInfo"
+import alerts from "@/lib/alerts"
 
 const ICON_SIZE = 24
 
@@ -24,6 +27,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 	const { push: routerPush } = useRouter()
 	const [{ userId }] = useSDKConfig()
 	const { colors } = useColorScheme()
+	const { hasInternet } = useNetInfo()
 
 	const hasWriteAccess = useMemo(() => {
 		if (note.isOwner) {
@@ -55,13 +59,25 @@ export const Item = memo(({ note }: { note: Note }) => {
 			clearText: true
 		})
 
+		if (!hasInternet) {
+			const cachedContent = queryUtils.useNoteContentQueryGet({
+				uuid: note.uuid
+			})
+
+			if (!cachedContent) {
+				alerts.error("You are offline.")
+
+				return
+			}
+		}
+
 		routerPush({
 			pathname: "/notes/[uuid]",
 			params: {
 				uuid: note.uuid
 			}
 		})
-	}, [routerPush, note.uuid])
+	}, [routerPush, note.uuid, hasInternet])
 
 	const noop = useCallback(() => {}, [])
 

@@ -2,9 +2,9 @@ import events from "@/lib/events"
 import { randomUUID } from "expo-crypto"
 import { type Contact } from "@filen/sdk/dist/types/api/v3/contacts"
 import SelectContactsComponent from "@/components/selectContacts"
-import { Fragment } from "react"
 import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
 import { Platform } from "react-native"
+import RequireInternet from "@/components/requireInternet"
 
 export type SelectContactsResponse =
 	| {
@@ -57,9 +57,9 @@ export function selectContacts(params: SelectContactsParams): Promise<SelectCont
 
 export default function SelectContacts() {
 	return (
-		<Fragment>
+		<RequireInternet>
 			<SelectContactsComponent />
 			{Platform.OS === "ios" && <FullScreenLoadingModal />}
-		</Fragment>
+		</RequireInternet>
 	)
 }

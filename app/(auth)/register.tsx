@@ -1,5 +1,5 @@
 import { useRouter, Stack } from "expo-router"
-import { useState, memo, useMemo, useCallback, Fragment } from "react"
+import { useState, memo, useMemo, useCallback } from "react"
 import { Image, Platform, View } from "react-native"
 import { KeyboardAwareScrollView, KeyboardController, KeyboardStickyView } from "react-native-keyboard-controller"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -14,6 +14,8 @@ import authService from "@/services/auth.service"
 import { cn } from "@/lib/cn"
 import { Icon } from "@roninoss/icons"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
+import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
+import RequireInternet from "@/components/requireInternet"
 
 export const Register = memo(() => {
 	const insets = useSafeAreaInsets()
@@ -88,7 +90,7 @@ export const Register = memo(() => {
 	}, [])
 
 	return (
-		<Fragment>
+		<RequireInternet redirectHref="/(auth)">
 			{Platform.OS === "ios" ? (
 				<Stack.Screen
 					options={{
@@ -382,7 +384,8 @@ export const Register = memo(() => {
 					</Button>
 				)}
 			</Container>
-		</Fragment>
+			{Platform.OS === "ios" && <FullScreenLoadingModal />}
+		</RequireInternet>
 	)
 })
 

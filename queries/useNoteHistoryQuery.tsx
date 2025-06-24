@@ -4,6 +4,7 @@ import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import useFocusNotifyOnChangeProps from "@/hooks/useFocusNotifyOnChangeProps"
 import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import { DEFAULT_QUERY_OPTIONS } from "./client"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export default function useNoteHistoryQuery({
 	uuid,
@@ -21,6 +22,7 @@ export default function useNoteHistoryQuery({
 	gcTime?: number
 	enabled?: boolean
 }) {
+	const { hasInternet } = useNetInfo()
 	const isFocused = useQueryFocusAware()
 	const notifyOnChangeProps = useFocusNotifyOnChangeProps()
 	const query = useQuery({
@@ -30,7 +32,7 @@ export default function useNoteHistoryQuery({
 				uuid
 			}),
 		notifyOnChangeProps,
-		enabled: typeof enabled === "boolean" ? enabled : isFocused,
+		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,
 		refetchOnReconnect,
 		refetchOnWindowFocus,

@@ -11,6 +11,7 @@ import alerts from "@/lib/alerts"
 import { Icon } from "@roninoss/icons"
 import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export type YouTubeInfo = {
 	title?: string
@@ -30,6 +31,7 @@ export type YouTubeInfo = {
 
 export const YouTube = memo(({ link }: { link: string }) => {
 	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
+	const { hasInternet } = useNetInfo()
 
 	const videoId = useMemo(() => {
 		return parseYouTubeVideoId(link)
@@ -37,7 +39,7 @@ export const YouTube = memo(({ link }: { link: string }) => {
 
 	const query = useQuery({
 		queryKey: ["chatEmbedYouTube", videoId],
-		enabled: videoId !== null,
+		enabled: videoId !== null && hasInternet,
 		queryFn: async () => {
 			if (!videoId) {
 				throw new Error("No videoId provided.")

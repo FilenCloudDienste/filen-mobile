@@ -38,6 +38,8 @@ import { fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatusQuer
 import { useGalleryStore } from "@/stores/gallery.store"
 import events from "@/lib/events"
 import { useColorScheme } from "@/lib/useColorScheme"
+import useNetInfo from "@/hooks/useNetInfo"
+import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
 
 export const Menu = memo(
 	({
@@ -46,7 +48,6 @@ export const Menu = memo(
 		children,
 		fromPreview,
 		queryParams,
-		isAvailableOffline,
 		fromPhotos,
 		fromSearch
 	}: {
@@ -54,7 +55,6 @@ export const Menu = memo(
 		type: "context" | "dropdown"
 		children: React.ReactNode
 		fromPreview?: boolean
-		isAvailableOffline?: boolean
 		queryParams: FetchCloudItemsParams
 		fromPhotos?: boolean
 		fromSearch?: boolean
@@ -65,6 +65,16 @@ export const Menu = memo(
 		const isProUser = useIsProUser()
 		const pathname = usePathname()
 		const { colors } = useColorScheme()
+		const { hasInternet } = useNetInfo()
+
+		const fileOfflineStatus = useFileOfflineStatusQuery({
+			uuid: item.uuid,
+			enabled: item.type === "file"
+		})
+
+		const offlineStatus = useMemo(() => {
+			return item.type === "file" && fileOfflineStatus.status === "success" ? fileOfflineStatus.data : null
+		}, [item.type, fileOfflineStatus.status, fileOfflineStatus.data])
 
 		const menuItems = useMemo(() => {
 			const items: (ContextItem | ContextSubMenu)[] = []
@@ -116,7 +126,7 @@ export const Menu = memo(
 							iOSItemSize: "large"
 						},
 						[
-							...(Platform.OS === "android" && queryParams.of !== "offline"
+							...(Platform.OS === "android" && queryParams.of !== "offline" && hasInternet
 								? [
 										createContextItem({
 											actionKey: "download",
@@ -128,7 +138,7 @@ export const Menu = memo(
 										})
 								  ]
 								: []),
-							...(item.type === "file"
+							...(item.type === "file" && (hasInternet || offlineStatus?.exists)
 								? [
 										createContextItem({
 											actionKey: "export",
@@ -146,7 +156,9 @@ export const Menu = memo(
 										})
 								  ]
 								: []),
-							...(["image", "video"].includes(getPreviewType(item.name)) && queryParams.of !== "offline"
+							...(["image", "video"].includes(getPreviewType(item.name)) &&
+							queryParams.of !== "offline" &&
+							(hasInternet || offlineStatus?.exists)
 								? [
 										createContextItem({
 											actionKey: "saveToGallery",
@@ -164,13 +176,13 @@ export const Menu = memo(
 										})
 								  ]
 								: []),
-							...(item.type === "file" && queryParams.of !== "offline"
+							...(item.type === "file" && queryParams.of !== "offline" && (hasInternet || offlineStatus?.exists)
 								? [
 										createContextItem({
 											actionKey: "toggleOffline",
 											title: t("drive.list.item.menu.availableOffline"),
 											state: {
-												checked: isAvailableOffline ?? false
+												checked: offlineStatus?.exists ?? false
 											},
 											icon:
 												Platform.OS === "ios"
@@ -190,7 +202,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash") {
+			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
 				if (isProUser && (item.type === "directory" || item.size > 0)) {
 					items.push(
 						createContextSubMenu(
@@ -250,7 +262,7 @@ export const Menu = memo(
 				}
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash") {
+			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
 				items.push(
 					createContextItem({
 						actionKey: item.favorited ? "unfavorite" : "favorite",
@@ -272,7 +284,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "offline" && queryParams.of !== "trash") {
+			if (queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
 				if (item.type === "directory") {
 					items.push(
 						createContextItem({
@@ -351,7 +363,13 @@ export const Menu = memo(
 				}
 			}
 
-			if (item.type === "directory" && queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash") {
+			if (
+				item.type === "directory" &&
+				queryParams.of !== "sharedIn" &&
+				queryParams.of !== "offline" &&
+				queryParams.of !== "trash" &&
+				hasInternet
+			) {
 				items.push(
 					createContextItem({
 						actionKey: "color",
@@ -370,7 +388,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash") {
+			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
 				items.push(
 					createContextItem({
 						actionKey: "rename",
@@ -389,7 +407,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash") {
+			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
 				items.push(
 					createContextItem({
 						actionKey: "move",
@@ -431,7 +449,7 @@ export const Menu = memo(
 				)
 			)*/
 
-			if (queryParams.of === "sharedOut") {
+			if (queryParams.of === "sharedOut" && hasInternet) {
 				items.push(
 					createContextItem({
 						actionKey: "removeSharedOut",
@@ -453,7 +471,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of === "links") {
+			if (queryParams.of === "links" && hasInternet) {
 				items.push(
 					createContextItem({
 						actionKey: "disablePublicLink",
@@ -475,7 +493,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "offline" && queryParams.of !== "trash") {
+			if (queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
 				if (queryParams.of !== "sharedIn") {
 					items.push(
 						createContextItem({
@@ -519,7 +537,7 @@ export const Menu = memo(
 				}
 			}
 
-			if (queryParams.of === "offline" && isAvailableOffline) {
+			if (queryParams.of === "offline" && offlineStatus?.exists) {
 				items.push(
 					createContextItem({
 						actionKey: "removeOffline",
@@ -541,7 +559,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of === "trash") {
+			if (queryParams.of === "trash" && hasInternet) {
 				items.push(
 					createContextItem({
 						actionKey: "restore",
@@ -581,7 +599,7 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [isAvailableOffline, item, queryParams, t, isProUser, fromPreview, fromPhotos, fromSearch, colors.destructive])
+		}, [offlineStatus, item, queryParams, t, isProUser, fromPreview, fromPhotos, fromSearch, colors.destructive, hasInternet])
 
 		const select = useCallback(() => {
 			const isSelected = useDriveStore.getState().selectedItems.some(i => i.uuid === item.uuid)
@@ -980,30 +998,44 @@ export const Menu = memo(
 					tempLocation.delete()
 				}
 
-				await nodeWorker.proxy("downloadFile", {
-					id: randomUUID(),
-					uuid: item.uuid,
-					bucket: item.bucket,
-					region: item.region,
-					chunks: item.chunks,
-					version: item.version,
-					key: item.key,
-					destination: tempLocation.uri,
-					size: item.size,
-					name: item.name,
-					dontEmitProgress: true
+				if (offlineStatus?.exists) {
+					const offlineFile = new FileSystem.File(offlineStatus.path)
+
+					if (!offlineFile.exists) {
+						throw new Error("Offline file does not exist.")
+					}
+
+					offlineFile.copy(tempLocation)
+				} else {
+					await nodeWorker.proxy("downloadFile", {
+						id: randomUUID(),
+						uuid: item.uuid,
+						bucket: item.bucket,
+						region: item.region,
+						chunks: item.chunks,
+						version: item.version,
+						key: item.key,
+						destination: tempLocation.uri,
+						size: item.size,
+						name: item.name,
+						dontEmitProgress: true
+					})
+				}
+
+				await new Promise<void>(resolve => setTimeout(resolve, 250))
+
+				await Sharing.shareAsync(tempLocation.uri, {
+					mimeType: item.mime,
+					dialogTitle: item.name
 				})
 			} finally {
 				fullScreenLoadingModal.hide()
+
+				if (tempLocation.exists) {
+					tempLocation.delete()
+				}
 			}
-
-			await new Promise<void>(resolve => setTimeout(resolve, 250))
-
-			await Sharing.shareAsync(tempLocation.uri, {
-				mimeType: item.mime,
-				dialogTitle: item.name
-			})
-		}, [item])
+		}, [item, offlineStatus])
 
 		const trash = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
@@ -1410,18 +1442,28 @@ export const Menu = memo(
 					tmpFile.parentDirectory.create()
 				}
 
-				await nodeWorker.proxy("downloadFile", {
-					id: randomUUID(),
-					uuid: item.uuid,
-					bucket: item.bucket,
-					region: item.region,
-					chunks: item.chunks,
-					version: item.version,
-					key: item.key,
-					destination: tmpFile.uri,
-					size: item.size,
-					name: item.name
-				})
+				if (offlineStatus?.exists) {
+					const offlineFile = new FileSystem.File(offlineStatus.path)
+
+					if (!offlineFile.exists) {
+						throw new Error("Offline file does not exist.")
+					}
+
+					offlineFile.copy(tmpFile)
+				} else {
+					await nodeWorker.proxy("downloadFile", {
+						id: randomUUID(),
+						uuid: item.uuid,
+						bucket: item.bucket,
+						region: item.region,
+						chunks: item.chunks,
+						version: item.version,
+						key: item.key,
+						destination: tmpFile.uri,
+						size: item.size,
+						name: item.name
+					})
+				}
 
 				await MediaLibrary.saveToLibraryAsync(normalizeFilePathForExpo(tmpFile.uri))
 			} finally {
@@ -1431,7 +1473,7 @@ export const Menu = memo(
 
 				fullScreenLoadingModal.hide()
 			}
-		}, [item])
+		}, [item, offlineStatus])
 
 		const versionHistory = useCallback(() => {
 			router.push({
@@ -1710,7 +1752,7 @@ export const Menu = memo(
 						}
 
 						case "toggleOffline": {
-							if (isAvailableOffline) {
+							if (offlineStatus?.exists) {
 								await removeOffline()
 							} else {
 								await makeAvailableOffline()
@@ -1793,7 +1835,7 @@ export const Menu = memo(
 				deletePermanently,
 				restore,
 				disablePublicLink,
-				isAvailableOffline
+				offlineStatus
 			]
 		)
 
@@ -1821,13 +1863,19 @@ export const Menu = memo(
 			)
 		}, [item.thumbnail, screen])
 
+		if (menuItems.length === 0) {
+			return children
+		}
+
 		if (type === "context") {
 			return (
 				<ContextMenu
 					items={menuItems}
 					onItemPress={onItemPress}
-					key={`${isPortrait}:${isTablet}`}
-					iosRenderPreview={!fromPreview && item.thumbnail && (isPortrait || isTablet) ? iosRenderPreview : undefined}
+					key={hasInternet ? `${isPortrait}:${isTablet}` : undefined}
+					iosRenderPreview={
+						!fromPreview && item.thumbnail && (isPortrait || isTablet) && hasInternet ? iosRenderPreview : undefined
+					}
 				>
 					{children}
 				</ContextMenu>

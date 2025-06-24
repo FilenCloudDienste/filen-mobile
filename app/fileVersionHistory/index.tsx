@@ -1,13 +1,13 @@
 import FileVersionHistoryComponent from "@/components/fileVersionHistory"
-import { Fragment } from "react"
 import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
 import { Platform } from "react-native"
+import RequireInternet from "@/components/requireInternet"
 
 export default function FileVersionHistory() {
 	return (
-		<Fragment>
+		<RequireInternet>
 			<FileVersionHistoryComponent />
 			{Platform.OS === "ios" && <FullScreenLoadingModal />}
-		</Fragment>
+		</RequireInternet>
 	)
 }

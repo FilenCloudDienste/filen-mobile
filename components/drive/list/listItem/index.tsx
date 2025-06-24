@@ -9,8 +9,8 @@ import { Platform, type ListRenderItemInfo } from "react-native"
 import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
 import { formatBytes, getPreviewType } from "@/lib/utils"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
-import { viewDocument } from "@react-native-documents/viewer"
 import useNetInfo from "@/hooks/useNetInfo"
+import { viewDocument } from "@react-native-documents/viewer"
 import alerts from "@/lib/alerts"
 import events from "@/lib/events"
 import { useGalleryStore } from "@/stores/gallery.store"
@@ -87,9 +87,9 @@ export const ListItem = memo(
 			}
 		}, [info.item, directorySize.isSuccess, directorySize.data])
 
-		const isAvailableOffline = useMemo(() => {
-			return info.item.item.type === "file" && fileOfflineStatus.isSuccess ? fileOfflineStatus.data.exists : false
-		}, [info.item.item.type, fileOfflineStatus.isSuccess, fileOfflineStatus.data?.exists])
+		const offlineStatus = useMemo(() => {
+			return info.item.item.type === "file" && fileOfflineStatus.status === "success" ? fileOfflineStatus.data : null
+		}, [info.item.item.type, fileOfflineStatus.status, fileOfflineStatus.data])
 
 		const select = useCallback(() => {
 			setSelectedItems(prev =>
@@ -106,11 +106,11 @@ export const ListItem = memo(
 					select={select}
 					selectedItemsCount={selectedItemsCount}
 					isSelected={isSelected}
-					isAvailableOffline={isAvailableOffline}
+					isAvailableOffline={offlineStatus?.exists ?? false}
 					queryParams={queryParams}
 				/>
 			)
-		}, [info.item.item, select, selectedItemsCount, isSelected, isAvailableOffline, queryParams])
+		}, [info.item.item, select, selectedItemsCount, isSelected, offlineStatus, queryParams])
 
 		const rightView = useMemo(() => {
 			if (Platform.OS === "ios" || fromSearch) {
@@ -121,10 +121,9 @@ export const ListItem = memo(
 				<RightView
 					item={info.item.item}
 					queryParams={queryParams}
-					isAvailableOffline={isAvailableOffline}
 				/>
 			)
-		}, [info.item.item, queryParams, isAvailableOffline, fromSearch])
+		}, [info.item.item, queryParams, fromSearch])
 
 		const onPressFromSearch = useCallback(async () => {
 			if (info.item.item.type === "directory") {
@@ -224,28 +223,31 @@ export const ListItem = memo(
 
 			const previewType = getPreviewType(info.item.item.name)
 
-			if (
-				((!["image", "video"].includes(previewType) && isAvailableOffline && fileOfflineStatus.data?.exists) ||
-					(!hasInternet && isAvailableOffline && fileOfflineStatus.data?.exists)) &&
-				info.item.item.size > 0
-			) {
-				events.emit("hideSearchBar", {
-					clearText: true
-				})
+			if (!hasInternet || offlineStatus?.exists) {
+				if (!offlineStatus || !offlineStatus.exists) {
+					alerts.error("You are offline.")
+
+					return
+				}
 
 				viewDocument({
-					uri: fileOfflineStatus.data.path,
-					mimeType: info.item.item.mime
+					uri: offlineStatus.path,
+					grantPermissions: "read",
+					headerTitle: info.item.item.name,
+					mimeType: info.item.item.mime,
+					presentationStyle: "pageSheet"
 				}).catch(err => {
 					console.error(err)
 
-					alerts.error("Failed to view file")
+					if (err instanceof Error) {
+						alerts.error(err.message)
+					}
 				})
 
 				return
 			}
 
-			if ((previewType === "image" || previewType === "video" || previewType === "audio") && hasInternet && info.item.item.size > 0) {
+			if ((previewType === "image" || previewType === "video" || previewType === "audio") && info.item.item.size > 0) {
 				useGalleryStore.getState().setItems(
 					items
 						.map(item => {
@@ -269,7 +271,7 @@ export const ListItem = memo(
 				useGalleryStore.getState().setVisible(true)
 			}
 
-			if ((previewType === "text" || previewType === "code") && hasInternet) {
+			if (previewType === "text" || previewType === "code") {
 				events.emit("hideSearchBar", {
 					clearText: true
 				})
@@ -285,7 +287,7 @@ export const ListItem = memo(
 				})
 			}
 
-			if (previewType === "pdf" && hasInternet && info.item.item.size > 0) {
+			if (previewType === "pdf" && info.item.item.size > 0) {
 				events.emit("hideSearchBar", {
 					clearText: true
 				})
@@ -301,7 +303,7 @@ export const ListItem = memo(
 				})
 			}
 
-			if (previewType === "docx" && hasInternet && info.item.item.size > 0) {
+			if (previewType === "docx" && info.item.item.size > 0) {
 				events.emit("hideSearchBar", {
 					clearText: true
 				})
@@ -322,8 +324,7 @@ export const ListItem = memo(
 			select,
 			info.item.item,
 			hasInternet,
-			isAvailableOffline,
-			fileOfflineStatus.data,
+			offlineStatus,
 			pathname,
 			items,
 			queryParams,
@@ -338,7 +339,7 @@ export const ListItem = memo(
 					itemSize={itemSize}
 					spacing={spacing}
 					pathname={pathname}
-					isAvailableOffline={isAvailableOffline}
+					isAvailableOffline={offlineStatus && offlineStatus.exists ? true : false}
 					queryParams={queryParams}
 					onPress={onPress}
 					directorySize={info.item.item.type === "directory" ? directorySize.data : undefined}
@@ -374,7 +375,6 @@ export const ListItem = memo(
 				type="context"
 				item={info.item.item}
 				queryParams={queryParams}
-				isAvailableOffline={isAvailableOffline}
 			>
 				<ListItemComponent
 					{...info}

@@ -4,6 +4,7 @@ import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import useFocusNotifyOnChangeProps from "@/hooks/useFocusNotifyOnChangeProps"
 import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import { DEFAULT_QUERY_OPTIONS } from "./client"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export default function useChatUnreadQuery({
 	refetchOnMount = DEFAULT_QUERY_OPTIONS.refetchOnMount,
@@ -22,13 +23,14 @@ export default function useChatUnreadQuery({
 	enabled?: boolean
 	refetchInterval?: number | false
 }) {
+	const { hasInternet } = useNetInfo()
 	const isFocused = useQueryFocusAware()
 	const notifyOnChangeProps = useFocusNotifyOnChangeProps()
 	const query = useQuery({
 		queryKey: ["useChatUnreadQuery"],
 		queryFn: () => nodeWorker.proxy("chatUnread", undefined),
 		notifyOnChangeProps,
-		enabled: typeof enabled === "boolean" ? enabled : isFocused,
+		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,
 		refetchOnReconnect,
 		refetchOnWindowFocus,

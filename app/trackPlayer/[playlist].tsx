@@ -1,5 +1,10 @@
 import PlaylistComponent from "@/components/trackPlayer/playlist"
+import RequireInternet from "@/components/requireInternet"
 
 export default function Playlist() {
-	return <PlaylistComponent />
+	return (
+		<RequireInternet>
+			<PlaylistComponent />
+		</RequireInternet>
+	)
 }

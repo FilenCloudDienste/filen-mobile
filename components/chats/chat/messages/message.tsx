@@ -30,6 +30,7 @@ import * as Haptics from "expo-haptics"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Message = memo(
 	({
@@ -64,6 +65,7 @@ export const Message = memo(
 		const editMessageUUID = useChatsStore(useShallow(state => state.editMessage[chat.uuid]?.uuid))
 		const setEditMessage = useChatsStore(useShallow(state => state.setEditMessage))
 		const [, setChatInputValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
+		const { hasInternet } = useNetInfo()
 
 		const actionSheetOptions = useMemo(() => {
 			const options =
@@ -189,6 +191,10 @@ export const Message = memo(
 		}, [info.item, setEditMessage, chat.uuid, setReplyToMessage, setChatInputValue])
 
 		const onPress = useCallback(() => {
+			if (!hasInternet) {
+				return
+			}
+
 			showActionSheetWithOptions(
 				{
 					options: actionSheetOptions.options,
@@ -270,7 +276,8 @@ export const Message = memo(
 			deleteMessage,
 			disableEmbeds,
 			reply,
-			edit
+			edit,
+			hasInternet
 		])
 
 		const animateOnEnter = useMemo(() => {
@@ -380,19 +387,27 @@ export const Message = memo(
 		}, [screen.width])
 
 		const onSwipeLeft = useCallback(() => {
+			if (!hasInternet) {
+				return
+			}
+
 			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(console.error)
 
 			onPress()
-		}, [onPress])
+		}, [onPress, hasInternet])
 
 		const onSwipeRight = useCallback(() => {
+			if (!hasInternet) {
+				return
+			}
+
 			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(console.error)
 
 			setReplyToMessage(prev => ({
 				...prev,
 				[chat.uuid]: info.item
 			}))
-		}, [setReplyToMessage, chat.uuid, info.item])
+		}, [setReplyToMessage, chat.uuid, info.item, hasInternet])
 
 		const springConfig = useMemo(() => {
 			return {

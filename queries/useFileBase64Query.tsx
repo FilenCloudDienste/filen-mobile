@@ -3,6 +3,7 @@ import useFocusNotifyOnChangeProps from "@/hooks/useFocusNotifyOnChangeProps"
 import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import axios from "axios"
 import { Buffer } from "buffer"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export type UseFileBase64Query = {
 	item: DriveCloudItem
@@ -25,6 +26,7 @@ export default function useFileBase64Query({
 	gcTime?: number
 	enabled?: boolean
 }) {
+	const { hasInternet } = useNetInfo()
 	const isFocused = useQueryFocusAware()
 	const notifyOnChangeProps = useFocusNotifyOnChangeProps()
 	const query = useQuery({
@@ -42,7 +44,7 @@ export default function useFileBase64Query({
 			return Buffer.from(request.data).toString("base64")
 		},
 		notifyOnChangeProps,
-		enabled: typeof enabled === "boolean" ? enabled : isFocused,
+		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,
 		refetchOnReconnect,
 		refetchOnWindowFocus,

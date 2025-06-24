@@ -15,11 +15,13 @@ import { randomUUID } from "expo-crypto"
 import useNotesQuery from "@/queries/useNotesQuery"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<React.SetStateAction<string>> }) => {
 	const selectedNotesCount = useNotesStore(useShallow(state => state.selectedNotes.length))
 	const { colors } = useColorScheme()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const notesQuery = useNotesQuery({
 		enabled: false
@@ -86,63 +88,69 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 				contentTransparent: true
 			}}
 			leftView={selectedNotesCount > 0 ? () => <Text>{selectedNotesCount} selected</Text> : undefined}
-			rightView={() => (
-				<Fragment>
-					{selectedNotesCount > 0 ? (
-						<DropdownMenu
-							items={[
-								createDropdownItem({
-									actionKey: "settings",
-									title: "Settings"
-								}),
-								createDropdownSubMenu(
-									{
-										title: "Submenu 1",
-										iOSItemSize: "large"
-									},
-									[
-										createDropdownItem({
-											actionKey: "sub-first",
-											title: "Sub Item 1"
-										}),
-										createDropdownItem({
-											actionKey: "sub-second",
-											title: "Sub Item 2"
-										})
-									]
-								)
-							]}
-							onItemPress={item => {
-								console.log(item)
-							}}
-						>
+			rightView={() => {
+				if (!hasInternet) {
+					return undefined
+				}
+
+				return (
+					<Fragment>
+						{selectedNotesCount > 0 ? (
+							<DropdownMenu
+								items={[
+									createDropdownItem({
+										actionKey: "settings",
+										title: "Settings"
+									}),
+									createDropdownSubMenu(
+										{
+											title: "Submenu 1",
+											iOSItemSize: "large"
+										},
+										[
+											createDropdownItem({
+												actionKey: "sub-first",
+												title: "Sub Item 1"
+											}),
+											createDropdownItem({
+												actionKey: "sub-second",
+												title: "Sub Item 2"
+											})
+										]
+									)
+								]}
+								onItemPress={item => {
+									console.log(item)
+								}}
+							>
+								<Button
+									variant="plain"
+									size="icon"
+								>
+									<Icon
+										size={24}
+										namingScheme="sfSymbol"
+										name="ellipsis.circle"
+										color={colors.foreground}
+									/>
+								</Button>
+							</DropdownMenu>
+						) : (
 							<Button
 								variant="plain"
 								size="icon"
+								onPress={createNote}
 							>
 								<Icon
+									name="plus"
 									size={24}
-									namingScheme="sfSymbol"
-									name="ellipsis.circle"
-									color={colors.foreground}
+									color={colors.primary}
 								/>
 							</Button>
-						</DropdownMenu>
-					) : (
-						<Button
-							variant="plain"
-							size="icon"
-							onPress={createNote}
-						>
-							<Icon
-								name="plus"
-								size={24}
-								color={colors.primary}
-							/>
-						</Button>
-					)}
-				</Fragment>
-			)}
+						)}
+					</Fragment>
+				)
+			}}
 		/>
 	)
 })

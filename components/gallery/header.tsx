@@ -1,4 +1,4 @@
-import { memo, useRef, useLayoutEffect, useMemo } from "react"
+import { memo, useRef, useLayoutEffect } from "react"
 import Animated, { FadeInUp, FadeOutUp } from "react-native-reanimated"
 import { Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
@@ -11,7 +11,6 @@ import { BlurView } from "expo-blur"
 import { cn } from "@/lib/cn"
 import useViewLayout from "@/hooks/useViewLayout"
 import Menu from "../drive/list/listItem/menu"
-import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
 import Container from "../Container"
 
 export const Header = memo(
@@ -28,15 +27,6 @@ export const Header = memo(
 		const { colors } = useColorScheme()
 		const viewRef = useRef<Animated.View>(null)
 		const { onLayout, layout } = useViewLayout(viewRef)
-
-		const fileOfflineStatus = useFileOfflineStatusQuery({
-			uuid: item.itemType === "cloudItem" ? item.data.item.uuid : "",
-			enabled: item.itemType === "cloudItem"
-		})
-
-		const isAvailableOffline = useMemo(() => {
-			return item.itemType === "cloudItem" && fileOfflineStatus.status === "success" ? fileOfflineStatus.data.exists : false
-		}, [item.itemType, fileOfflineStatus.status, fileOfflineStatus.data?.exists])
 
 		useLayoutEffect(() => {
 			setHeaderHeight(layout.height)
@@ -73,7 +63,6 @@ export const Header = memo(
 							type="dropdown"
 							item={item.data.item}
 							queryParams={item.data.queryParams}
-							isAvailableOffline={isAvailableOffline}
 							fromPreview={true}
 						>
 							<Button

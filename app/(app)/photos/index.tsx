@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useMemo, useLayoutEffect, useRef, Fragment } from "react"
+import { memo, useState, useCallback, useMemo, useRef, Fragment } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
@@ -26,6 +26,7 @@ import { useShallow } from "zustand/shallow"
 import Menu from "@/components/drive/list/listItem/menu"
 import Transfers from "@/components/drive/header/transfers"
 import useDimensions from "@/hooks/useDimensions"
+import OfflineListHeader from "@/components/offlineListHeader"
 
 export const Photos = memo(() => {
 	const { colors } = useColorScheme()
@@ -107,7 +108,6 @@ export const Photos = memo(() => {
 					item={info.item}
 					queryParams={queryParams}
 					type="context"
-					isAvailableOffline={false}
 					fromPhotos={true}
 				>
 					<TouchableHighlight
@@ -159,10 +159,6 @@ export const Photos = memo(() => {
 		[itemSize, spacing, colors.card, queryParams, items]
 	)
 
-	useLayoutEffect(() => {
-		onLayout()
-	}, [onLayout])
-
 	return (
 		<Fragment>
 			<LargeTitleHeader
@@ -170,6 +166,10 @@ export const Photos = memo(() => {
 				backVisible={false}
 				materialPreset="stack"
 				leftView={() => {
+					if (!hasInternet) {
+						return undefined
+					}
+
 					return (
 						<View className={cn("flex flex-row items-center pl-2", Platform.OS === "ios" && "pl-0")}>
 							{cameraUpload.enabled ? (
@@ -215,52 +215,58 @@ export const Photos = memo(() => {
 						</View>
 					)
 				}}
-				rightView={() => (
-					<View className="flex-row items-center">
-						<Transfers />
-						<DropdownMenu
-							items={[
-								createDropdownItem({
-									actionKey: "settings",
-									title: "Settings",
-									icon:
-										Platform.OS === "ios"
-											? {
-													name: "gearshape",
-													namingScheme: "sfSymbol"
-											  }
-											: {
-													namingScheme: "material",
-													name: "cog-outline"
-											  }
-								})
-							]}
-							onItemPress={item => {
-								switch (item.actionKey) {
-									case "settings": {
-										router.push({
-											pathname: "/photos/settings"
-										})
+				rightView={() => {
+					if (!hasInternet) {
+						return undefined
+					}
 
-										break
+					return (
+						<View className="flex-row items-center">
+							<Transfers />
+							<DropdownMenu
+								items={[
+									createDropdownItem({
+										actionKey: "settings",
+										title: "Settings",
+										icon:
+											Platform.OS === "ios"
+												? {
+														name: "gearshape",
+														namingScheme: "sfSymbol"
+												  }
+												: {
+														namingScheme: "material",
+														name: "cog-outline"
+												  }
+									})
+								]}
+								onItemPress={item => {
+									switch (item.actionKey) {
+										case "settings": {
+											router.push({
+												pathname: "/photos/settings"
+											})
+
+											break
+										}
 									}
-								}
-							}}
-						>
-							<Button
-								variant="plain"
-								size="icon"
-								hitSlop={10}
+								}}
 							>
-								<Icon
-									size={24}
-									name="dots-horizontal-circle-outline"
-									color={colors.primary}
-								/>
-							</Button>
-						</DropdownMenu>
-					</View>
-				)}
+								<Button
+									variant="plain"
+									size="icon"
+									hitSlop={10}
+								>
+									<Icon
+										size={24}
+										name="dots-horizontal-circle-outline"
+										color={colors.primary}
+									/>
+								</Button>
+							</DropdownMenu>
+						</View>
+					)
+				}}
 			/>
 			<Container>
 				<View
@@ -290,13 +296,7 @@ export const Photos = memo(() => {
 						initialNumToRender={Math.round(screen.height / (itemSize + spacing))}
 						updateCellsBatchingPeriod={100}
 						windowSize={3}
-						ListHeaderComponent={
-							!hasInternet ? (
-								<View className="flex-row items-center justify-center bg-red-500 p-2">
-									<Text className="text-lg font-bold">Offline mode</Text>
-								</View>
-							) : undefined
-						}
+						ListHeaderComponent={!hasInternet ? <OfflineListHeader /> : undefined}
 						ListEmptyComponent={
 							<View className="flex-1 items-center justify-center">
 								{query.status === "pending" && (

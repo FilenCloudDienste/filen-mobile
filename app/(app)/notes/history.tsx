@@ -4,6 +4,7 @@ import { type Note, type NoteParticipant } from "@filen/sdk/dist/types/api/v3/no
 import useNotesQuery from "@/queries/useNotesQuery"
 import { validate as validateUUID } from "uuid"
 import HistoryComponent from "@/components/notes/history"
+import RequireInternet from "@/components/requireInternet"
 
 export type ListItemInfo = {
 	title: string
@@ -46,5 +47,9 @@ export default function History() {
 		return <Redirect href="/notes" />
 	}
 
-	return <HistoryComponent note={note} />
+	return (
+		<RequireInternet>
+			<HistoryComponent note={note} />
+		</RequireInternet>
+	)
 }

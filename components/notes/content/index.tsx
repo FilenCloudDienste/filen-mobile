@@ -15,6 +15,7 @@ import queryUtils from "@/queries/utils"
 import { useFocusEffect } from "expo-router"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import { KeyboardAvoidingView } from "react-native-keyboard-controller"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Content = memo(
 	({
@@ -48,6 +49,7 @@ export const Content = memo(
 			timestamp: 0
 		})
 		const [{ userId }] = useSDKConfig()
+		const { hasInternet } = useNetInfo()
 
 		const initialValue = useMemo(() => {
 			if (noteContentQuery.status !== "success") {
@@ -202,7 +204,7 @@ export const Content = memo(
 										markdownPreview={markdownPreview}
 										textForegroundColor={colors.foreground}
 										backgroundColor={colors.background}
-										readOnly={isPreview ? false : !hasWriteAccess}
+										readOnly={isPreview ? false : !hasWriteAccess || !hasInternet}
 										placeholder={note.type === "text" ? "Write something..." : "Write your code..."}
 										onDidType={onDidType}
 										dom={{
@@ -214,7 +216,7 @@ export const Content = memo(
 										key={`${noteContentQueryDataUpdatedAt}`}
 										initialValue={initialValue}
 										onValueChange={() => {}}
-										readOnly={isPreview ? false : !hasWriteAccess}
+										readOnly={isPreview ? false : !hasWriteAccess || !hasInternet}
 										onDidType={onDidType}
 									/>
 								) : (
@@ -223,7 +225,7 @@ export const Content = memo(
 										initialValue={initialValue}
 										onValueChange={() => {}}
 										type={note.type}
-										readOnly={isPreview ? false : !hasWriteAccess}
+										readOnly={isPreview ? false : !hasWriteAccess || !hasInternet}
 										onDidType={onDidType}
 										placeholder="Write something..."
 										darkMode={isDarkColorScheme}

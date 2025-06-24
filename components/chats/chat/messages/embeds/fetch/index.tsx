@@ -14,8 +14,11 @@ import Code from "../containers/code"
 import Outer from "../containers/outer"
 import Fallback from "../containers/fallback"
 import * as FileSystem from "expo-file-system/next"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Fetch = memo(({ link }: { link: string }) => {
+	const { hasInternet } = useNetInfo()
+
 	const query = useQuery({
 		queryKey: ["chatEmbedFetchDataParsed", link],
 		queryFn: () => new WebpageMetadataParser(link).parseWebpageMetadata(),
@@ -24,7 +27,8 @@ export const Fetch = memo(({ link }: { link: string }) => {
 		refetchOnWindowFocus: DEFAULT_QUERY_OPTIONS.refetchOnWindowFocus,
 		staleTime: DEFAULT_QUERY_OPTIONS.staleTime,
 		gcTime: DEFAULT_QUERY_OPTIONS.gcTime,
-		refetchInterval: false
+		refetchInterval: false,
+		enabled: hasInternet
 	})
 
 	const name = useMemo(() => {

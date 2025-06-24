@@ -16,6 +16,7 @@ import nodeWorker from "@/lib/nodeWorker"
 import queryUtils from "@/queries/utils"
 import Container from "@/components/Container"
 import * as ScreenOrientation from "expo-screen-orientation"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Chat = memo(() => {
 	const { uuid } = useLocalSearchParams()
@@ -24,6 +25,7 @@ export const Chat = memo(() => {
 	const [inputHeight, setInputHeight] = useState<number>(0)
 	const isScreenFocusedRef = useRef<boolean>(true)
 	const didRunOnFocusOrExitEnteringRef = useRef<boolean>(false)
+	const { hasInternet } = useNetInfo()
 
 	const chatsQuery = useChatsQuery({
 		enabled: false
@@ -44,7 +46,7 @@ export const Chat = memo(() => {
 	}, [uuid, chatsQuery.status, chatsQuery.data])
 
 	const headerRightView = useCallback(() => {
-		if (!chatParsed) {
+		if (!chatParsed || !hasInternet) {
 			return null
 		}
 
@@ -68,7 +70,7 @@ export const Chat = memo(() => {
 				</Menu>
 			</View>
 		)
-	}, [colors.primary, chatParsed])
+	}, [colors.primary, chatParsed, hasInternet])
 
 	const onFocusOrExit = useCallback(
 		async (type: "entering" | "exiting") => {

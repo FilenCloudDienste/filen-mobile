@@ -47,7 +47,6 @@ export const Grid = memo(
 					type="context"
 					item={item}
 					queryParams={queryParams}
-					isAvailableOffline={isAvailableOffline}
 				>
 					<Button
 						className="flex-1 flex-col items-center justify-center p-2 gap-0 bg-background"

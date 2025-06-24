@@ -12,13 +12,15 @@ import * as FileSystem from "expo-file-system/next"
 import { xxHash32 } from "js-xxhash"
 import { Image } from "expo-image"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Video = memo(({ source, link, name }: { source: string; link: string; name: string }) => {
 	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
+	const { hasInternet } = useNetInfo()
 
 	const query = useQuery({
 		queryKey: ["chatEmbedVideoThumbnail", source, link, name],
-		enabled: source !== null,
+		enabled: source !== null && hasInternet,
 		queryFn: async () => {
 			const destination = new FileSystem.File(
 				FileSystem.Paths.join(
