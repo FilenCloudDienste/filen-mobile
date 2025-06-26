@@ -11,8 +11,27 @@ import { TextField } from "@/components/nativewindui/TextField"
 import Container from "@/components/Container"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
 import RequireInternet from "@/components/requireInternet"
+
+const labels = {
+	email: Platform.select({
+		ios: undefined,
+		default: "Email"
+	}),
+	password: Platform.select({
+		ios: undefined,
+		default: "Password"
+	})
+}
+
+function onSubmitEditing() {
+	KeyboardController.setFocusTo("next")
+}
+
+const keyboardAwareScrollViewBottomOffset = Platform.select({
+	ios: 175,
+	default: 0
+})
 
 export const Login = memo(() => {
 	const insets = useSafeAreaInsets()
@@ -65,47 +84,93 @@ export const Login = memo(() => {
 		authService.forgotPassword()
 	}, [])
 
+	const goBack = useCallback(() => {
+		if (!router.canGoBack()) {
+			return
+		}
+
+		router.back()
+	}, [router])
+
+	const header = useMemo(() => {
+		return Platform.OS === "ios" ? (
+			<Stack.Screen
+				options={{
+					headerShown: true,
+					headerBlurEffect: "systemChromeMaterial",
+					title: "Login",
+					headerShadowVisible: false,
+					headerBackVisible: false,
+					headerLeft() {
+						return (
+							<Button
+								variant="plain"
+								className="ios:px-0"
+								onPress={goBack}
+							>
+								<Text className="text-primary">Cancel</Text>
+							</Button>
+						)
+					}
+				}}
+			/>
+		) : (
+			<LargeTitleHeader
+				backVisible={true}
+				materialPreset="inline"
+				title=""
+			/>
+		)
+	}, [goBack])
+
+	const logoSource = useMemo(() => {
+		return isDarkColorScheme ? require("../../assets/images/logo_light.png") : require("../../assets/images/logo_dark.png")
+	}, [isDarkColorScheme])
+
+	const signUp = useCallback(() => {
+		router.push({
+			pathname: "/(auth)/register"
+		})
+	}, [router])
+
+	const submit = useCallback(() => {
+		if (focusedTextField === "email") {
+			KeyboardController.setFocusTo("next")
+
+			return
+		}
+
+		login()
+	}, [focusedTextField, login])
+
+	const onFocusEmail = useCallback(() => {
+		setFocusedTextField("email")
+	}, [])
+
+	const onFocusPassword = useCallback(() => {
+		setFocusedTextField("password")
+	}, [])
+
+	const onBlur = useCallback(() => {
+		setFocusedTextField(null)
+	}, [])
+
+	const keyboardStickyViewOffset = useMemo(() => {
+		return {
+			closed: 0,
+			opened: Platform.select({
+				ios: insets.bottom + 30,
+				default: insets.bottom
+			})
+		}
+	}, [insets.bottom])
+
 	return (
 		<RequireInternet redirectHref="/(auth)">
-			{Platform.OS === "ios" ? (
-				<Stack.Screen
-					options={{
-						headerShown: true,
-						headerBlurEffect: "systemChromeMaterial",
-						title: "Login",
-						headerShadowVisible: false,
-						headerBackVisible: false,
-						headerLeft() {
-							return (
-								<Button
-									variant="plain"
-									className="ios:px-0"
-									onPress={() => {
-										if (!router.canGoBack()) {
-											return
-										}
-
-										router.back()
-									}}
-								>
-									<Text className="text-primary">Cancel</Text>
-								</Button>
-							)
-						}
-					}}
-				/>
-			) : (
-				<LargeTitleHeader
-					backVisible={true}
-					materialPreset="inline"
-					title=""
-				/>
-			)}
+			{header}
 			<Container className="ios:bg-card flex-1 android:py-8">
 				<KeyboardAwareScrollView
-					bottomOffset={Platform.select({
-						ios: 175
-					})}
+					bottomOffset={keyboardAwareScrollViewBottomOffset}
 					bounces={false}
 					keyboardDismissMode="interactive"
 					keyboardShouldPersistTaps="handled"
@@ -114,11 +179,7 @@ export const Login = memo(() => {
 					<View className="ios:px-12 flex-1 px-8">
 						<View className="items-center pb-1">
 							<Image
-								source={
-									isDarkColorScheme
-										? require("../../assets/images/logo_light.png")
-										: require("../../assets/images/logo_dark.png")
-								}
+								source={logoSource}
 								className="h-14 w-14"
 								resizeMode="contain"
 							/>
@@ -136,17 +197,14 @@ export const Login = memo(() => {
 									<FormItem>
 										<TextField
 											placeholder="Email"
-											label={Platform.select({
-												ios: undefined,
-												default: "Email"
-											})}
-											onSubmitEditing={() => KeyboardController.setFocusTo("next")}
+											label={labels.email}
+											onSubmitEditing={onSubmitEditing}
 											submitBehavior="submit"
 											autoFocus={true}
 											onChangeText={setEmail}
 											value={email}
-											onFocus={() => setFocusedTextField("email")}
-											onBlur={() => setFocusedTextField(null)}
+											onFocus={onFocusEmail}
+											onBlur={onBlur}
 											keyboardType="email-address"
 											textContentType="emailAddress"
 											returnKeyType="next"
@@ -155,12 +213,9 @@ export const Login = memo(() => {
 									<FormItem>
 										<TextField
 											placeholder="Password"
-											label={Platform.select({
-												ios: undefined,
-												default: "Password"
-											})}
-											onFocus={() => setFocusedTextField("password")}
-											onBlur={() => setFocusedTextField(null)}
+											label={labels.password}
+											onFocus={onFocusPassword}
+											onBlur={onBlur}
 											secureTextEntry={true}
 											onChangeText={setPassword}
 											value={password}
@@ -184,15 +239,7 @@ export const Login = memo(() => {
 						</View>
 					</View>
 				</KeyboardAwareScrollView>
-				<KeyboardStickyView
-					offset={{
-						closed: 0,
-						opened: Platform.select({
-							ios: insets.bottom + 30,
-							default: insets.bottom
-						})
-					}}
-				>
+				<KeyboardStickyView offset={keyboardStickyViewOffset}>
 					{Platform.OS === "ios" ? (
 						<View className=" px-12 py-4">
 							<Button
@@ -208,27 +255,13 @@ export const Login = memo(() => {
 							<Button
 								variant="plain"
 								className="px-2"
-								onPress={() => {
-									router.push({
-										pathname: "/(auth)/register"
-									})
-								}}
+								onPress={signUp}
 							>
 								<Text className="text-primary px-0.5 text-sm">Sign up for free</Text>
 							</Button>
 							<Button
 								disabled={disabled}
-								onPress={() => {
-									if (focusedTextField === "email") {
-										KeyboardController.setFocusTo("next")
-
-										return
-									}
-
-									KeyboardController.dismiss()
-
-									login()
-								}}
+								onPress={submit}
 							>
 								<Text className="text-sm">{focusedTextField === "email" ? "Next" : "Submit"}</Text>
 							</Button>
@@ -238,17 +271,12 @@ export const Login = memo(() => {
 				{Platform.OS === "ios" && (
 					<Button
 						variant="plain"
-						onPress={() => {
-							router.push({
-								pathname: "/(auth)/register"
-							})
-						}}
+						onPress={signUp}
 					>
 						<Text className="text-primary text-sm">Sign up for free</Text>
 					</Button>
 				)}
 			</Container>
-			{Platform.OS === "ios" && <FullScreenLoadingModal />}
 		</RequireInternet>
 	)
 })

@@ -14,8 +14,34 @@ import authService from "@/services/auth.service"
 import { cn } from "@/lib/cn"
 import { Icon } from "@roninoss/icons"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
 import RequireInternet from "@/components/requireInternet"
+
+const labels = {
+	email: Platform.select({
+		ios: undefined,
+		default: "Email"
+	}),
+	password: Platform.select({
+		ios: undefined,
+		default: "Password"
+	}),
+	confirmEmail: Platform.select({
+		ios: undefined,
+		default: "Confirm email"
+	}),
+	confirmPassword: Platform.select({
+		ios: undefined,
+		default: "Confirm password"
+	})
+}
+
+function onSubmitEditing() {
+	KeyboardController.setFocusTo("next")
+}
+
+const keyboardAwareScrollViewBottomOffset = Platform.select({
+	ios: 8
+})
 
 export const Register = memo(() => {
 	const insets = useSafeAreaInsets()
@@ -89,47 +115,117 @@ export const Register = memo(() => {
 		authService.resendConfirmation()
 	}, [])
 
+	const goBack = useCallback(() => {
+		if (!router.canGoBack()) {
+			return
+		}
+
+		router.back()
+	}, [router])
+
+	const header = useMemo(() => {
+		return Platform.OS === "ios" ? (
+			<Stack.Screen
+				options={{
+					headerShown: true,
+					headerBlurEffect: "systemChromeMaterial",
+					title: "Sign up",
+					headerShadowVisible: false,
+					headerBackVisible: false,
+					headerLeft() {
+						return (
+							<Button
+								variant="plain"
+								className="ios:px-0"
+								onPress={goBack}
+							>
+								<Text className="text-primary">Cancel</Text>
+							</Button>
+						)
+					}
+				}}
+			/>
+		) : (
+			<LargeTitleHeader
+				backVisible={true}
+				materialPreset="inline"
+				title=""
+			/>
+		)
+	}, [goBack])
+
+	const emailOnFocus = useCallback(() => {
+		setFocusedTextField("email")
+	}, [])
+
+	const onBlur = useCallback(() => {
+		setFocusedTextField(null)
+	}, [])
+
+	const passwordOnFocus = useCallback(() => {
+		setFocusedTextField("password")
+	}, [])
+
+	const confirmPasswordOnFocus = useCallback(() => {
+		setFocusedTextField("confirmPassword")
+	}, [])
+
+	const confirmEmailOnFocus = useCallback(() => {
+		setFocusedTextField("confirmEmail")
+	}, [])
+
+	const keyboardStickyViewOffset = useMemo(() => {
+		return {
+			closed: 0,
+			opened: Platform.select({
+				ios: insets.bottom + 30,
+				default: insets.bottom
+			})
+		}
+	}, [insets.bottom])
+
+	const passwordStrengthIndicator = useMemo(() => {
+		return new Array(4).fill(0).map((_, index) => {
+			return (
+				<View
+					key={index}
+					className={cn(
+						"h-1 flex-1",
+						passwordStrength.strength === "weak" && index === 0
+							? "bg-red-500"
+							: passwordStrength.strength === "normal" && index <= 1
+								? "bg-yellow-500"
+								: passwordStrength.strength === "strong" && index <= 2
+									? "bg-blue-500"
+									: passwordStrength.strength === "best" && index <= 3
+										? "bg-green-500"
+										: "bg-gray-500"
+					)}
+				/>
+			)
+		})
+	}, [passwordStrength.strength])
+
+	const submit = useCallback(() => {
+		if (focusedTextField !== "confirmPassword") {
+			KeyboardController.setFocusTo("next")
+
+			return
+		}
+
+		register()
+	}, [focusedTextField, register])
+
+	const logoSource = useMemo(() => {
+		return isDarkColorScheme ? require("../../assets/images/logo_light.png") : require("../../assets/images/logo_dark.png")
+	}, [isDarkColorScheme])
+
 	return (
 		<RequireInternet redirectHref="/(auth)">
-			{Platform.OS === "ios" ? (
-				<Stack.Screen
-					options={{
-						headerShown: true,
-						headerBlurEffect: "systemChromeMaterial",
-						title: "Sign up",
-						headerShadowVisible: false,
-						headerBackVisible: false,
-						headerLeft() {
-							return (
-								<Button
-									variant="plain"
-									className="ios:px-0"
-									onPress={() => {
-										if (!router.canGoBack()) {
-											return
-										}
-
-										router.back()
-									}}
-								>
-									<Text className="text-primary">Cancel</Text>
-								</Button>
-							)
-						}
-					}}
-				/>
-			) : (
-				<LargeTitleHeader
-					backVisible={true}
-					materialPreset="inline"
-					title=""
-				/>
-			)}
+			{header}
 			<Container className="ios:bg-card flex-1 android:py-8">
 				<KeyboardAwareScrollView
-					bottomOffset={Platform.select({
-						ios: 8
-					})}
+					bottomOffset={keyboardAwareScrollViewBottomOffset}
 					bounces={false}
 					keyboardDismissMode="interactive"
 					keyboardShouldPersistTaps="handled"
@@ -138,11 +234,7 @@ export const Register = memo(() => {
 					<View className="ios:px-12 flex-1 px-8">
 						<View className="items-center pb-1">
 							<Image
-								source={
-									isDarkColorScheme
-										? require("../../assets/images/logo_light.png")
-										: require("../../assets/images/logo_dark.png")
-								}
+								source={logoSource}
 								className="h-14 w-14"
 								resizeMode="contain"
 							/>
@@ -160,15 +252,12 @@ export const Register = memo(() => {
 									<FormItem>
 										<TextField
 											placeholder="Email"
-											label={Platform.select({
-												ios: undefined,
-												default: "Email"
-											})}
-											onSubmitEditing={() => KeyboardController.setFocusTo("next")}
+											label={labels.email}
+											onSubmitEditing={onSubmitEditing}
 											submitBehavior="submit"
 											autoFocus={true}
-											onFocus={() => setFocusedTextField("email")}
-											onBlur={() => setFocusedTextField(null)}
+											onFocus={emailOnFocus}
+											onBlur={onBlur}
 											keyboardType="email-address"
 											textContentType="emailAddress"
 											returnKeyType="next"
@@ -179,14 +268,11 @@ export const Register = memo(() => {
 									<FormItem>
 										<TextField
 											placeholder="Confirm email"
-											label={Platform.select({
-												ios: undefined,
-												default: "Confirm email"
-											})}
-											onSubmitEditing={() => KeyboardController.setFocusTo("next")}
+											label={labels.confirmEmail}
+											onSubmitEditing={onSubmitEditing}
 											submitBehavior="submit"
-											onFocus={() => setFocusedTextField("confirmEmail")}
-											onBlur={() => setFocusedTextField(null)}
+											onFocus={confirmEmailOnFocus}
+											onBlur={onBlur}
 											keyboardType="email-address"
 											textContentType="emailAddress"
 											returnKeyType="next"
@@ -197,13 +283,10 @@ export const Register = memo(() => {
 									<FormItem>
 										<TextField
 											placeholder="Password"
-											label={Platform.select({
-												ios: undefined,
-												default: "Password"
-											})}
-											onSubmitEditing={() => KeyboardController.setFocusTo("next")}
-											onFocus={() => setFocusedTextField("password")}
-											onBlur={() => setFocusedTextField(null)}
+											label={labels.password}
+											onSubmitEditing={onSubmitEditing}
+											onFocus={passwordOnFocus}
+											onBlur={onBlur}
 											submitBehavior="submit"
 											secureTextEntry={true}
 											returnKeyType="next"
@@ -215,13 +298,10 @@ export const Register = memo(() => {
 									<FormItem>
 										<TextField
 											placeholder="Confirm password"
-											label={Platform.select({
-												ios: undefined,
-												default: "Confirm password"
-											})}
-											onFocus={() => setFocusedTextField("confirmPassword")}
-											onBlur={() => setFocusedTextField(null)}
-											onSubmitEditing={() => router.replace("/")}
+											label={labels.confirmPassword}
+											onFocus={confirmPasswordOnFocus}
+											onBlur={onBlur}
+											onSubmitEditing={register}
 											secureTextEntry={true}
 											returnKeyType="done"
 											textContentType="newPassword"
@@ -233,27 +313,7 @@ export const Register = memo(() => {
 							</Form>
 							{password.length > 0 && (
 								<View className="flex-1 flex-col py-4 gap-4 pt-6">
-									<View className="flex-1 flex-row items-center gap-1">
-										{new Array(4).fill(0).map((_, index) => {
-											return (
-												<View
-													key={index}
-													className={cn(
-														"h-1 flex-1",
-														passwordStrength.strength === "weak" && index === 0
-															? "bg-red-500"
-															: passwordStrength.strength === "normal" && index <= 1
-															? "bg-yellow-500"
-															: passwordStrength.strength === "strong" && index <= 2
-															? "bg-blue-500"
-															: passwordStrength.strength === "best" && index <= 3
-															? "bg-green-500"
-															: "bg-gray-500"
-													)}
-												/>
-											)
-										})}
-									</View>
+									<View className="flex-1 flex-row items-center gap-1">{passwordStrengthIndicator}</View>
 									<View className="flex-1 flex-col gap-2">
 										<View className="flex-1 flex-row items-center gap-2">
 											{passwordStrength.length ? (
@@ -326,13 +386,7 @@ export const Register = memo(() => {
 					</View>
 				</KeyboardAwareScrollView>
 				<KeyboardStickyView
-					offset={{
-						closed: 0,
-						opened: Platform.select({
-							ios: insets.bottom + 30,
-							default: insets.bottom
-						})
-					}}
+					offset={keyboardStickyViewOffset}
 					className="ios:bg-card bg-background"
 				>
 					{Platform.OS === "ios" ? (
@@ -340,9 +394,7 @@ export const Register = memo(() => {
 							<Button
 								size="lg"
 								disabled={disabled}
-								onPress={() => {
-									router.replace("/")
-								}}
+								onPress={register}
 							>
 								<Text>Create account</Text>
 							</Button>
@@ -358,17 +410,7 @@ export const Register = memo(() => {
 							</Button>
 							<Button
 								disabled={disabled}
-								onPress={() => {
-									if (focusedTextField !== "confirmPassword") {
-										KeyboardController.setFocusTo("next")
-
-										return
-									}
-
-									KeyboardController.dismiss()
-
-									register()
-								}}
+								onPress={submit}
 							>
 								<Text className="text-sm">{focusedTextField !== "confirmPassword" ? "Next" : "Create account"}</Text>
 							</Button>
@@ -384,7 +426,6 @@ export const Register = memo(() => {
 					</Button>
 				)}
 			</Container>
-			{Platform.OS === "ios" && <FullScreenLoadingModal />}
 		</RequireInternet>
 	)
 })
