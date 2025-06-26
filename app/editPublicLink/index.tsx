@@ -23,30 +23,34 @@ export default function EditPublicLink() {
 		}
 	}, [item])
 
+	const header = useMemo(() => {
+		return Platform.OS === "ios" ? (
+			<AdaptiveSearchHeader
+				iosBackButtonTitle="Cancel"
+				iosBackButtonTitleVisible={true}
+				iosBlurEffect="systemChromeMaterial"
+				iosTitle="Public link"
+				iosIsLargeTitle={false}
+				iosBackButtonMenuEnabled={false}
+				backVisible={true}
+				iosBackVisible={true}
+				backgroundColor={colors.card}
+			/>
+		) : (
+			<LargeTitleHeader
+				title="Public link"
+				backVisible={true}
+			/>
+		)
+	}, [colors.card])
+
 	if (!itemParsed) {
 		return <Redirect href="/(app)/home" />
 	}
 
 	return (
 		<RequireInternet>
-			{Platform.OS === "ios" ? (
-				<AdaptiveSearchHeader
-					iosBackButtonTitle="Cancel"
-					iosBackButtonTitleVisible={true}
-					iosBlurEffect="systemChromeMaterial"
-					iosTitle="Public link"
-					iosIsLargeTitle={false}
-					iosBackButtonMenuEnabled={false}
-					backVisible={true}
-					iosBackVisible={true}
-					backgroundColor={colors.card}
-				/>
-			) : (
-				<LargeTitleHeader
-					title="Public link"
-					backVisible={true}
-				/>
-			)}
+			{header}
 			<Content item={itemParsed} />
 		</RequireInternet>
 	)

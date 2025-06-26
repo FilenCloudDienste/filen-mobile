@@ -5,6 +5,18 @@ import { View, ActivityIndicator } from "react-native"
 import Container from "../Container"
 import { type DOCXPreviewItem } from "@/app/docxPreview"
 import useHTTPServer from "@/hooks/useHTTPServer"
+import { type DOMProps } from "expo/dom"
+
+const dom: DOMProps = {
+	contentInsetAdjustmentBehavior: "automatic",
+	overScrollMode: "content",
+	bounces: false,
+	style: {
+		width: "100%",
+		height: "100%",
+		flex: 1
+	}
+}
 
 export const Preview = memo(({ item }: { item: DOCXPreviewItem }) => {
 	const httpServer = useHTTPServer()
@@ -40,27 +52,18 @@ export const Preview = memo(({ item }: { item: DOCXPreviewItem }) => {
 		enabled: uri.length > 0
 	})
 
-	if (!query.isSuccess) {
+	if (query.status !== "success") {
 		return null
 	}
 
 	return (
 		<View className="flex-1 bg-white">
 			<Container className="bg-white">
-				{query.isSuccess ? (
+				{query.status === "success" ? (
 					<View className="flex-1 bg-white">
 						<DOMComponent
 							base64={query.data}
-							dom={{
-								contentInsetAdjustmentBehavior: "automatic",
-								overScrollMode: "content",
-								bounces: false,
-								style: {
-									width: "100%",
-									height: "100%",
-									flex: 1
-								}
-							}}
+							dom={dom}
 						/>
 					</View>
 				) : (
