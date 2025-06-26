@@ -19,8 +19,8 @@ import mmkvInstance from "@/lib/mmkv"
 import Grid from "./grid"
 import { useShallow } from "zustand/shallow"
 import { type TextEditorItem } from "@/components/textEditor/editor"
-import { type PDFPreviewItem } from "@/components/pdfPreview"
-import { type DOCXPreviewItem } from "@/components/docxPreview"
+import { type PDFPreviewItem } from "@/app/pdfPreview"
+import { type DOCXPreviewItem } from "@/app/docxPreview"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import cache from "@/lib/cache"
@@ -198,12 +198,12 @@ export const ListItem = memo(
 					pathname: pathname.startsWith("/home/links")
 						? "/home/links/[uuid]"
 						: pathname.startsWith("/home/sharedOut")
-						? "/home/sharedOut/[uuid]"
-						: pathname.startsWith("/home/sharedIn")
-						? "/home/sharedIn/[uuid]"
-						: pathname.startsWith("/home/offline")
-						? "/home/offline/[uuid]"
-						: "/drive/[uuid]",
+							? "/home/sharedOut/[uuid]"
+							: pathname.startsWith("/home/sharedIn")
+								? "/home/sharedIn/[uuid]"
+								: pathname.startsWith("/home/offline")
+									? "/home/offline/[uuid]"
+									: "/drive/[uuid]",
 					params: {
 						uuid: info.item.item.uuid,
 						...(info.item.item.isShared
@@ -213,7 +213,7 @@ export const ListItem = memo(
 									receivers: JSON.stringify(info.item.item.receivers),
 									sharerId: info.item.item.sharerId,
 									sharerEmail: info.item.item.sharerEmail
-							  }
+								}
 							: {})
 					}
 				})
@@ -261,7 +261,7 @@ export const ListItem = memo(
 											item,
 											queryParams
 										}
-								  }
+									}
 								: null
 						})
 						.filter(item => item !== null)

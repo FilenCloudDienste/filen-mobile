@@ -3,7 +3,7 @@ import { ActivityIndicator, View } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Container from "../Container"
 import PDF from "react-native-pdf"
-import { type PDFPreviewItem } from "."
+import { type PDFPreviewItem } from "@/app/pdfPreview"
 import useHTTPServer from "@/hooks/useHTTPServer"
 
 export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {

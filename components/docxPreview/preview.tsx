@@ -3,7 +3,7 @@ import DOMComponent from "./dom"
 import useFileBase64Query from "@/queries/useFileBase64Query"
 import { View, ActivityIndicator } from "react-native"
 import Container from "../Container"
-import { type DOCXPreviewItem } from "."
+import { type DOCXPreviewItem } from "@/app/docxPreview"
 import useHTTPServer from "@/hooks/useHTTPServer"
 
 export const Preview = memo(({ item }: { item: DOCXPreviewItem }) => {

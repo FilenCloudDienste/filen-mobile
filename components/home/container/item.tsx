@@ -15,8 +15,8 @@ import Thumbnail from "@/components/thumbnail/item"
 import Menu from "@/components/drive/list/listItem/menu"
 import { ListItem } from "@/components/nativewindui/List"
 import { type TextEditorItem } from "@/components/textEditor/editor"
-import { type PDFPreviewItem } from "@/components/pdfPreview"
-import { type DOCXPreviewItem } from "@/components/docxPreview"
+import { type PDFPreviewItem } from "@/app/pdfPreview"
+import { type DOCXPreviewItem } from "@/app/docxPreview"
 
 export const ICON_HEIGHT: number = 44
 
@@ -142,7 +142,7 @@ export const Item = memo(
 											item,
 											queryParams
 										}
-								  }
+									}
 								: null
 						})
 						.filter(item => item !== null)
@@ -199,7 +199,7 @@ export const Item = memo(
 					item={{
 						title: item.name,
 						subTitle: `${simpleDate(item.lastModified)} - ${formatBytes(
-							item.type === "directory" ? directorySize.data?.size ?? 0 : item.size
+							item.type === "directory" ? (directorySize.data?.size ?? 0) : item.size
 						)}`
 					}}
 					separators={{

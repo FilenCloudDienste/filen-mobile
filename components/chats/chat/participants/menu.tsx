@@ -45,12 +45,12 @@ export const Menu = memo(
 										namingScheme: "sfSymbol",
 										name: "delete.left",
 										color: colors.destructive
-								  }
+									}
 								: {
 										namingScheme: "material",
 										name: "delete-off-outline",
 										color: colors.destructive
-								  }
+									}
 					})
 				)
 			}
@@ -83,7 +83,7 @@ export const Menu = memo(
 								? {
 										...c,
 										participants: c.participants.filter(p => p.userId !== participant.userId)
-								  }
+									}
 								: c
 						)
 				})
