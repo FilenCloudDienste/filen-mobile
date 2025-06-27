@@ -28,6 +28,85 @@ import Transfers from "@/components/drive/header/transfers"
 import useDimensions from "@/hooks/useDimensions"
 import OfflineListHeader from "@/components/offlineListHeader"
 
+const contentContainerStyle = {
+	paddingBottom: 100,
+	paddingHorizontal: 0,
+	paddingVertical: 0
+}
+
+export const Photo = memo(
+	({
+		info,
+		queryParams,
+		items,
+		itemSize,
+		spacing
+	}: {
+		info: ListRenderItemInfo<DriveCloudItem>
+		queryParams: FetchCloudItemsParams
+		items: DriveCloudItem[]
+		itemSize: number
+		spacing: number
+	}) => {
+		const { colors } = useColorScheme()
+
+		return (
+			<Menu
+				item={info.item}
+				queryParams={queryParams}
+				type="context"
+				fromPhotos={true}
+			>
+				<TouchableHighlight
+					onPress={() => {
+						useGalleryStore.getState().setItems(
+							items
+								.map(item => {
+									const previewType = getPreviewType(item.name)
+
+									return item.size > 0
+										? {
+												itemType: "cloudItem" as const,
+												previewType,
+												data: {
+													item,
+													queryParams
+												}
+										  }
+										: null
+								})
+								.filter(item => item !== null)
+						)
+
+						useGalleryStore.getState().setInitialUUID(info.item.uuid)
+						useGalleryStore.getState().setVisible(true)
+					}}
+				>
+					<Thumbnail
+						item={info.item}
+						size={itemSize}
+						imageClassName="bg-card"
+						imageContentFit="cover"
+						imageCachePolicy="none"
+						imageStyle={{
+							width: itemSize,
+							height: itemSize,
+							marginRight: spacing,
+							marginBottom: spacing,
+							backgroundColor: colors.card
+						}}
+						spacing={spacing}
+						type="photos"
+						queryParams={queryParams}
+					/>
+				</TouchableHighlight>
+			</Menu>
+		)
+	}
+)
+
+Photo.displayName = "Photo"
+
 export const Photos = memo(() => {
 	const { colors } = useColorScheme()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
@@ -58,7 +137,7 @@ export const Photos = memo(() => {
 	})
 
 	const items = useMemo((): DriveCloudItem[] => {
-		if (!query.isSuccess || !cameraUpload.remote || !validateUUID(cameraUpload.remote.uuid)) {
+		if (query.status !== "success" || !cameraUpload.remote || !validateUUID(cameraUpload.remote.uuid)) {
 			return []
 		}
 
@@ -83,7 +162,7 @@ export const Photos = memo(() => {
 			}),
 			type: "uploadDateDesc"
 		})
-	}, [query.isSuccess, query.data, cameraUpload.remote])
+	}, [query.status, query.data, cameraUpload.remote])
 
 	const { itemSize, numColumns, spacing } = useMemo(() => {
 		const numColumns = 5
@@ -104,60 +183,204 @@ export const Photos = memo(() => {
 	const renderItem = useCallback(
 		(info: ListRenderItemInfo<DriveCloudItem>) => {
 			return (
-				<Menu
-					item={info.item}
+				<Photo
+					info={info}
 					queryParams={queryParams}
-					type="context"
-					fromPhotos={true}
-				>
-					<TouchableHighlight
-						onPress={() => {
-							useGalleryStore.getState().setItems(
-								items
-									.map(item => {
-										const previewType = getPreviewType(item.name)
-
-										return item.size > 0
-											? {
-													itemType: "cloudItem" as const,
-													previewType,
-													data: {
-														item,
-														queryParams
-													}
-											  }
-											: null
-									})
-									.filter(item => item !== null)
-							)
-
-							useGalleryStore.getState().setInitialUUID(info.item.uuid)
-							useGalleryStore.getState().setVisible(true)
-						}}
-					>
-						<Thumbnail
-							item={info.item}
-							size={itemSize}
-							imageClassName="bg-card"
-							imageContentFit="cover"
-							imageCachePolicy="none"
-							imageStyle={{
-								width: itemSize,
-								height: itemSize,
-								marginRight: spacing,
-								marginBottom: spacing,
-								backgroundColor: colors.card
-							}}
-							spacing={spacing}
-							type="photos"
-							queryParams={queryParams}
-						/>
-					</TouchableHighlight>
-				</Menu>
+					items={items}
+					itemSize={itemSize}
+					spacing={spacing}
+				/>
 			)
 		},
-		[itemSize, spacing, colors.card, queryParams, items]
+		[itemSize, spacing, queryParams, items]
 	)
+
+	const headerLeftView = useCallback(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
+		return (
+			<View className={cn("flex flex-row items-center pl-2", Platform.OS === "ios" && "pl-0")}>
+				{cameraUpload.enabled ? (
+					<Fragment>
+						{syncState.count === 0 ? (
+							<View className="flex-row items-center gap-2">
+								<Icon
+									name="check-circle-outline"
+									color={colors.primary}
+									size={24}
+								/>
+								<Text>Synced</Text>
+							</View>
+						) : (
+							<View className="flex-row items-center gap-2">
+								<ActivityIndicator
+									size="small"
+									color={colors.foreground}
+								/>
+								<Text>
+									{syncState.done} of {syncState.count} items synced
+								</Text>
+							</View>
+						)}
+					</Fragment>
+				) : (
+					<Button
+						variant="plain"
+						size="icon"
+						onPress={() => {
+							router.push({
+								pathname: "/photos/settings"
+							})
+						}}
+					>
+						<Icon
+							name="stop-circle-outline"
+							color={colors.destructive}
+							size={24}
+						/>
+					</Button>
+				)}
+			</View>
+		)
+	}, [cameraUpload.enabled, colors.destructive, colors.primary, colors.foreground, router, syncState.count, syncState.done, hasInternet])
+
+	const headerRightView = useCallback(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
+		return (
+			<View className="flex-row items-center">
+				<Transfers />
+				<DropdownMenu
+					items={[
+						createDropdownItem({
+							actionKey: "settings",
+							title: "Settings",
+							icon:
+								Platform.OS === "ios"
+									? {
+											name: "gearshape",
+											namingScheme: "sfSymbol"
+									  }
+									: {
+											namingScheme: "material",
+											name: "cog-outline"
+									  }
+						})
+					]}
+					onItemPress={item => {
+						switch (item.actionKey) {
+							case "settings": {
+								router.push({
+									pathname: "/photos/settings"
+								})
+
+								break
+							}
+						}
+					}}
+				>
+					<Button
+						variant="plain"
+						size="icon"
+						hitSlop={10}
+					>
+						<Icon
+							size={24}
+							name="dots-horizontal-circle-outline"
+							color={colors.primary}
+						/>
+					</Button>
+				</DropdownMenu>
+			</View>
+		)
+	}, [colors.primary, hasInternet, router])
+
+	const refreshControl = useMemo(() => {
+		return (
+			<RefreshControl
+				refreshing={refreshing}
+				onRefresh={async () => {
+					setRefreshing(true)
+
+					foregroundCameraUpload.run().catch(console.error)
+
+					await query.refetch().catch(console.error)
+
+					setRefreshing(false)
+				}}
+			/>
+		)
+	}, [refreshing, query])
+
+	const listEmpty = useMemo(() => {
+		return (
+			<View className="flex-1 items-center justify-center">
+				{query.status === "pending" && (
+					<Fragment>
+						{queryEnabled ? (
+							<ActivityIndicator color={colors.foreground} />
+						) : (
+							<Text
+								variant="title3"
+								className="text-muted-foreground text-center"
+							>
+								Setup first
+							</Text>
+						)}
+					</Fragment>
+				)}
+				{query.status === "error" && (
+					<Text
+						variant="title3"
+						className="text-muted-foreground text-center"
+					>
+						{query.error.message}
+					</Text>
+				)}
+				{query.status === "success" && (
+					<Text
+						variant="title3"
+						className="text-muted-foreground text-center"
+					>
+						No items found
+					</Text>
+				)}
+			</View>
+		)
+	}, [query.status, query.error, colors.foreground, queryEnabled])
+
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / (itemSize + spacing)),
+			maxToRenderPerBatch: Math.round(screen.height / (itemSize + spacing) / 2)
+		}
+	}, [screen.height, itemSize, spacing])
+
+	const getItemLayout = useCallback(
+		(_: ArrayLike<DriveCloudItem> | null | undefined, index: number) => {
+			return {
+				length: itemSize + spacing,
+				offset: (itemSize + spacing) * index,
+				index
+			}
+		},
+		[itemSize, spacing]
+	)
+
+	const listHeader = useMemo(() => {
+		return !hasInternet ? <OfflineListHeader /> : undefined
+	}, [hasInternet])
+
+	const extraData = useMemo(() => {
+		return {
+			numColumns,
+			itemSize
+		}
+	}, [numColumns, itemSize])
 
 	return (
 		<Fragment>
@@ -165,108 +388,8 @@ export const Photos = memo(() => {
 				title="Photos"
 				backVisible={false}
 				materialPreset="stack"
-				leftView={() => {
-					if (!hasInternet) {
-						return undefined
-					}
-
-					return (
-						<View className={cn("flex flex-row items-center pl-2", Platform.OS === "ios" && "pl-0")}>
-							{cameraUpload.enabled ? (
-								<Fragment>
-									{syncState.count === 0 ? (
-										<View className="flex-row items-center gap-2">
-											<Icon
-												name="check-circle-outline"
-												color={colors.primary}
-												size={24}
-											/>
-											<Text>Synced</Text>
-										</View>
-									) : (
-										<View className="flex-row items-center gap-2">
-											<ActivityIndicator
-												size="small"
-												color={colors.foreground}
-											/>
-											<Text>
-												{syncState.done} of {syncState.count} items synced
-											</Text>
-										</View>
-									)}
-								</Fragment>
-							) : (
-								<Button
-									variant="plain"
-									size="icon"
-									onPress={() => {
-										router.push({
-											pathname: "/photos/settings"
-										})
-									}}
-								>
-									<Icon
-										name="stop-circle-outline"
-										color={colors.destructive}
-										size={24}
-									/>
-								</Button>
-							)}
-						</View>
-					)
-				}}
-				rightView={() => {
-					if (!hasInternet) {
-						return undefined
-					}
-
-					return (
-						<View className="flex-row items-center">
-							<Transfers />
-							<DropdownMenu
-								items={[
-									createDropdownItem({
-										actionKey: "settings",
-										title: "Settings",
-										icon:
-											Platform.OS === "ios"
-												? {
-														name: "gearshape",
-														namingScheme: "sfSymbol"
-												  }
-												: {
-														namingScheme: "material",
-														name: "cog-outline"
-												  }
-									})
-								]}
-								onItemPress={item => {
-									switch (item.actionKey) {
-										case "settings": {
-											router.push({
-												pathname: "/photos/settings"
-											})
-
-											break
-										}
-									}
-								}}
-							>
-								<Button
-									variant="plain"
-									size="icon"
-									hitSlop={10}
-								>
-									<Icon
-										size={24}
-										name="dots-horizontal-circle-outline"
-										color={colors.primary}
-									/>
-								</Button>
-							</DropdownMenu>
-						</View>
-					)
-				}}
+				leftView={headerLeftView}
+				rightView={headerRightView}
 			/>
 			<Container>
 				<View
@@ -282,73 +405,17 @@ export const Photos = memo(() => {
 						contentInsetAdjustmentBehavior="automatic"
 						showsVerticalScrollIndicator={true}
 						showsHorizontalScrollIndicator={false}
-						extraData={{
-							numColumns,
-							itemSize
-						}}
-						getItemLayout={(_, index) => ({
-							length: itemSize + spacing,
-							offset: (itemSize + spacing) * index,
-							index
-						})}
+						extraData={extraData}
+						getItemLayout={getItemLayout}
 						removeClippedSubviews={true}
-						maxToRenderPerBatch={Math.round(screen.height / (itemSize + spacing) / 2)}
-						initialNumToRender={Math.round(screen.height / (itemSize + spacing))}
+						maxToRenderPerBatch={maxToRenderPerBatch}
+						initialNumToRender={initialNumToRender}
 						updateCellsBatchingPeriod={100}
 						windowSize={3}
-						ListHeaderComponent={!hasInternet ? <OfflineListHeader /> : undefined}
-						ListEmptyComponent={
-							<View className="flex-1 items-center justify-center">
-								{query.status === "pending" && (
-									<Fragment>
-										{queryEnabled ? (
-											<ActivityIndicator color={colors.foreground} />
-										) : (
-											<Text
-												variant="title3"
-												className="text-muted-foreground text-center"
-											>
-												Setup first
-											</Text>
-										)}
-									</Fragment>
-								)}
-								{query.status === "error" && (
-									<Text
-										variant="title3"
-										className="text-muted-foreground text-center"
-									>
-										{query.error.message}
-									</Text>
-								)}
-								{query.status === "success" && (
-									<Text
-										variant="title3"
-										className="text-muted-foreground text-center"
-									>
-										No items found
-									</Text>
-								)}
-							</View>
-						}
-						contentContainerStyle={{
-							paddingBottom: 100,
-							paddingHorizontal: 0,
-							paddingVertical: 0
-						}}
-						refreshControl={
-							<RefreshControl
-								refreshing={refreshing}
-								onRefresh={async () => {
-									setRefreshing(true)
-
-									foregroundCameraUpload.run().catch(console.error)
-									await query.refetch().catch(console.error)
-
-									setRefreshing(false)
-								}}
-							/>
-						}
+						ListHeaderComponent={listHeader}
+						ListEmptyComponent={listEmpty}
+						contentContainerStyle={contentContainerStyle}
+						refreshControl={refreshControl}
 					/>
 				</View>
 			</Container>

@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { Settings as SettingsComponent } from "@/components/settings"
 import useAccountQuery from "@/queries/useAccountQuery"
 import { useRouter } from "expo-router"
@@ -172,28 +172,32 @@ export const Security = memo(() => {
 		})
 	}, [router])
 
+	const items = useMemo(() => {
+		return [
+			{
+				id: "0",
+				title: "Change password",
+				onPress: changePassword
+			},
+			{
+				id: "1",
+				title: "Two Factor Authentication",
+				onPress: openTwoFactorAuthentication
+			},
+			{
+				id: "2",
+				title: "Biometric Authentication",
+				onPress: openBiometric
+			}
+		]
+	}, [changePassword, openBiometric, openTwoFactorAuthentication])
+
 	return (
 		<SettingsComponent
 			title="Security"
 			showSearchBar={false}
 			loading={account.status !== "success"}
-			items={[
-				{
-					id: "0",
-					title: "Change password",
-					onPress: changePassword
-				},
-				{
-					id: "1",
-					title: "Two Factor Authentication",
-					onPress: openTwoFactorAuthentication
-				},
-				{
-					id: "2",
-					title: "Biometric Authentication",
-					onPress: openBiometric
-				}
-			]}
+			items={items}
 		/>
 	)
 })

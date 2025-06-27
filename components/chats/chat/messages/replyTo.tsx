@@ -1,14 +1,19 @@
-import { memo, useMemo } from "react"
+import { memo, useMemo, useCallback } from "react"
 import { Text } from "@/components/nativewindui/Text"
 import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { contactName } from "@/lib/utils"
-import { View, ScrollView } from "react-native"
+import { View, ScrollView, type GestureResponderEvent } from "react-native"
 import Avatar from "@/components/avatar"
 import { ReplacedMessageContentInline } from "./replace"
 import Ionicons from "@expo/vector-icons/Ionicons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Button } from "@/components/nativewindui/Button"
+
+const avatarStyle = {
+	width: 14,
+	height: 14
+}
 
 export const ReplyTo = memo(({ message, chat }: { message: ChatMessage; chat: ChatConversation }) => {
 	const { colors } = useColorScheme()
@@ -21,6 +26,28 @@ export const ReplyTo = memo(({ message, chat }: { message: ChatMessage; chat: Ch
 		return chat.participants.find(p => p.userId === message.replyTo.senderId) ?? null
 	}, [message.replyTo, chat.participants])
 
+	const onPress = useCallback((e: GestureResponderEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+	}, [])
+
+	const avatarSource = useMemo(() => {
+		return participant?.avatar?.startsWith("https")
+			? {
+					uri: participant.avatar
+			  }
+			: {
+					uri: "avatar_fallback"
+			  }
+	}, [participant?.avatar])
+
+	const messageAdjusted = useMemo(() => {
+		return {
+			...message,
+			message: message.replyTo.message
+		}
+	}, [message])
+
 	if (!participant) {
 		return null
 	}
@@ -32,10 +59,7 @@ export const ReplyTo = memo(({ message, chat }: { message: ChatMessage; chat: Ch
 				size="none"
 				className="gap-1 pl-4 active:opacity-70"
 				android_ripple={null}
-				onPress={e => {
-					e.preventDefault()
-					e.stopPropagation()
-				}}
+				onPress={onPress}
 			>
 				<Ionicons
 					name="return-up-forward-outline"
@@ -44,13 +68,8 @@ export const ReplyTo = memo(({ message, chat }: { message: ChatMessage; chat: Ch
 					className="shrink-0 pr-1"
 				/>
 				<Avatar
-					source={{
-						uri: participant.avatar?.startsWith("https") ? participant.avatar : "avatar_fallback"
-					}}
-					style={{
-						width: 14,
-						height: 14
-					}}
+					source={avatarSource}
+					style={avatarStyle}
 					className="shrink-0"
 				/>
 				<Text
@@ -67,10 +86,7 @@ export const ReplyTo = memo(({ message, chat }: { message: ChatMessage; chat: Ch
 				>
 					<ReplacedMessageContentInline
 						chat={chat}
-						message={{
-							...message,
-							message: message.replyTo.message
-						}}
+						message={messageAdjusted}
 						textClassName="text-xs font-normal text-muted-foreground"
 					/>
 				</ScrollView>

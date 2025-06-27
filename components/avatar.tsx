@@ -27,17 +27,23 @@ export const Avatar = memo(({ source, style, className }: { source: ImageSource;
 		} satisfies ImageStyle
 	}, [style])
 
+	const avatarSource = useMemo(() => {
+		return fallback || !source || typeof source.uri !== "string"
+			? {
+					uri: "avatar_fallback"
+			  }
+			: source
+	}, [fallback, source])
+
+	const onErrorHandler = useMemo(() => {
+		return fallback ? undefined : onError
+	}, [fallback, onError])
+
 	return (
 		<Image
 			className={classNameMemo}
-			source={
-				fallback || !source || typeof source.uri !== "string"
-					? {
-							uri: "avatar_fallback"
-					  }
-					: source
-			}
-			onError={fallback ? undefined : onError}
+			source={avatarSource}
+			onError={onErrorHandler}
 			style={styleMemo}
 			cachePolicy="disk"
 			priority="low"

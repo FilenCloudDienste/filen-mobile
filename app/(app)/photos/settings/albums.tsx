@@ -1,6 +1,6 @@
 import { memo, useCallback, useMemo } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { List, type ListDataItem, ListItem, ListSectionHeader, type ListRenderItemInfo } from "@/components/nativewindui/List"
+import { List, type ListDataItem, ListItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useLocalAlbumsQuery from "@/queries/useLocalAlbumsQuery"
 import * as MediaLibrary from "expo-media-library"
 import Container from "@/components/Container"
@@ -28,15 +28,82 @@ export const LIST_ITEM_HEIGHT = Platform.select({
 	default: 61
 })
 
+const contentContainerStyle = {
+	paddingBottom: 100
+}
+
+export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
+	const [cameraUpload, setCameraUpload] = useCameraUpload()
+
+	const enabled = useMemo(() => {
+		return cameraUpload.albums.some(album => album.id === info.item.id)
+	}, [cameraUpload.albums, info.item.id])
+
+	const leftView = useMemo(() => {
+		return (
+			<View className="flex-row items-center px-4">
+				{info.item.album.lastAssetURI ? (
+					<Image
+						source={{
+							uri: info.item.album.lastAssetURI
+						}}
+						contentFit="cover"
+						style={{
+							borderRadius: 6,
+							width: 38,
+							height: 38
+						}}
+					/>
+				) : (
+					<View className="bg-background rounded-md w-[38px] h-[38px]" />
+				)}
+			</View>
+		)
+	}, [info.item.album.lastAssetURI])
+
+	const rightView = useMemo(() => {
+		return (
+			<View className="flex-1 flex-row items-center px-4">
+				<Toggle
+					value={enabled}
+					onValueChange={() => {
+						setCameraUpload(prev => ({
+							...prev,
+							albums: [
+								...prev.albums.filter(album => album.id !== info.item.album.album.id),
+								...(!prev.albums.some(album => album.id === info.item.album.album.id) ? [info.item.album.album] : [])
+							]
+						}))
+					}}
+				/>
+			</View>
+		)
+	}, [enabled, info.item.album.album, setCameraUpload])
+
+	return (
+		<ListItem
+			className={cn("ios:pl-0 pl-2", info.index === 0 && "ios:border-t-0 border-border/25 dark:border-border/80 border-t")}
+			titleClassName="text-lg"
+			innerClassName="py-1.5 ios:py-1.5 android:py-1.5"
+			textNumberOfLines={1}
+			subTitleNumberOfLines={1}
+			leftView={leftView}
+			rightView={rightView}
+			{...info}
+		/>
+	)
+})
+
+Item.displayName = "Item"
+
 export const Albums = memo(() => {
 	const { colors } = useColorScheme()
-	const [cameraUpload, setCameraUpload] = useCameraUpload()
 	const { screen } = useDimensions()
 
 	const localAlbumsQuery = useLocalAlbumsQuery({})
 
 	const items = useMemo((): ListItemInfo[] => {
-		if (!localAlbumsQuery.isSuccess) {
+		if (localAlbumsQuery.status !== "success") {
 			return []
 		}
 
@@ -48,70 +115,34 @@ export const Albums = memo(() => {
 				subTitle: `${album.album.assetCount} items`,
 				album
 			}))
-	}, [localAlbumsQuery.data, localAlbumsQuery.isSuccess])
+	}, [localAlbumsQuery.data, localAlbumsQuery.status])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
 		return typeof item === "string" ? item : item.id
 	}, [])
 
-	const renderItem = useCallback(
-		(info: ListRenderItemInfo<ListItemInfo>) => {
-			if (typeof info.item === "string") {
-				return <ListSectionHeader {...info} />
-			}
+	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
+		return <Item info={info} />
+	}, [])
 
-			const enabled = cameraUpload.albums.some(album => album.id === info.item.id)
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
+			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		}
+	}, [screen.height])
 
-			return (
-				<ListItem
-					className={cn("ios:pl-0 pl-2", info.index === 0 && "ios:border-t-0 border-border/25 dark:border-border/80 border-t")}
-					titleClassName="text-lg"
-					innerClassName="py-1.5 ios:py-1.5 android:py-1.5"
-					textNumberOfLines={1}
-					subTitleNumberOfLines={1}
-					leftView={
-						<View className="flex-row items-center px-4">
-							{info.item.album.lastAssetURI ? (
-								<Image
-									source={{
-										uri: info.item.album.lastAssetURI
-									}}
-									contentFit="cover"
-									style={{
-										borderRadius: 6,
-										width: 38,
-										height: 38
-									}}
-								/>
-							) : (
-								<View className="bg-background rounded-md w-[38px] h-[38px]" />
-							)}
-						</View>
-					}
-					rightView={
-						<View className="flex-1 flex-row items-center px-4">
-							<Toggle
-								value={enabled}
-								onValueChange={() => {
-									setCameraUpload(prev => ({
-										...prev,
-										albums: [
-											...prev.albums.filter(album => album.id !== info.item.album.album.id),
-											...(!prev.albums.some(album => album.id === info.item.album.album.id)
-												? [info.item.album.album]
-												: [])
-										]
-									}))
-								}}
-							/>
-						</View>
-					}
-					{...info}
-				/>
-			)
-		},
-		[cameraUpload.albums, setCameraUpload]
-	)
+	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+		return {
+			length: LIST_ITEM_HEIGHT,
+			offset: LIST_ITEM_HEIGHT * index,
+			index
+		}
+	}, [])
+
+	const listEmpty = useMemo(() => {
+		return <ActivityIndicator color={colors.foreground} />
+	}, [colors.foreground])
 
 	return (
 		<RequireInternet>
@@ -125,23 +156,14 @@ export const Albums = memo(() => {
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
 					sectionHeaderAsGap={true}
-					ListEmptyComponent={<ActivityIndicator color={colors.foreground} />}
-					extraData={cameraUpload.albums}
-					contentContainerStyle={{
-						paddingBottom: 100
-					}}
+					ListEmptyComponent={listEmpty}
+					contentContainerStyle={contentContainerStyle}
 					removeClippedSubviews={true}
-					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
-					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					initialNumToRender={initialNumToRender}
+					maxToRenderPerBatch={maxToRenderPerBatch}
 					updateCellsBatchingPeriod={100}
 					windowSize={3}
-					getItemLayout={(_, index) => {
-						return {
-							length: LIST_ITEM_HEIGHT,
-							offset: LIST_ITEM_HEIGHT * index,
-							index
-						}
-					}}
+					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

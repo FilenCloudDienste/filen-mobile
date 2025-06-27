@@ -19,20 +19,33 @@ export const Item = memo((info: ListRenderItemInfo<string>) => {
 
 	const tagTranslation = useMemo(() => {
 		switch (info.item) {
-			case "all":
+			case "all": {
 				return t("notes.tags.names.all")
-			case "favorited":
+			}
+
+			case "favorited": {
 				return t("notes.tags.names.favorited")
-			case "pinned":
+			}
+
+			case "pinned": {
 				return t("notes.tags.names.pinned")
-			case "archived":
+			}
+
+			case "archived": {
 				return t("notes.tags.names.archived")
-			case "trash":
+			}
+
+			case "trash": {
 				return t("notes.tags.names.trash")
-			case "shared":
+			}
+
+			case "shared": {
 				return t("notes.tags.names.shared")
-			default:
+			}
+
+			default: {
 				return "_TAG_"
+			}
 		}
 	}, [info.item, t])
 
@@ -87,6 +100,14 @@ export const ListHeader = memo(() => {
 
 	const keyExtractor = useCallback((item: string) => item, [])
 
+	const contentContainerStyle = useMemo(() => {
+		return {
+			paddingTop: !hasInternet ? 16 : 8,
+			paddingHorizontal: 16,
+			paddingBottom: 8
+		}
+	}, [hasInternet])
+
 	return (
 		<Fragment>
 			{!hasInternet && <OfflineListHeader />}
@@ -98,11 +119,7 @@ export const ListHeader = memo(() => {
 				keyExtractor={keyExtractor}
 				data={listTags}
 				renderItem={renderItem}
-				contentContainerStyle={{
-					paddingTop: !hasInternet ? 16 : 8,
-					paddingHorizontal: 16,
-					paddingBottom: 8
-				}}
+				contentContainerStyle={contentContainerStyle}
 				windowSize={3}
 				removeClippedSubviews={true}
 				initialNumToRender={16}

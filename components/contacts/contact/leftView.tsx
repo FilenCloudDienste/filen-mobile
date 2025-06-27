@@ -8,6 +8,11 @@ import { convertTimestampToMs } from "@/lib/utils"
 import { cn } from "@/lib/cn"
 import { CONTACTS_ONLINE_TIMEOUT } from "@/lib/constants"
 
+const avatarStyle = {
+	width: 36,
+	height: 36
+}
+
 export const LeftView = memo(
 	({
 		info,
@@ -68,10 +73,7 @@ export const LeftView = memo(
 					/>
 				)}
 				<Avatar
-					style={{
-						width: 36,
-						height: 36
-					}}
+					style={avatarStyle}
 					source={avatarSource}
 				/>
 			</View>

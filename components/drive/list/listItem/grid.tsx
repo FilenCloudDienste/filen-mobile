@@ -41,6 +41,19 @@ export const Grid = memo(
 			return Math.floor(itemSize / 2.25)
 		}, [itemSize])
 
+		const buttonStyle = useMemo(() => {
+			return {
+				width: itemSize,
+				height: itemSize,
+				marginRight: spacing,
+				marginBottom: spacing
+			}
+		}, [itemSize, spacing])
+
+		const onPressHandler = useMemo(() => {
+			return isSelected || selectedItemsCount > 0 ? select : onPress
+		}, [isSelected, selectedItemsCount, select, onPress])
+
 		return (
 			<View className="rounded-md overflow-hidden flex-1 bg-background">
 				<Menu
@@ -54,13 +67,8 @@ export const Grid = memo(
 						variant="plain"
 						size="none"
 						unstable_pressDelay={100}
-						onPress={isSelected || selectedItemsCount > 0 ? select : onPress}
-						style={{
-							width: itemSize,
-							height: itemSize,
-							marginRight: spacing,
-							marginBottom: spacing
-						}}
+						onPress={onPressHandler}
+						style={buttonStyle}
 					>
 						<View className="flex-row items-center">
 							{selectedItemsCount > 0 && (

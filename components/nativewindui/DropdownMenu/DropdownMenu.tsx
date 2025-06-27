@@ -1,20 +1,19 @@
 import * as DropdownMenuPrimitive from "@rn-primitives/dropdown-menu"
 import { useAugmentedRef } from "@rn-primitives/hooks"
 import { Icon } from "@roninoss/icons"
-import * as React from "react"
 import { Image, LayoutChangeEvent, StyleSheet, View, ScrollView } from "react-native"
 import Animated, { FadeIn, FadeInLeft, FadeOut, FadeOutLeft, LayoutAnimationConfig, LinearTransition } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import useDimensions from "@/hooks/useDimensions"
 import { DropdownItem, DropdownMenuProps, DropdownMenuRef, DropdownSubMenu } from "./types"
+import { createContext, forwardRef, memo, useState, useRef, useContext, useId, useCallback } from "react"
+import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
+import { Text } from "@/components/nativewindui/Text"
+import { Button } from "@/components/nativewindui/Button"
+import { cn } from "@/lib/cn"
+import { useColorScheme } from "@/lib/useColorScheme"
 
-import { ActivityIndicator } from "~/components/nativewindui/ActivityIndicator"
-import { Text } from "~/components/nativewindui/Text"
-import { Button } from "~/components/nativewindui/Button"
-import { cn } from "~/lib/cn"
-import { useColorScheme } from "~/lib/useColorScheme"
-
-const DropdownContext = React.createContext<{
+export const DropdownContext = createContext<{
 	onItemPress: DropdownMenuProps["onItemPress"]
 	dismissMenu?: () => void
 	materialLoadingText: string
@@ -23,136 +22,146 @@ const DropdownContext = React.createContext<{
 	closeSubMenus: () => void
 } | null>(null)
 
-const DropdownMenu = React.forwardRef<DropdownMenuRef, DropdownMenuProps>(
-	(
-		{
-			items,
-			title,
-			iOSItemSize: _iOSItemSize,
-			onItemPress: onItemPressProp,
-			enabled = true,
-			children,
-			materialPortalHost,
-			materialSideOffset = 2,
-			materialAlignOffset,
-			materialAlign = "center",
-			materialWidth,
-			materialMinWidth = 200,
-			materialLoadingText = "Loading...",
-			materialSubMenuTitlePlaceholder = "More ...",
-			materialOverlayClassName,
-			// @ts-expect-error internal prop
-			materialIsSubMenu,
-			...props
-		},
-		ref
-	) => {
-		const triggerRef = React.useRef<DropdownMenuPrimitive.TriggerRef>(null)
-		const subMenuRefs = React.useRef<DropdownMenuRef[]>([])
-		const insets = useSafeAreaInsets()
-		const rootRef = useAugmentedRef({
-			ref,
-			methods: {
-				presentMenu: () => {
-					triggerRef.current?.open()
-				},
-				dismissMenu
+export const DropdownMenu = memo(
+	forwardRef<DropdownMenuRef, DropdownMenuProps>(
+		(
+			{
+				items,
+				title,
+				iOSItemSize: _iOSItemSize,
+				onItemPress: onItemPressProp,
+				enabled = true,
+				children,
+				materialPortalHost,
+				materialSideOffset = 2,
+				materialAlignOffset,
+				materialAlign = "center",
+				materialWidth,
+				materialMinWidth = 200,
+				materialLoadingText = "Loading...",
+				materialSubMenuTitlePlaceholder = "More ...",
+				materialOverlayClassName,
+				// @ts-expect-error internal prop
+				materialIsSubMenu,
+				...props
 			},
-			deps: [triggerRef.current]
-		})
+			ref
+		) => {
+			const triggerRef = useRef<DropdownMenuPrimitive.TriggerRef>(null)
+			const subMenuRefs = useRef<DropdownMenuRef[]>([])
+			const insets = useSafeAreaInsets()
 
-		function closeSubMenus() {
-			for (const subMenuRef of subMenuRefs.current) {
-				subMenuRef.dismissMenu?.()
-			}
-		}
+			const dismissMenu = useCallback(() => {
+				triggerRef.current?.close()
+			}, [triggerRef])
 
-		function onItemPress(item: Omit<DropdownItem, "icon">) {
-			closeSubMenus()
-			onItemPressProp?.(item)
-		}
+			const rootRef = useAugmentedRef({
+				ref,
+				methods: {
+					presentMenu: () => {
+						triggerRef.current?.open()
+					},
+					dismissMenu
+				},
+				deps: [triggerRef.current]
+			})
 
-		function dismissMenu() {
-			triggerRef.current?.close()
-		}
-		return (
-			<DropdownMenuPrimitive.Root
-				ref={rootRef}
-				{...props}
-			>
-				<DropdownMenuPrimitive.Trigger
-					ref={triggerRef}
-					asChild
+			const closeSubMenus = useCallback(() => {
+				for (const subMenuRef of subMenuRefs.current) {
+					subMenuRef.dismissMenu?.()
+				}
+			}, [subMenuRefs])
+
+			const onItemPress = useCallback(
+				(item: Omit<DropdownItem, "icon">) => {
+					closeSubMenus()
+					onItemPressProp?.(item)
+				},
+				[closeSubMenus, onItemPressProp]
+			)
+
+			return (
+				<DropdownMenuPrimitive.Root
+					ref={rootRef}
+					{...props}
 				>
-					{children}
-				</DropdownMenuPrimitive.Trigger>
-				<DropdownMenuPrimitive.Portal hostName={materialPortalHost}>
-					<DropdownContext.Provider
-						value={{
-							onItemPress,
-							dismissMenu,
-							materialLoadingText,
-							materialSubMenuTitlePlaceholder,
-							subMenuRefs,
-							closeSubMenus
-						}}
+					<DropdownMenuPrimitive.Trigger
+						ref={triggerRef}
+						asChild={true}
 					>
-						<DropdownMenuPrimitive.Overlay
-							style={StyleSheet.absoluteFill}
-							pointerEvents={materialIsSubMenu ? "box-none" : undefined}
+						{children}
+					</DropdownMenuPrimitive.Trigger>
+					<DropdownMenuPrimitive.Portal hostName={materialPortalHost}>
+						<DropdownContext.Provider
+							value={{
+								onItemPress,
+								dismissMenu,
+								materialLoadingText,
+								materialSubMenuTitlePlaceholder,
+								subMenuRefs,
+								closeSubMenus
+							}}
 						>
-							<Animated.View
+							<DropdownMenuPrimitive.Overlay
 								style={StyleSheet.absoluteFill}
-								entering={FadeIn}
-								exiting={FadeOut}
 								pointerEvents={materialIsSubMenu ? "box-none" : undefined}
-								className={cn(!materialIsSubMenu && "bg-black/20", !materialIsSubMenu && materialOverlayClassName)}
 							>
-								<DropdownMenuPrimitive.Content
-									insets={{
-										top: insets.top,
-										right: 8,
-										bottom: insets.bottom,
-										left: 8
-									}}
-									sideOffset={materialSideOffset}
-									alignOffset={materialAlignOffset}
-									align={materialAlign}
+								<Animated.View
+									style={StyleSheet.absoluteFill}
+									entering={FadeIn}
+									exiting={FadeOut}
+									pointerEvents={materialIsSubMenu ? "box-none" : undefined}
+									className={cn(!materialIsSubMenu && "bg-black/20", !materialIsSubMenu && materialOverlayClassName)}
 								>
-									<Animated.View
-										entering={FadeIn}
-										exiting={materialIsSubMenu ? undefined : FadeOut}
-										style={{ minWidth: materialMinWidth, width: materialWidth }}
-										className="border-border/20 bg-card z-50 rounded-md border py-2 shadow-xl"
+									<DropdownMenuPrimitive.Content
+										insets={{
+											top: insets.top,
+											right: 8,
+											bottom: insets.bottom,
+											left: 8
+										}}
+										sideOffset={materialSideOffset}
+										alignOffset={materialAlignOffset}
+										align={materialAlign}
 									>
-										{!!title && <DropdownMenuLabel>{title}</DropdownMenuLabel>}
-										<DropdownMenuInnerContent items={items} />
-									</Animated.View>
-								</DropdownMenuPrimitive.Content>
-							</Animated.View>
-						</DropdownMenuPrimitive.Overlay>
-					</DropdownContext.Provider>
-				</DropdownMenuPrimitive.Portal>
-			</DropdownMenuPrimitive.Root>
-		)
-	}
+										<Animated.View
+											entering={FadeIn}
+											exiting={materialIsSubMenu ? undefined : FadeOut}
+											style={{
+												minWidth: materialMinWidth,
+												width: materialWidth
+											}}
+											className="border-border/20 bg-card z-50 rounded-md border py-2 shadow-xl"
+										>
+											{!!title && <DropdownMenuLabel>{title}</DropdownMenuLabel>}
+											<DropdownMenuInnerContent items={items} />
+										</Animated.View>
+									</DropdownMenuPrimitive.Content>
+								</Animated.View>
+							</DropdownMenuPrimitive.Overlay>
+						</DropdownContext.Provider>
+					</DropdownMenuPrimitive.Portal>
+				</DropdownMenuPrimitive.Root>
+			)
+		}
+	)
 )
 
 DropdownMenu.displayName = "DropdownMenu"
 
-export { DropdownMenu }
+export function useDropdownContext() {
+	const context = useContext(DropdownContext)
 
-function useDropdownContext() {
-	const context = React.useContext(DropdownContext)
 	if (!context) {
 		throw new Error("DropdownMenu compound components cannot be rendered outside the DropdownMenu component")
 	}
+
 	return context
 }
 
-function DropdownMenuInnerContent({ items }: { items: (DropdownItem | DropdownSubMenu)[] }) {
+export const DropdownMenuInnerContent = memo(({ items }: { items: (DropdownItem | DropdownSubMenu)[] }) => {
 	const { materialLoadingText } = useDropdownContext()
-	const id = React.useId()
+	const id = useId()
 	const { screen, insets } = useDimensions()
 
 	return (
@@ -170,10 +179,10 @@ function DropdownMenuInnerContent({ items }: { items: (DropdownItem | DropdownSu
 					return (
 						<DropdownMenuPrimitive.Item
 							key={`loading:${id}-${item.title}-${index}`}
-							asChild
+							asChild={true}
 						>
 							<Button
-								disabled
+								disabled={true}
 								variant="plain"
 								className="h-12 justify-between gap-10 rounded-none px-3"
 								androidRootClassName="rounded-none "
@@ -186,7 +195,11 @@ function DropdownMenuInnerContent({ items }: { items: (DropdownItem | DropdownSu
 				}
 				if ((item as Partial<DropdownSubMenu>)?.items) {
 					const subMenu = item as DropdownSubMenu
-					if (subMenu.items.length === 0) return null
+
+					if (subMenu.items.length === 0) {
+						return null
+					}
+
 					return (
 						<DropdownMenuSubMenu
 							title={subMenu.title}
@@ -196,7 +209,9 @@ function DropdownMenuInnerContent({ items }: { items: (DropdownItem | DropdownSu
 						/>
 					)
 				}
+
 				const dropdownItem = item as DropdownItem
+
 				return (
 					<DropdownMenuItem
 						key={dropdownItem.actionKey}
@@ -206,30 +221,36 @@ function DropdownMenuInnerContent({ items }: { items: (DropdownItem | DropdownSu
 			})}
 		</ScrollView>
 	)
-}
+})
 
-function DropdownMenuLabel(props: { children: React.ReactNode }) {
+DropdownMenuInnerContent.displayName = "DropdownMenuInnerContent"
+
+export const DropdownMenuLabel = memo((props: { children: React.ReactNode }) => {
 	return (
 		<DropdownMenuPrimitive.Label className="text-muted-foreground/80 border-border/25 dark:border-border/80 dark:text-muted-foreground border-b px-3 pb-2 text-sm">
 			{props.children}
 		</DropdownMenuPrimitive.Label>
 	)
-}
+})
 
-function DropdownMenuItem(props: Omit<DropdownItem, "loading">) {
+DropdownMenuLabel.displayName = "DropdownMenuLabel"
+
+export const DropdownMenuItem = memo((props: Omit<DropdownItem, "loading">) => {
 	const { colors } = useColorScheme()
 	const { onItemPress } = useDropdownContext()
 
-	function onPress() {
+	const onPress = useCallback(() => {
 		onItemPress?.(props)
-	}
+	}, [onItemPress, props])
 
-	if (props.hidden) return null
+	if (props.hidden) {
+		return null
+	}
 
 	return (
 		<LayoutAnimationConfig
-			skipEntering
-			skipExiting
+			skipEntering={true}
+			skipExiting={true}
 		>
 			<DropdownMenuPrimitive.Item
 				asChild
@@ -284,7 +305,9 @@ function DropdownMenuItem(props: Omit<DropdownItem, "loading">) {
 					)}
 					{props.image ? (
 						<Image
-							source={{ uri: props.image.url }}
+							source={{
+								uri: props.image.url
+							}}
 							style={{
 								width: 22,
 								height: 22,
@@ -305,14 +328,16 @@ function DropdownMenuItem(props: Omit<DropdownItem, "loading">) {
 			</DropdownMenuPrimitive.Item>
 		</LayoutAnimationConfig>
 	)
-}
+})
 
-const DEFAULT_LAYOUT = {
+DropdownMenuItem.displayName = "DropdownMenuItem"
+
+export const DEFAULT_LAYOUT = {
 	width: 0,
 	height: 0
 }
 
-function DropdownMenuSubMenu({ title, subTitle, items }: Omit<DropdownSubMenu, "loading">) {
+export const DropdownMenuSubMenu = memo(({ title, subTitle, items }: Omit<DropdownSubMenu, "loading">) => {
 	const { colors } = useColorScheme()
 	const {
 		onItemPress: onDropdownItemPress,
@@ -321,21 +346,30 @@ function DropdownMenuSubMenu({ title, subTitle, items }: Omit<DropdownSubMenu, "
 		subMenuRefs,
 		closeSubMenus
 	} = useDropdownContext()
-	const [triggerLayout, setTriggerLayout] = React.useState<typeof DEFAULT_LAYOUT>(DEFAULT_LAYOUT)
+	const [triggerLayout, setTriggerLayout] = useState<typeof DEFAULT_LAYOUT>(DEFAULT_LAYOUT)
 
-	function onItemPress(item: Omit<DropdownItem, "icon">) {
-		dismissMenu?.()
-		onDropdownItemPress?.(item)
-	}
+	const onItemPress = useCallback(
+		(item: Omit<DropdownItem, "icon">) => {
+			dismissMenu?.()
+			onDropdownItemPress?.(item)
+		},
+		[dismissMenu, onDropdownItemPress]
+	)
 
-	function onLayout(ev: LayoutChangeEvent) {
+	const onLayout = useCallback((ev: LayoutChangeEvent) => {
 		setTriggerLayout(ev.nativeEvent.layout)
-	}
+	}, [])
 
-	function addSubMenuRef(ref: DropdownMenuRef | null) {
-		if (!ref) return
-		subMenuRefs.current.push(ref)
-	}
+	const addSubMenuRef = useCallback(
+		(ref: DropdownMenuRef | null) => {
+			if (!ref) {
+				return
+			}
+
+			subMenuRefs.current.push(ref)
+		},
+		[subMenuRefs]
+	)
 
 	return (
 		<DropdownMenu
@@ -346,7 +380,7 @@ function DropdownMenuSubMenu({ title, subTitle, items }: Omit<DropdownSubMenu, "
 			onItemPress={onItemPress}
 			materialMinWidth={48}
 			// @ts-expect-error internal prop
-			materialIsSubMenu
+			materialIsSubMenu={true}
 			ref={addSubMenuRef}
 		>
 			<Button
@@ -371,4 +405,6 @@ function DropdownMenuSubMenu({ title, subTitle, items }: Omit<DropdownSubMenu, "
 			</Button>
 		</DropdownMenu>
 	)
-}
+})
+
+DropdownMenuSubMenu.displayName = "DropdownMenuSubMenu"

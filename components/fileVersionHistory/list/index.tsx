@@ -6,6 +6,10 @@ import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "./item"
 import Container from "@/components/Container"
 import useDimensions from "@/hooks/useDimensions"
 
+const contentContainerStyle = {
+	paddingBottom: 100
+}
+
 export const List = memo(({ item }: { item: DriveCloudItem }) => {
 	const { screen } = useDimensions()
 
@@ -14,7 +18,7 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 	})
 
 	const versions = useMemo((): ListItemInfo[] => {
-		if (!query.isSuccess) {
+		if (query.status !== "success") {
 			return []
 		}
 
@@ -27,7 +31,7 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 				version
 			}))
 			.sort((a, b) => b.version.timestamp - a.version.timestamp)
-	}, [query.isSuccess, query.data, item])
+	}, [query.status, query.data, item])
 
 	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
 		return <Item info={info} />
@@ -35,6 +39,21 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
 		return typeof item === "string" ? item : item.id
+	}, [])
+
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
+			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		}
+	}, [screen.height])
+
+	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+		return {
+			length: LIST_ITEM_HEIGHT,
+			offset: LIST_ITEM_HEIGHT * index,
+			index
+		}
 	}, [])
 
 	return (
@@ -46,21 +65,13 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 				keyExtractor={keyExtractor}
 				contentInsetAdjustmentBehavior="automatic"
 				refreshing={query.status === "pending"}
-				contentContainerStyle={{
-					paddingBottom: 100
-				}}
+				contentContainerStyle={contentContainerStyle}
 				removeClippedSubviews={true}
-				initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
-				maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+				initialNumToRender={initialNumToRender}
+				maxToRenderPerBatch={maxToRenderPerBatch}
 				updateCellsBatchingPeriod={100}
 				windowSize={3}
-				getItemLayout={(_, index) => {
-					return {
-						length: LIST_ITEM_HEIGHT,
-						offset: LIST_ITEM_HEIGHT * index,
-						index
-					}
-				}}
+				getItemLayout={getItemLayout}
 			/>
 		</Container>
 	)

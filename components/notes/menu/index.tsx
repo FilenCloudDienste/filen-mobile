@@ -1202,6 +1202,14 @@ export const Menu = memo(
 			)
 		}, [note, screen, noop])
 
+		const renderPreview = useMemo(() => {
+			return hasInternet && (isPortrait || isTablet) ? iosRenderPreview : undefined
+		}, [hasInternet, isPortrait, isTablet, iosRenderPreview])
+
+		const contextKey = useMemo(() => {
+			return !hasInternet ? undefined : `${isPortrait}:${isTablet}`
+		}, [hasInternet, isPortrait, isTablet])
+
 		if (menuItems.length === 0) {
 			return children
 		}
@@ -1211,8 +1219,8 @@ export const Menu = memo(
 				<ContextMenu
 					items={menuItems}
 					onItemPress={onItemPress}
-					key={!hasInternet ? undefined : `${isPortrait}:${isTablet}`}
-					iosRenderPreview={hasInternet && (isPortrait || isTablet) ? iosRenderPreview : undefined}
+					key={contextKey}
+					iosRenderPreview={renderPreview}
 				>
 					{children}
 				</ContextMenu>

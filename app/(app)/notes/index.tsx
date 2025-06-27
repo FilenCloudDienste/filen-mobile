@@ -15,6 +15,10 @@ import Header from "@/components/notes/header"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useShallow } from "zustand/shallow"
 
+const contentContainerStyle = {
+	paddingBottom: 100
+}
+
 export const Notes = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const [refreshing, setRefreshing] = useState<boolean>(false)
@@ -40,7 +44,7 @@ export const Notes = memo(() => {
 							note.preview.toLowerCase().trim().includes(lowercaseSearchTerm) ||
 							note.type.toLowerCase().trim().includes(lowercaseSearchTerm) ||
 							note.tags.some(tag => tag.name.toLowerCase().trim().includes(lowercaseSearchTerm))
-					)
+				  )
 				: notesQuery.data
 
 		const selectedTagIsUUID = validateUUID(selectedTag)
@@ -73,7 +77,7 @@ export const Notes = memo(() => {
 						}
 
 						return true
-					})
+				  })
 				: filteredBySearchTerm
 
 		return filteredByTag.sort((a, b) => {
@@ -116,6 +120,65 @@ export const Notes = memo(() => {
 		return <Item note={info.item} />
 	}, [])
 
+	const listFooter = useMemo(() => {
+		return notes.length > 0 ? (
+			<View className="flex-row items-center justify-center h-16">
+				<Text className="text-sm">{notes.length} items</Text>
+			</View>
+		) : undefined
+	}, [notes.length])
+
+	const listEmpty = useMemo(() => {
+		if (notesQuery.status === "pending") {
+			return (
+				<View className="flex-row items-center justify-center h-16">
+					<ActivityIndicator
+						size="small"
+						color={colors.foreground}
+					/>
+				</View>
+			)
+		}
+
+		if (notesQuery.status === "error") {
+			return (
+				<View className="flex-row items-center justify-center h-16">
+					<Text className="text-sm">Error loading notes</Text>
+				</View>
+			)
+		}
+
+		if (notes.length === 0) {
+			if (searchTerm.length > 0) {
+				return (
+					<View className="flex-row items-center justify-center h-16">
+						<Text className="text-sm">No notes found for this search</Text>
+					</View>
+				)
+			}
+
+			if (selectedTag !== "all") {
+				return (
+					<View className="flex-row items-center justify-center h-16">
+						<Text className="text-sm">No notes found for this tag</Text>
+					</View>
+				)
+			}
+
+			return (
+				<View className="flex-row items-center justify-center h-16">
+					<Text className="text-sm">No notes found</Text>
+				</View>
+			)
+		}
+
+		return (
+			<View className="flex-row items-center justify-center h-16">
+				<Text className="text-sm">No notes found</Text>
+			</View>
+		)
+	}, [notesQuery.status, notes.length, searchTerm, selectedTag, colors.foreground])
+
 	useEffect(() => {
 		setNotes(notes)
 	}, [notes, setNotes])
@@ -130,66 +193,9 @@ export const Notes = memo(() => {
 					contentInsetAdjustmentBehavior="automatic"
 					renderItem={renderItem}
 					refreshing={refreshing}
-					contentContainerStyle={{
-						paddingBottom: 100
-					}}
-					ListFooterComponent={() => {
-						return notes.length > 0 ? (
-							<View className="flex-row items-center justify-center h-16">
-								<Text className="text-sm">{notes.length} items</Text>
-							</View>
-						) : undefined
-					}}
-					ListEmptyComponent={() => {
-						if (notesQuery.status === "pending") {
-							return (
-								<View className="flex-row items-center justify-center h-16">
-									<ActivityIndicator
-										size="small"
-										color={colors.foreground}
-									/>
-								</View>
-							)
-						}
-
-						if (notesQuery.status === "error") {
-							return (
-								<View className="flex-row items-center justify-center h-16">
-									<Text className="text-sm">Error loading notes</Text>
-								</View>
-							)
-						}
-
-						if (notes.length === 0) {
-							if (searchTerm.length > 0) {
-								return (
-									<View className="flex-row items-center justify-center h-16">
-										<Text className="text-sm">No notes found for this search</Text>
-									</View>
-								)
-							}
-
-							if (selectedTag !== "all") {
-								return (
-									<View className="flex-row items-center justify-center h-16">
-										<Text className="text-sm">No notes found for this tag</Text>
-									</View>
-								)
-							}
-
-							return (
-								<View className="flex-row items-center justify-center h-16">
-									<Text className="text-sm">No notes found</Text>
-								</View>
-							)
-						}
-
-						return (
-							<View className="flex-row items-center justify-center h-16">
-								<Text className="text-sm">No notes found</Text>
-							</View>
-						)
-					}}
+					contentContainerStyle={contentContainerStyle}
+					ListFooterComponent={listFooter}
+					ListEmptyComponent={listEmpty}
 					ListHeaderComponent={ListHeader}
 					refreshControl={refreshControl}
 					windowSize={3}

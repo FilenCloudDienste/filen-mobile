@@ -1,4 +1,4 @@
-import { memo, Fragment, useCallback } from "react"
+import { memo, Fragment, useCallback, useMemo } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { createDropdownSubMenu, createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils"
@@ -73,84 +73,94 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 		}
 	}, [t, notesQuery])
 
+	const headerSearchBar = useMemo(() => {
+		return {
+			placeholder: "Search notes...",
+			iosCancelButtonText: "Abort",
+			iosHideWhenScrolling: true,
+			onChangeText: setSearchTerm,
+			materialBlurOnSubmit: false,
+			persistBlur: true,
+			contentTransparent: true
+		}
+	}, [setSearchTerm])
+
+	const headerLeftView = useMemo(() => {
+		return selectedNotesCount > 0 ? () => <Text>{selectedNotesCount} selected</Text> : undefined
+	}, [selectedNotesCount])
+
+	const headerRightView = useCallback(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
+		return (
+			<Fragment>
+				{selectedNotesCount > 0 ? (
+					<DropdownMenu
+						items={[
+							createDropdownItem({
+								actionKey: "settings",
+								title: "Settings"
+							}),
+							createDropdownSubMenu(
+								{
+									title: "Submenu 1",
+									iOSItemSize: "large"
+								},
+								[
+									createDropdownItem({
+										actionKey: "sub-first",
+										title: "Sub Item 1"
+									}),
+									createDropdownItem({
+										actionKey: "sub-second",
+										title: "Sub Item 2"
+									})
+								]
+							)
+						]}
+						onItemPress={item => {
+							console.log(item)
+						}}
+					>
+						<Button
+							variant="plain"
+							size="icon"
+						>
+							<Icon
+								size={24}
+								namingScheme="sfSymbol"
+								name="ellipsis.circle"
+								color={colors.foreground}
+							/>
+						</Button>
+					</DropdownMenu>
+				) : (
+					<Button
+						variant="plain"
+						size="icon"
+						onPress={createNote}
+					>
+						<Icon
+							name="plus"
+							size={24}
+							color={colors.primary}
+						/>
+					</Button>
+				)}
+			</Fragment>
+		)
+	}, [createNote, colors.foreground, colors.primary, hasInternet, selectedNotesCount])
+
 	return (
 		<LargeTitleHeader
 			title="Notes"
 			backVisible={false}
 			materialPreset="inline"
-			searchBar={{
-				placeholder: "Search notes...",
-				iosCancelButtonText: "Abort",
-				iosHideWhenScrolling: true,
-				onChangeText: text => setSearchTerm(text),
-				materialBlurOnSubmit: false,
-				persistBlur: true,
-				contentTransparent: true
-			}}
-			leftView={selectedNotesCount > 0 ? () => <Text>{selectedNotesCount} selected</Text> : undefined}
-			rightView={() => {
-				if (!hasInternet) {
-					return undefined
-				}
-
-				return (
-					<Fragment>
-						{selectedNotesCount > 0 ? (
-							<DropdownMenu
-								items={[
-									createDropdownItem({
-										actionKey: "settings",
-										title: "Settings"
-									}),
-									createDropdownSubMenu(
-										{
-											title: "Submenu 1",
-											iOSItemSize: "large"
-										},
-										[
-											createDropdownItem({
-												actionKey: "sub-first",
-												title: "Sub Item 1"
-											}),
-											createDropdownItem({
-												actionKey: "sub-second",
-												title: "Sub Item 2"
-											})
-										]
-									)
-								]}
-								onItemPress={item => {
-									console.log(item)
-								}}
-							>
-								<Button
-									variant="plain"
-									size="icon"
-								>
-									<Icon
-										size={24}
-										namingScheme="sfSymbol"
-										name="ellipsis.circle"
-										color={colors.foreground}
-									/>
-								</Button>
-							</DropdownMenu>
-						) : (
-							<Button
-								variant="plain"
-								size="icon"
-								onPress={createNote}
-							>
-								<Icon
-									name="plus"
-									size={24}
-									color={colors.primary}
-								/>
-							</Button>
-						)}
-					</Fragment>
-				)
-			}}
+			searchBar={headerSearchBar}
+			leftView={headerLeftView}
+			rightView={headerRightView}
 		/>
 	)
 })

@@ -164,23 +164,23 @@ export const Menu = memo(
 			async (item: Omit<ContextItem, "icon">, _?: boolean) => {
 				try {
 					switch (item.actionKey) {
-						case "revokeWriteAccess":
+						case "revokeWriteAccess": {
 							await changePermissionsWrite(false)
 
 							break
+						}
 
-						case "allowWriteAccess":
+						case "allowWriteAccess": {
 							await changePermissionsWrite(true)
 
 							break
+						}
 
-						case "remove":
+						case "remove": {
 							await remove()
 
 							break
-
-						default:
-							break
+						}
 					}
 				} catch (e) {
 					console.error(e)

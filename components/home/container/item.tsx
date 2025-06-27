@@ -142,7 +142,7 @@ export const Item = memo(
 											item,
 											queryParams
 										}
-									}
+								  }
 								: null
 						})
 						.filter(item => item !== null)
@@ -189,6 +189,89 @@ export const Item = memo(
 			}
 		}, [routerPush, item, hasInternet, offlineStatus, items, type, queryParams])
 
+		const itemInfo = useMemo(() => {
+			return {
+				title: item.name,
+				subTitle: `${simpleDate(item.lastModified)} - ${formatBytes(
+					item.type === "directory" ? directorySize.data?.size ?? 0 : item.size
+				)}`
+			}
+		}, [item, directorySize.data?.size])
+
+		const separators = useMemo(() => {
+			return {
+				highlight: () => {},
+				unhighlight: () => {},
+				updateProps: () => {}
+			}
+		}, [])
+
+		const leftView = useMemo(() => {
+			return (
+				<View className="flex-1 flex-row items-center gap-4 justify-center px-4">
+					<View className="flex-row items-center">
+						{offlineStatus?.exists && (
+							<View className="w-[16px] h-[16px] absolute -bottom-[1px] -left-[1px] bg-green-500 rounded-full z-50 flex-row items-center justify-center border-white border-[1px]">
+								<Icon
+									name="arrow-down"
+									size={10}
+									color="white"
+								/>
+							</View>
+						)}
+						{item.favorited && type !== "favorites" && (
+							<View className="w-[16px] h-[16px] absolute -bottom-[1px] -right-[1px] bg-red-500 rounded-full z-50 flex-row items-center justify-center border-white border-[1px]">
+								<Icon
+									name="heart"
+									size={10}
+									color="white"
+								/>
+							</View>
+						)}
+						<Thumbnail
+							item={item}
+							size={ICON_HEIGHT}
+							imageContentFit="contain"
+							imageCachePolicy="none"
+							imageStyle={{
+								width: ICON_HEIGHT,
+								height: ICON_HEIGHT,
+								backgroundColor: colors.background,
+								borderRadius: 6
+							}}
+						/>
+					</View>
+				</View>
+			)
+		}, [item, colors.background, offlineStatus?.exists, type])
+
+		const rightView = useMemo(() => {
+			return Platform.OS === "android" ? (
+				<View className="flex-1 justify-center px-4">
+					<Menu
+						type="dropdown"
+						item={item}
+						queryParams={{
+							of: type,
+							parent: type,
+							receiverId: item.isShared ? item.receiverId : 0
+						}}
+					>
+						<Button
+							variant="plain"
+							size="icon"
+						>
+							<Icon
+								namingScheme="sfSymbol"
+								name="ellipsis"
+								color={colors.foreground}
+							/>
+						</Button>
+					</Menu>
+				</View>
+			) : undefined
+		}, [item, type, colors.foreground])
+
 		return (
 			<Menu
 				type="context"
@@ -196,81 +279,12 @@ export const Item = memo(
 				queryParams={queryParams}
 			>
 				<ListItem
-					item={{
-						title: item.name,
-						subTitle: `${simpleDate(item.lastModified)} - ${formatBytes(
-							item.type === "directory" ? (directorySize.data?.size ?? 0) : item.size
-						)}`
-					}}
-					separators={{
-						highlight: () => {},
-						unhighlight: () => {},
-						updateProps: () => {}
-					}}
+					item={itemInfo}
+					separators={separators}
 					index={index}
 					className="overflow-hidden bg-background"
-					leftView={
-						<View className="flex-1 flex-row items-center gap-4 justify-center px-4">
-							<View className="flex-row items-center">
-								{offlineStatus?.exists && (
-									<View className="w-[16px] h-[16px] absolute -bottom-[1px] -left-[1px] bg-green-500 rounded-full z-50 flex-row items-center justify-center border-white border-[1px]">
-										<Icon
-											name="arrow-down"
-											size={10}
-											color="white"
-										/>
-									</View>
-								)}
-								{item.favorited && type !== "favorites" && (
-									<View className="w-[16px] h-[16px] absolute -bottom-[1px] -right-[1px] bg-red-500 rounded-full z-50 flex-row items-center justify-center border-white border-[1px]">
-										<Icon
-											name="heart"
-											size={10}
-											color="white"
-										/>
-									</View>
-								)}
-								<Thumbnail
-									item={item}
-									size={ICON_HEIGHT}
-									imageContentFit="contain"
-									imageCachePolicy="none"
-									imageStyle={{
-										width: ICON_HEIGHT,
-										height: ICON_HEIGHT,
-										backgroundColor: colors.background,
-										borderRadius: 6
-									}}
-								/>
-							</View>
-						</View>
-					}
-					rightView={
-						Platform.OS === "android" ? (
-							<View className="flex-1 justify-center px-4">
-								<Menu
-									type="dropdown"
-									item={item}
-									queryParams={{
-										of: type,
-										parent: type,
-										receiverId: item.isShared ? item.receiverId : 0
-									}}
-								>
-									<Button
-										variant="plain"
-										size="icon"
-									>
-										<Icon
-											namingScheme="sfSymbol"
-											name="ellipsis"
-											color={colors.foreground}
-										/>
-									</Button>
-								</Menu>
-							</View>
-						) : undefined
-					}
+					leftView={leftView}
+					rightView={rightView}
 					subTitleClassName="text-xs pt-1"
 					variant="full-width"
 					textNumberOfLines={1}

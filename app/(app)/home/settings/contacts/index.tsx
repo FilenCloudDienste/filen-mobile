@@ -17,6 +17,10 @@ import contactsService from "@/services/contacts.service"
 import { CONTACTS_ONLINE_TIMEOUT } from "@/lib/constants"
 import useDimensions from "@/hooks/useDimensions"
 
+const contentContainerStyle = {
+	paddingBottom: 100
+}
+
 export const Contacts = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const [contactsActiveTab] = useMMKVString("contactsActiveTab", mmkvInstance)
@@ -133,84 +137,103 @@ export const Contacts = memo(() => {
 		contactsService.sendRequest()
 	}, [])
 
+	const headerSearchBar = useMemo(() => {
+		return {
+			onChangeText: setSearchTerm,
+			iosHideWhenScrolling: true
+		}
+	}, [setSearchTerm])
+
+	const headerRightView = useCallback(() => {
+		return (
+			<Button
+				variant="plain"
+				size="icon"
+				onPress={sendRequest}
+			>
+				<Icon
+					name="plus"
+					size={24}
+					color={colors.primary}
+				/>
+			</Button>
+		)
+	}, [sendRequest, colors.primary])
+
+	const listEmpty = useMemo(() => {
+		return (
+			<ListEmpty
+				activeTab={activeTab}
+				pending={
+					allContactsQuery.status === "pending" ||
+					blockedContactsQuery.status === "pending" ||
+					contactsRequestsQuery.status === "pending"
+				}
+			/>
+		)
+	}, [activeTab, allContactsQuery.status, blockedContactsQuery.status, contactsRequestsQuery.status])
+
+	const refreshControl = useMemo(() => {
+		return (
+			<RefreshControl
+				refreshing={refreshing}
+				onRefresh={async () => {
+					setRefreshing(true)
+
+					await Promise.all([blockedContactsQuery.refetch(), allContactsQuery.refetch(), contactsRequestsQuery.refetch()]).catch(
+						console.error
+					)
+
+					setRefreshing(false)
+				}}
+			/>
+		)
+	}, [refreshing, blockedContactsQuery, allContactsQuery, contactsRequestsQuery])
+
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
+			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		}
+	}, [screen.height])
+
+	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+		return {
+			length: LIST_ITEM_HEIGHT,
+			offset: LIST_ITEM_HEIGHT * index,
+			index
+		}
+	}, [])
+
 	return (
 		<Fragment>
 			<LargeTitleHeader
 				title="Contacts"
-				searchBar={{
-					onChangeText: setSearchTerm,
-					iosHideWhenScrolling: true
-				}}
-				rightView={() => {
-					return (
-						<Button
-							variant="plain"
-							size="icon"
-							onPress={sendRequest}
-						>
-							<Icon
-								name="plus"
-								size={24}
-								color={colors.primary}
-							/>
-						</Button>
-					)
-				}}
+				searchBar={headerSearchBar}
+				rightView={headerRightView}
 			/>
 			<List
 				contentInsetAdjustmentBehavior="automatic"
 				variant="full-width"
-				contentContainerStyle={{
-					paddingBottom: 100
-				}}
+				contentContainerStyle={contentContainerStyle}
 				data={listData}
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
-				ListEmptyComponent={
-					<ListEmpty
-						activeTab={activeTab}
-						pending={
-							allContactsQuery.status === "pending" ||
-							blockedContactsQuery.status === "pending" ||
-							contactsRequestsQuery.status === "pending"
-						}
-					/>
-				}
+				ListEmptyComponent={listEmpty}
 				refreshing={
 					refreshing ||
 					allContactsQuery.status === "pending" ||
 					blockedContactsQuery.status === "pending" ||
 					contactsRequestsQuery.status === "pending"
 				}
-				refreshControl={
-					<RefreshControl
-						refreshing={refreshing}
-						onRefresh={async () => {
-							setRefreshing(true)
-
-							await Promise.all([
-								blockedContactsQuery.refetch(),
-								allContactsQuery.refetch(),
-								contactsRequestsQuery.refetch()
-							]).catch(console.error)
-
-							setRefreshing(false)
-						}}
-					/>
-				}
+				refreshControl={refreshControl}
 				ListHeaderComponent={ListHeader}
 				removeClippedSubviews={true}
-				initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
-				maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+				initialNumToRender={initialNumToRender}
+				maxToRenderPerBatch={maxToRenderPerBatch}
 				updateCellsBatchingPeriod={100}
 				windowSize={3}
-				getItemLayout={(_, index) => {
-					return {
-						length: LIST_ITEM_HEIGHT,
-						offset: LIST_ITEM_HEIGHT * index,
-						index
-					}
-				}}
+				getItemLayout={getItemLayout}
 			/>
 		</Fragment>
 	)

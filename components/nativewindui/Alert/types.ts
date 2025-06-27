@@ -1,11 +1,18 @@
 import { IconProps, MaterialIconName } from "@roninoss/icons"
 import { AlertButton, AlertType, KeyboardType, View } from "react-native"
 
-type AlertInputValue = { login: string; password: string } | string
+export type AlertInputValue =
+	| {
+			login: string
+			password: string
+	  }
+	| string
 
-type AlertProps = {
+export type AlertProps = {
 	title: string
-	buttons: (Omit<AlertButton, "onPress"> & { onPress?: (text: AlertInputValue) => void })[]
+	buttons: (Omit<AlertButton, "onPress"> & {
+		onPress?: (text: AlertInputValue) => void
+	})[]
 	message?: string | undefined
 	prompt?: {
 		type?: Exclude<AlertType, "default"> | undefined
@@ -14,15 +21,19 @@ type AlertProps = {
 		placeholder?: string
 	}
 	materialPortalHost?: string
-	materialIcon?: Pick<IconProps<"material">, "color" | "size"> & { name: MaterialIconName }
+	materialIcon?: Pick<IconProps<"material">, "color" | "size"> & {
+		name: MaterialIconName
+	}
 	materialWidth?: number
 	children?: React.ReactNode
 }
 
-type AlertRef = React.ElementRef<typeof View> & {
+export type AlertRef = React.ElementRef<typeof View> & {
 	show: () => void
-	prompt: (args: AlertProps & { prompt: AlertProps["prompt"] }) => void
+	prompt: (
+		args: AlertProps & {
+			prompt: AlertProps["prompt"]
+		}
+	) => void
 	alert: (args: AlertProps) => void
 }
-
-export type { AlertInputValue, AlertProps, AlertRef }

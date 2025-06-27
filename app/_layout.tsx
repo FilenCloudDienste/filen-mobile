@@ -1,7 +1,7 @@
 import "@/lib/global"
 
 import { Stack } from "expo-router"
-import { useEffect, useState, Fragment } from "react"
+import { useEffect, useState, Fragment, useMemo } from "react"
 import { StatusBar } from "expo-status-bar"
 import { ThemeProvider as NavThemeProvider } from "@react-navigation/native"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -29,6 +29,7 @@ import SocketEvents from "@/components/socketEvents"
 import { NotifierWrapper } from "react-native-notifier"
 import Biometric from "@/components/biometric"
 import * as SplashScreen from "expo-splash-screen"
+import { SCREEN_OPTIONS } from "@/lib/constants"
 
 SplashScreen.setOptions({
 	duration: 400,
@@ -41,6 +42,25 @@ export default function RootLayout() {
 	const { colorScheme, colors } = useColorScheme()
 	const [isAuthed] = useIsAuthed()
 	const [setupDone, setSetupDone] = useState<boolean>(false)
+
+	const statusBarStyle = useMemo(() => {
+		return colorScheme === "dark" ? "light" : "auto"
+	}, [colorScheme])
+
+	const statusBarKey = useMemo(() => {
+		return `root-status-bar-${colorScheme}`
+	}, [colorScheme])
+
+	const gestureHandlerRootViewStyle = useMemo(() => {
+		return {
+			flex: 1,
+			backgroundColor: colors.background
+		}
+	}, [colors.background])
+
+	const initialRouteName = useMemo(() => {
+		return isAuthed ? "(app)" : "(auth)"
+	}, [isAuthed])
 
 	useEffect(() => {
 		Promise.all([setup(), restoreQueries()])
@@ -57,15 +77,10 @@ export default function RootLayout() {
 	return (
 		<Fragment>
 			<StatusBar
-				key={`root-status-bar-${colorScheme}`}
-				style={colorScheme === "dark" ? "light" : "auto"}
+				key={statusBarKey}
+				style={statusBarStyle}
 			/>
-			<GestureHandlerRootView
-				style={{
-					flex: 1,
-					backgroundColor: colors.background
-				}}
-			>
+			<GestureHandlerRootView style={gestureHandlerRootViewStyle}>
 				<KeyboardProvider>
 					<QueryClientProvider client={queryClient}>
 						<ActionSheetProvider>
@@ -75,129 +90,64 @@ export default function RootLayout() {
 										{setupDone && (
 											<ShareIntentProvider>
 												<Stack
-													initialRouteName={isAuthed ? "(app)" : "(auth)"}
-													screenOptions={{
-														headerShown: false,
-														headerBlurEffect: "systemChromeMaterial"
-													}}
+													initialRouteName={initialRouteName}
+													screenOptions={SCREEN_OPTIONS.base}
 												>
 													<Stack.Screen
 														name="(app)"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial"
-														}}
+														options={SCREEN_OPTIONS.base}
 													/>
 													<Stack.Screen
 														name="(auth)"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial"
-														}}
+														options={SCREEN_OPTIONS.base}
 													/>
 													<Stack.Screen
 														name="selectContacts"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial",
-															presentation: "modal",
-															animation: "slide_from_bottom"
-														}}
+														options={SCREEN_OPTIONS.modal}
 													/>
 													<Stack.Screen
 														name="selectDriveItems"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial",
-															presentation: "modal",
-															animation: "slide_from_bottom"
-														}}
+														options={SCREEN_OPTIONS.modal}
 													/>
 													<Stack.Screen
 														name="editPublicLink"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial",
-															presentation: "modal",
-															animation: "slide_from_bottom"
-														}}
+														options={SCREEN_OPTIONS.modal}
 													/>
 													<Stack.Screen
 														name="fileVersionHistory"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial",
-															presentation: "modal",
-															animation: "slide_from_bottom"
-														}}
+														options={SCREEN_OPTIONS.modal}
 													/>
 													<Stack.Screen
 														name="textEditor"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial"
-														}}
+														options={SCREEN_OPTIONS.base}
 													/>
 													<Stack.Screen
 														name="pdfPreview"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial",
-															presentation: "modal",
-															animation: "slide_from_bottom"
-														}}
+														options={SCREEN_OPTIONS.modal}
 													/>
 													<Stack.Screen
 														name="docxPreview"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial",
-															presentation: "modal",
-															animation: "slide_from_bottom"
-														}}
+														options={SCREEN_OPTIONS.modal}
 													/>
 													<Stack.Screen
 														name="transfers"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial",
-															presentation: "modal",
-															animation: "slide_from_bottom"
-														}}
+														options={SCREEN_OPTIONS.modal}
 													/>
 													<Stack.Screen
 														name="shareIntent"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial",
-															presentation: "modal",
-															animation: "slide_from_bottom"
-														}}
+														options={SCREEN_OPTIONS.modal}
 													/>
 													<Stack.Screen
 														name="chat"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial"
-														}}
+														options={SCREEN_OPTIONS.base}
 													/>
 													<Stack.Screen
 														name="trackPlayer"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial",
-															presentation: "modal",
-															animation: "slide_from_bottom"
-														}}
+														options={SCREEN_OPTIONS.modal}
 													/>
 													<Stack.Screen
 														name="selectTrackPlayerPlaylists"
-														options={{
-															headerShown: false,
-															headerBlurEffect: "systemChromeMaterial",
-															presentation: "modal",
-															animation: "slide_from_bottom"
-														}}
+														options={SCREEN_OPTIONS.modal}
 													/>
 												</Stack>
 												<Listeners />

@@ -29,8 +29,102 @@ export const LIST_ITEM_HEIGHT = Platform.select({
 	default: 60
 })
 
-export const History = memo(({ note }: { note: Note }) => {
+export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInfo>; note: Note }) => {
 	const { t } = useTranslation()
+
+	const noteHistoryQuery = useNoteHistoryQuery({
+		uuid: note.uuid,
+		enabled: false
+	})
+
+	const restore = useCallback(async () => {
+		const alertPromptResponse = await alertPrompt({
+			title: "disableEmbeds",
+			message: "Are u sure"
+		})
+
+		if (alertPromptResponse.cancelled) {
+			return
+		}
+
+		fullScreenLoadingModal.show()
+
+		try {
+			await nodeWorker.proxy("restoreNoteHistory", {
+				uuid: note.uuid,
+				id: info.item.history.id
+			})
+
+			await noteHistoryQuery.refetch()
+
+			queryUtils.useNotesQuerySet({
+				updater: prev =>
+					prev.map(n =>
+						n.uuid === note.uuid
+							? {
+									...n,
+									type: info.item.history.type,
+									editedTimestamp: info.item.history.editedTimestamp,
+									preview: info.item.history.preview
+							  }
+							: n
+					)
+			})
+
+			queryUtils.useNoteContentQuerySet({
+				uuid: note.uuid,
+				updater: prev => ({
+					...prev,
+					type: info.item.history.type,
+					editedTimestamp: info.item.history.editedTimestamp,
+					preview: info.item.history.preview,
+					editorId: info.item.history.editorId
+				})
+			})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			fullScreenLoadingModal.hide()
+		}
+	}, [note.uuid, info.item.history, noteHistoryQuery])
+
+	const rightView = useMemo(() => {
+		return (
+			<View className="flex-1 flex-row items-center px-4">
+				<Button
+					size="sm"
+					onPress={restore}
+				>
+					<Text>{t("fileVersionHistory.list.item.restore")}</Text>
+				</Button>
+			</View>
+		)
+	}, [restore, t])
+
+	return (
+		<ListItem
+			{...info}
+			variant="full-width"
+			className="overflow-hidden"
+			subTitleClassName="text-xs pt-1 font-normal"
+			textNumberOfLines={1}
+			subTitleNumberOfLines={1}
+			isFirstInSection={false}
+			isLastInSection={false}
+			removeSeparator={Platform.OS === "android"}
+			innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+			rightView={rightView}
+		/>
+	)
+})
+
+Item.displayName = "Item"
+
+export const History = memo(({ note }: { note: Note }) => {
 	const { screen } = useDimensions()
 
 	const noteHistoryQuery = useNoteHistoryQuery({
@@ -56,92 +150,16 @@ export const History = memo(({ note }: { note: Note }) => {
 		return typeof item === "string" ? item : item.id
 	}, [])
 
-	const restore = useCallback(
-		async (history: NoteHistory) => {
-			const alertPromptResponse = await alertPrompt({
-				title: "disableEmbeds",
-				message: "Are u sure"
-			})
-
-			if (alertPromptResponse.cancelled) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("restoreNoteHistory", {
-					uuid: note.uuid,
-					id: history.id
-				})
-
-				await noteHistoryQuery.refetch()
-
-				queryUtils.useNotesQuerySet({
-					updater: prev =>
-						prev.map(n =>
-							n.uuid === note.uuid
-								? {
-										...n,
-										type: history.type,
-										editedTimestamp: history.editedTimestamp,
-										preview: history.preview
-								  }
-								: n
-						)
-				})
-
-				queryUtils.useNoteContentQuerySet({
-					uuid: note.uuid,
-					updater: prev => ({
-						...prev,
-						type: history.type,
-						editedTimestamp: history.editedTimestamp,
-						preview: history.preview,
-						editorId: history.editorId
-					})
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-		},
-		[note.uuid, noteHistoryQuery]
-	)
-
 	const renderItem = useCallback(
 		(info: ListRenderItemInfo<ListItemInfo>) => {
 			return (
-				<ListItem
-					{...info}
-					variant="full-width"
-					className="overflow-hidden"
-					subTitleClassName="text-xs pt-1 font-normal"
-					textNumberOfLines={1}
-					subTitleNumberOfLines={1}
-					isFirstInSection={false}
-					isLastInSection={false}
-					removeSeparator={Platform.OS === "android"}
-					innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
-					rightView={
-						<View className="flex-1 flex-row items-center px-4">
-							<Button
-								size="sm"
-								onPress={() => restore(info.item.history)}
-							>
-								<Text>{t("fileVersionHistory.list.item.restore")}</Text>
-							</Button>
-						</View>
-					}
+				<Item
+					info={info}
+					note={note}
 				/>
 			)
 		},
-		[t, restore]
+		[note]
 	)
 
 	const ListFooter = useMemo(() => {
@@ -151,6 +169,21 @@ export const History = memo(({ note }: { note: Note }) => {
 			</View>
 		)
 	}, [history.length])
+
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
+			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		}
+	}, [screen.height])
+
+	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+		return {
+			length: LIST_ITEM_HEIGHT,
+			offset: LIST_ITEM_HEIGHT * index,
+			index
+		}
+	}, [])
 
 	return (
 		<Fragment>
@@ -170,17 +203,11 @@ export const History = memo(({ note }: { note: Note }) => {
 					keyExtractor={keyExtractor}
 					ListFooterComponent={ListFooter}
 					removeClippedSubviews={true}
-					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
-					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					initialNumToRender={initialNumToRender}
+					maxToRenderPerBatch={maxToRenderPerBatch}
 					updateCellsBatchingPeriod={100}
 					windowSize={3}
-					getItemLayout={(_, index) => {
-						return {
-							length: LIST_ITEM_HEIGHT,
-							offset: LIST_ITEM_HEIGHT * index,
-							index
-						}
-					}}
+					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</Fragment>

@@ -1,5 +1,5 @@
 import { View } from "react-native"
-import { memo } from "react"
+import { memo, useMemo } from "react"
 import Thumbnail from "@/components/thumbnail/item"
 import { Checkbox } from "@/components/nativewindui/Checkbox"
 import Animated, { SlideInLeft, SlideOutLeft } from "react-native-reanimated"
@@ -27,6 +27,15 @@ export const LeftView = memo(
 	}) => {
 		const { colors } = useColorScheme()
 		const pathname = usePathname()
+
+		const imageStyle = useMemo(() => {
+			return {
+				width: ICON_HEIGHT,
+				height: ICON_HEIGHT,
+				backgroundColor: colors.background,
+				borderRadius: 6
+			}
+		}, [colors.background])
 
 		return (
 			<View className="flex-1 flex-row items-center gap-4 justify-center px-4">
@@ -65,12 +74,7 @@ export const LeftView = memo(
 						size={ICON_HEIGHT}
 						imageContentFit="contain"
 						imageCachePolicy="none"
-						imageStyle={{
-							width: ICON_HEIGHT,
-							height: ICON_HEIGHT,
-							backgroundColor: colors.background,
-							borderRadius: 6
-						}}
+						imageStyle={imageStyle}
 						queryParams={queryParams}
 					/>
 				</View>

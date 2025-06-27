@@ -1,72 +1,82 @@
 import { useAugmentedRef } from "@rn-primitives/hooks"
 import * as Slot from "@rn-primitives/slot"
-import * as React from "react"
+import { memo, forwardRef, useCallback, useMemo } from "react"
 import { AlertButton, Pressable, Alert as RNAlert } from "react-native"
-
 import { AlertProps, AlertRef } from "./types"
 
-const Alert = React.forwardRef<AlertRef, AlertProps>(({ children, title, buttons, message, prompt }, ref) => {
-	const augmentedRef = useAugmentedRef({
-		ref,
-		methods: {
-			show: () => {
-				onPress()
+export const Alert = memo(
+	forwardRef<AlertRef, AlertProps>(({ children, title, buttons, message, prompt }, ref) => {
+		const promptAlert = useCallback((args: AlertProps & { prompt: Required<AlertProps["prompt"]> }) => {
+			RNAlert.prompt(
+				args.title,
+				args.message,
+				args.buttons as AlertButton[],
+				args.prompt?.type,
+				args.prompt?.defaultValue,
+				args.prompt?.keyboardType
+			)
+		}, [])
+
+		const alert = useCallback((args: AlertProps) => {
+			RNAlert.alert(args.title, args.message, args.buttons as AlertButton[])
+		}, [])
+
+		const augmentedRef = useAugmentedRef({
+			ref,
+			methods: {
+				show: () => onPress?.(),
+				alert,
+				prompt: promptAlert
 			},
-			alert,
-			prompt: promptAlert
-		},
-		deps: [prompt]
-	})
+			deps: [prompt]
+		})
 
-	function promptAlert(args: AlertProps & { prompt: Required<AlertProps["prompt"]> }) {
-		RNAlert.prompt(
-			args.title,
-			args.message,
-			args.buttons as AlertButton[],
-			args.prompt?.type,
-			args.prompt?.defaultValue,
-			args.prompt?.keyboardType
-		)
-	}
+		const onPress = useCallback(() => {
+			if (prompt) {
+				promptAlert({
+					title,
+					message,
+					buttons,
+					prompt: prompt as Required<AlertProps["prompt"]>
+				})
 
-	function alert(args: AlertProps) {
-		RNAlert.alert(args.title, args.message, args.buttons as AlertButton[])
-	}
+				return
+			}
 
-	function onPress() {
-		if (prompt) {
-			promptAlert({
+			alert({
 				title,
 				message,
-				buttons,
-				prompt: prompt as Required<AlertProps["prompt"]>
+				buttons
 			})
-			return
-		}
-		alert({ title, message, buttons })
-	}
+		}, [prompt, title, message, buttons, promptAlert, alert])
 
-	const Component = !children ? Pressable : Slot.Pressable
-	return (
-		<Component
-			ref={augmentedRef}
-			onPress={onPress}
-		>
-			{children}
-		</Component>
-	)
-})
+		const Component = useMemo(() => {
+			return !children ? Pressable : Slot.Pressable
+		}, [children])
+
+		return (
+			<Component
+				ref={augmentedRef}
+				onPress={onPress}
+			>
+				{children}
+			</Component>
+		)
+	})
+)
 
 Alert.displayName = "Alert"
 
-const AlertAnchor = React.forwardRef<AlertRef>((_, ref) => {
-	return (
-		<Alert
-			ref={ref}
-			title=""
-			buttons={[]}
-		/>
-	)
-})
+export const AlertAnchor = memo(
+	forwardRef<AlertRef>((_, ref) => {
+		return (
+			<Alert
+				ref={ref}
+				title=""
+				buttons={[]}
+			/>
+		)
+	})
+)
 
-export { Alert, AlertAnchor }
+AlertAnchor.displayName = "AlertAnchor"

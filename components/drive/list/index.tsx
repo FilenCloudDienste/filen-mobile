@@ -18,6 +18,10 @@ import useDimensions from "@/hooks/useDimensions"
 import { useShallow } from "zustand/shallow"
 import OfflineListHeader from "@/components/offlineListHeader"
 
+const contentContainerStyle = {
+	paddingBottom: 100
+}
+
 export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: FetchCloudItemsParams; scrollToUUID?: string }) => {
 	const { colors } = useColorScheme()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
@@ -35,7 +39,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	const cloudItemsQuery = useCloudItemsQuery(queryParams)
 
 	const items = useMemo((): ListItemInfo[] => {
-		if (!cloudItemsQuery.isSuccess) {
+		if (cloudItemsQuery.status !== "success") {
 			return []
 		}
 
@@ -56,7 +60,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 					: `${simpleDate(item.lastModified)}  -  ${formatBytes(item.size)}`,
 			item
 		}))
-	}, [cloudItemsQuery.isSuccess, cloudItemsQuery.data, searchTerm, orderBy, queryParams.of])
+	}, [cloudItemsQuery.status, cloudItemsQuery.data, searchTerm, orderBy, queryParams.of])
 
 	const driveItems = useMemo(() => {
 		return items.map(item => item.item)
@@ -123,6 +127,57 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 		return index
 	}, [scrollToUUID, items])
 
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
+			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		}
+	}, [screen.height])
+
+	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+		return {
+			length: LIST_ITEM_HEIGHT,
+			offset: LIST_ITEM_HEIGHT * index,
+			index
+		}
+	}, [])
+
+	const listHeader = useMemo(() => {
+		if (hasInternet) {
+			return undefined
+		}
+
+		return <OfflineListHeader />
+	}, [hasInternet])
+
+	const listEmpty = useMemo(() => {
+		return (
+			<View className="flex-1 flex-row items-center justify-center">
+				{cloudItemsQuery.status === "success" ? (
+					searchTerm.length > 0 ? (
+						<Text>Nothing found</Text>
+					) : (
+						<Text>Directory is empty</Text>
+					)
+				) : (
+					<ActivityIndicator color={colors.foreground} />
+				)}
+			</View>
+		)
+	}, [cloudItemsQuery.status, searchTerm.length, colors.foreground])
+
+	const listFooter = useMemo(() => {
+		if (items.length === 0) {
+			return undefined
+		}
+
+		return (
+			<View className="h-16 flex-1 flex-row items-center justify-center">
+				<Text className="text-sm">{items.length} items</Text>
+			</View>
+		)
+	}, [items.length])
+
 	useLayoutEffect(() => {
 		onLayout()
 	}, [onLayout])
@@ -151,42 +206,10 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						refreshing={refreshing || cloudItemsQuery.status === "pending"}
 						contentInsetAdjustmentBehavior="automatic"
 						initialScrollIndex={initialScrollIndex}
-						contentContainerStyle={{
-							paddingBottom: 100
-						}}
-						ListHeaderComponent={() => {
-							if (hasInternet) {
-								return undefined
-							}
-
-							return <OfflineListHeader />
-						}}
-						ListEmptyComponent={() => {
-							return (
-								<View className="flex-1 flex-row items-center justify-center">
-									{cloudItemsQuery.isSuccess ? (
-										searchTerm.length > 0 ? (
-											<Text>Nothing found</Text>
-										) : (
-											<Text>Directory is empty</Text>
-										)
-									) : (
-										<ActivityIndicator color={colors.foreground} />
-									)}
-								</View>
-							)
-						}}
-						ListFooterComponent={() => {
-							if (items.length === 0) {
-								return undefined
-							}
-
-							return (
-								<View className="h-16 flex-1 flex-row items-center justify-center">
-									<Text className="text-sm">{items.length} items</Text>
-								</View>
-							)
-						}}
+						contentContainerStyle={contentContainerStyle}
+						ListHeaderComponent={listHeader}
+						ListEmptyComponent={listEmpty}
+						ListFooterComponent={listFooter}
 						refreshControl={refreshControl}
 						windowSize={3}
 						initialNumToRender={32}
@@ -204,59 +227,17 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						refreshing={refreshing || cloudItemsQuery.status === "pending"}
 						contentInsetAdjustmentBehavior="automatic"
 						initialScrollIndex={initialScrollIndex}
-						contentContainerStyle={{
-							paddingBottom: 100
-						}}
-						ListHeaderComponent={() => {
-							if (hasInternet) {
-								return undefined
-							}
-
-							return (
-								<View className="flex-row items-center justify-center bg-red-500 p-2">
-									<Text>Offline mode</Text>
-								</View>
-							)
-						}}
-						ListEmptyComponent={() => {
-							return (
-								<View className="flex-1 flex-row items-center justify-center">
-									{cloudItemsQuery.isSuccess ? (
-										searchTerm.length > 0 ? (
-											<Text>Nothing found</Text>
-										) : (
-											<Text>Directory is empty</Text>
-										)
-									) : (
-										<ActivityIndicator color={colors.foreground} />
-									)}
-								</View>
-							)
-						}}
-						ListFooterComponent={() => {
-							if (items.length === 0) {
-								return undefined
-							}
-
-							return (
-								<View className="h-16 flex-1 flex-row items-center justify-center">
-									<Text className="text-sm">{items.length} items</Text>
-								</View>
-							)
-						}}
+						contentContainerStyle={contentContainerStyle}
+						ListHeaderComponent={listHeader}
+						ListEmptyComponent={listEmpty}
+						ListFooterComponent={listFooter}
 						refreshControl={refreshControl}
 						removeClippedSubviews={true}
-						initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
-						maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+						initialNumToRender={initialNumToRender}
+						maxToRenderPerBatch={maxToRenderPerBatch}
 						updateCellsBatchingPeriod={100}
 						windowSize={3}
-						getItemLayout={(_, index) => {
-							return {
-								length: LIST_ITEM_HEIGHT,
-								offset: LIST_ITEM_HEIGHT * index,
-								index
-							}
-						}}
+						getItemLayout={getItemLayout}
 					/>
 				)}
 			</View>

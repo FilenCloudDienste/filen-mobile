@@ -21,6 +21,38 @@ export const LIST_ITEM_HEIGHT = Platform.select({
 	default: 60
 })
 
+const contentContainerStyle = {
+	paddingBottom: 100
+}
+
+export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
+	const onPress = useCallback(() => {
+		alertPrompt({
+			title: "Event",
+			message: `${info.item.title}`,
+			cancelText: ""
+		}).catch(console.error)
+	}, [info.item.title])
+
+	return (
+		<ListItem
+			{...info}
+			className="overflow-hidden"
+			subTitleClassName="text-xs pt-1 font-normal"
+			variant="full-width"
+			textNumberOfLines={1}
+			subTitleNumberOfLines={1}
+			isFirstInSection={false}
+			isLastInSection={false}
+			removeSeparator={Platform.OS === "android"}
+			innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+			onPress={onPress}
+		/>
+	)
+})
+
+Item.displayName = "Item"
+
 export const Events = memo(() => {
 	const { colors } = useColorScheme()
 	const { screen } = useDimensions()
@@ -203,31 +235,37 @@ export const Events = memo(() => {
 	}, [events.status, events.data, eventTypeToTitle])
 
 	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
-		return (
-			<ListItem
-				{...info}
-				className="overflow-hidden"
-				subTitleClassName="text-xs pt-1 font-normal"
-				variant="full-width"
-				textNumberOfLines={1}
-				subTitleNumberOfLines={1}
-				isFirstInSection={false}
-				isLastInSection={false}
-				removeSeparator={Platform.OS === "android"}
-				innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
-				onPress={() => {
-					alertPrompt({
-						title: "Event",
-						message: `${info.item.title}`,
-						cancelText: ""
-					}).catch(console.error)
-				}}
-			/>
-		)
+		return <Item info={info} />
 	}, [])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
 		return typeof item === "string" ? item : item.id
+	}, [])
+
+	const listEmpty = useMemo(() => {
+		return (
+			<View className="flex-1 items-center justify-center">
+				<ActivityIndicator
+					size="small"
+					color={colors.foreground}
+				/>
+			</View>
+		)
+	}, [colors.foreground])
+
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
+			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		}
+	}, [screen.height])
+
+	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+		return {
+			length: LIST_ITEM_HEIGHT,
+			offset: LIST_ITEM_HEIGHT * index,
+			index
+		}
 	}, [])
 
 	return (
@@ -236,36 +274,17 @@ export const Events = memo(() => {
 			<List
 				contentInsetAdjustmentBehavior="automatic"
 				variant="full-width"
-				contentContainerStyle={{
-					paddingBottom: 100
-				}}
+				contentContainerStyle={contentContainerStyle}
 				data={eventsSorted}
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
-				ListEmptyComponent={() => {
-					return (
-						<View className="flex-1 items-center justify-center">
-							<ActivityIndicator
-								size="small"
-								color={colors.foreground}
-							/>
-						</View>
-					)
-				}}
-				onEndReachedThreshold={0.3}
-				onEndReached={() => console.log("End reached")}
+				ListEmptyComponent={listEmpty}
 				removeClippedSubviews={true}
-				initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
-				maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+				initialNumToRender={initialNumToRender}
+				maxToRenderPerBatch={maxToRenderPerBatch}
 				updateCellsBatchingPeriod={100}
 				windowSize={3}
-				getItemLayout={(_, index) => {
-					return {
-						length: LIST_ITEM_HEIGHT,
-						offset: LIST_ITEM_HEIGHT * index,
-						index
-					}
-				}}
+				getItemLayout={getItemLayout}
 			/>
 		</Fragment>
 	)

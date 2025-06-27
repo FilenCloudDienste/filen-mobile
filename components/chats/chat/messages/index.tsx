@@ -201,6 +201,28 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 		setShowScrollToBottom(false)
 	}, [])
 
+	const listFooter = useMemo(() => {
+		return isPreview ? undefined : (
+			<View
+				style={{
+					height: headerHeight + 8
+				}}
+			/>
+		)
+	}, [headerHeight, isPreview])
+
+	const listHeader = useMemo(() => {
+		return isPreview ? undefined : <Animated.View style={headerComponentStyle} />
+	}, [headerComponentStyle, isPreview])
+
+	const maintainVisibleContentPosition = useMemo(() => {
+		return scrollToBottomStyle.display === "flex"
+			? {
+					minIndexForVisible: 0
+			  }
+			: undefined
+	}, [scrollToBottomStyle.display])
+
 	return (
 		<Fragment>
 			{!isPreview && (
@@ -245,26 +267,12 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 				showsVerticalScrollIndicator={false}
 				estimatedItemSize={150}
 				extraData={lastFocus}
-				ListFooterComponent={
-					isPreview ? undefined : (
-						<View
-							style={{
-								height: headerHeight + 8
-							}}
-						/>
-					)
-				}
-				ListHeaderComponent={isPreview ? undefined : <Animated.View style={headerComponentStyle} />}
+				ListFooterComponent={listFooter}
+				ListHeaderComponent={listHeader}
 				viewabilityConfig={viewabilityConfig}
 				onViewableItemsChanged={onViewableItemsChanged}
 				removeClippedSubviews={true}
-				maintainVisibleContentPosition={
-					scrollToBottomStyle.display === "flex"
-						? {
-								minIndexForVisible: 0
-						  }
-						: undefined
-				}
+				maintainVisibleContentPosition={maintainVisibleContentPosition}
 			/>
 			{!isPreview && (
 				<Animated.View style={toolbarStyle}>

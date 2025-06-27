@@ -14,7 +14,7 @@ import { inputPrompt } from "../prompts/inputPrompt"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "@/components/nativewindui/Toolbar"
 import Container from "../Container"
 import useIsProUser from "@/hooks/useIsProUser"
-import { Settings, type SettingsItem, IconView } from "../settings"
+import { Settings, type SettingsItem } from "../settings"
 import { DropdownMenu } from "../nativewindui/DropdownMenu"
 import { createDropdownItem } from "../nativewindui/DropdownMenu/utils"
 
@@ -33,7 +33,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 	})
 
 	const save = useCallback(async () => {
-		if (!query.isSuccess || !query.data.enabled || !didChange) {
+		if (query.status !== "success" || !query.data.enabled || !didChange) {
 			return
 		}
 
@@ -64,16 +64,16 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 	}, [query, downloadEnabled, item, expiration, password, didChange])
 
 	const toggleDownload = useCallback(() => {
-		if (!query.isSuccess || !query.data.enabled) {
+		if (query.status !== "success" || !query.data.enabled) {
 			return
 		}
 
 		setDownloadEnabled(prev => !prev)
 		setDidChange(true)
-	}, [query.isSuccess, query.data?.enabled])
+	}, [query.status, query.data?.enabled])
 
 	const editPassword = useCallback(async () => {
-		if (!query.isSuccess || !query.data.enabled) {
+		if (query.status !== "success" || !query.data.enabled) {
 			return
 		}
 
@@ -97,10 +97,10 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 		}
 
 		setDidChange(true)
-	}, [query.isSuccess, query.data?.enabled])
+	}, [query.status, query.data?.enabled])
 
 	const share = useCallback(async () => {
-		if (!query.isSuccess || !query.data.enabled) {
+		if (query.status !== "success" || !query.data.enabled) {
 			return
 		}
 
@@ -131,10 +131,10 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 				alerts.error(e.message)
 			}
 		}
-	}, [query.isSuccess, query.data, item])
+	}, [query.status, query.data, item])
 
 	const toggle = useCallback(async () => {
-		if (!query.isSuccess) {
+		if (query.status !== "success") {
 			return
 		}
 
@@ -212,12 +212,6 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 			{
 				id: "1",
 				title: "Password",
-				leftView: (
-					<IconView
-						name="lock"
-						className="bg-gray-500"
-					/>
-				),
 				rightView: (
 					<Button
 						variant="plain"
@@ -232,12 +226,6 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 			{
 				id: "2",
 				title: "Expiration",
-				leftView: (
-					<IconView
-						name="clock"
-						className="bg-gray-500"
-					/>
-				),
 				rightView: (
 					<DropdownMenu
 						items={[
@@ -297,12 +285,6 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 			{
 				id: "3",
 				title: "Download button",
-				leftView: (
-					<IconView
-						name="file-download-outline"
-						className="bg-gray-500"
-					/>
-				),
 				rightView: (
 					<Toggle
 						onChange={toggleDownload}
@@ -353,7 +335,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 	}, [didChange, save, isDarkColorScheme])
 
 	useEffect(() => {
-		if (query.isSuccess && query.dataUpdatedAt > queryDataUpdatedAt.current) {
+		if (query.status === "success" && query.dataUpdatedAt > queryDataUpdatedAt.current) {
 			queryDataUpdatedAt.current = query.dataUpdatedAt
 
 			setToggleStatus(query.data.enabled)
@@ -387,7 +369,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 			/>
 			<Toolbar
 				iosBlurIntensity={100}
-				iosHint={didChange && query.isSuccess ? "Unsaved changes" : undefined}
+				iosHint={didChange && query.status === "success" ? "Unsaved changes" : undefined}
 				leftView={
 					<ToolbarIcon
 						disabled={query.status !== "success" || !query.data?.enabled}
@@ -404,7 +386,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 					<ToolbarCTA
 						disabled={query.status !== "success" || !didChange || !query.data?.enabled}
 						icon={{
-							name: didChange ? "check-circle" : "check-circle-outline"
+							name: "check"
 						}}
 						onPress={save}
 					/>

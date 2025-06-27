@@ -232,6 +232,25 @@ export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<Li
 		)
 	}, [showActionSheetWithOptions, actionSheetOptions, bottomInsets, colors.foreground, colors.card, info.item, fromSelect, select])
 
+	const leftView = useMemo(() => {
+		return (
+			<LeftView
+				info={info}
+				fromSelect={fromSelect}
+				isSelected={isSelected}
+				select={select}
+			/>
+		)
+	}, [info, fromSelect, isSelected, select])
+
+	const rightView = useMemo(() => {
+		return Platform.OS === "android" ? <RightView info={info} /> : undefined
+	}, [info])
+
+	const onPressHandler = useMemo(() => {
+		return Platform.OS === "ios" || fromSelect ? onPress : undefined
+	}, [fromSelect, onPress])
+
 	return (
 		<Menu
 			info={info}
@@ -248,16 +267,9 @@ export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<Li
 				isLastInSection={false}
 				removeSeparator={Platform.OS === "android"}
 				innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
-				leftView={
-					<LeftView
-						info={info}
-						fromSelect={fromSelect}
-						isSelected={isSelected}
-						select={select}
-					/>
-				}
-				rightView={Platform.OS === "android" ? <RightView info={info} /> : undefined}
-				onPress={Platform.OS === "ios" || fromSelect ? onPress : undefined}
+				leftView={leftView}
+				rightView={rightView}
+				onPress={onPressHandler}
 			/>
 		</Menu>
 	)

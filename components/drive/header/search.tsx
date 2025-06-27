@@ -35,9 +35,10 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 			return []
 		}
 
-		const queryItems: DriveCloudItem[] = query.isSuccess
-			? query.data.filter(item => item.name.toLowerCase().includes(searchTermLowerCase))
-			: ([] satisfies DriveCloudItem[])
+		const queryItems: DriveCloudItem[] =
+			query.status === "success"
+				? query.data.filter(item => item.name.toLowerCase().includes(searchTermLowerCase))
+				: ([] satisfies DriveCloudItem[])
 
 		const searchItems = result
 			.map(item => {
@@ -115,7 +116,7 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 		}
 
 		return sorted
-	}, [query.isSuccess, query.data, searchTerm, result, isLoading])
+	}, [query.status, query.data, searchTerm, result, isLoading])
 
 	const driveItems = useMemo(() => {
 		return items.map(item => item.item)
@@ -167,6 +168,37 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 		}
 	}, 1000)
 
+	const listEmpty = useMemo(() => {
+		return (
+			<View className="flex-1 flex-row items-center justify-center">
+				{!isLoading ? <Text>Nothing found</Text> : <ActivityIndicator color={colors.foreground} />}
+			</View>
+		)
+	}, [isLoading, colors.foreground])
+
+	const listFooter = useMemo(() => {
+		return items.length > 0 ? (
+			<View className="h-16 pb-2 flex flex-row items-center justify-center">
+				<Text className="text-sm">{items.length} items</Text>
+			</View>
+		) : undefined
+	}, [items.length])
+
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
+			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		}
+	}, [screen.height])
+
+	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+		return {
+			length: LIST_ITEM_HEIGHT,
+			offset: LIST_ITEM_HEIGHT * index,
+			index
+		}
+	}, [])
+
 	useEffect(() => {
 		if (searchTerm.length === 0) {
 			setResults([])
@@ -188,30 +220,14 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 			keyboardDismissMode="none"
 			keyboardShouldPersistTaps="never"
 			refreshing={isLoading}
-			ListEmptyComponent={
-				<View className="flex-1 flex-row items-center justify-center">
-					{!isLoading ? <Text>Nothing found</Text> : <ActivityIndicator color={colors.foreground} />}
-				</View>
-			}
-			ListFooterComponent={
-				items.length > 0 ? (
-					<View className="h-16 pb-2 flex flex-row items-center justify-center">
-						<Text className="text-sm">{items.length} items</Text>
-					</View>
-				) : undefined
-			}
+			ListEmptyComponent={listEmpty}
+			ListFooterComponent={listFooter}
 			removeClippedSubviews={true}
-			initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
-			maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+			initialNumToRender={initialNumToRender}
+			maxToRenderPerBatch={maxToRenderPerBatch}
 			updateCellsBatchingPeriod={100}
 			windowSize={3}
-			getItemLayout={(_, index) => {
-				return {
-					length: LIST_ITEM_HEIGHT,
-					offset: LIST_ITEM_HEIGHT * index,
-					index
-				}
-			}}
+			getItemLayout={getItemLayout}
 		/>
 	)
 })

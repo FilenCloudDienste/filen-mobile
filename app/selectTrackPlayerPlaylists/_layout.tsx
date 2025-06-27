@@ -4,6 +4,7 @@ import Toolbar from "@/components/selectTrackPlayerPlaylists/toolbar"
 import { Fragment } from "react"
 import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
 import { Platform } from "react-native"
+import { SCREEN_OPTIONS } from "@/lib/constants"
 
 export default function SelectTrackPlayerPlaylistsLayout() {
 	const [isAuthed] = useIsAuthed()
@@ -14,12 +15,7 @@ export default function SelectTrackPlayerPlaylistsLayout() {
 
 	return (
 		<Fragment>
-			<Stack
-				screenOptions={{
-					headerShown: false,
-					headerBlurEffect: "systemChromeMaterial"
-				}}
-			/>
+			<Stack screenOptions={SCREEN_OPTIONS.base} />
 			<Toolbar />
 			{Platform.OS === "ios" && <FullScreenLoadingModal />}
 		</Fragment>

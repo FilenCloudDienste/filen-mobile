@@ -17,6 +17,103 @@ import useNetInfo from "@/hooks/useNetInfo"
 import OfflineListHeader from "@/components/offlineListHeader"
 import ContainerComponent from "@/components/home/container"
 
+const contentContainerStyle = {
+	paddingBottom: 100
+}
+
+export const Item = memo(
+	({
+		type,
+		items
+	}: {
+		type: "recents" | "favorites" | "links" | "sharedIn" | "sharedOut" | "offline" | "trash" | "bottom"
+		items: DriveCloudItem[]
+	}) => {
+		if (type === "bottom") {
+			return (
+				<View
+					key={type}
+					className="w-full flex-1 h-8"
+				/>
+			)
+		}
+
+		if (type === "recents") {
+			return (
+				<ContainerComponent
+					key={type}
+					type="recents"
+					items={items}
+				/>
+			)
+		}
+
+		if (type === "favorites") {
+			return (
+				<ContainerComponent
+					key={type}
+					type="favorites"
+					items={items}
+				/>
+			)
+		}
+
+		if (type === "links") {
+			return (
+				<ContainerComponent
+					key={type}
+					type="links"
+					items={items}
+				/>
+			)
+		}
+
+		if (type === "sharedIn") {
+			return (
+				<ContainerComponent
+					key={type}
+					type="sharedIn"
+					items={items}
+				/>
+			)
+		}
+
+		if (type === "sharedOut") {
+			return (
+				<ContainerComponent
+					key={type}
+					type="sharedOut"
+					items={items}
+				/>
+			)
+		}
+
+		if (type === "offline") {
+			return (
+				<ContainerComponent
+					key={type}
+					type="offline"
+					items={items}
+				/>
+			)
+		}
+
+		if (type === "trash") {
+			return (
+				<ContainerComponent
+					key={type}
+					type="trash"
+					items={items}
+				/>
+			)
+		}
+
+		return null
+	}
+)
+
+Item.displayName = "Item"
+
 export const Home = memo(() => {
 	const { colors } = useColorScheme()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
@@ -68,67 +165,67 @@ export const Home = memo(() => {
 	const account = useAccountQuery({})
 
 	const recentsItems = useMemo(() => {
-		return recents.isSuccess
+		return recents.status === "success"
 			? orderItemsByType({
 					items: recents.data.filter(item => item.type === "file").slice(0, 12),
 					type: "uploadDateDesc"
-				})
+			  })
 			: []
-	}, [recents.isSuccess, recents.data])
+	}, [recents.status, recents.data])
 
 	const favoritesItems = useMemo(() => {
-		return favorites.isSuccess
+		return favorites.status === "success"
 			? orderItemsByType({
 					items: favorites.data.filter(item => item.type === "file").slice(0, 12),
 					type: "lastModifiedDesc"
-				})
+			  })
 			: []
-	}, [favorites.isSuccess, favorites.data])
+	}, [favorites.status, favorites.data])
 
 	const linksItems = useMemo(() => {
-		return links.isSuccess
+		return links.status === "success"
 			? orderItemsByType({
 					items: links.data.slice(0, 12),
 					type: "lastModifiedDesc"
-				})
+			  })
 			: []
-	}, [links.isSuccess, links.data])
+	}, [links.status, links.data])
 
 	const sharedInItems = useMemo(() => {
-		return sharedIn.isSuccess
+		return sharedIn.status === "success"
 			? orderItemsByType({
 					items: sharedIn.data.slice(0, 12),
 					type: "lastModifiedDesc"
-				})
+			  })
 			: []
-	}, [sharedIn.isSuccess, sharedIn.data])
+	}, [sharedIn.status, sharedIn.data])
 
 	const sharedOutItems = useMemo(() => {
-		return sharedOut.isSuccess
+		return sharedOut.status === "success"
 			? orderItemsByType({
 					items: sharedOut.data.slice(0, 12),
 					type: "lastModifiedDesc"
-				})
+			  })
 			: []
-	}, [sharedOut.isSuccess, sharedOut.data])
+	}, [sharedOut.status, sharedOut.data])
 
 	const offlineItems = useMemo(() => {
-		return offline.isSuccess
+		return offline.status === "success"
 			? orderItemsByType({
 					items: offline.data.slice(0, 12),
 					type: "lastModifiedDesc"
-				})
+			  })
 			: []
-	}, [offline.isSuccess, offline.data])
+	}, [offline.status, offline.data])
 
 	const trashItems = useMemo(() => {
-		return trash.isSuccess
+		return trash.status === "success"
 			? orderItemsByType({
 					items: trash.data.slice(0, 12),
 					type: "lastModifiedDesc"
-				})
+			  })
 			: []
-	}, [trash.isSuccess, trash.data])
+	}, [trash.status, trash.data])
 
 	const openSettings = useCallback(() => {
 		router.push({
@@ -138,25 +235,16 @@ export const Home = memo(() => {
 
 	const loadDone = useMemo(() => {
 		return (
-			recents.isSuccess &&
-			links.isSuccess &&
-			account.isSuccess &&
-			trash.isSuccess &&
-			sharedIn.isSuccess &&
-			sharedOut.isSuccess &&
-			offline.isSuccess &&
-			favorites.isSuccess
+			recents.status === "success" &&
+			links.status === "success" &&
+			account.status === "success" &&
+			trash.status === "success" &&
+			sharedIn.status === "success" &&
+			sharedOut.status === "success" &&
+			offline.status === "success" &&
+			favorites.status === "success"
 		)
-	}, [
-		recents.isSuccess,
-		links.isSuccess,
-		account.isSuccess,
-		trash.isSuccess,
-		sharedIn.isSuccess,
-		sharedOut.isSuccess,
-		offline.isSuccess,
-		favorites.isSuccess
-	])
+	}, [recents.status, links.status, account.status, trash.status, sharedIn.status, sharedOut.status, offline.status, favorites.status])
 
 	const avatarSource = useMemo(() => {
 		if (account.status !== "success" || !account.data.account.avatarURL || !account.data.account.avatarURL.startsWith("https://")) {
@@ -170,74 +258,102 @@ export const Home = memo(() => {
 		}
 	}, [account.data, account.status])
 
+	const headerLeftView = useMemo(() => {
+		return account.status === "success" && hasInternet
+			? () => {
+					return (
+						<View className="flex flex-row items-center">
+							<Button
+								variant="plain"
+								size="icon"
+								onPress={openSettings}
+							>
+								<Avatar
+									source={avatarSource}
+									style={{
+										width: 24,
+										height: 24
+									}}
+								/>
+							</Button>
+						</View>
+					)
+			  }
+			: undefined
+	}, [account.status, hasInternet, avatarSource, openSettings])
+
+	const headerRightView = useCallback(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
+		return (
+			<View className="flex-row items-center">
+				<Transfers />
+				<Button
+					variant="plain"
+					size="icon"
+					onPress={() => {
+						router.push({
+							pathname: "/trackPlayer"
+						})
+					}}
+				>
+					<Icon
+						name="music-note"
+						size={24}
+						color={colors.primary}
+					/>
+				</Button>
+				<Button
+					variant="plain"
+					size="icon"
+					onPress={() => {
+						alerts.error("This feature is not implemented yet.")
+					}}
+				>
+					<Icon
+						name="access-point-network"
+						size={24}
+						color={colors.primary}
+					/>
+				</Button>
+			</View>
+		)
+	}, [hasInternet, router, colors.primary])
+
+	const refreshControl = useMemo(() => {
+		return (
+			<RefreshControl
+				refreshing={refreshing}
+				onRefresh={async () => {
+					setRefreshing(true)
+
+					await Promise.all([
+						recents.refetch(),
+						favorites.refetch(),
+						links.refetch(),
+						sharedIn.refetch(),
+						sharedOut.refetch(),
+						offline.refetch(),
+						trash.refetch(),
+						account.refetch()
+					]).catch(console.error)
+
+					setRefreshing(false)
+				}}
+			/>
+		)
+	}, [refreshing, recents, favorites, links, sharedIn, sharedOut, offline, trash, account])
+
 	return (
 		<Fragment>
 			<LargeTitleHeader
 				title="Home"
 				backVisible={false}
 				materialPreset="stack"
-				leftView={
-					account.status === "success" && hasInternet
-						? () => {
-								return (
-									<View className="flex flex-row items-center">
-										<Button
-											variant="plain"
-											size="icon"
-											onPress={openSettings}
-										>
-											<Avatar
-												source={avatarSource}
-												style={{
-													width: 24,
-													height: 24
-												}}
-											/>
-										</Button>
-									</View>
-								)
-							}
-						: undefined
-				}
-				rightView={() => {
-					if (!hasInternet) {
-						return undefined
-					}
-
-					return (
-						<View className="flex-row items-center">
-							<Transfers />
-							<Button
-								variant="plain"
-								size="icon"
-								onPress={() => {
-									router.push({
-										pathname: "/trackPlayer"
-									})
-								}}
-							>
-								<Icon
-									name="music-note"
-									size={24}
-									color={colors.primary}
-								/>
-							</Button>
-							<Button
-								variant="plain"
-								size="icon"
-								onPress={() => {
-									alerts.error("This feature is not implemented yet.")
-								}}
-							>
-								<Icon
-									name="access-point-network"
-									size={24}
-									color={colors.primary}
-								/>
-							</Button>
-						</View>
-					)
-				}}
+				leftView={headerLeftView}
+				rightView={headerRightView}
 			/>
 			<Container>
 				{!loadDone ? (
@@ -248,115 +364,36 @@ export const Home = memo(() => {
 					<ScrollView
 						contentInsetAdjustmentBehavior="automatic"
 						contentContainerClassName={cn("pt-2", Platform.OS === "ios" && "pt-4")}
-						contentContainerStyle={{
-							paddingBottom: 100
-						}}
+						contentContainerStyle={contentContainerStyle}
 						showsVerticalScrollIndicator={false}
 						showsHorizontalScrollIndicator={false}
-						refreshControl={
-							<RefreshControl
-								refreshing={refreshing}
-								onRefresh={async () => {
-									setRefreshing(true)
-
-									await Promise.all([
-										recents.refetch(),
-										favorites.refetch(),
-										links.refetch(),
-										sharedIn.refetch(),
-										sharedOut.refetch(),
-										offline.refetch(),
-										trash.refetch(),
-										account.refetch()
-									]).catch(console.error)
-
-									setRefreshing(false)
-								}}
-							/>
-						}
+						refreshControl={refreshControl}
 					>
 						{!hasInternet && <OfflineListHeader className="mb-4" />}
 						{(["recents", "favorites", "links", "sharedIn", "sharedOut", "offline", "trash", "bottom"] as const).map(type => {
-							if (type === "bottom") {
-								return (
-									<View
-										key={type}
-										className="w-full flex-1 h-8"
-									/>
-								)
-							}
-
-							if (type === "recents") {
-								return (
-									<ContainerComponent
-										key={type}
-										type="recents"
-										items={recentsItems}
-									/>
-								)
-							}
-
-							if (type === "favorites") {
-								return (
-									<ContainerComponent
-										key={type}
-										type="favorites"
-										items={favoritesItems}
-									/>
-								)
-							}
-
-							if (type === "links") {
-								return (
-									<ContainerComponent
-										key={type}
-										type="links"
-										items={linksItems}
-									/>
-								)
-							}
-
-							if (type === "sharedIn") {
-								return (
-									<ContainerComponent
-										key={type}
-										type="sharedIn"
-										items={sharedInItems}
-									/>
-								)
-							}
-
-							if (type === "sharedOut") {
-								return (
-									<ContainerComponent
-										key={type}
-										type="sharedOut"
-										items={sharedOutItems}
-									/>
-								)
-							}
-
-							if (type === "offline") {
-								return (
-									<ContainerComponent
-										key={type}
-										type="offline"
-										items={offlineItems}
-									/>
-								)
-							}
-
-							if (type === "trash") {
-								return (
-									<ContainerComponent
-										key={type}
-										type="trash"
-										items={trashItems}
-									/>
-								)
-							}
-
-							return null
+							return (
+								<Item
+									key={type}
+									type={type}
+									items={
+										type === "recents"
+											? recentsItems
+											: type === "favorites"
+											? favoritesItems
+											: type === "links"
+											? linksItems
+											: type === "sharedIn"
+											? sharedInItems
+											: type === "sharedOut"
+											? sharedOutItems
+											: type === "offline"
+											? offlineItems
+											: type === "trash"
+											? trashItems
+											: []
+									}
+								/>
+							)
 						})}
 					</ScrollView>
 				)}

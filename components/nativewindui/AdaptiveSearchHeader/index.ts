@@ -1,1 +1,1 @@
-export * from './AdaptiveSearchHeader';
+export * from "./AdaptiveSearchHeader"

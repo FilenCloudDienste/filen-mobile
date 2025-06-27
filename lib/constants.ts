@@ -1,5 +1,19 @@
 import { type FilenSDKConfig } from "@filen/sdk"
 import { Platform } from "react-native"
+import { type Stack } from "expo-router"
+
+export const SCREEN_OPTIONS = {
+	base: {
+		headerShown: false,
+		headerBlurEffect: "systemChromeMaterial"
+	},
+	modal: {
+		headerShown: false,
+		headerBlurEffect: "systemChromeMaterial",
+		presentation: "modal",
+		animation: "slide_from_bottom"
+	}
+} satisfies Record<string, NonNullable<React.ComponentPropsWithoutRef<typeof Stack.Screen>["options"]>>
 
 export const AUTHED_VERSION: number = 1
 export const SDK_CONFIG_VERSION: number = 1

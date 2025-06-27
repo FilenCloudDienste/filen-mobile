@@ -208,7 +208,7 @@ export default function Participants() {
 										...c.participants.filter(p => !addedParticipants.some(ap => ap.userId === p.userId)),
 										...addedParticipants
 									]
-								}
+							  }
 							: c
 					)
 			})
@@ -223,6 +223,62 @@ export default function Participants() {
 		}
 	}, [chat])
 
+	const headerRightView = useCallback(() => {
+		return (
+			<Button
+				variant="plain"
+				size="icon"
+				onPress={addParticipant}
+			>
+				<Icon
+					name="plus"
+					size={24}
+					color={colors.primary}
+				/>
+			</Button>
+		)
+	}, [addParticipant, colors.primary])
+
+	const listFooter = useMemo(() => {
+		return (
+			<View className="h-16 flex-row items-center justify-center">
+				<Text className="text-sm">
+					{participants.length} {participants.length === 1 ? "participant" : "participants"}
+				</Text>
+			</View>
+		)
+	}, [participants.length])
+
+	const refreshControl = useMemo(() => {
+		return (
+			<RefreshControl
+				refreshing={refreshing}
+				onRefresh={async () => {
+					setRefreshing(true)
+
+					await chatsQuery.refetch().catch(console.error)
+
+					setRefreshing(false)
+				}}
+			/>
+		)
+	}, [refreshing, chatsQuery])
+
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
+			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		}
+	}, [screen.height])
+
+	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+		return {
+			length: LIST_ITEM_HEIGHT,
+			offset: LIST_ITEM_HEIGHT * index,
+			index
+		}
+	}, [])
+
 	if (!chat) {
 		return <Redirect href="/chats" />
 	}
@@ -232,21 +288,7 @@ export default function Participants() {
 			<LargeTitleHeader
 				title="Participants"
 				iosBlurEffect="systemChromeMaterial"
-				rightView={() => {
-					return (
-						<Button
-							variant="plain"
-							size="icon"
-							onPress={addParticipant}
-						>
-							<Icon
-								name="plus"
-								size={24}
-								color={colors.primary}
-							/>
-						</Button>
-					)
-				}}
+				rightView={headerRightView}
 			/>
 			<Container>
 				<List
@@ -256,37 +298,14 @@ export default function Participants() {
 					data={participants}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
-					ListFooterComponent={
-						<View className="h-16 flex-row items-center justify-center">
-							<Text className="text-sm">
-								{participants.length} {participants.length === 1 ? "participant" : "participants"}
-							</Text>
-						</View>
-					}
-					refreshControl={
-						<RefreshControl
-							refreshing={refreshing}
-							onRefresh={async () => {
-								setRefreshing(true)
-
-								await chatsQuery.refetch().catch(console.error)
-
-								setRefreshing(false)
-							}}
-						/>
-					}
+					ListFooterComponent={listFooter}
+					refreshControl={refreshControl}
 					removeClippedSubviews={true}
-					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
-					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					initialNumToRender={initialNumToRender}
+					maxToRenderPerBatch={maxToRenderPerBatch}
 					updateCellsBatchingPeriod={100}
 					windowSize={3}
-					getItemLayout={(_, index) => {
-						return {
-							length: LIST_ITEM_HEIGHT,
-							offset: LIST_ITEM_HEIGHT * index,
-							index
-						}
-					}}
+					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

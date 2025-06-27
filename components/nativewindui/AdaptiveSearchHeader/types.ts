@@ -2,12 +2,13 @@ import type { Stack } from "expo-router"
 import type { NativeSyntheticEvent, TextInputSubmitEditingEventData } from "react-native"
 import type { SearchBarCommands } from "react-native-screens"
 
-type NativeStackNavigationOptions = Exclude<
+export type NativeStackNavigationOptions = Exclude<
 	NonNullable<React.ComponentPropsWithoutRef<typeof Stack.Screen>["options"]>,
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	(props: any) => any
 >
 
-type ScreenOptions = Pick<
+export type ScreenOptions = Pick<
 	NativeStackNavigationOptions,
 	// @ts-expect-error NWUI declares wrong types?
 	| "animation"
@@ -32,13 +33,13 @@ type ScreenOptions = Pick<
 	| "title"
 >
 
-type HeaderOptions = Omit<NativeStackNavigationOptions, keyof ScreenOptions>
+export type HeaderOptions = Omit<NativeStackNavigationOptions, keyof ScreenOptions>
 
-type NativeStackNavigationSearchBarOptions = NonNullable<HeaderOptions["headerSearchBarOptions"]>
+export type NativeStackNavigationSearchBarOptions = NonNullable<HeaderOptions["headerSearchBarOptions"]>
 
-type AdaptiveSearchBarRef = Omit<SearchBarCommands, "blur" | "toggleCancelButton">
+export type AdaptiveSearchBarRef = Omit<SearchBarCommands, "blur" | "toggleCancelButton">
 
-type AdaptiveSearchHeaderProps = {
+export type AdaptiveSearchHeaderProps = {
 	/**
 	 * Default is false
 	 */
@@ -89,5 +90,3 @@ type AdaptiveSearchHeaderProps = {
 		persistBlur?: boolean
 	}
 }
-
-export type { NativeStackNavigationOptions, AdaptiveSearchBarRef, AdaptiveSearchHeaderProps, NativeStackNavigationSearchBarOptions }

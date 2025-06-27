@@ -4,6 +4,14 @@ import { Platform } from "react-native"
 import { Fragment } from "react"
 import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
 import useLockOrientation from "@/hooks/useLockOrientation"
+import { SCREEN_OPTIONS } from "@/lib/constants"
+
+const screenOptions = {
+	headerShown: Platform.OS === "ios",
+	headerBlurEffect: "systemChromeMaterial",
+	presentation: "modal",
+	animation: "slide_from_bottom"
+} satisfies NonNullable<React.ComponentPropsWithoutRef<typeof Stack.Screen>["options"]>
 
 export default function AuthLayout() {
 	useLockOrientation()
@@ -16,36 +24,18 @@ export default function AuthLayout() {
 
 	return (
 		<Fragment>
-			<Stack
-				screenOptions={{
-					headerShown: false,
-					headerBlurEffect: "systemChromeMaterial"
-				}}
-			>
+			<Stack screenOptions={SCREEN_OPTIONS.base}>
 				<Stack.Screen
 					name="index"
-					options={{
-						headerShown: false,
-						headerBlurEffect: "systemChromeMaterial"
-					}}
+					options={SCREEN_OPTIONS.base}
 				/>
 				<Stack.Screen
 					name="login"
-					options={{
-						headerShown: Platform.OS === "ios",
-						headerBlurEffect: "systemChromeMaterial",
-						presentation: "modal",
-						animation: "slide_from_bottom"
-					}}
+					options={screenOptions}
 				/>
 				<Stack.Screen
 					name="register"
-					options={{
-						headerShown: Platform.OS === "ios",
-						headerBlurEffect: "systemChromeMaterial",
-						presentation: "modal",
-						animation: "slide_from_bottom"
-					}}
+					options={screenOptions}
 				/>
 			</Stack>
 			{Platform.OS === "ios" && <FullScreenLoadingModal />}

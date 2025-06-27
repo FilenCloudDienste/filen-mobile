@@ -151,53 +151,61 @@ export const TwoFactor = memo(() => {
 		}
 	}, [account.data?.settings.twoFactorKey])
 
+	const items = useMemo(() => {
+		return [
+			{
+				id: "0",
+				title: "Two Factor Authentication",
+				rightView: (
+					<Toggle
+						value={twoFactorEnabled}
+						onValueChange={toggleTwoFactor}
+					/>
+				)
+			}
+		]
+	}, [toggleTwoFactor, twoFactorEnabled])
+
+	const listFooter = useMemo(() => {
+		return (
+			!twoFactorEnabled &&
+			account.data?.settings.twoFactorKey && (
+				<View className="flex-1 flex-col pt-10 gap-10">
+					<View className="rounded-lg items-center justify-center">
+						<View className="p-4 bg-white rounded-lg">
+							<QRCode
+								value={qrCodeValue}
+								backgroundColor="white"
+								size={screen.width / 2}
+							/>
+						</View>
+					</View>
+					<View className="flex-1 flex-row items-center gap-2 justify-center">
+						<Button
+							variant="plain"
+							size="sm"
+							onPress={copyKeyToClipboard}
+						>
+							<Text className="text-primary">Copy Key</Text>
+							<Icon
+								name="clipboard-outline"
+								size={24}
+								color={colors.primary}
+							/>
+						</Button>
+					</View>
+				</View>
+			)
+		)
+	}, [account.data?.settings.twoFactorKey, colors.primary, copyKeyToClipboard, qrCodeValue, screen.width, twoFactorEnabled])
+
 	return (
 		<SettingsComponent
 			title="Security"
 			showSearchBar={false}
 			loading={account.status !== "success"}
-			items={[
-				{
-					id: "0",
-					title: "Two Factor Authentication",
-					rightView: (
-						<Toggle
-							value={twoFactorEnabled}
-							onValueChange={toggleTwoFactor}
-						/>
-					)
-				}
-			]}
-			listFooter={
-				!twoFactorEnabled &&
-				account.data?.settings.twoFactorKey && (
-					<View className="flex-1 flex-col pt-10 gap-10">
-						<View className="rounded-lg items-center justify-center">
-							<View className="p-4 bg-white rounded-lg">
-								<QRCode
-									value={qrCodeValue}
-									backgroundColor="white"
-									size={screen.width / 2}
-								/>
-							</View>
-						</View>
-						<View className="flex-1 flex-row items-center gap-2 justify-center">
-							<Button
-								variant="plain"
-								size="sm"
-								onPress={copyKeyToClipboard}
-							>
-								<Text className="text-primary">Copy Key</Text>
-								<Icon
-									name="clipboard-outline"
-									size={24}
-									color={colors.primary}
-								/>
-							</Button>
-						</View>
-					</View>
-				)
-			}
+			items={items}
+			listFooter={listFooter}
 		/>
 	)
 })

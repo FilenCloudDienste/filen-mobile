@@ -5,7 +5,7 @@ import { Button } from "~/components/nativewindui/Button"
 import { List, ListDataItem, ListRenderItemInfo } from "~/components/nativewindui/List"
 import { Text } from "~/components/nativewindui/Text"
 import { useColorScheme } from "~/lib/useColorScheme"
-import { useCallback, Fragment, memo } from "react"
+import { useCallback, Fragment, memo, useMemo } from "react"
 import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
 import { cn } from "@/lib/cn"
 
@@ -31,6 +31,41 @@ export const IconView = memo(({ name, className }: { name: MaterialIconName; cla
 
 IconView.displayName = "IconView"
 
+export const Item = memo(({ info, props }: { info: ListRenderItemInfo<SettingsItem>; props: SettingsProps }) => {
+	if (typeof info.item === "string") {
+		return null
+	}
+
+	return (
+		<View className="px-4">
+			<Button
+				size="lg"
+				variant="plain"
+				className="justify-start py-5 items-center"
+				onPress={info.item.onPress}
+				{...(props.disableAndroidRipple
+					? {
+							android_ripple: undefined
+					  }
+					: {})}
+			>
+				{info.item.leftView && <View className="flex-row items-center">{info.item.leftView}</View>}
+				<View className={cn("flex-col flex-1", info.item.leftView && "pl-4")}>
+					<Text className={cn("text-xl font-normal", info.item.destructive && "text-destructive")}>{info.item.title}</Text>
+					{info.item.subTitle && <Text className="text-muted-foreground text-base font-normal">{info.item.subTitle}</Text>}
+				</View>
+				{info.item.rightView && <View className="flex-row items-center">{info.item.rightView}</View>}
+			</Button>
+		</View>
+	)
+})
+
+Item.displayName = "Item"
+
+const contentContainerStyle = {
+	paddingBottom: 100
+}
+
 export const Settings = memo((props: SettingsProps) => {
 	const { colors } = useColorScheme()
 
@@ -40,77 +75,63 @@ export const Settings = memo((props: SettingsProps) => {
 
 	const renderItem = useCallback(
 		(info: ListRenderItemInfo<SettingsItem>) => {
-			if (typeof info.item === "string") {
-				return null
-			}
-
 			return (
-				<View className="px-4">
-					<Button
-						size="lg"
-						variant="plain"
-						className="justify-start py-5 items-center"
-						onPress={info.item.onPress}
-						{...(props.disableAndroidRipple
-							? {
-									android_ripple: undefined
-							  }
-							: {})}
-					>
-						{info.item.leftView && <View className="flex-row items-center">{info.item.leftView}</View>}
-						<View className={cn("flex-col flex-1", info.item.leftView && "pl-4")}>
-							<Text className={cn("text-xl font-normal", info.item.destructive && "text-destructive")}>
-								{info.item.title}
-							</Text>
-							{info.item.subTitle && (
-								<Text className="text-muted-foreground text-base font-normal">{info.item.subTitle}</Text>
-							)}
-						</View>
-						{info.item.rightView && <View className="flex-row items-center">{info.item.rightView}</View>}
-					</Button>
-				</View>
+				<Item
+					info={info}
+					props={props}
+				/>
 			)
 		},
-		[props.disableAndroidRipple]
+		[props]
 	)
+
+	const headerSearchBar = useMemo(() => {
+		return props.showSearchBar
+			? {
+					iosHideWhenScrolling: true
+			  }
+			: undefined
+	}, [props.showSearchBar])
+
+	const items = useMemo(() => {
+		return props.loading ? [] : props.items
+	}, [props.loading, props.items])
+
+	const extraData = useMemo(() => {
+		return __DEV__ ? (props.loading ? [] : props.items) : undefined
+	}, [props.loading, props.items])
+
+	const listEmpty = useMemo(() => {
+		return (
+			<View className="flex-1 items-center justify-center">
+				<ActivityIndicator
+					size="small"
+					color={colors.foreground}
+				/>
+			</View>
+		)
+	}, [colors.foreground])
 
 	return (
 		<Fragment>
 			{!props.hideHeader && (
 				<LargeTitleHeader
 					title={props.title}
-					searchBar={
-						props.showSearchBar
-							? {
-									iosHideWhenScrolling: true
-							  }
-							: undefined
-					}
+					searchBar={headerSearchBar}
 				/>
 			)}
 			<List
 				rootClassName="bg-background"
-				contentContainerStyle={{
-					paddingBottom: 100
-				}}
+				contentContainerStyle={contentContainerStyle}
 				contentInsetAdjustmentBehavior="automatic"
 				variant="full-width"
-				data={props.loading ? [] : props.items}
-				extraData={__DEV__ ? (props.loading ? [] : props.items) : undefined}
+				data={items}
+				extraData={extraData}
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
 				sectionHeaderAsGap={true}
 				refreshing={props.loading}
-				ListEmptyComponent={() => {
-					return (
-						<View className="flex-1 items-center justify-center">
-							<ActivityIndicator
-								size="small"
-								color={colors.foreground}
-							/>
-						</View>
-					)
-				}}
+				ListEmptyComponent={listEmpty}
 				ListHeaderComponent={props.listHeader ? () => props.listHeader : undefined}
 				ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
 				removeClippedSubviews={true}

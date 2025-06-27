@@ -38,35 +38,39 @@ export const LIST_ITEM_HEIGHT = Platform.select({
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const { colors } = useColorScheme()
 
+	const leftView = useMemo(() => {
+		return (
+			<View className="flex-row items-center px-4">
+				{getPreviewType(info.item.item.fileName) === "image" ? (
+					<Image
+						source={{
+							uri: info.item.item.path
+						}}
+						className="w-full h-full rounded-md"
+						contentFit="contain"
+						style={{
+							width: ICON_HEIGHT,
+							height: ICON_HEIGHT,
+							borderRadius: 6,
+							backgroundColor: colors.background
+						}}
+					/>
+				) : (
+					<FileNameToSVGIcon
+						name={info.item.item.fileName}
+						width={ICON_HEIGHT}
+						height={ICON_HEIGHT}
+					/>
+				)}
+			</View>
+		)
+	}, [info.item.item.fileName, info.item.item.path, colors.background])
+
 	return (
 		<ListItem
 			{...info}
 			item={info.item}
-			leftView={
-				<View className="flex-row items-center px-4">
-					{getPreviewType(info.item.item.fileName) === "image" ? (
-						<Image
-							source={{
-								uri: info.item.item.path
-							}}
-							className="w-full h-full rounded-md"
-							contentFit="contain"
-							style={{
-								width: ICON_HEIGHT,
-								height: ICON_HEIGHT,
-								borderRadius: 6,
-								backgroundColor: colors.background
-							}}
-						/>
-					) : (
-						<FileNameToSVGIcon
-							name={info.item.item.fileName}
-							width={ICON_HEIGHT}
-							height={ICON_HEIGHT}
-						/>
-					)}
-				</View>
-			}
+			leftView={leftView}
 			subTitleClassName="text-xs pt-1 font-normal"
 			variant="full-width"
 			textNumberOfLines={1}
@@ -213,35 +217,52 @@ export default function ShareIntent() {
 		})
 	}, [headerRight, headerLeft])
 
+	const items = useMemo(() => {
+		return (
+			shareIntent.files?.map(file => ({
+				title: file.fileName,
+				subTitle: formatBytes(file.size ?? 0),
+				id: file.path,
+				item: file
+			})) ?? []
+		)
+	}, [shareIntent.files])
+
+	const keyExtractor = useCallback((item: ListItemInfo) => {
+		return item.id
+	}, [])
+
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
+			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		}
+	}, [screen.height])
+
+	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+		return {
+			length: LIST_ITEM_HEIGHT,
+			offset: LIST_ITEM_HEIGHT * index,
+			index
+		}
+	}, [])
+
 	return (
 		<RequireInternet>
 			{header}
 			<Container>
 				<List
-					data={
-						shareIntent.files?.map(file => ({
-							title: file.fileName,
-							subTitle: formatBytes(file.size ?? 0),
-							id: file.path,
-							item: file
-						})) ?? []
-					}
+					data={items}
 					variant="full-width"
 					renderItem={renderItem}
-					keyExtractor={item => item.item.path}
+					keyExtractor={keyExtractor}
 					contentInsetAdjustmentBehavior="automatic"
 					removeClippedSubviews={true}
-					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
-					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					initialNumToRender={initialNumToRender}
+					maxToRenderPerBatch={maxToRenderPerBatch}
 					updateCellsBatchingPeriod={100}
 					windowSize={3}
-					getItemLayout={(_, index) => {
-						return {
-							length: LIST_ITEM_HEIGHT,
-							offset: LIST_ITEM_HEIGHT * index,
-							index
-						}
-					}}
+					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

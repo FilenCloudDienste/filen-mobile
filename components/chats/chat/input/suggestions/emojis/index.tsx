@@ -1,11 +1,11 @@
-import { memo, useCallback } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
-import { View, ScrollView } from "react-native"
+import { View, ScrollView, type ViewStyle, type StyleProp } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated"
+import Animated, { SlideInDown, SlideOutDown, type AnimatedStyle } from "react-native-reanimated"
 import { useChatsStore } from "@/stores/chats.store"
 import Emoji from "./emoji"
 import { useKeyboardState } from "react-native-keyboard-controller"
@@ -22,6 +22,19 @@ export const Emojis = memo(({ chat }: { chat: ChatConversation }) => {
 		useChatsStore.getState().resetSuggestions(chat.uuid)
 	}, [chat.uuid])
 
+	const viewStyle = useMemo(() => {
+		return {
+			borderTopLeftRadius: 6,
+			borderTopRightRadius: 6,
+			flexDirection: "column",
+			justifyContent: "flex-start",
+			alignItems: "flex-start",
+			backgroundColor: colors.card,
+			zIndex: 50,
+			flex: 1
+		} satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
+	}, [colors.card])
+
 	if (!isKeyboardVisible || !showEmojis || emojiSuggestions.length === 0 || emojisText.length === 0) {
 		return null
 	}
@@ -30,16 +43,7 @@ export const Emojis = memo(({ chat }: { chat: ChatConversation }) => {
 		<Animated.View
 			entering={SlideInDown}
 			exiting={SlideOutDown}
-			style={{
-				borderTopLeftRadius: 6,
-				borderTopRightRadius: 6,
-				flexDirection: "column",
-				justifyContent: "flex-start",
-				alignItems: "flex-start",
-				backgroundColor: colors.card,
-				zIndex: 50,
-				flex: 1
-			}}
+			style={viewStyle}
 		>
 			<View className="flex-1 flex-row items-center justify-between px-4">
 				<Text

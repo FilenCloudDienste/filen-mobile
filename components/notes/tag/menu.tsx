@@ -209,28 +209,29 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 		async (item: Omit<ContextItem, "icon">, _?: boolean) => {
 			try {
 				switch (item.actionKey) {
-					case "delete":
+					case "delete": {
 						await deleteTag()
 
 						break
+					}
 
-					case "favorite":
+					case "favorite": {
 						await favorite(true)
 
 						break
+					}
 
-					case "unfavorite":
+					case "unfavorite": {
 						await favorite(false)
 
 						break
+					}
 
-					case "rename":
+					case "rename": {
 						await rename()
 
 						break
-
-					default:
-						break
+					}
 				}
 			} catch (e) {
 				console.error(e)

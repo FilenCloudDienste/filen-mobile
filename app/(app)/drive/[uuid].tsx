@@ -18,12 +18,16 @@ export const Drive = memo(() => {
 		[uuid, baseFolderUUID]
 	)
 
+	const scrollToUUIDParsed = useMemo(() => {
+		return typeof scrollToUUID === "string" && validateUUID(scrollToUUID) ? scrollToUUID : undefined
+	}, [scrollToUUID])
+
 	return (
 		<Fragment>
 			<Header queryParams={queryParams} />
 			<DriveList
 				queryParams={queryParams}
-				scrollToUUID={typeof scrollToUUID === "string" && validateUUID(scrollToUUID) ? scrollToUUID : undefined}
+				scrollToUUID={scrollToUUIDParsed}
 			/>
 		</Fragment>
 	)

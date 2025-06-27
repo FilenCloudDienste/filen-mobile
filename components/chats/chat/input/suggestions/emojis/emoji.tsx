@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { Image } from "expo-image"
 import { Text } from "@/components/nativewindui/Text"
@@ -40,6 +40,23 @@ export const Emoji = memo(({ emoji, chat }: { emoji: CustomEmoji; chat: ChatConv
 		reset()
 	}, [emoji.name, reset, setValue, value])
 
+	const source = useMemo(() => {
+		return {
+			uri: emoji.skins.at(0)?.src
+		}
+	}, [emoji.skins])
+
+	const style = useMemo(() => {
+		return {
+			width: 20,
+			height: 20
+		}
+	}, [])
+
+	const name = useMemo(() => {
+		return `:${emoji.name.toLowerCase().trim()}:`
+	}, [emoji.name])
+
 	return (
 		<Button
 			variant="plain"
@@ -49,13 +66,8 @@ export const Emoji = memo(({ emoji, chat }: { emoji: CustomEmoji; chat: ChatConv
 		>
 			<View className="flex-row items-center w-full gap-2">
 				<Image
-					source={{
-						uri: emoji.skins.at(0)?.src
-					}}
-					style={{
-						width: 20,
-						height: 20
-					}}
+					source={source}
+					style={style}
 					priority="low"
 					cachePolicy="disk"
 					className="shrink-0"
@@ -65,7 +77,7 @@ export const Emoji = memo(({ emoji, chat }: { emoji: CustomEmoji; chat: ChatConv
 					numberOfLines={1}
 					ellipsizeMode="middle"
 				>
-					:{emoji.name.toLowerCase().trim()}:
+					{name}
 				</Text>
 			</View>
 		</Button>

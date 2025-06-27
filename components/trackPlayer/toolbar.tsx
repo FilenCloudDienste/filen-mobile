@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useMemo } from "react"
+import { memo, useEffect, useRef, useMemo, useCallback } from "react"
 import { View, ActivityIndicator, Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { Icon } from "@roninoss/icons"
@@ -40,6 +40,96 @@ export const Toolbar = memo(() => {
 		return trackPlayerState.isLoading || !active || trackPlayerState.queue.length === 0
 	}, [trackPlayerState.isLoading, active, trackPlayerState.queue.length])
 
+	const blurViewStyle = useMemo(() => {
+		return {
+			paddingBottom: insets.bottom + 16
+		}
+	}, [insets.bottom])
+
+	const imageSource = useMemo(() => {
+		return {
+			uri: normalizeFilePathForExpo(
+				Paths.join(
+					paths.trackPlayerPictures(),
+					Paths.basename(
+						typeof trackPlayerState.playingTrack?.artwork === "string" &&
+							!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png")
+							? trackPlayerState.playingTrack.artwork
+							: "audio_fallback.png"
+					)
+				)
+			)
+		}
+	}, [trackPlayerState.playingTrack])
+
+	const imageStyle = useMemo(() => {
+		return {
+			width: 42,
+			height: 42,
+			borderRadius: 6,
+			backgroundColor: colors.card
+		}
+	}, [colors.card])
+
+	const clear = useCallback(() => {
+		if (buttonsDisabled) {
+			return
+		}
+
+		trackPlayerControls.clear().catch(console.error)
+	}, [buttonsDisabled, trackPlayerControls])
+
+	const onSlidingComplete = useCallback(
+		(value: number) => {
+			if (buttonsDisabled) {
+				return
+			}
+
+			trackPlayerControls.seek(Math.round((value / 100) * trackPlayerState.durationSeconds)).catch(console.error)
+		},
+		[buttonsDisabled, trackPlayerControls, trackPlayerState.durationSeconds]
+	)
+
+	const shuffle = useCallback(() => {
+		if (buttonsDisabled) {
+			return
+		}
+
+		trackPlayerControls.shuffle().catch(console.error)
+	}, [buttonsDisabled, trackPlayerControls])
+
+	const repeat = useCallback(() => {
+		if (buttonsDisabled) {
+			return
+		}
+
+		// TODO: Implement repeat functionality
+	}, [buttonsDisabled])
+
+	const skipToPrevious = useCallback(() => {
+		if (buttonsDisabled) {
+			return
+		}
+
+		trackPlayerControls.skipToPrevious().catch(console.error)
+	}, [buttonsDisabled, trackPlayerControls])
+
+	const skipToNext = useCallback(() => {
+		if (buttonsDisabled) {
+			return
+		}
+
+		trackPlayerControls.skipToNext().catch(console.error)
+	}, [buttonsDisabled, trackPlayerControls])
+
+	const togglePlay = useCallback(() => {
+		if (buttonsDisabled) {
+			return
+		}
+
+		trackPlayerControls.togglePlay().catch(console.error)
+	}, [buttonsDisabled, trackPlayerControls])
+
 	useEffect(() => {
 		setTrackPlayerToolbarHeight(layout.height - insets.bottom)
 	}, [layout.height, setTrackPlayerToolbarHeight, insets.bottom])
@@ -54,9 +144,7 @@ export const Toolbar = memo(() => {
 				className={cn("flex-col px-4 pt-4", Platform.OS === "android" && "bg-card")}
 				intensity={Platform.OS === "android" ? 0 : 100}
 				tint={Platform.OS === "android" ? undefined : "systemChromeMaterial"}
-				style={{
-					paddingBottom: insets.bottom + 16
-				}}
+				style={blurViewStyle}
 			>
 				<Container>
 					<View className="flex-row gap-3">
@@ -64,18 +152,9 @@ export const Toolbar = memo(() => {
 						typeof trackPlayerState.playingTrack?.artwork === "string" &&
 						!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png") ? (
 							<Image
-								source={{
-									uri: normalizeFilePathForExpo(
-										Paths.join(paths.trackPlayerPictures(), Paths.basename(trackPlayerState.playingTrack.artwork))
-									)
-								}}
+								source={imageSource}
 								contentFit="cover"
-								style={{
-									width: 42,
-									height: 42,
-									borderRadius: 6,
-									backgroundColor: colors.card
-								}}
+								style={imageStyle}
 							/>
 						) : (
 							<View
@@ -122,13 +201,7 @@ export const Toolbar = memo(() => {
 						<Button
 							variant="plain"
 							size="icon"
-							onPress={() => {
-								if (buttonsDisabled) {
-									return
-								}
-
-								trackPlayerControls.clear().catch(console.error)
-							}}
+							onPress={clear}
 						>
 							<Icon
 								name="close"
@@ -148,13 +221,7 @@ export const Toolbar = memo(() => {
 								width: "100%"
 							}}
 							disabled={trackPlayerState.queue.length === 0}
-							onSlidingComplete={value => {
-								if (buttonsDisabled) {
-									return
-								}
-
-								trackPlayerControls.seek(Math.round((value / 100) * trackPlayerState.durationSeconds)).catch(console.error)
-							}}
+							onSlidingComplete={onSlidingComplete}
 						/>
 						<View className="flex-row items-center justify-between w-full">
 							<Text className="text-xs text-muted-foreground font-normal">
@@ -173,13 +240,7 @@ export const Toolbar = memo(() => {
 							android_ripple={null}
 							className="active:opacity-70"
 							disabled={trackPlayerState.queue.length === 0}
-							onPress={() => {
-								if (buttonsDisabled) {
-									return
-								}
-
-								//TODO
-							}}
+							onPress={shuffle}
 						>
 							<Icon
 								name="shuffle"
@@ -194,13 +255,7 @@ export const Toolbar = memo(() => {
 							android_ripple={null}
 							className="active:opacity-70"
 							disabled={trackPlayerState.queue.length === 0}
-							onPress={() => {
-								if (buttonsDisabled) {
-									return
-								}
-
-								trackPlayerControls.skipToPrevious().catch(console.error)
-							}}
+							onPress={skipToPrevious}
 						>
 							<Icon
 								name="skip-backward"
@@ -215,13 +270,7 @@ export const Toolbar = memo(() => {
 							className="bg-foreground rounded-full p-4 active:opacity-70"
 							android_ripple={null}
 							disabled={trackPlayerState.queue.length === 0}
-							onPress={() => {
-								if (buttonsDisabled) {
-									return
-								}
-
-								trackPlayerControls.togglePlay().catch(console.error)
-							}}
+							onPress={togglePlay}
 						>
 							{trackPlayerState.isLoading ? (
 								<ActivityIndicator
@@ -243,13 +292,7 @@ export const Toolbar = memo(() => {
 							android_ripple={null}
 							className="active:opacity-70"
 							disabled={trackPlayerState.queue.length === 0}
-							onPress={() => {
-								if (buttonsDisabled) {
-									return
-								}
-
-								trackPlayerControls.skipToNext()
-							}}
+							onPress={skipToNext}
 						>
 							<Icon
 								name="skip-forward"
@@ -264,13 +307,7 @@ export const Toolbar = memo(() => {
 							android_ripple={null}
 							className="active:opacity-70"
 							disabled={trackPlayerState.queue.length === 0}
-							onPress={() => {
-								if (buttonsDisabled) {
-									return
-								}
-
-								// TODO
-							}}
+							onPress={repeat}
 						>
 							<Icon
 								name="repeat"

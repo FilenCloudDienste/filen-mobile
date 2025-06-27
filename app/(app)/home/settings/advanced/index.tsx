@@ -184,41 +184,45 @@ export const Advanced = memo(() => {
 		}
 	}, [])
 
+	const items = useMemo(() => {
+		return [
+			{
+				id: "0",
+				title: "Clear cache",
+				rightText: formatBytes(cacheSize),
+				subTitle: Platform.OS === "android" ? formatBytes(cacheSize) : undefined,
+				onPress: clearCache
+			},
+			{
+				id: "1",
+				title: "Clear thumbnails",
+				rightText: formatBytes(thumbnailsSize),
+				subTitle: Platform.OS === "android" ? formatBytes(thumbnailsSize) : undefined,
+				onPress: clearThumbnails
+			},
+			{
+				id: "2",
+				title: "Clear track player",
+				rightText: formatBytes(trackPlayerSize),
+				subTitle: Platform.OS === "android" ? formatBytes(trackPlayerSize) : undefined,
+				onPress: clearTrackPlayer
+			},
+			{
+				id: "3",
+				title: "Clear offline files",
+				rightText: formatBytes(offlineFilesSize),
+				subTitle: Platform.OS === "android" ? formatBytes(offlineFilesSize) : undefined,
+				onPress: clearOfflineFiles
+			}
+		]
+	}, [cacheSize, thumbnailsSize, trackPlayerSize, offlineFilesSize, clearCache, clearThumbnails, clearTrackPlayer, clearOfflineFiles])
+
 	return (
 		<SettingsComponent
 			title="Advanced"
 			showSearchBar={false}
 			loading={cacheQuery.status !== "success"}
-			items={[
-				{
-					id: "0",
-					title: "Clear cache",
-					rightText: formatBytes(cacheSize),
-					subTitle: Platform.OS === "android" ? formatBytes(cacheSize) : undefined,
-					onPress: clearCache
-				},
-				{
-					id: "1",
-					title: "Clear thumbnails",
-					rightText: formatBytes(thumbnailsSize),
-					subTitle: Platform.OS === "android" ? formatBytes(thumbnailsSize) : undefined,
-					onPress: clearThumbnails
-				},
-				{
-					id: "2",
-					title: "Clear track player",
-					rightText: formatBytes(trackPlayerSize),
-					subTitle: Platform.OS === "android" ? formatBytes(trackPlayerSize) : undefined,
-					onPress: clearTrackPlayer
-				},
-				{
-					id: "3",
-					title: "Clear offline files",
-					rightText: formatBytes(offlineFilesSize),
-					subTitle: Platform.OS === "android" ? formatBytes(offlineFilesSize) : undefined,
-					onPress: clearOfflineFiles
-				}
-			]}
+			items={items}
 		/>
 	)
 })

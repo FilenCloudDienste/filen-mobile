@@ -1,10 +1,10 @@
-import { memo, useMemo } from "react"
+import { memo, useMemo, useCallback } from "react"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import { BlurView } from "expo-blur"
 import { Text } from "../nativewindui/Text"
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
+import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-reanimated"
 import useBottomTabsHeight from "@/hooks/useBottomTabsHeight"
-import { View, ActivityIndicator, Platform } from "react-native"
+import { View, ActivityIndicator, Platform, type ViewStyle, type StyleProp } from "react-native"
 import { ProgressIndicator } from "../nativewindui/ProgressIndicator"
 import { Image } from "expo-image"
 import { Icon } from "@roninoss/icons"
@@ -42,6 +42,60 @@ export const Bottom = memo(() => {
 		return trackPlayerState.isLoading || !show
 	}, [trackPlayerState.isLoading, show])
 
+	const viewStyle = useMemo(() => {
+		return {
+			bottom: Platform.select({
+				ios: bottomTabBarHeight,
+				default: 0
+			}),
+			flex: 1,
+			position: "absolute",
+			left: 0,
+			right: 0,
+			padding: 8,
+			zIndex: 50
+		} satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
+	}, [bottomTabBarHeight])
+
+	const onPress = useCallback(() => {
+		router.push({
+			pathname: "/trackPlayer"
+		})
+	}, [router])
+
+	const imageSource = useMemo(() => {
+		return {
+			uri: normalizeFilePathForExpo(
+				Paths.join(
+					paths.trackPlayerPictures(),
+					Paths.basename(
+						typeof trackPlayerState.playingTrack?.artwork === "string" &&
+							!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png")
+							? trackPlayerState.playingTrack.artwork
+							: "audio_fallback.png"
+					)
+				)
+			)
+		}
+	}, [trackPlayerState.playingTrack])
+
+	const imageStyle = useMemo(() => {
+		return {
+			width: 36,
+			height: 36,
+			borderRadius: 6,
+			backgroundColor: colors.card
+		}
+	}, [colors.card])
+
+	const togglePlay = useCallback(() => {
+		if (buttonsDisabled) {
+			return
+		}
+
+		trackPlayerControls.togglePlay()
+	}, [trackPlayerControls, buttonsDisabled])
+
 	if (!show) {
 		return null
 	}
@@ -50,18 +104,7 @@ export const Bottom = memo(() => {
 		<Animated.View
 			entering={FadeIn}
 			exiting={FadeOut}
-			style={{
-				bottom: Platform.select({
-					ios: bottomTabBarHeight,
-					default: 0
-				}),
-				flex: 1,
-				position: "absolute",
-				left: 0,
-				right: 0,
-				padding: 8,
-				zIndex: 50
-			}}
+			style={viewStyle}
 		>
 			<Container>
 				<Button
@@ -70,11 +113,7 @@ export const Bottom = memo(() => {
 					className="flex-1 rounded-md overflow-hidden active:opacity-100 ios:active:opacity-100 android:active:opacity-100"
 					unstable_pressDelay={100}
 					android_ripple={null}
-					onPress={() => {
-						router.push({
-							pathname: "/trackPlayer"
-						})
-					}}
+					onPress={onPress}
 				>
 					<BlurView
 						intensity={Platform.OS === "android" ? 0 : 100}
@@ -86,21 +125,9 @@ export const Bottom = memo(() => {
 								{typeof trackPlayerState.playingTrack?.artwork === "string" &&
 								!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png") ? (
 									<Image
-										source={{
-											uri: normalizeFilePathForExpo(
-												Paths.join(
-													paths.trackPlayerPictures(),
-													Paths.basename(trackPlayerState.playingTrack.artwork)
-												)
-											)
-										}}
+										source={imageSource}
 										contentFit="cover"
-										style={{
-											width: 36,
-											height: 36,
-											borderRadius: 6,
-											backgroundColor: colors.card
-										}}
+										style={imageStyle}
 									/>
 								) : (
 									<View
@@ -145,13 +172,7 @@ export const Bottom = memo(() => {
 							<Button
 								variant="plain"
 								size="icon"
-								onPress={() => {
-									if (buttonsDisabled) {
-										return
-									}
-
-									trackPlayerControls.togglePlay()
-								}}
+								onPress={togglePlay}
 								className="shrink-0"
 							>
 								{trackPlayerState.isLoading ? (

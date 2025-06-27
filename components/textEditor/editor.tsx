@@ -16,6 +16,7 @@ import * as Sharing from "expo-sharing"
 import Container from "../Container"
 import mimeTypes from "mime-types"
 import useHTTPServer from "@/hooks/useHTTPServer"
+import { type DOMProps } from "expo/dom"
 
 export const bgColors = {
 	normal: {
@@ -53,6 +54,8 @@ export type TextEditorItem =
 			uri: string
 			name: string
 	  }
+
+const keyboardVerticalOffset = Platform.OS === "ios" ? 0 : 100
 
 export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; markdownPreview: boolean }) => {
 	const { isDarkColorScheme, colors } = useColorScheme()
@@ -214,6 +217,50 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 		}
 	}, [item, itemName, value, didChange])
 
+	const viewStyle = useMemo(() => {
+		return {
+			backgroundColor: bgColors[markdownPreview ? "markdown" : "normal"][isDarkColorScheme ? "dark" : "light"]
+		}
+	}, [isDarkColorScheme, markdownPreview])
+
+	const dom = useMemo(() => {
+		return {
+			contentInsetAdjustmentBehavior: "automatic"
+		} satisfies DOMProps
+	}, [])
+
+	const domKey = useMemo(() => {
+		return `${itemName}:${item.type === "cloud" ? item.driveItem.uuid : item.uri}:${isDarkColorScheme}`
+	}, [itemName, item, isDarkColorScheme])
+
+	const toolbarLeftView = useMemo(() => {
+		return (
+			<ToolbarIcon
+				disabled={query.status !== "success"}
+				onPress={exportFile}
+				icon={{
+					name: "send-circle-outline"
+				}}
+			/>
+		)
+	}, [query.status, exportFile])
+
+	const toolbarRightView = useMemo(() => {
+		return (
+			<ToolbarCTA
+				disabled={item.type !== "cloud" || !didChange || query.status !== "success"}
+				onPress={save}
+				icon={{
+					name: "check"
+				}}
+			/>
+		)
+	}, [item.type, didChange, query.status, save])
+
+	const iosHint = useMemo(() => {
+		return item.type !== "cloud" ? undefined : didChange ? "Unsaved changes" : "Saved"
+	}, [item.type, didChange])
+
 	useEffect(() => {
 		if (query.isSuccess && queryDataUpdatedRef.current !== query.dataUpdatedAt) {
 			queryDataUpdatedRef.current = query.dataUpdatedAt
@@ -227,11 +274,9 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 			<Container>
 				<View
 					className="flex-1"
-					style={{
-						backgroundColor: bgColors[markdownPreview ? "markdown" : "normal"][isDarkColorScheme ? "dark" : "light"]
-					}}
+					style={viewStyle}
 				>
-					{!query.isSuccess ? (
+					{query.status !== "success" ? (
 						<View className="flex-1 items-center justify-center">
 							<ActivityIndicator color={colors.foreground} />
 						</View>
@@ -239,10 +284,10 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 						<KeyboardAvoidingView
 							className="flex-1"
 							behavior="padding"
-							keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 100}
+							keyboardVerticalOffset={keyboardVerticalOffset}
 						>
 							<TextEditorDOM
-								key={`${itemName}:${item.type === "cloud" ? item.driveItem.uuid : item.uri}:${isDarkColorScheme}`}
+								key={domKey}
 								initialValue={query.data}
 								onValueChange={onValueChange}
 								fileName={itemName}
@@ -250,9 +295,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 								platformOS={Platform.OS}
 								previewType={previewType}
 								markdownPreview={markdownPreview}
-								dom={{
-									contentInsetAdjustmentBehavior: "automatic"
-								}}
+								dom={dom}
 							/>
 						</KeyboardAvoidingView>
 					)}
@@ -260,25 +303,9 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 			</Container>
 			<Toolbar
 				iosBlurIntensity={100}
-				iosHint={item.type !== "cloud" ? undefined : didChange ? "Unsaved changes" : "Saved"}
-				leftView={
-					<ToolbarIcon
-						disabled={query.status !== "success"}
-						onPress={exportFile}
-						icon={{
-							name: "send-circle-outline"
-						}}
-					/>
-				}
-				rightView={
-					<ToolbarCTA
-						disabled={item.type !== "cloud" || !didChange || query.status !== "success"}
-						onPress={save}
-						icon={{
-							name: "check-circle-outline"
-						}}
-					/>
-				}
+				iosHint={iosHint}
+				leftView={toolbarLeftView}
+				rightView={toolbarRightView}
 			/>
 		</View>
 	)

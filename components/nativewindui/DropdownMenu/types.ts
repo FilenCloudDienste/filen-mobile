@@ -1,21 +1,21 @@
-import type { MaterialIconName, SfSymbolIconName } from "@roninoss/icons"
-import type { View, ViewProps } from "react-native"
+import { type MaterialIconName, type SfSymbolIconName } from "@roninoss/icons"
+import { type View, type ViewProps } from "react-native"
 
-type MaterialIcon = {
+export type MaterialIcon = {
 	name: MaterialIconName
 	namingScheme?: "material" | undefined
 	color?: string
 }
 
-type SfSymbolIcon = {
+export type SfSymbolIcon = {
 	name: SfSymbolIconName
 	namingScheme: "sfSymbol"
 	color?: string
 }
 
-type DropdownIcon = SfSymbolIcon | MaterialIcon
+export type DropdownIcon = SfSymbolIcon | MaterialIcon
 
-type DropdownItem = {
+export type DropdownItem = {
 	actionKey: string
 	title?: string
 	subTitle?: string
@@ -32,20 +32,20 @@ type DropdownItem = {
 	image?: { url?: string; cornerRadius?: number; tint?: string }
 }
 
-type DropdownSubMenuDropdown = {
+export type DropdownSubMenuDropdown = {
 	iOSType?: "dropdown"
 	// preferred item size
 	iOSItemSize?: "large"
 	destructive?: boolean
 }
 
-type DropdownSubMenuInline = {
+export type DropdownSubMenuInline = {
 	iOSType: "inline"
 	// preferred item size
 	iOSItemSize?: "small" | "medium"
 }
 
-type DropdownSubMenu = (DropdownSubMenuDropdown | DropdownSubMenuInline) & {
+export type DropdownSubMenu = (DropdownSubMenuDropdown | DropdownSubMenuInline) & {
 	title: string
 	// Displayed on iOS 15 and above only, used as accessibility hint otherwise
 	subTitle?: string
@@ -55,14 +55,14 @@ type DropdownSubMenu = (DropdownSubMenuDropdown | DropdownSubMenuInline) & {
 	items: (DropdownItem | DropdownSubMenu)[]
 }
 
-type DropdownMenuConfig = {
+export type DropdownMenuConfig = {
 	title?: string
 	items: (DropdownItem | DropdownSubMenu)[]
 	// preferred item size
 	iOSItemSize?: "small" | "medium" | "large"
 }
 
-type DropdownMenuProps = DropdownMenuConfig &
+export type DropdownMenuProps = DropdownMenuConfig &
 	ViewProps & {
 		children: React.ReactNode
 		onItemPress?: (item: Omit<DropdownItem, "icon">, isUsingActionSheetFallback?: boolean) => void
@@ -79,9 +79,7 @@ type DropdownMenuProps = DropdownMenuConfig &
 		materialOverlayClassName?: string
 	}
 
-type DropdownMenuRef = React.ElementRef<typeof View> & {
+export type DropdownMenuRef = React.ElementRef<typeof View> & {
 	presentMenu?: () => void
 	dismissMenu?: () => void
 }
-
-export type { DropdownMenuProps, DropdownMenuConfig, DropdownSubMenu, DropdownItem, DropdownMenuRef }

@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { Button } from "../nativewindui/Button"
 import { Icon } from "@roninoss/icons"
@@ -25,11 +25,7 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 			max: 9999
 		})
 
-		if (selectContactsResponse.cancelled) {
-			return
-		}
-
-		if (selectContactsResponse.contacts.length === 0) {
+		if (selectContactsResponse.cancelled || selectContactsResponse.contacts.length === 0) {
 			return
 		}
 
@@ -53,39 +49,45 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 		}
 	}, [chatsQuery])
 
+	const headerSearchBar = useMemo(() => {
+		return {
+			contentTransparent: true,
+			placeholder: "Search chats...",
+			iosCancelButtonText: "Abort",
+			iosHideWhenScrolling: true,
+			onChangeText: setSearchTerm,
+			persistBlur: true,
+			materialBlurOnSubmit: false
+		}
+	}, [setSearchTerm])
+
+	const headerRightView = useCallback(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
+		return (
+			<Button
+				variant="plain"
+				size="icon"
+				onPress={createChat}
+			>
+				<Icon
+					name="plus"
+					size={24}
+					color={colors.primary}
+				/>
+			</Button>
+		)
+	}, [hasInternet, createChat, colors.primary])
+
 	return (
 		<LargeTitleHeader
 			title="Chats"
 			backVisible={false}
 			materialPreset="inline"
-			searchBar={{
-				contentTransparent: true,
-				placeholder: "Search chats...",
-				iosCancelButtonText: "Abort",
-				iosHideWhenScrolling: true,
-				onChangeText: setSearchTerm,
-				persistBlur: true,
-				materialBlurOnSubmit: false
-			}}
-			rightView={() => {
-				if (!hasInternet) {
-					return undefined
-				}
-
-				return (
-					<Button
-						variant="plain"
-						size="icon"
-						onPress={createChat}
-					>
-						<Icon
-							name="plus"
-							size={24}
-							color={colors.primary}
-						/>
-					</Button>
-				)
-			}}
+			searchBar={headerSearchBar}
+			rightView={headerRightView}
 		/>
 	)
 })

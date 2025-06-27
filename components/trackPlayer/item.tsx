@@ -336,102 +336,107 @@ export const Item = memo(
 			})
 		}, [router, fromSelect, info.item.playlist, select])
 
-		return (
-			<ListItem
-				{...info}
-				leftView={
-					<View className="flex-row items-center px-4 gap-4">
-						{fromSelect && (
-							<Checkbox
-								checked={isSelected}
-								hitSlop={15}
-								onCheckedChange={select}
-								disabled={!canSelect}
-								className="shrink-0"
-							/>
-						)}
-						{playlistPictures.length > 0 ? (
-							<View
-								className={cn("flex-row flex-wrap rounded-md overflow-hidden", playing && "border-[1px] border-primary")}
-								style={{
-									width: IMAGE_SIZE,
-									height: IMAGE_SIZE
-								}}
-							>
-								{playlistPictures.map((picture, index) => {
+		const leftView = useMemo(() => {
+			return (
+				<View className="flex-row items-center px-4 gap-4">
+					{fromSelect && (
+						<Checkbox
+							checked={isSelected}
+							hitSlop={15}
+							onCheckedChange={select}
+							disabled={!canSelect}
+							className="shrink-0"
+						/>
+					)}
+					{playlistPictures.length > 0 ? (
+						<View
+							className={cn("flex-row flex-wrap rounded-md overflow-hidden", playing && "border-[1px] border-primary")}
+							style={{
+								width: IMAGE_SIZE,
+								height: IMAGE_SIZE
+							}}
+						>
+							{playlistPictures.map((picture, index) => {
+								return (
+									<Image
+										key={index}
+										source={{
+											uri: picture
+										}}
+										contentFit="cover"
+										style={{
+											width: IMAGE_SIZE / 2 - (playing ? 1 : 0),
+											height: IMAGE_SIZE / 2 - (playing ? 1 : 0)
+										}}
+									/>
+								)
+							})}
+							{4 - playlistPictures.length > 0 &&
+								new Array(4 - playlistPictures.length).fill(0).map((_, index) => {
 									return (
-										<Image
+										<View
 											key={index}
-											source={{
-												uri: picture
-											}}
-											contentFit="cover"
+											className="bg-muted/30 flex-row items-center justify-center"
 											style={{
 												width: IMAGE_SIZE / 2 - (playing ? 1 : 0),
 												height: IMAGE_SIZE / 2 - (playing ? 1 : 0)
 											}}
-										/>
+										>
+											<Icon
+												name="music-note"
+												size={IMAGE_SIZE / 2 / 1.75}
+												color={colors.foreground}
+											/>
+										</View>
 									)
 								})}
-								{4 - playlistPictures.length > 0 &&
-									new Array(4 - playlistPictures.length).fill(0).map((_, index) => {
-										return (
-											<View
-												key={index}
-												className="bg-muted/30 flex-row items-center justify-center"
-												style={{
-													width: IMAGE_SIZE / 2 - (playing ? 1 : 0),
-													height: IMAGE_SIZE / 2 - (playing ? 1 : 0)
-												}}
-											>
-												<Icon
-													name="music-note"
-													size={IMAGE_SIZE / 2 / 1.75}
-													color={colors.foreground}
-												/>
-											</View>
-										)
-									})}
-							</View>
-						) : (
-							<View
-								className={cn(
-									"bg-muted/30 rounded-md items-center justify-center",
-									playing && "border-[1px] border-primary"
-								)}
-								style={{
-									width: IMAGE_SIZE,
-									height: IMAGE_SIZE
-								}}
-							>
-								<Icon
-									name="music-note"
-									size={IMAGE_SIZE / 2}
-									color={colors.foreground}
-								/>
-							</View>
-						)}
-					</View>
-				}
-				rightView={
-					<View className="flex-row items-center px-4">
-						{!fromSelect && (
-							<Button
-								className="flex-row items-center shrink-0 justify-center"
-								size="icon"
-								variant="plain"
-								unstable_pressDelay={100}
-								onPress={onDotsPress}
-							>
-								<Icon
-									name="dots-horizontal"
-									size={24}
-									color={colors.foreground}
-								/>
-							</Button>
-						)}
-					</View>
-				}
+						</View>
+					) : (
+						<View
+							className={cn("bg-muted/30 rounded-md items-center justify-center", playing && "border-[1px] border-primary")}
+							style={{
+								width: IMAGE_SIZE,
+								height: IMAGE_SIZE
+							}}
+						>
+							<Icon
+								name="music-note"
+								size={IMAGE_SIZE / 2}
+								color={colors.foreground}
+							/>
+						</View>
+					)}
+				</View>
+			)
+		}, [fromSelect, isSelected, select, canSelect, playlistPictures, playing, colors.foreground])
+
+		const rightView = useMemo(() => {
+			return (
+				<View className="flex-row items-center px-4">
+					{!fromSelect && (
+						<Button
+							className="flex-row items-center shrink-0 justify-center"
+							size="icon"
+							variant="plain"
+							unstable_pressDelay={100}
+							onPress={onDotsPress}
+						>
+							<Icon
+								name="dots-horizontal"
+								size={24}
+								color={colors.foreground}
+							/>
+						</Button>
+					)}
+				</View>
+			)
+		}, [fromSelect, onDotsPress, colors.foreground])
+
+		return (
+			<ListItem
+				{...info}
+				leftView={leftView}
+				rightView={rightView}
 				subTitleClassName="text-xs pt-1 font-normal"
 				variant="full-width"
 				textNumberOfLines={1}

@@ -188,6 +188,132 @@ export default function SelectContacts() {
 			: `${selectedContacts.length} selected`
 	}, [selectedContacts])
 
+	const header = useMemo(() => {
+		return Platform.OS === "ios" ? (
+			<AdaptiveSearchHeader
+				iosTitle={maxParsed === 1 ? "Select contact" : "Select contacts"}
+				iosIsLargeTitle={false}
+				iosBackButtonMenuEnabled={true}
+				backgroundColor={colors.card}
+				rightView={() => {
+					return (
+						<Button
+							variant="plain"
+							onPress={cancel}
+						>
+							<Text className="text-blue-500">Cancel</Text>
+						</Button>
+					)
+				}}
+				searchBar={{
+					iosHideWhenScrolling: false,
+					onChangeText: text => setSearchTerm(text),
+					contentTransparent: true,
+					persistBlur: true
+				}}
+			/>
+		) : (
+			<LargeTitleHeader
+				title={maxParsed === 1 ? "Select contact" : "Select contacts"}
+				materialPreset="inline"
+				backVisible={true}
+				backgroundColor={colors.card}
+				rightView={() => {
+					return (
+						<Button
+							variant="plain"
+							onPress={cancel}
+						>
+							<Text className="text-blue-500">Cancel</Text>
+						</Button>
+					)
+				}}
+				searchBar={{
+					onChangeText: setSearchTerm,
+					contentTransparent: true,
+					persistBlur: true
+				}}
+			/>
+		)
+	}, [cancel, colors.card, maxParsed])
+
+	const listEmpty = useMemo(() => {
+		return (
+			<View className="flex-1 items-center justify-center">
+				{query.status === "success" ? (
+					searchTerm.length > 0 ? (
+						<Text>Nothing found</Text>
+					) : (
+						<Text>No contacts</Text>
+					)
+				) : (
+					<ActivityIndicator color={colors.foreground} />
+				)}
+			</View>
+		)
+	}, [query.status, searchTerm, colors.foreground])
+
+	const listFooter = useMemo(() => {
+		return (
+			<View className="flex flex-row items-center justify-center h-16 p-4">
+				<Text className="text-sm">{contacts.length} contacts</Text>
+			</View>
+		)
+	}, [contacts.length])
+
+	const refreshControl = useMemo(() => {
+		return (
+			<RefreshControl
+				refreshing={refreshing}
+				onRefresh={async () => {
+					setRefreshing(true)
+
+					await query.refetch().catch(() => {})
+
+					setRefreshing(false)
+				}}
+			/>
+		)
+	}, [refreshing, query])
+
+	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+		return {
+			length: LIST_ITEM_HEIGHT,
+			offset: LIST_ITEM_HEIGHT * index,
+			index
+		}
+	}, [])
+
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
+			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		}
+	}, [screen.height])
+
+	const toolbarLeftView = useMemo(() => {
+		return (
+			<ToolbarIcon
+				icon={{
+					name: "plus"
+				}}
+				onPress={add}
+			/>
+		)
+	}, [add])
+
+	const toolbarRightView = useMemo(() => {
+		return (
+			<ToolbarCTA
+				disabled={selectedContacts.length === 0}
+				icon={{
+					name: "send-outline"
+				}}
+				onPress={submit}
+			/>
+		)
+	}, [selectedContacts.length, submit])
+
 	useEffect(() => {
 		return () => {
 			setSelectedContacts([])
@@ -204,52 +330,7 @@ export default function SelectContacts() {
 
 	return (
 		<RequireInternet>
-			{Platform.OS === "ios" ? (
-				<AdaptiveSearchHeader
-					iosTitle={maxParsed === 1 ? "Select contact" : "Select contacts"}
-					iosIsLargeTitle={false}
-					iosBackButtonMenuEnabled={true}
-					backgroundColor={colors.card}
-					rightView={() => {
-						return (
-							<Button
-								variant="plain"
-								onPress={cancel}
-							>
-								<Text className="text-blue-500">Cancel</Text>
-							</Button>
-						)
-					}}
-					searchBar={{
-						iosHideWhenScrolling: false,
-						onChangeText: text => setSearchTerm(text),
-						contentTransparent: true,
-						persistBlur: true
-					}}
-				/>
-			) : (
-				<LargeTitleHeader
-					title={maxParsed === 1 ? "Select contact" : "Select contacts"}
-					materialPreset="inline"
-					backVisible={true}
-					backgroundColor={colors.card}
-					rightView={() => {
-						return (
-							<Button
-								variant="plain"
-								onPress={cancel}
-							>
-								<Text className="text-blue-500">Cancel</Text>
-							</Button>
-						)
-					}}
-					searchBar={{
-						onChangeText: setSearchTerm,
-						contentTransparent: true,
-						persistBlur: true
-					}}
-				/>
-			)}
+			{header}
 			<Container>
 				<List
 					variant="full-width"
@@ -259,69 +340,21 @@ export default function SelectContacts() {
 					refreshing={refreshing || query.status === "pending"}
 					contentInsetAdjustmentBehavior="automatic"
 					contentContainerClassName="pb-40 pt-2"
-					ListEmptyComponent={
-						<View className="flex-1 items-center justify-center">
-							{query.isSuccess ? (
-								searchTerm.length > 0 ? (
-									<Text>Nothing found</Text>
-								) : (
-									<Text>No contacts</Text>
-								)
-							) : (
-								<ActivityIndicator color={colors.foreground} />
-							)}
-						</View>
-					}
-					ListFooterComponent={
-						<View className="flex flex-row items-center justify-center h-16 p-4">
-							<Text className="text-sm">{contacts.length} contacts</Text>
-						</View>
-					}
-					refreshControl={
-						<RefreshControl
-							refreshing={refreshing}
-							onRefresh={async () => {
-								setRefreshing(true)
-
-								await query.refetch().catch(() => {})
-
-								setRefreshing(false)
-							}}
-						/>
-					}
+					ListEmptyComponent={listEmpty}
+					ListFooterComponent={listFooter}
+					refreshControl={refreshControl}
 					removeClippedSubviews={true}
-					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
-					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					initialNumToRender={initialNumToRender}
+					maxToRenderPerBatch={maxToRenderPerBatch}
 					updateCellsBatchingPeriod={100}
 					windowSize={3}
-					getItemLayout={(_, index) => {
-						return {
-							length: LIST_ITEM_HEIGHT,
-							offset: LIST_ITEM_HEIGHT * index,
-							index
-						}
-					}}
+					getItemLayout={getItemLayout}
 				/>
 				<Toolbar
 					iosBlurIntensity={100}
 					iosHint={iosHint}
-					leftView={
-						<ToolbarIcon
-							icon={{
-								name: "plus"
-							}}
-							onPress={add}
-						/>
-					}
-					rightView={
-						<ToolbarCTA
-							disabled={selectedContacts.length === 0}
-							icon={{
-								name: "send-outline"
-							}}
-							onPress={submit}
-						/>
-					}
+					leftView={toolbarLeftView}
+					rightView={toolbarRightView}
 				/>
 			</Container>
 		</RequireInternet>

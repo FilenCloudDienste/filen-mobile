@@ -3,13 +3,21 @@ import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import { Button } from "@/components/nativewindui/Button"
 import { Text } from "@/components/nativewindui/Text"
 import Avatar from "@/components/avatar"
-import { View, Platform } from "react-native"
+import { View, Platform, type ViewStyle, type StyleProp } from "react-native"
 import { contactName, isTimestampSameDay, isTimestampSameMinute, simpleDateNoTime } from "@/lib/utils"
 import Menu from "./menu"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { useChatsStore } from "@/stores/chats.store"
 import { cn } from "@/lib/cn"
-import Animated, { FadeInDown, useSharedValue, withSpring, runOnJS, useAnimatedStyle, type WithSpringConfig } from "react-native-reanimated"
+import Animated, {
+	FadeInDown,
+	useSharedValue,
+	withSpring,
+	runOnJS,
+	useAnimatedStyle,
+	type WithSpringConfig,
+	type AnimatedStyle
+} from "react-native-reanimated"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import Date from "./date"
 import ReplacedMessageContent, { MENTION_REGEX } from "./replace"
@@ -31,6 +39,11 @@ import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
 import useNetInfo from "@/hooks/useNetInfo"
+
+const avatarStyle = {
+	width: 36,
+	height: 36
+}
 
 export const Message = memo(
 	({
@@ -487,13 +500,56 @@ export const Message = memo(
 			}
 		})
 
-		return (
-			<View
-				style={{
+		const rootStyle = useMemo(() => {
+			return {
+				flex: 1,
+				paddingTop: groupWithPreviousMessage ? 0 : 8
+			}
+		}, [groupWithPreviousMessage])
+
+		const enteringAnimation = useMemo(() => {
+			return animateOnEnter ? FadeInDown : undefined
+		}, [animateOnEnter])
+
+		const animatedStyle = useMemo(() => {
+			return [
+				{
 					flex: 1,
-					paddingTop: groupWithPreviousMessage ? 0 : 8
-				}}
-			>
+					flexDirection: "column",
+					backgroundColor: colors.background
+				},
+				panStyle
+			] satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
+		}, [colors.background, panStyle])
+
+		const buttonClassName = useMemo(() => {
+			return cn(
+				"justify-start flex-1 flex-col px-4 active:opacity-70",
+				!groupWithPreviousMessage && !groupWithNextMessage ? "py-1.5" : "py-1",
+				replyToMessageUUID === info.item.uuid || editMessageUUID === info.item.uuid
+					? "bg-card/30 border-l-2 border-l-card"
+					: pendingState && pendingState === "failed"
+					? "bg-red-500/5 border-l-2 border-l-red-500"
+					: mentioningMe
+					? "bg-yellow-500/5 border-l-2 border-l-yellow-500"
+					: ""
+			)
+		}, [
+			groupWithPreviousMessage,
+			groupWithNextMessage,
+			replyToMessageUUID,
+			editMessageUUID,
+			info.item.uuid,
+			pendingState,
+			mentioningMe
+		])
+
+		const replaceClassName = useMemo(() => {
+			return cn("flex-1", !groupWithPreviousMessage ? "pt-1" : "pl-[52px]", pendingState && pendingState !== "sent" && "opacity-70")
+		}, [groupWithPreviousMessage, pendingState])
+
+		return (
+			<View style={rootStyle}>
 				{showDateDivider && (
 					<View className="flex-1 flex-row px-4 py-4 gap-2 items-center">
 						<View className="flex-1 bg-border h-[0.5px]" />
@@ -525,28 +581,11 @@ export const Message = memo(
 				>
 					<GestureDetector gesture={panGesture}>
 						<Animated.View
-							entering={animateOnEnter ? FadeInDown : undefined}
-							style={[
-								{
-									flex: 1,
-									flexDirection: "column",
-									backgroundColor: colors.background
-								},
-								panStyle
-							]}
+							entering={enteringAnimation}
+							style={animatedStyle}
 						>
 							<Button
-								className={cn(
-									"justify-start flex-1 flex-col px-4 active:opacity-70",
-									!groupWithPreviousMessage && !groupWithNextMessage ? "py-1.5" : "py-1",
-									replyToMessageUUID === info.item.uuid || editMessageUUID === info.item.uuid
-										? "bg-card/30 border-l-2 border-l-card"
-										: pendingState && pendingState === "failed"
-										? "bg-red-500/5 border-l-2 border-l-red-500"
-										: mentioningMe
-										? "bg-yellow-500/5 border-l-2 border-l-yellow-500"
-										: ""
-								)}
+								className={buttonClassName}
 								variant="plain"
 								size="none"
 								unstable_pressDelay={100}
@@ -564,10 +603,7 @@ export const Message = memo(
 									{!groupWithPreviousMessage && (
 										<Avatar
 											source={avatarSource}
-											style={{
-												width: 36,
-												height: 36
-											}}
+											style={avatarStyle}
 										/>
 									)}
 									<View className="flex-col flex-1">
@@ -589,13 +625,7 @@ export const Message = memo(
 												</Text>
 											</View>
 										)}
-										<View
-											className={cn(
-												"flex-1",
-												!groupWithPreviousMessage ? "pt-1" : "pl-[52px]",
-												pendingState && pendingState !== "sent" && "opacity-70"
-											)}
-										>
+										<View className={replaceClassName}>
 											<ReplacedMessageContent
 												message={info.item}
 												chat={chat}

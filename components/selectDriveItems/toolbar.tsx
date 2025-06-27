@@ -102,27 +102,35 @@ export const Toolbar = memo(() => {
 		}
 	}, [])
 
+	const leftView = useMemo(() => {
+		return (
+			<ToolbarIcon
+				icon={{
+					name: "plus"
+				}}
+				onPress={createDirectory}
+			/>
+		)
+	}, [createDirectory])
+
+	const rightView = useMemo(() => {
+		return (
+			<ToolbarCTA
+				disabled={!canSubmit}
+				icon={{
+					name: "check-circle-outline"
+				}}
+				onPress={submit}
+			/>
+		)
+	}, [canSubmit, submit])
+
 	return (
 		<ToolbarComponent
 			iosBlurIntensity={100}
 			iosHint={iosHint}
-			leftView={
-				<ToolbarIcon
-					icon={{
-						name: "plus"
-					}}
-					onPress={createDirectory}
-				/>
-			}
-			rightView={
-				<ToolbarCTA
-					disabled={!canSubmit}
-					icon={{
-						name: "check-circle-outline"
-					}}
-					onPress={submit}
-				/>
-			}
+			leftView={leftView}
+			rightView={rightView}
 		/>
 	)
 })

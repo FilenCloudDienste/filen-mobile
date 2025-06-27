@@ -1,10 +1,12 @@
-import { memo, useState, useMemo } from "react"
-import { ActivityIndicator, View } from "react-native"
+import { memo, useState, useMemo, useCallback } from "react"
+import { ActivityIndicator, View, type StyleProp, type ViewStyle } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Container from "../Container"
 import PDF from "react-native-pdf"
 import { type PDFPreviewItem } from "@/app/pdfPreview"
 import useHTTPServer from "@/hooks/useHTTPServer"
+import * as Linking from "expo-linking"
+import alerts from "@/lib/alerts"
 
 export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 	const { colors } = useColorScheme()
@@ -44,42 +46,66 @@ export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 		}
 	}, [item, httpServer.port, httpServer.authToken])
 
+	const renderActivityIndicator = useCallback(() => {
+		return (
+			<View className="flex-1 items-center justify-center">
+				<ActivityIndicator color={colors.foreground} />
+			</View>
+		)
+	}, [colors.foreground])
+
+	const onLoadComplete = useCallback((numberOfPages: number) => {
+		setNumPages(numberOfPages)
+	}, [])
+
+	const onPageChanged = useCallback((page: number, numberOfPages: number) => {
+		setPage(page)
+		setNumPages(numberOfPages)
+	}, [])
+
+	const onError = useCallback((error: object) => {
+		console.error("PDF error:", error)
+	}, [])
+
+	const onPressLink = useCallback(async (uri: string) => {
+		try {
+			if (!(await Linking.canOpenURL(uri))) {
+				return
+			}
+
+			await Linking.openURL(uri)
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
+	}, [])
+
+	const style = useMemo(() => {
+		return {
+			flex: 1,
+			width: "100%",
+			height: "100%",
+			backgroundColor: colors.background
+		} satisfies StyleProp<ViewStyle>
+	}, [colors.background])
+
 	return (
-		<View className="flex-1">
-			<Container>
-				<PDF
-					page={page}
-					source={source}
-					trustAllCerts={false}
-					renderActivityIndicator={() => {
-						return (
-							<View className="flex-1 items-center justify-center">
-								<ActivityIndicator color={colors.foreground} />
-							</View>
-						)
-					}}
-					onLoadComplete={numberOfPages => {
-						setNumPages(numberOfPages)
-					}}
-					onPageChanged={(page, numberOfPages) => {
-						setPage(page)
-						setNumPages(numberOfPages)
-					}}
-					onError={error => {
-						console.log(error)
-					}}
-					onPressLink={uri => {
-						console.log(`Link pressed: ${uri}`)
-					}}
-					style={{
-						flex: 1,
-						width: "100%",
-						height: "100%",
-						backgroundColor: colors.background
-					}}
-				/>
-			</Container>
-		</View>
+		<Container>
+			<PDF
+				page={page}
+				source={source}
+				trustAllCerts={false}
+				renderActivityIndicator={renderActivityIndicator}
+				onLoadComplete={onLoadComplete}
+				onPageChanged={onPageChanged}
+				onError={onError}
+				onPressLink={onPressLink}
+				style={style}
+			/>
+		</Container>
 	)
 })
 

@@ -2,13 +2,11 @@ import * as ContextMenuPrimitive from "@rn-primitives/context-menu"
 import { useAugmentedRef, useRelativePosition } from "@rn-primitives/hooks"
 import { Icon } from "@roninoss/icons"
 import * as Haptics from "expo-haptics"
-import * as React from "react"
+import { createContext, forwardRef, memo, useState, useRef, useContext, useId, useCallback } from "react"
 import { Image, LayoutChangeEvent, LayoutRectangle, Pressable, StyleSheet, View, ViewProps } from "react-native"
 import Animated, { FadeIn, FadeInLeft, FadeOut, FadeOutLeft, LayoutAnimationConfig, LinearTransition } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-
 import { ContextItem, ContextMenuProps, ContextMenuRef, ContextSubMenu } from "./types"
-
 import { ActivityIndicator } from "~/components/nativewindui/ActivityIndicator"
 import { Text } from "~/components/nativewindui/Text"
 import { Button } from "~/components/nativewindui/Button"
@@ -16,7 +14,7 @@ import { DropdownMenu } from "~/components/nativewindui/DropdownMenu"
 import { cn } from "~/lib/cn"
 import { useColorScheme } from "~/lib/useColorScheme"
 
-const ContextMenuContext = React.createContext<{
+export const ContextMenuContext = createContext<{
 	onItemPress: ContextMenuProps["onItemPress"]
 	dismissMenu?: () => void
 	materialLoadingText: string
@@ -25,216 +23,231 @@ const ContextMenuContext = React.createContext<{
 	closeSubMenus: () => void
 } | null>(null)
 
-const ROOT_DEFAULT_LAYOUT = {
+export const ROOT_DEFAULT_LAYOUT = {
 	height: 0,
 	width: 0,
 	pageX: 0,
 	pageY: 0
 }
 
-const ContextMenu = React.forwardRef<ContextMenuRef, ContextMenuProps>(
-	(
-		{
-			items,
-			title,
-			iOSItemSize: _iOSItemSize,
-			onItemPress: onItemPressProp,
-			enabled = true,
-			children,
-			materialPortalHost,
-			materialSideOffset = 2,
-			materialAlignOffset,
-			materialAlign = "center",
-			materialWidth,
-			materialMinWidth = 200,
-			materialLoadingText = "Loading...",
-			materialSubMenuTitlePlaceholder = "More ...",
-			iosRenderPreview: _iosRenderPreview,
-			iosOnPressMenuPreview: _iosOnPressMenuPreview,
-			renderAuxiliaryPreview,
-			auxiliaryPreviewPosition = "start",
-			materialOverlayClassName,
-			...props
-		},
-		ref
-	) => {
-		const [rootLayout, setRootLayout] = React.useState(ROOT_DEFAULT_LAYOUT)
-		const [auxiliaryContentLayout, setAuxiliaryContentLayout] = React.useState<LayoutRectangle | null>(null)
-		const [contentLayout, setContentLayout] = React.useState<LayoutRectangle | null>(null)
-		const subMenuRefs = React.useRef<ContextMenuRef[]>([])
-		const insets = useSafeAreaInsets()
-		const triggerRef = React.useRef<ContextMenuPrimitive.TriggerRef>(null)
-		const rootRef = useAugmentedRef({
-			ref,
-			methods: {
-				presentMenu: () => {
-					triggerRef.current?.open()
+export const ContextMenu = memo(
+	forwardRef<ContextMenuRef, ContextMenuProps>(
+		(
+			{
+				items,
+				title,
+				iOSItemSize: _iOSItemSize,
+				onItemPress: onItemPressProp,
+				enabled = true,
+				children,
+				materialPortalHost,
+				materialSideOffset = 2,
+				materialAlignOffset,
+				materialAlign = "center",
+				materialWidth,
+				materialMinWidth = 200,
+				materialLoadingText = "Loading...",
+				materialSubMenuTitlePlaceholder = "More ...",
+				iosRenderPreview: _iosRenderPreview,
+				iosOnPressMenuPreview: _iosOnPressMenuPreview,
+				renderAuxiliaryPreview,
+				auxiliaryPreviewPosition = "start",
+				materialOverlayClassName,
+				...props
+			},
+			ref
+		) => {
+			const [rootLayout, setRootLayout] = useState(ROOT_DEFAULT_LAYOUT)
+			const [auxiliaryContentLayout, setAuxiliaryContentLayout] = useState<LayoutRectangle | null>(null)
+			const [contentLayout, setContentLayout] = useState<LayoutRectangle | null>(null)
+			const subMenuRefs = useRef<ContextMenuRef[]>([])
+			const insets = useSafeAreaInsets()
+			const triggerRef = useRef<ContextMenuPrimitive.TriggerRef>(null)
+
+			const dismissMenu = useCallback(() => {
+				triggerRef.current?.close()
+			}, [triggerRef])
+
+			const rootRef = useAugmentedRef({
+				ref,
+				methods: {
+					presentMenu: () => {
+						triggerRef.current?.open()
+					},
+					dismissMenu
 				},
-				dismissMenu
-			},
-			deps: [triggerRef.current]
-		})
-
-		const positionStyle = useRelativePosition({
-			align: auxiliaryPreviewPosition,
-			avoidCollisions: true,
-			triggerPosition: rootLayout,
-			contentLayout: auxiliaryContentLayout,
-			alignOffset: 0,
-			insets: {
-				top: insets.top,
-				right: 8,
-				bottom: insets.bottom + (contentLayout?.height ?? 0),
-				left: 8
-			},
-			sideOffset: 4,
-			side: "top",
-			disablePositioningStyle: false
-		})
-
-		function onLayout(event: LayoutChangeEvent) {
-			setAuxiliaryContentLayout(event.nativeEvent.layout)
-		}
-
-		function onTriggerLongPress() {
-			rootRef.current?.measure((_x, _y, width, height, pageX, pageY) => {
-				setRootLayout({ height, width, pageX, pageY })
+				deps: [triggerRef.current]
 			})
-		}
 
-		function closeSubMenus() {
-			for (const subMenuRef of subMenuRefs.current) {
-				subMenuRef.dismissMenu?.()
-			}
-		}
+			const positionStyle = useRelativePosition({
+				align: auxiliaryPreviewPosition,
+				avoidCollisions: true,
+				triggerPosition: rootLayout,
+				contentLayout: auxiliaryContentLayout,
+				alignOffset: 0,
+				insets: {
+					top: insets.top,
+					right: 8,
+					bottom: insets.bottom + (contentLayout?.height ?? 0),
+					left: 8
+				},
+				sideOffset: 4,
+				side: "top",
+				disablePositioningStyle: false
+			})
 
-		function onItemPress(item: Omit<ContextItem, "icon">) {
-			closeSubMenus()
-			onItemPressProp?.(item)
-		}
+			const onLayout = useCallback((event: LayoutChangeEvent) => {
+				setAuxiliaryContentLayout(event.nativeEvent.layout)
+			}, [])
 
-		function dismissMenu() {
-			triggerRef.current?.close()
-		}
+			const onTriggerLongPress = useCallback(() => {
+				rootRef.current?.measure((_x, _y, width, height, pageX, pageY) => {
+					setRootLayout({ height, width, pageX, pageY })
+				})
+			}, [rootRef])
 
-		function onOpenChange(open: boolean) {
-			if (!open) {
-				setAuxiliaryContentLayout(null)
-				setContentLayout(null)
-				return
-			}
-			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-		}
+			const closeSubMenus = useCallback(() => {
+				for (const subMenuRef of subMenuRefs.current) {
+					subMenuRef.dismissMenu?.()
+				}
+			}, [subMenuRefs])
 
-		function onContentLayout(ev: LayoutChangeEvent) {
-			setContentLayout(ev.nativeEvent.layout)
-		}
+			const onItemPress = useCallback(
+				(item: Omit<ContextItem, "icon">) => {
+					closeSubMenus()
+					onItemPressProp?.(item)
+				},
+				[onItemPressProp, closeSubMenus]
+			)
 
-		return (
-			<View>
-				<ContextMenuPrimitive.Root
-					ref={rootRef}
-					relativeTo="trigger"
-					onOpenChange={onOpenChange}
-					{...props}
-					collapsable={false}
-				>
-					<ContextMenuPrimitive.Trigger
-						ref={triggerRef}
-						onLongPress={onTriggerLongPress}
-						asChild
+			const onOpenChange = useCallback(
+				(open: boolean) => {
+					if (!open) {
+						setAuxiliaryContentLayout(null)
+						setContentLayout(null)
+
+						return
+					}
+
+					Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(console.error)
+				},
+				[setAuxiliaryContentLayout, setContentLayout]
+			)
+
+			const onContentLayout = useCallback((ev: LayoutChangeEvent) => {
+				setContentLayout(ev.nativeEvent.layout)
+			}, [])
+
+			return (
+				<View>
+					<ContextMenuPrimitive.Root
+						ref={rootRef}
+						relativeTo="trigger"
+						onOpenChange={onOpenChange}
+						{...props}
+						collapsable={false}
 					>
-						{children}
-					</ContextMenuPrimitive.Trigger>
-					<ContextMenuPrimitive.Portal hostName={materialPortalHost}>
-						<ContextMenuContext.Provider
-							value={{
-								onItemPress,
-								dismissMenu,
-								materialLoadingText,
-								materialSubMenuTitlePlaceholder,
-								subMenuRefs,
-								closeSubMenus
-							}}
+						<ContextMenuPrimitive.Trigger
+							ref={triggerRef}
+							onLongPress={onTriggerLongPress}
+							asChild
 						>
-							<ContextMenuPrimitive.Overlay style={StyleSheet.absoluteFill}>
-								<Animated.View
-									style={StyleSheet.absoluteFill}
-									entering={FadeIn}
-									exiting={FadeOut}
-									className={cn("bg-black/20", materialOverlayClassName)}
-								>
-									{renderAuxiliaryPreview && contentLayout && (
-										<ContextMenuAuxiliaryPreview
-											onLayout={onLayout}
-											style={positionStyle}
-										>
-											{renderAuxiliaryPreview()}
-										</ContextMenuAuxiliaryPreview>
-									)}
-									<ContextMenuPrimitive.Content
-										insets={{
-											top: insets.top,
-											right: 8,
-											bottom: insets.bottom,
-											left: 8
-										}}
-										sideOffset={materialSideOffset}
-										alignOffset={materialAlignOffset}
-										align={materialAlign}
-										className={cn(!title && items.length === 0 && "opacity-0")}
-										pointerEvents={!title && items.length === 0 ? "none" : undefined}
-										onLayout={onContentLayout}
+							{children}
+						</ContextMenuPrimitive.Trigger>
+						<ContextMenuPrimitive.Portal hostName={materialPortalHost}>
+							<ContextMenuContext.Provider
+								value={{
+									onItemPress,
+									dismissMenu,
+									materialLoadingText,
+									materialSubMenuTitlePlaceholder,
+									subMenuRefs,
+									closeSubMenus
+								}}
+							>
+								<ContextMenuPrimitive.Overlay style={StyleSheet.absoluteFill}>
+									<Animated.View
+										style={StyleSheet.absoluteFill}
+										entering={FadeIn}
+										exiting={FadeOut}
+										className={cn("bg-black/20", materialOverlayClassName)}
 									>
-										<Animated.View
-											entering={FadeIn}
-											exiting={FadeOut}
-											style={{
-												minWidth: materialMinWidth,
-												width: materialWidth
+										{renderAuxiliaryPreview && contentLayout && (
+											<ContextMenuAuxiliaryPreview
+												onLayout={onLayout}
+												style={positionStyle}
+											>
+												{renderAuxiliaryPreview()}
+											</ContextMenuAuxiliaryPreview>
+										)}
+										<ContextMenuPrimitive.Content
+											insets={{
+												top: insets.top,
+												right: 8,
+												bottom: insets.bottom,
+												left: 8
 											}}
-											className="border-border/20 bg-card z-50 rounded-md border py-2 shadow-xl"
+											sideOffset={materialSideOffset}
+											alignOffset={materialAlignOffset}
+											align={materialAlign}
+											className={cn(!title && items.length === 0 && "opacity-0")}
+											pointerEvents={!title && items.length === 0 ? "none" : undefined}
+											onLayout={onContentLayout}
 										>
-											{!!title && <ContextMenuLabel>{title}</ContextMenuLabel>}
-											<ContextMenuInnerContent items={items} />
-										</Animated.View>
-									</ContextMenuPrimitive.Content>
-								</Animated.View>
-							</ContextMenuPrimitive.Overlay>
-						</ContextMenuContext.Provider>
-					</ContextMenuPrimitive.Portal>
-				</ContextMenuPrimitive.Root>
-			</View>
-		)
-	}
+											<Animated.View
+												entering={FadeIn}
+												exiting={FadeOut}
+												style={{
+													minWidth: materialMinWidth,
+													width: materialWidth
+												}}
+												className="border-border/20 bg-card z-50 rounded-md border py-2 shadow-xl"
+											>
+												{!!title && <ContextMenuLabel>{title}</ContextMenuLabel>}
+												<ContextMenuInnerContent items={items} />
+											</Animated.View>
+										</ContextMenuPrimitive.Content>
+									</Animated.View>
+								</ContextMenuPrimitive.Overlay>
+							</ContextMenuContext.Provider>
+						</ContextMenuPrimitive.Portal>
+					</ContextMenuPrimitive.Root>
+				</View>
+			)
+		}
+	)
 )
 
 ContextMenu.displayName = "ContextMenu"
 
-export { ContextMenu }
+export function useContextMenuContext() {
+	const context = useContext(ContextMenuContext)
 
-function useContextMenuContext() {
-	const context = React.useContext(ContextMenuContext)
 	if (!context) {
 		throw new Error("ContextMenu compound components cannot be rendered outside the ContextMenu component")
 	}
+
 	return context
 }
 
-function ContextMenuAuxiliaryPreview({ style, onLayout, children }: Required<Pick<ViewProps, "style" | "onLayout" | "children">>) {
-	return (
-		<Pressable
-			style={style}
-			onLayout={onLayout}
-		>
-			{children}
-		</Pressable>
-	)
-}
+export const ContextMenuAuxiliaryPreview = memo(
+	({ style, onLayout, children }: Required<Pick<ViewProps, "style" | "onLayout" | "children">>) => {
+		return (
+			<Pressable
+				style={style}
+				onLayout={onLayout}
+			>
+				{children}
+			</Pressable>
+		)
+	}
+)
 
-function ContextMenuInnerContent({ items }: { items: (ContextItem | ContextSubMenu)[] }) {
+ContextMenuAuxiliaryPreview.displayName = "ContextMenuAuxiliaryPreview"
+
+export const ContextMenuInnerContent = memo(({ items }: { items: (ContextItem | ContextSubMenu)[] }) => {
 	const { materialLoadingText } = useContextMenuContext()
-	const id = React.useId()
+	const id = useId()
 
 	return (
 		<View>
@@ -243,7 +256,7 @@ function ContextMenuInnerContent({ items }: { items: (ContextItem | ContextSubMe
 					return (
 						<ContextMenuPrimitive.Item
 							key={`loading:${id}-${item.title}-${index}`}
-							asChild
+							asChild={true}
 						>
 							<Button
 								disabled
@@ -257,9 +270,14 @@ function ContextMenuInnerContent({ items }: { items: (ContextItem | ContextSubMe
 						</ContextMenuPrimitive.Item>
 					)
 				}
+
 				if ((item as Partial<ContextSubMenu>)?.items) {
 					const subMenu = item as ContextSubMenu
-					if (subMenu.items.length === 0) return null
+
+					if (subMenu.items.length === 0) {
+						return null
+					}
+
 					return (
 						<ContextMenuSubMenu
 							title={subMenu.title}
@@ -269,7 +287,9 @@ function ContextMenuInnerContent({ items }: { items: (ContextItem | ContextSubMe
 						/>
 					)
 				}
+
 				const contextMenuItem = item as ContextItem
+
 				return (
 					<ContextMenuItem
 						key={contextMenuItem.actionKey}
@@ -279,25 +299,31 @@ function ContextMenuInnerContent({ items }: { items: (ContextItem | ContextSubMe
 			})}
 		</View>
 	)
-}
+})
 
-function ContextMenuLabel(props: { children: React.ReactNode }) {
+ContextMenuInnerContent.displayName = "ContextMenuInnerContent"
+
+export const ContextMenuLabel = memo((props: { children: React.ReactNode }) => {
 	return (
 		<ContextMenuPrimitive.Label className="text-muted-foreground/80 border-border/25 dark:border-border/80 dark:text-muted-foreground border-b px-3 pb-2 text-sm">
 			{props.children}
 		</ContextMenuPrimitive.Label>
 	)
-}
+})
 
-function ContextMenuItem(props: Omit<ContextItem, "loading">) {
+ContextMenuLabel.displayName = "ContextMenuLabel"
+
+export const ContextMenuItem = memo((props: Omit<ContextItem, "loading">) => {
 	const { colors } = useColorScheme()
 	const { onItemPress } = useContextMenuContext()
 
-	function onPress() {
+	const onPress = useCallback(() => {
 		onItemPress?.(props)
-	}
+	}, [onItemPress, props])
 
-	if (props.hidden) return null
+	if (props.hidden) {
+		return null
+	}
 
 	return (
 		<LayoutAnimationConfig
@@ -305,7 +331,7 @@ function ContextMenuItem(props: Omit<ContextItem, "loading">) {
 			skipExiting
 		>
 			<ContextMenuPrimitive.Item
-				asChild
+				asChild={true}
 				closeOnPress={!props.keepOpenOnPress}
 				role="checkbox"
 				accessibilityState={{
@@ -357,7 +383,9 @@ function ContextMenuItem(props: Omit<ContextItem, "loading">) {
 					)}
 					{props.image ? (
 						<Image
-							source={{ uri: props.image.url }}
+							source={{
+								uri: props.image.url
+							}}
 							style={{
 								width: 22,
 								height: 22,
@@ -378,14 +406,16 @@ function ContextMenuItem(props: Omit<ContextItem, "loading">) {
 			</ContextMenuPrimitive.Item>
 		</LayoutAnimationConfig>
 	)
-}
+})
 
-const DEFAULT_LAYOUT = {
+ContextMenuItem.displayName = "ContextMenuItem"
+
+export const DEFAULT_LAYOUT = {
 	width: 0,
 	height: 0
 }
 
-function ContextMenuSubMenu({ title, subTitle, items }: Omit<ContextSubMenu, "loading">) {
+export const ContextMenuSubMenu = memo(({ title, subTitle, items }: Omit<ContextSubMenu, "loading">) => {
 	const { colors } = useColorScheme()
 	const {
 		onItemPress: onContextMenuItemPress,
@@ -394,21 +424,30 @@ function ContextMenuSubMenu({ title, subTitle, items }: Omit<ContextSubMenu, "lo
 		subMenuRefs,
 		closeSubMenus
 	} = useContextMenuContext()
-	const [triggerLayout, setTriggerLayout] = React.useState<typeof DEFAULT_LAYOUT>(DEFAULT_LAYOUT)
+	const [triggerLayout, setTriggerLayout] = useState<typeof DEFAULT_LAYOUT>(DEFAULT_LAYOUT)
 
-	function onItemPress(item: Omit<ContextItem, "icon">) {
-		dismissMenu?.()
-		onContextMenuItemPress?.(item)
-	}
+	const onItemPress = useCallback(
+		(item: Omit<ContextItem, "icon">) => {
+			dismissMenu?.()
+			onContextMenuItemPress?.(item)
+		},
+		[dismissMenu, onContextMenuItemPress]
+	)
 
-	function onLayout(ev: LayoutChangeEvent) {
+	const onLayout = useCallback((ev: LayoutChangeEvent) => {
 		setTriggerLayout(ev.nativeEvent.layout)
-	}
+	}, [])
 
-	function addSubMenuRef(ref: ContextMenuRef | null) {
-		if (!ref) return
-		subMenuRefs.current.push(ref)
-	}
+	const addSubMenuRef = useCallback(
+		(ref: ContextMenuRef | null) => {
+			if (!ref) {
+				return
+			}
+
+			subMenuRefs.current.push(ref)
+		},
+		[subMenuRefs]
+	)
 
 	return (
 		<DropdownMenu
@@ -419,7 +458,7 @@ function ContextMenuSubMenu({ title, subTitle, items }: Omit<ContextSubMenu, "lo
 			onItemPress={onItemPress}
 			materialMinWidth={48}
 			// @ts-expect-error internal prop
-			materialIsSubMenu
+			materialIsSubMenu={true}
 			ref={addSubMenuRef}
 		>
 			<Button
@@ -444,4 +483,6 @@ function ContextMenuSubMenu({ title, subTitle, items }: Omit<ContextSubMenu, "lo
 			</Button>
 		</DropdownMenu>
 	)
-}
+})
+
+ContextMenuSubMenu.displayName = "ContextMenuSubMenu"

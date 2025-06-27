@@ -3,6 +3,7 @@ import useIsAuthed from "@/hooks/useIsAuthed"
 import { Fragment } from "react"
 import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
 import { Platform } from "react-native"
+import { SCREEN_OPTIONS } from "@/lib/constants"
 
 export default function SelectContactsLayout() {
 	const [isAuthed] = useIsAuthed()
@@ -13,12 +14,7 @@ export default function SelectContactsLayout() {
 
 	return (
 		<Fragment>
-			<Stack
-				screenOptions={{
-					headerShown: false,
-					headerBlurEffect: "systemChromeMaterial"
-				}}
-			/>
+			<Stack screenOptions={SCREEN_OPTIONS.base} />
 			{Platform.OS === "ios" && <FullScreenLoadingModal />}
 		</Fragment>
 	)

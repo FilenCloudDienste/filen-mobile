@@ -1,4 +1,4 @@
-import { memo, Fragment, useCallback } from "react"
+import { memo, Fragment, useCallback, useMemo } from "react"
 import { ListItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import { View, ActivityIndicator, Platform } from "react-native"
 import { ColoredFolderSVGIcon, FileNameToSVGIcon } from "@/assets/fileIcons"
@@ -91,6 +91,70 @@ export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo>
 		colors.card
 	])
 
+	const leftView = useMemo(() => {
+		return (
+			<View className="flex-1 flex-row items-center px-4">
+				{info.item.transfer.itemType === "directory" ? (
+					<ColoredFolderSVGIcon
+						width={ICON_HEIGHT}
+						height={ICON_HEIGHT}
+					/>
+				) : (
+					<FileNameToSVGIcon
+						name={info.item.transfer.name}
+						width={ICON_HEIGHT}
+						height={ICON_HEIGHT}
+					/>
+				)}
+			</View>
+		)
+	}, [info.item.transfer.itemType, info.item.transfer.name])
+
+	const rightView = useMemo(() => {
+		return (
+			<View className="flex-1 flex-row items-center px-4 gap-4">
+				{info.item.transfer.state === "started" ? (
+					<Fragment>
+						<Text>{normalizeTransferProgress(info.item.transfer.size, info.item.transfer.bytes)}%</Text>
+						<ActivityIndicator
+							color={colors.foreground}
+							size="small"
+						/>
+					</Fragment>
+				) : info.item.transfer.state === "finished" ? (
+					<Icon
+						name="check-circle-outline"
+						color={colors.primary}
+						size={24}
+					/>
+				) : info.item.transfer.state === "error" ? (
+					<Icon
+						name="exclamation"
+						color={colors.destructive}
+						size={24}
+					/>
+				) : info.item.transfer.state === "paused" ? (
+					<Icon
+						name="pause"
+						color={colors.primary}
+						size={24}
+					/>
+				) : info.item.transfer.state === "queued" ? (
+					<ActivityIndicator
+						color={colors.foreground}
+						size="small"
+					/>
+				) : info.item.transfer.state === "stopped" ? (
+					<Icon
+						name="stop"
+						color={colors.destructive}
+						size={24}
+					/>
+				) : null}
+			</View>
+		)
+	}, [info.item.transfer.state, info.item.transfer.size, info.item.transfer.bytes, colors.foreground, colors.primary, colors.destructive])
+
 	return (
 		<ListItem
 			className="overflow-hidden"
@@ -104,64 +168,8 @@ export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo>
 			isLastInSection={false}
 			removeSeparator={Platform.OS === "android"}
 			innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
-			leftView={
-				<View className="flex-1 flex-row items-center px-4">
-					{info.item.transfer.itemType === "directory" ? (
-						<ColoredFolderSVGIcon
-							width={ICON_HEIGHT}
-							height={ICON_HEIGHT}
-						/>
-					) : (
-						<FileNameToSVGIcon
-							name={info.item.transfer.name}
-							width={ICON_HEIGHT}
-							height={ICON_HEIGHT}
-						/>
-					)}
-				</View>
-			}
-			rightView={
-				<View className="flex-1 flex-row items-center px-4 gap-4">
-					{info.item.transfer.state === "started" ? (
-						<Fragment>
-							<Text>{normalizeTransferProgress(info.item.transfer.size, info.item.transfer.bytes)}%</Text>
-							<ActivityIndicator
-								color={colors.foreground}
-								size="small"
-							/>
-						</Fragment>
-					) : info.item.transfer.state === "finished" ? (
-						<Icon
-							name="check-circle-outline"
-							color={colors.primary}
-							size={24}
-						/>
-					) : info.item.transfer.state === "error" ? (
-						<Icon
-							name="exclamation"
-							color={colors.destructive}
-							size={24}
-						/>
-					) : info.item.transfer.state === "paused" ? (
-						<Icon
-							name="pause"
-							color={colors.primary}
-							size={24}
-						/>
-					) : info.item.transfer.state === "queued" ? (
-						<ActivityIndicator
-							color={colors.foreground}
-							size="small"
-						/>
-					) : info.item.transfer.state === "stopped" ? (
-						<Icon
-							name="stop"
-							color={colors.destructive}
-							size={24}
-						/>
-					) : null}
-				</View>
-			}
+			leftView={leftView}
+			rightView={rightView}
 		/>
 	)
 })

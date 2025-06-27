@@ -138,13 +138,17 @@ export const Item = memo(
 			select()
 		}, [info.item.item.type, info.item.item.uuid, routerPush, select, toMove])
 
+		const disabled = useMemo(() => {
+			return type === "file" && info.item.item.type === "directory" ? false : !canSelect
+		}, [type, info.item.item.type, canSelect])
+
 		return (
 			<ListItemComponent
 				{...info}
 				item={item}
 				className="overflow-hidden"
 				leftView={leftView}
-				disabled={type === "file" && info.item.item.type === "directory" ? false : !canSelect}
+				disabled={disabled}
 				subTitleClassName="text-xs pt-1 font-normal"
 				variant="full-width"
 				textNumberOfLines={1}

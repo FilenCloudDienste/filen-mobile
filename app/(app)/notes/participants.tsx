@@ -1,5 +1,5 @@
 import { useLocalSearchParams, Redirect } from "expo-router"
-import { useMemo, useCallback, useState } from "react"
+import { useMemo, useCallback, useState, memo } from "react"
 import { View, Platform, RefreshControl, type ListRenderItemInfo } from "react-native"
 import { type Note, type NoteParticipant } from "@filen/sdk/dist/types/api/v3/notes"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
@@ -35,6 +35,78 @@ export const LIST_ITEM_HEIGHT = Platform.select({
 	ios: 61,
 	default: 60
 })
+
+export const Participant = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInfo>; note: Note }) => {
+	const { colors } = useColorScheme()
+
+	const avatarSource = useMemo(() => {
+		return {
+			uri: info.item.participant.avatar?.startsWith("https") ? info.item.participant.avatar : "avatar_fallback"
+		}
+	}, [info.item.participant.avatar])
+
+	const leftView = useMemo(() => {
+		return (
+			<View className="flex-1 flex-row items-center justify-center px-4">
+				<Avatar
+					source={avatarSource}
+					style={{
+						width: 36,
+						height: 36
+					}}
+				/>
+			</View>
+		)
+	}, [avatarSource])
+
+	const rightView = useMemo(() => {
+		return Platform.OS === "android" ? (
+			<View className="flex-1 flex-row items-center justify-center px-4">
+				<Menu
+					type="dropdown"
+					note={note}
+					participant={info.item.participant}
+				>
+					<Button
+						variant="plain"
+						size="icon"
+					>
+						<Icon
+							name="dots-horizontal"
+							size={24}
+							color={colors.foreground}
+						/>
+					</Button>
+				</Menu>
+			</View>
+		) : undefined
+	}, [colors.foreground, info.item.participant, note])
+
+	return (
+		<Menu
+			type="context"
+			note={note}
+			participant={info.item.participant}
+		>
+			<ListItem
+				{...info}
+				className="overflow-hidden"
+				subTitleClassName="text-xs pt-1 font-normal"
+				variant="full-width"
+				textNumberOfLines={1}
+				subTitleNumberOfLines={1}
+				isFirstInSection={false}
+				isLastInSection={false}
+				removeSeparator={Platform.OS === "android"}
+				innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+				leftView={leftView}
+				rightView={rightView}
+			/>
+		</Menu>
+	)
+})
+
+Participant.displayName = "Participant"
 
 export default function Participants() {
 	const { uuid } = useLocalSearchParams()
@@ -100,65 +172,14 @@ export default function Participants() {
 				return null
 			}
 
-			const avatarSource = {
-				uri: info.item.participant.avatar?.startsWith("https") ? info.item.participant.avatar : "avatar_fallback"
-			}
-
 			return (
-				<Menu
-					type="context"
+				<Participant
+					info={info}
 					note={note}
-					participant={info.item.participant}
-				>
-					<ListItem
-						{...info}
-						className="overflow-hidden"
-						subTitleClassName="text-xs pt-1 font-normal"
-						variant="full-width"
-						textNumberOfLines={1}
-						subTitleNumberOfLines={1}
-						isFirstInSection={false}
-						isLastInSection={false}
-						removeSeparator={Platform.OS === "android"}
-						innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
-						leftView={
-							<View className="flex-1 flex-row items-center justify-center px-4">
-								<Avatar
-									source={avatarSource}
-									style={{
-										width: 36,
-										height: 36
-									}}
-								/>
-							</View>
-						}
-						rightView={
-							Platform.OS === "android" ? (
-								<View className="flex-1 flex-row items-center justify-center px-4">
-									<Menu
-										type="dropdown"
-										note={note}
-										participant={info.item.participant}
-									>
-										<Button
-											variant="plain"
-											size="icon"
-										>
-											<Icon
-												name="dots-horizontal"
-												size={24}
-												color={colors.foreground}
-											/>
-										</Button>
-									</Menu>
-								</View>
-							) : undefined
-						}
-					/>
-				</Menu>
+				/>
 			)
 		},
-		[note, colors.foreground]
+		[note]
 	)
 
 	const addParticipant = useCallback(async () => {
@@ -235,6 +256,62 @@ export default function Participants() {
 		}
 	}, [note])
 
+	const headerRightView = useCallback(() => {
+		return (
+			<Button
+				variant="plain"
+				size="icon"
+				onPress={addParticipant}
+			>
+				<Icon
+					name="plus"
+					size={24}
+					color={colors.primary}
+				/>
+			</Button>
+		)
+	}, [addParticipant, colors.primary])
+
+	const listFooter = useMemo(() => {
+		return (
+			<View className="h-16 flex-row items-center justify-center">
+				<Text className="text-sm">
+					{participants.length} {participants.length === 1 ? "participant" : "participants"}
+				</Text>
+			</View>
+		)
+	}, [participants.length])
+
+	const refreshControl = useMemo(() => {
+		return (
+			<RefreshControl
+				refreshing={refreshing}
+				onRefresh={async () => {
+					setRefreshing(true)
+
+					await notesQuery.refetch().catch(console.error)
+
+					setRefreshing(false)
+				}}
+			/>
+		)
+	}, [notesQuery, refreshing])
+
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
+			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		}
+	}, [screen.height])
+
+	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+		return {
+			length: LIST_ITEM_HEIGHT,
+			offset: LIST_ITEM_HEIGHT * index,
+			index
+		}
+	}, [])
+
 	if (!note) {
 		return <Redirect href="/notes" />
 	}
@@ -244,21 +321,7 @@ export default function Participants() {
 			<LargeTitleHeader
 				title="Participants"
 				iosBlurEffect="systemChromeMaterial"
-				rightView={() => {
-					return (
-						<Button
-							variant="plain"
-							size="icon"
-							onPress={addParticipant}
-						>
-							<Icon
-								name="plus"
-								size={24}
-								color={colors.primary}
-							/>
-						</Button>
-					)
-				}}
+				rightView={headerRightView}
 			/>
 			<Container>
 				<List
@@ -268,37 +331,14 @@ export default function Participants() {
 					data={participants}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
-					ListFooterComponent={
-						<View className="h-16 flex-row items-center justify-center">
-							<Text className="text-sm">
-								{participants.length} {participants.length === 1 ? "participant" : "participants"}
-							</Text>
-						</View>
-					}
-					refreshControl={
-						<RefreshControl
-							refreshing={refreshing}
-							onRefresh={async () => {
-								setRefreshing(true)
-
-								await notesQuery.refetch().catch(console.error)
-
-								setRefreshing(false)
-							}}
-						/>
-					}
+					ListFooterComponent={listFooter}
+					refreshControl={refreshControl}
 					removeClippedSubviews={true}
-					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
-					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					initialNumToRender={initialNumToRender}
+					maxToRenderPerBatch={maxToRenderPerBatch}
 					updateCellsBatchingPeriod={100}
 					windowSize={3}
-					getItemLayout={(_, index) => {
-						return {
-							length: LIST_ITEM_HEIGHT,
-							offset: LIST_ITEM_HEIGHT * index,
-							index
-						}
-					}}
+					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

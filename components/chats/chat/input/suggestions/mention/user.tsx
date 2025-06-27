@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { Text } from "@/components/nativewindui/Text"
 import { type ChatConversation, type ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
@@ -39,6 +39,23 @@ export const User = memo(({ user, chat }: { user: ChatConversationParticipant; c
 		reset()
 	}, [user.email, reset, setValue, value])
 
+	const source = useMemo(() => {
+		return user.avatar && user.avatar.startsWith("https://")
+			? {
+					uri: user.avatar
+			  }
+			: {
+					uri: "avatar_fallback"
+			  }
+	}, [user.avatar])
+
+	const style = useMemo(() => {
+		return {
+			width: 20,
+			height: 20
+		}
+	}, [])
+
 	return (
 		<Button
 			variant="plain"
@@ -49,11 +66,8 @@ export const User = memo(({ user, chat }: { user: ChatConversationParticipant; c
 			<View className="flex-row items-center justify-between w-full gap-4">
 				<View className="flex-row items-center gap-2 shrink">
 					<Avatar
-						source={user.avatar && user.avatar.startsWith("https://") ? { uri: user.avatar } : { uri: "avatar_fallback" }}
-						style={{
-							width: 20,
-							height: 20
-						}}
+						source={source}
+						style={style}
 						className="shrink-0"
 					/>
 					<Text

@@ -1,6 +1,6 @@
 import { Platform, View } from "react-native"
 import { type Playlist, usePlaylistsQuery, updatePlaylist } from "@/queries/usePlaylistsQuery"
-import { Fragment, useCallback, memo, useMemo } from "react"
+import { useCallback, memo, useMemo } from "react"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { Icon } from "@roninoss/icons"
@@ -254,54 +254,54 @@ export const Header = memo(() => {
 		)
 	}, [playlist, playPlaylist, addTrackToPlaylist, createPlaylist, colors.primary])
 
-	return (
-		<Fragment>
-			{Platform.OS === "ios" ? (
-				<AdaptiveSearchHeader
-					iosTitle={playlist ? playlist.name : "Playlists"}
-					iosIsLargeTitle={false}
-					iosBackButtonMenuEnabled={false}
-					backVisible={playlist !== null}
-					iosBackVisible={playlist !== null}
-					iosBackButtonTitleVisible={false}
-					backgroundColor={colors.card}
-					rightView={rightView}
-					searchBar={{
-						iosHideWhenScrolling: false,
-						onChangeText: text => {
-							if (playlist) {
-								setPlaylistSearchTerm(text)
-							} else {
-								setPlaylistsSearchTerm(text)
-							}
-						},
-						contentTransparent: true,
-						persistBlur: true
-					}}
-				/>
-			) : (
-				<LargeTitleHeader
-					title={playlist ? playlist.name : "Playlists"}
-					materialPreset="inline"
-					backVisible={true}
-					backgroundColor={colors.card}
-					rightView={rightView}
-					searchBar={{
-						iosHideWhenScrolling: false,
-						onChangeText: text => {
-							if (playlist) {
-								setPlaylistSearchTerm(text)
-							} else {
-								setPlaylistsSearchTerm(text)
-							}
-						},
-						contentTransparent: true,
-						persistBlur: true
-					}}
-				/>
-			)}
-		</Fragment>
-	)
+	const header = useMemo(() => {
+		return Platform.OS === "ios" ? (
+			<AdaptiveSearchHeader
+				iosTitle={playlist ? playlist.name : "Playlists"}
+				iosIsLargeTitle={false}
+				iosBackButtonMenuEnabled={false}
+				backVisible={playlist !== null}
+				iosBackVisible={playlist !== null}
+				iosBackButtonTitleVisible={false}
+				backgroundColor={colors.card}
+				rightView={rightView}
+				searchBar={{
+					iosHideWhenScrolling: false,
+					onChangeText: text => {
+						if (playlist) {
+							setPlaylistSearchTerm(text)
+						} else {
+							setPlaylistsSearchTerm(text)
+						}
+					},
+					contentTransparent: true,
+					persistBlur: true
+				}}
+			/>
+		) : (
+			<LargeTitleHeader
+				title={playlist ? playlist.name : "Playlists"}
+				materialPreset="inline"
+				backVisible={true}
+				backgroundColor={colors.card}
+				rightView={rightView}
+				searchBar={{
+					iosHideWhenScrolling: false,
+					onChangeText: text => {
+						if (playlist) {
+							setPlaylistSearchTerm(text)
+						} else {
+							setPlaylistsSearchTerm(text)
+						}
+					},
+					contentTransparent: true,
+					persistBlur: true
+				}}
+			/>
+		)
+	}, [playlist, colors.card, rightView, setPlaylistSearchTerm, setPlaylistsSearchTerm])
+
+	return header
 })
 
 Header.displayName = "Header"

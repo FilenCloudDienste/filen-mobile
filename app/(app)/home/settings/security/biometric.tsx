@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { Settings as SettingsComponent } from "@/components/settings"
 import useAccountQuery from "@/queries/useAccountQuery"
 import { Toggle } from "@/components/nativewindui/Toggle"
@@ -111,77 +111,79 @@ export const Biometric = memo(() => {
 		[setBiometricAuth]
 	)
 
+	const items = useMemo(() => {
+		return [
+			{
+				id: "0",
+				title: "Biometric Authentication",
+				rightView: (
+					<Toggle
+						value={biometricAuth ? biometricAuth.enabled : false}
+						onValueChange={toggleBiometric}
+					/>
+				)
+			},
+			...(biometricAuth && biometricAuth.enabled
+				? [
+						{
+							id: "1",
+							title: "Lock app after",
+							rightView: (
+								<DropdownMenu
+									items={LockAppAfterDropdownItems}
+									onItemPress={item => {
+										setBiometricAuth(prev =>
+											prev
+												? {
+														...prev,
+														lockAfter: Number(item.actionKey)
+												  }
+												: prev
+										)
+									}}
+								>
+									<Button
+										size={Platform.OS === "ios" ? "none" : "md"}
+										variant="plain"
+										className="items-center justify-start"
+									>
+										<Text className="ios:px-0 text-primary px-2 font-normal">
+											{biometricAuth && biometricAuth.enabled && biometricAuth.lockAfter >= Number.MAX_SAFE_INTEGER
+												? "Never"
+												: biometricAuth.lockAfter === 0
+												? "Immediately"
+												: `${biometricAuth.lockAfter / 60} minutes`}
+										</Text>
+										<Icon
+											name="pencil"
+											size={24}
+											color={colors.primary}
+										/>
+									</Button>
+								</DropdownMenu>
+							)
+						},
+						{
+							id: "2",
+							title: "PIN only",
+							rightView: (
+								<Toggle
+									value={biometricAuth ? biometricAuth.pinOnly : false}
+									onValueChange={togglePinOnly}
+								/>
+							)
+						}
+				  ]
+				: [])
+		]
+	}, [biometricAuth, toggleBiometric, togglePinOnly, setBiometricAuth, colors.primary])
+
 	return (
 		<SettingsComponent
 			title="Security"
 			showSearchBar={false}
 			loading={account.status !== "success"}
-			items={[
-				{
-					id: "0",
-					title: "Biometric Authentication",
-					rightView: (
-						<Toggle
-							value={biometricAuth ? biometricAuth.enabled : false}
-							onValueChange={toggleBiometric}
-						/>
-					)
-				},
-				...(biometricAuth && biometricAuth.enabled
-					? [
-							{
-								id: "1",
-								title: "Lock app after",
-								rightView: (
-									<DropdownMenu
-										items={LockAppAfterDropdownItems}
-										onItemPress={item => {
-											setBiometricAuth(prev =>
-												prev
-													? {
-															...prev,
-															lockAfter: Number(item.actionKey)
-													  }
-													: prev
-											)
-										}}
-									>
-										<Button
-											size={Platform.OS === "ios" ? "none" : "md"}
-											variant="plain"
-											className="items-center justify-start"
-										>
-											<Text className="ios:px-0 text-primary px-2 font-normal">
-												{biometricAuth &&
-												biometricAuth.enabled &&
-												biometricAuth.lockAfter >= Number.MAX_SAFE_INTEGER
-													? "Never"
-													: biometricAuth.lockAfter === 0
-													? "Immediately"
-													: `${biometricAuth.lockAfter / 60} minutes`}
-											</Text>
-											<Icon
-												name="pencil"
-												size={24}
-												color={colors.primary}
-											/>
-										</Button>
-									</DropdownMenu>
-								)
-							},
-							{
-								id: "2",
-								title: "PIN only",
-								rightView: (
-									<Toggle
-										value={biometricAuth ? biometricAuth.pinOnly : false}
-										onValueChange={togglePinOnly}
-									/>
-								)
-							}
-					  ]
-					: [])
-			]}
+			items={items}
 		/>
 	)
 })

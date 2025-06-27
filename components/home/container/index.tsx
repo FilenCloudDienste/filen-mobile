@@ -96,22 +96,46 @@ export const Container = memo(
 
 		const title = useMemo(() => {
 			switch (type) {
-				case "recents":
+				case "recents": {
 					return t("home.container.recents.title")
-				case "favorites":
+				}
+
+				case "favorites": {
 					return t("home.container.favorites.title")
-				case "links":
+				}
+
+				case "links": {
 					return t("home.container.links.title")
-				case "sharedIn":
+				}
+
+				case "sharedIn": {
 					return t("home.container.sharedIn.title")
-				case "sharedOut":
+				}
+
+				case "sharedOut": {
 					return t("home.container.sharedOut.title")
-				case "offline":
+				}
+
+				case "offline": {
 					return t("home.container.offline.title")
-				case "trash":
+				}
+
+				case "trash": {
 					return t("home.container.trash.title")
+				}
 			}
 		}, [t, type])
+
+		const snapToOffsets = useMemo(() => {
+			return [0, layout.width - 32, (layout.width - 32) * 2, (layout.width - 32) * 3]
+		}, [layout.width])
+
+		const iconSize = useMemo(() => {
+			return Platform.select({
+				ios: 20,
+				default: 26
+			})
+		}, [])
 
 		return (
 			<View
@@ -132,10 +156,7 @@ export const Container = memo(
 					<View className="flex-row items-center pt-0.5">
 						<Icon
 							name="chevron-right"
-							size={Platform.select({
-								ios: 20,
-								default: 26
-							})}
+							size={iconSize}
 							color={colors.grey2}
 						/>
 					</View>
@@ -149,9 +170,10 @@ export const Container = memo(
 					decelerationRate="fast"
 					overScrollMode="never"
 					contentContainerClassName="pt-1"
-					snapToOffsets={[0, layout.width - 32, (layout.width - 32) * 2, (layout.width - 32) * 3]}
+					snapToOffsets={snapToOffsets}
 					snapToAlignment="start"
 					contentInsetAdjustmentBehavior="automatic"
+					removeClippedSubviews={true}
 				>
 					{chunkArray(items, 3).map((chunk, index) => {
 						return (

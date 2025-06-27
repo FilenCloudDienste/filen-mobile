@@ -54,6 +54,14 @@ export const Item = memo(({ note }: { note: Note }) => {
 			.slice(0, 3)
 	}, [note.participants, userId])
 
+	const tags = useMemo(() => {
+		return note.tags.sort((a, b) => {
+			return a.name.localeCompare(b.name, "en", {
+				numeric: true
+			})
+		})
+	}, [note.tags])
+
 	const onPress = useCallback(() => {
 		events.emit("hideSearchBar", {
 			clearText: true
@@ -198,9 +206,9 @@ export const Item = memo(({ note }: { note: Note }) => {
 							>
 								{simpleDate(note.editedTimestamp)}
 							</Text>
-							{note.tags.length > 0 && (
+							{tags.length > 0 && (
 								<View className="flex-row gap-2 mt-2 flex-wrap">
-									{note.tags.map((tag, index) => (
+									{tags.map((tag, index) => (
 										<Tag
 											key={index}
 											tag={tag}

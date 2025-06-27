@@ -25,32 +25,36 @@ export default function FileVersionHistory() {
 		}
 	}, [item])
 
+	const header = useMemo(() => {
+		return Platform.OS === "ios" ? (
+			<AdaptiveSearchHeader
+				iosTitle={t("fileVersionHistory.header.title")}
+				iosIsLargeTitle={false}
+				iosBackButtonMenuEnabled={true}
+				backgroundColor={colors.card}
+				backVisible={true}
+				iosBackButtonTitle="Back"
+				iosBackVisible={true}
+				iosBackButtonTitleVisible={true}
+				iosBlurEffect="systemChromeMaterial"
+			/>
+		) : (
+			<LargeTitleHeader
+				title={t("fileVersionHistory.header.title")}
+				materialPreset="inline"
+				backVisible={true}
+				backgroundColor={colors.card}
+			/>
+		)
+	}, [colors.card, t])
+
 	if (!itemParsed) {
 		return <Redirect href="/(app)/home" />
 	}
 
 	return (
 		<RequireInternet>
-			{Platform.OS === "ios" ? (
-				<AdaptiveSearchHeader
-					iosTitle={t("fileVersionHistory.header.title")}
-					iosIsLargeTitle={false}
-					iosBackButtonMenuEnabled={true}
-					backgroundColor={colors.card}
-					backVisible={true}
-					iosBackButtonTitle="Back"
-					iosBackVisible={true}
-					iosBackButtonTitleVisible={true}
-					iosBlurEffect="systemChromeMaterial"
-				/>
-			) : (
-				<LargeTitleHeader
-					title={t("fileVersionHistory.header.title")}
-					materialPreset="inline"
-					backVisible={true}
-					backgroundColor={colors.card}
-				/>
-			)}
+			{header}
 			<List item={itemParsed} />
 		</RequireInternet>
 	)

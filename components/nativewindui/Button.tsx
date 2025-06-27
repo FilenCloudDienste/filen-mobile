@@ -1,14 +1,13 @@
 import * as Slot from "@rn-primitives/slot"
 import { cva, type VariantProps } from "class-variance-authority"
-import * as React from "react"
+import { memo, forwardRef } from "react"
 import { Platform, Pressable, PressableProps, View, ViewStyle } from "react-native"
+import { TextClassContext } from "@/components/nativewindui/Text"
+import { cn } from "@/lib/cn"
+import { useColorScheme } from "@/lib/useColorScheme"
+import { COLORS } from "@/theme/colors"
 
-import { TextClassContext } from "~/components/nativewindui/Text"
-import { cn } from "~/lib/cn"
-import { useColorScheme } from "~/lib/useColorScheme"
-import { COLORS } from "~/theme/colors"
-
-const buttonVariants = cva("flex-row items-center justify-center gap-2", {
+export const buttonVariants = cva("flex-row items-center justify-center gap-2", {
 	variants: {
 		variant: {
 			primary: "ios:active:opacity-80 bg-primary",
@@ -30,7 +29,7 @@ const buttonVariants = cva("flex-row items-center justify-center gap-2", {
 	}
 })
 
-const androidRootVariants = cva("overflow-hidden", {
+export const androidRootVariants = cva("overflow-hidden", {
 	variants: {
 		size: {
 			none: "",
@@ -45,7 +44,7 @@ const androidRootVariants = cva("overflow-hidden", {
 	}
 })
 
-const buttonTextVariants = cva("font-medium", {
+export const buttonTextVariants = cva("font-medium", {
 	variants: {
 		variant: {
 			primary: "text-white",
@@ -67,84 +66,127 @@ const buttonTextVariants = cva("font-medium", {
 	}
 })
 
-function convertToRGBA(rgb: string, opacity: number): string {
+export function convertToRGBA(rgb: string, opacity: number): string {
 	const rgbValues = rgb.match(/\d+/g)
-	if (!rgbValues || rgbValues.length !== 3) {
-		throw new Error("Invalid RGB color format")
+
+	if (!rgbValues || rgbValues.length !== 3 || !rgbValues[0] || !rgbValues[1] || !rgbValues[2]) {
+		//throw new Error("Invalid RGB color format")
+
+		return "rgba(0,0,0,0)" // Fallback to black with 0 opacity
 	}
+
 	const red = parseInt(rgbValues[0], 10)
 	const green = parseInt(rgbValues[1], 10)
 	const blue = parseInt(rgbValues[2], 10)
+
 	if (opacity < 0 || opacity > 1) {
-		throw new Error("Opacity must be a number between 0 and 1")
+		//throw new Error("Opacity must be a number between 0 and 1")
+
+		return "rgba(0,0,0,0)" // Fallback to black with 0 opacity
 	}
+
 	return `rgba(${red},${green},${blue},${opacity})`
 }
 
-const ANDROID_RIPPLE = {
+export const ANDROID_RIPPLE = {
 	dark: {
-		primary: { color: convertToRGBA(COLORS.dark.grey3, 0.4), borderless: false },
-		secondary: { color: convertToRGBA(COLORS.dark.grey5, 0.8), borderless: false },
-		plain: { color: convertToRGBA(COLORS.dark.grey5, 0.8), borderless: false },
-		tonal: { color: convertToRGBA(COLORS.dark.grey5, 0.8), borderless: false }
+		primary: {
+			color: convertToRGBA(COLORS.dark.grey3, 0.4),
+			borderless: false
+		},
+		secondary: {
+			color: convertToRGBA(COLORS.dark.grey5, 0.8),
+			borderless: false
+		},
+		plain: {
+			color: convertToRGBA(COLORS.dark.grey5, 0.8),
+			borderless: false
+		},
+		tonal: {
+			color: convertToRGBA(COLORS.dark.grey5, 0.8),
+			borderless: false
+		}
 	},
 	light: {
-		primary: { color: convertToRGBA(COLORS.light.grey4, 0.4), borderless: false },
-		secondary: { color: convertToRGBA(COLORS.light.grey5, 0.4), borderless: false },
-		plain: { color: convertToRGBA(COLORS.light.grey5, 0.4), borderless: false },
-		tonal: { color: convertToRGBA(COLORS.light.grey6, 0.4), borderless: false }
+		primary: {
+			color: convertToRGBA(COLORS.light.grey4, 0.4),
+			borderless: false
+		},
+		secondary: {
+			color: convertToRGBA(COLORS.light.grey5, 0.4),
+			borderless: false
+		},
+		plain: {
+			color: convertToRGBA(COLORS.light.grey5, 0.4),
+			borderless: false
+		},
+		tonal: {
+			color: convertToRGBA(COLORS.light.grey6, 0.4),
+			borderless: false
+		}
 	}
 }
 
 // Add as class when possible: https://github.com/marklawlor/nativewind/issues/522
-const BORDER_CURVE: ViewStyle = {
+export const BORDER_CURVE: ViewStyle = {
 	borderCurve: "continuous"
 }
 
-type ButtonVariantProps = Omit<VariantProps<typeof buttonVariants>, "variant"> & {
+export type ButtonVariantProps = Omit<VariantProps<typeof buttonVariants>, "variant"> & {
 	variant?: Exclude<VariantProps<typeof buttonVariants>["variant"], null>
 }
 
-type AndroidOnlyButtonProps = {
+export type AndroidOnlyButtonProps = {
 	/**
 	 * ANDROID ONLY: The class name of root responsible for hidding the ripple overflow.
 	 */
 	androidRootClassName?: string
 }
 
-type ButtonProps = PressableProps & ButtonVariantProps & AndroidOnlyButtonProps
+export type ButtonProps = PressableProps & ButtonVariantProps & AndroidOnlyButtonProps
 
-const Root = Platform.OS === "android" ? View : Slot.Pressable
+export const Root = Platform.OS === "android" ? View : Slot.Pressable
 
-const Button = React.forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
-	({ className, variant = "primary", size, style = BORDER_CURVE, androidRootClassName, ...props }, ref) => {
-		const { colorScheme } = useColorScheme()
+export const Button = memo(
+	forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
+		({ className, variant = "primary", size, style = BORDER_CURVE, androidRootClassName, ...props }, ref) => {
+			const { colorScheme } = useColorScheme()
 
-		return (
-			<TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
-				<Root
-					className={Platform.select({
-						ios: undefined,
-						default: androidRootVariants({
-							size,
-							className: androidRootClassName
-						})
+			return (
+				<TextClassContext.Provider
+					value={buttonTextVariants({
+						variant,
+						size
 					})}
 				>
-					<Pressable
-						className={cn(props.disabled && "opacity-50", buttonVariants({ variant, size, className }))}
-						ref={ref}
-						style={style}
-						android_ripple={ANDROID_RIPPLE[colorScheme][variant]}
-						{...props}
-					/>
-				</Root>
-			</TextClassContext.Provider>
-		)
-	}
+					<Root
+						className={Platform.select({
+							ios: undefined,
+							default: androidRootVariants({
+								size,
+								className: androidRootClassName
+							})
+						})}
+					>
+						<Pressable
+							className={cn(
+								props.disabled && "opacity-50",
+								buttonVariants({
+									variant,
+									size,
+									className
+								})
+							)}
+							ref={ref}
+							style={style}
+							android_ripple={ANDROID_RIPPLE[colorScheme][variant]}
+							{...props}
+						/>
+					</Root>
+				</TextClassContext.Provider>
+			)
+		}
+	)
 )
 
 Button.displayName = "Button"
-
-export { Button, buttonTextVariants, buttonVariants }
-export type { ButtonProps }

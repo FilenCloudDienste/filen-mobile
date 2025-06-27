@@ -1,14 +1,14 @@
 import { VariantProps, cva } from "class-variance-authority"
 import { cssInterop } from "nativewind"
-import * as React from "react"
-import { cn } from "~/lib/cn"
+import { useContext, createContext, memo } from "react"
+import { cn } from "@/lib/cn"
 import { NativeText } from "react-native-boost/runtime"
 
 cssInterop(NativeText, {
 	className: "style"
 })
 
-const textVariants = cva("text-foreground", {
+export const textVariants = cva("text-foreground", {
 	variants: {
 		variant: {
 			largeTitle: "text-4xl",
@@ -36,28 +36,26 @@ const textVariants = cva("text-foreground", {
 	}
 })
 
-const TextClassContext = React.createContext<string | undefined>(undefined)
+export const TextClassContext = createContext<string | undefined>(undefined)
 
-function Text({
-	className,
-	variant,
-	color,
-	...props
-}: React.ComponentPropsWithoutRef<typeof NativeText> & VariantProps<typeof textVariants>) {
-	const textClassName = React.useContext(TextClassContext)
-	return (
-		<NativeText
-			className={cn(
-				textVariants({
-					variant,
-					color
-				}),
-				textClassName,
-				className
-			)}
-			{...props}
-		/>
-	)
-}
+export const Text = memo(
+	({ className, variant, color, ...props }: React.ComponentPropsWithoutRef<typeof NativeText> & VariantProps<typeof textVariants>) => {
+		const textClassName = useContext(TextClassContext)
 
-export { Text, TextClassContext, textVariants }
+		return (
+			<NativeText
+				className={cn(
+					textVariants({
+						variant,
+						color
+					}),
+					textClassName,
+					className
+				)}
+				{...props}
+			/>
+		)
+	}
+)
+
+Text.displayName = "Text"

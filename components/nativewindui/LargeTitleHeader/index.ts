@@ -1,1 +1,1 @@
-export * from './LargeTitleHeader';
+export * from "./LargeTitleHeader"

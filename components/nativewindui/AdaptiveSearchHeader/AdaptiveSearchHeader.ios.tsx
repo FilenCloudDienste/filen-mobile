@@ -2,8 +2,8 @@ import useHeaderHeight from "@/hooks/useHeaderHeight"
 import { Portal } from "@rn-primitives/portal"
 import { Stack } from "expo-router"
 import { memo, useMemo, useState, useId, Fragment, useEffect, useRef } from "react"
-import { View } from "react-native"
-import Animated, { FadeIn } from "react-native-reanimated"
+import { View, type ViewStyle, type StyleProp } from "react-native"
+import Animated, { FadeIn, type AnimatedStyle } from "react-native-reanimated"
 import {
 	type AdaptiveSearchHeaderProps,
 	type NativeStackNavigationOptions,
@@ -83,6 +83,13 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 		} satisfies NativeStackNavigationOptions
 	}, [props, isFocused, colors.background])
 
+	const viewStyle = useMemo(() => {
+		return {
+			top: headerHeight,
+			paddingBottom: keyboardState.isVisible ? keyboardState.height : 0
+		} satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
+	}, [keyboardState.isVisible, keyboardState.height, headerHeight])
+
 	useEffect(() => {
 		const hideSearchBarListener = events.subscribe("hideSearchBar", ({ clearText }) => {
 			setIsFocused(false)
@@ -106,10 +113,7 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 				<Portal name={`large-title:${id}`}>
 					<Animated.View
 						entering={FadeIn.delay(100)}
-						style={{
-							top: headerHeight,
-							paddingBottom: keyboardState.isVisible ? keyboardState.height : 0
-						}}
+						style={viewStyle}
 						className="absolute bottom-0 left-0 right-0"
 					>
 						{props.searchBar?.content}

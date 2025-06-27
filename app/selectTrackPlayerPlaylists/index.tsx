@@ -68,6 +68,10 @@ export function selectTrackPlayerPlaylists(params: SelectTrackPlayerPlaylistsPar
 	})
 }
 
+const contentContainerStyle = {
+	paddingTop: 8
+}
+
 export default function SelectTrackPlayerPlaylists() {
 	const { colors } = useColorScheme()
 	const { id, max, dismissHref } = useLocalSearchParams()
@@ -138,6 +142,85 @@ export default function SelectTrackPlayerPlaylists() {
 		routerDismissTo(typeof dismissHref === "string" ? dismissHref : "/drive")
 	}, [id, routerCanGoBack, routerDismissTo, dismissHref])
 
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
+			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		}
+	}, [screen.height])
+
+	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+		return {
+			length: LIST_ITEM_HEIGHT,
+			offset: LIST_ITEM_HEIGHT * index,
+			index
+		}
+	}, [])
+
+	const refreshControl = useMemo(() => {
+		return (
+			<RefreshControl
+				refreshing={refreshing}
+				onRefresh={async () => {
+					setRefreshing(true)
+
+					await playlistsQuery.refetch().catch(console.error)
+
+					setRefreshing(false)
+				}}
+			/>
+		)
+	}, [refreshing, playlistsQuery])
+
+	const header = useMemo(() => {
+		return Platform.OS === "ios" ? (
+			<AdaptiveSearchHeader
+				iosTitle={maxParsed === 1 ? "Select playlist" : "Select playlists"}
+				iosIsLargeTitle={false}
+				iosBackButtonMenuEnabled={true}
+				backgroundColor={colors.card}
+				rightView={() => {
+					return (
+						<Button
+							variant="plain"
+							onPress={cancel}
+						>
+							<Text className="text-blue-500">Cancel</Text>
+						</Button>
+					)
+				}}
+				searchBar={{
+					iosHideWhenScrolling: false,
+					onChangeText: text => setSearchTerm(text),
+					contentTransparent: true,
+					persistBlur: true
+				}}
+			/>
+		) : (
+			<LargeTitleHeader
+				title={maxParsed === 1 ? "Select playlist" : "Select playlists"}
+				materialPreset="inline"
+				backVisible={false}
+				backgroundColor={colors.card}
+				rightView={() => {
+					return (
+						<Button
+							variant="plain"
+							onPress={cancel}
+						>
+							<Text className="text-blue-500">Cancel</Text>
+						</Button>
+					)
+				}}
+				searchBar={{
+					onChangeText: text => setSearchTerm(text),
+					contentTransparent: true,
+					persistBlur: true
+				}}
+			/>
+		)
+	}, [cancel, colors.card, maxParsed])
+
 	useEffect(() => {
 		setSelectedPlaylists([])
 
@@ -154,52 +237,7 @@ export default function SelectTrackPlayerPlaylists() {
 
 	return (
 		<RequireInternet>
-			{Platform.OS === "ios" ? (
-				<AdaptiveSearchHeader
-					iosTitle={maxParsed === 1 ? "Select playlist" : "Select playlists"}
-					iosIsLargeTitle={false}
-					iosBackButtonMenuEnabled={true}
-					backgroundColor={colors.card}
-					rightView={() => {
-						return (
-							<Button
-								variant="plain"
-								onPress={cancel}
-							>
-								<Text className="text-blue-500">Cancel</Text>
-							</Button>
-						)
-					}}
-					searchBar={{
-						iosHideWhenScrolling: false,
-						onChangeText: text => setSearchTerm(text),
-						contentTransparent: true,
-						persistBlur: true
-					}}
-				/>
-			) : (
-				<LargeTitleHeader
-					title={maxParsed === 1 ? "Select playlist" : "Select playlists"}
-					materialPreset="inline"
-					backVisible={false}
-					backgroundColor={colors.card}
-					rightView={() => {
-						return (
-							<Button
-								variant="plain"
-								onPress={cancel}
-							>
-								<Text className="text-blue-500">Cancel</Text>
-							</Button>
-						)
-					}}
-					searchBar={{
-						onChangeText: text => setSearchTerm(text),
-						contentTransparent: true,
-						persistBlur: true
-					}}
-				/>
-			)}
+			{header}
 			<Container>
 				<List
 					data={playlists}
@@ -208,34 +246,15 @@ export default function SelectTrackPlayerPlaylists() {
 					showsVerticalScrollIndicator={true}
 					showsHorizontalScrollIndicator={false}
 					contentInsetAdjustmentBehavior="automatic"
-					contentContainerStyle={{
-						paddingTop: 8
-					}}
+					contentContainerStyle={contentContainerStyle}
 					refreshing={refreshing}
-					refreshControl={
-						<RefreshControl
-							refreshing={refreshing}
-							onRefresh={async () => {
-								setRefreshing(true)
-
-								await playlistsQuery.refetch().catch(console.error)
-
-								setRefreshing(false)
-							}}
-						/>
-					}
+					refreshControl={refreshControl}
 					removeClippedSubviews={true}
-					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
-					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					initialNumToRender={initialNumToRender}
+					maxToRenderPerBatch={maxToRenderPerBatch}
 					updateCellsBatchingPeriod={100}
 					windowSize={3}
-					getItemLayout={(_, index) => {
-						return {
-							length: LIST_ITEM_HEIGHT,
-							offset: LIST_ITEM_HEIGHT * index,
-							index
-						}
-					}}
+					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

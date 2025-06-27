@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { Settings as SettingsComponent } from "@/components/settings"
 import useAccountQuery from "@/queries/useAccountQuery"
 import { Platform } from "react-native"
@@ -316,101 +316,118 @@ export const Personal = memo(() => {
 		[account]
 	)
 
+	const items = useMemo(() => {
+		return [
+			{
+				id: "0",
+				title: "First name",
+				rightText: account.data?.account.personal.firstName ?? "",
+				subTitle: Platform.OS === "android" ? account.data?.account.personal.firstName ?? "" : undefined,
+				onPress: () => onPress("firstName")
+			},
+			{
+				id: "1",
+				title: "Last name",
+				rightText: account.data?.account.personal.lastName ?? "",
+				subTitle: Platform.OS === "android" ? account.data?.account.personal.lastName ?? "" : undefined,
+				onPress: () => onPress("lastName")
+			},
+			{
+				id: "2",
+				title: "Company name",
+				rightText: account.data?.account.personal.companyName ?? "",
+				subTitle: Platform.OS === "android" ? account.data?.account.personal.companyName ?? "" : undefined,
+				onPress: () => onPress("companyName")
+			},
+			{
+				id: "3",
+				title: "Vat ID",
+				rightText: account.data?.account.personal.vatId ?? "",
+				subTitle: Platform.OS === "android" ? account.data?.account.personal.vatId ?? "" : undefined,
+				onPress: () => onPress("vatId")
+			},
+			{
+				id: "4",
+				title: "Street",
+				rightText: account.data?.account.personal.street ?? "",
+				subTitle: Platform.OS === "android" ? account.data?.account.personal.street ?? "" : undefined,
+				onPress: () => onPress("street")
+			},
+			{
+				id: "5",
+				title: "Street number",
+				rightText: account.data?.account.personal.streetNumber ?? "",
+				subTitle: Platform.OS === "android" ? account.data?.account.personal.streetNumber ?? "" : undefined,
+				onPress: () => onPress("streetNumber")
+			},
+			{
+				id: "6",
+				title: "City",
+				rightText: account.data?.account.personal.city ?? "",
+				subTitle: Platform.OS === "android" ? account.data?.account.personal.city ?? "" : undefined,
+				onPress: () => onPress("city")
+			},
+			{
+				id: "7",
+				title: "Postal code",
+				rightText: account.data?.account.personal.postalCode ?? "",
+				subTitle: Platform.OS === "android" ? account.data?.account.personal.postalCode ?? "" : undefined,
+				onPress: () => onPress("postalCode")
+			},
+			{
+				id: "8",
+				title: "Country",
+				subTitle: Platform.OS === "android" ? account.data?.account.personal.country ?? "" : undefined,
+				rightView: (
+					<DropdownMenu
+						items={countryDropdownItems}
+						onItemPress={item => changeCountry(item.actionKey)}
+					>
+						<Button
+							size={Platform.OS === "ios" ? "none" : "icon"}
+							variant="plain"
+							className="items-center justify-start"
+						>
+							{Platform.OS === "ios" && account.data?.account.personal.country && (
+								<Text
+									variant="callout"
+									className="ios:px-0 text-muted-foreground px-2 font-normal"
+									numberOfLines={1}
+								>
+									{account.data?.account.personal.country}
+								</Text>
+							)}
+							<Icon
+								name="pencil"
+								size={24}
+								color={colors.grey}
+							/>
+						</Button>
+					</DropdownMenu>
+				)
+			}
+		]
+	}, [
+		account.data?.account.personal.city,
+		account.data?.account.personal.companyName,
+		account.data?.account.personal.country,
+		account.data?.account.personal.firstName,
+		account.data?.account.personal.lastName,
+		account.data?.account.personal.postalCode,
+		account.data?.account.personal.street,
+		account.data?.account.personal.streetNumber,
+		account.data?.account.personal.vatId,
+		changeCountry,
+		onPress,
+		colors.grey
+	])
+
 	return (
 		<SettingsComponent
 			title="Personal information"
 			showSearchBar={false}
 			loading={account.status !== "success"}
-			items={[
-				{
-					id: "0",
-					title: "First name",
-					rightText: account.data?.account.personal.firstName ?? "",
-					subTitle: Platform.OS === "android" ? account.data?.account.personal.firstName ?? "" : undefined,
-					onPress: () => onPress("firstName")
-				},
-				{
-					id: "1",
-					title: "Last name",
-					rightText: account.data?.account.personal.lastName ?? "",
-					subTitle: Platform.OS === "android" ? account.data?.account.personal.lastName ?? "" : undefined,
-					onPress: () => onPress("lastName")
-				},
-				{
-					id: "2",
-					title: "Company name",
-					rightText: account.data?.account.personal.companyName ?? "",
-					subTitle: Platform.OS === "android" ? account.data?.account.personal.companyName ?? "" : undefined,
-					onPress: () => onPress("companyName")
-				},
-				{
-					id: "3",
-					title: "Vat ID",
-					rightText: account.data?.account.personal.vatId ?? "",
-					subTitle: Platform.OS === "android" ? account.data?.account.personal.vatId ?? "" : undefined,
-					onPress: () => onPress("vatId")
-				},
-				{
-					id: "4",
-					title: "Street",
-					rightText: account.data?.account.personal.street ?? "",
-					subTitle: Platform.OS === "android" ? account.data?.account.personal.street ?? "" : undefined,
-					onPress: () => onPress("street")
-				},
-				{
-					id: "5",
-					title: "Street number",
-					rightText: account.data?.account.personal.streetNumber ?? "",
-					subTitle: Platform.OS === "android" ? account.data?.account.personal.streetNumber ?? "" : undefined,
-					onPress: () => onPress("streetNumber")
-				},
-				{
-					id: "6",
-					title: "City",
-					rightText: account.data?.account.personal.city ?? "",
-					subTitle: Platform.OS === "android" ? account.data?.account.personal.city ?? "" : undefined,
-					onPress: () => onPress("city")
-				},
-				{
-					id: "7",
-					title: "Postal code",
-					rightText: account.data?.account.personal.postalCode ?? "",
-					subTitle: Platform.OS === "android" ? account.data?.account.personal.postalCode ?? "" : undefined,
-					onPress: () => onPress("postalCode")
-				},
-				{
-					id: "8",
-					title: "Country",
-					subTitle: Platform.OS === "android" ? account.data?.account.personal.country ?? "" : undefined,
-					rightView: (
-						<DropdownMenu
-							items={countryDropdownItems}
-							onItemPress={item => changeCountry(item.actionKey)}
-						>
-							<Button
-								size={Platform.OS === "ios" ? "none" : "icon"}
-								variant="plain"
-								className="items-center justify-start"
-							>
-								{Platform.OS === "ios" && account.data?.account.personal.country && (
-									<Text
-										variant="callout"
-										className="ios:px-0 text-muted-foreground px-2 font-normal"
-										numberOfLines={1}
-									>
-										{account.data?.account.personal.country}
-									</Text>
-								)}
-								<Icon
-									name="pencil"
-									size={24}
-									color={colors.grey}
-								/>
-							</Button>
-						</DropdownMenu>
-					)
-				}
-			]}
+			items={items}
 		/>
 	)
 })

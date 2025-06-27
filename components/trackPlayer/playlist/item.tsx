@@ -276,62 +276,70 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		return playingTrack.file.uuid === info.item.file.uuid
 	}, [playingTrack, info.item.file.uuid])
 
+	const leftView = useMemo(() => {
+		return (
+			<View className="flex-row items-center px-4 gap-4">
+				{trackPlayerFileMetadata?.picture ? (
+					<Image
+						source={{
+							uri: normalizeFilePathForExpo(
+								Paths.join(paths.trackPlayerPictures(), Paths.basename(trackPlayerFileMetadata.picture))
+							)
+						}}
+						contentFit="cover"
+						style={{
+							width: 36,
+							height: 36,
+							borderRadius: 6,
+							backgroundColor: colors.card,
+							borderWidth: playing ? 1 : 0,
+							borderColor: playing ? colors.primary : "transparent"
+						}}
+					/>
+				) : (
+					<View
+						className={cn("bg-muted rounded-md items-center justify-center", playing && "border-[1px] border-primary")}
+						style={{
+							width: 36,
+							height: 36
+						}}
+					>
+						<Icon
+							name="music-note"
+							size={16}
+							color={colors.foreground}
+						/>
+					</View>
+				)}
+			</View>
+		)
+	}, [trackPlayerFileMetadata?.picture, colors.card, colors.foreground, playing, colors.primary])
+
+	const rightView = useMemo(() => {
+		return (
+			<View className="flex-row items-center px-4">
+				<Button
+					className="flex-row items-center  justify-center"
+					size="icon"
+					variant="plain"
+					unstable_pressDelay={100}
+					onPress={onDotsPress}
+				>
+					<Icon
+						name="dots-horizontal"
+						size={24}
+						color={colors.foreground}
+					/>
+				</Button>
+			</View>
+		)
+	}, [colors.foreground, onDotsPress])
+
 	return (
 		<ListItem
 			{...info}
-			leftView={
-				<View className="flex-row items-center px-4 gap-4">
-					{trackPlayerFileMetadata?.picture ? (
-						<Image
-							source={{
-								uri: normalizeFilePathForExpo(
-									Paths.join(paths.trackPlayerPictures(), Paths.basename(trackPlayerFileMetadata.picture))
-								)
-							}}
-							contentFit="cover"
-							style={{
-								width: 36,
-								height: 36,
-								borderRadius: 6,
-								backgroundColor: colors.card,
-								borderWidth: playing ? 1 : 0,
-								borderColor: playing ? colors.primary : "transparent"
-							}}
-						/>
-					) : (
-						<View
-							className={cn("bg-muted rounded-md items-center justify-center", playing && "border-[1px] border-primary")}
-							style={{
-								width: 36,
-								height: 36
-							}}
-						>
-							<Icon
-								name="music-note"
-								size={16}
-								color={colors.foreground}
-							/>
-						</View>
-					)}
-				</View>
-			}
-			rightView={
-				<View className="flex-row items-center px-4">
-					<Button
-						className="flex-row items-center  justify-center"
-						size="icon"
-						variant="plain"
-						unstable_pressDelay={100}
-						onPress={onDotsPress}
-					>
-						<Icon
-							name="dots-horizontal"
-							size={24}
-							color={colors.foreground}
-						/>
-					</Button>
-				</View>
-			}
+			leftView={leftView}
+			rightView={rightView}
 			subTitleClassName="text-xs pt-1 font-normal"
 			variant="full-width"
 			textNumberOfLines={1}

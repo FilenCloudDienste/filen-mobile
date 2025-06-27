@@ -1,6 +1,16 @@
 import { memo, useCallback, useRef, useMemo, useEffect } from "react"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
-import { View, TextInput, Platform, type LayoutChangeEvent, type NativeSyntheticEvent, type TextInputKeyPressEventData } from "react-native"
+import {
+	View,
+	TextInput,
+	Platform,
+	type LayoutChangeEvent,
+	type NativeSyntheticEvent,
+	type TextInputKeyPressEventData,
+	type ViewStyle,
+	type StyleProp,
+	type TextStyle
+} from "react-native"
 import useDimensions from "@/hooks/useDimensions"
 import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import { KeyboardStickyView } from "react-native-keyboard-controller"
@@ -25,7 +35,7 @@ import Container from "@/components/Container"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { customEmojis } from "../messages/customEmojis"
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
+import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-reanimated"
 import { useShallow } from "zustand/shallow"
 import useIsProUser from "@/hooks/useIsProUser"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -453,6 +463,41 @@ export const Input = memo(
 			resetSuggestions
 		])
 
+		const keyboardStickyViewOffset = useMemo(() => {
+			return {
+				opened: insets.bottom
+			}
+		}, [insets.bottom])
+
+		const blurViewStyle = useMemo(() => {
+			return {
+				paddingBottom: insets.bottom
+			}
+		}, [insets.bottom])
+
+		const textInputStyle = useMemo(() => {
+			return {
+				maxHeight: screen.height / 5,
+				borderCurve: "continuous"
+			} satisfies StyleProp<TextStyle>
+		}, [screen.height])
+
+		const viewStyle = useMemo(() => {
+			return {
+				bottom: 18,
+				right: 24,
+				position: "absolute"
+			} satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
+		}, [])
+
+		const textValue = useMemo(() => {
+			return value ?? ""
+		}, [value])
+
+		const disabled = useMemo(() => {
+			return textValue.length === 0 || !hasInternet
+		}, [textValue, hasInternet])
+
 		useEffect(() => {
 			if (suggestionsOrReplyOrEditVisible && textInputRef.current && !textInputRef.current.isFocused()) {
 				textInputRef.current.focus()
@@ -474,11 +519,7 @@ export const Input = memo(
 		}, [value, onChangeText])
 
 		return (
-			<KeyboardStickyView
-				offset={{
-					opened: insets.bottom
-				}}
-			>
+			<KeyboardStickyView offset={keyboardStickyViewOffset}>
 				<BlurView
 					onLayout={onLayout}
 					className={cn(
@@ -487,9 +528,7 @@ export const Input = memo(
 					)}
 					intensity={Platform.OS === "ios" && !suggestionsOrReplyOrEditVisible ? 100 : 0}
 					tint={Platform.OS === "ios" && !suggestionsOrReplyOrEditVisible ? "systemChromeMaterial" : undefined}
-					style={{
-						paddingBottom: insets.bottom
-					}}
+					style={blurViewStyle}
 				>
 					<Container>
 						<View className="flex-col flex-1">
@@ -508,7 +547,7 @@ export const Input = memo(
 								)}
 								<TextInput
 									ref={textInputRef}
-									value={value ?? ""}
+									value={textValue}
 									onChangeText={onChangeText}
 									onPress={onTextInputPress}
 									placeholder="Type a message"
@@ -521,24 +560,17 @@ export const Input = memo(
 									className="ios:pt-[8px] ios:pb-2 border-border bg-card text-foreground min-h-10 flex-1 rounded-[18px] border py-1 pl-3 pr-12 text-base leading-5"
 									placeholderTextColor={colors.grey2}
 									onKeyPress={onKeyPress}
-									style={{
-										maxHeight: screen.height / 5,
-										borderCurve: "continuous"
-									}}
+									style={textInputStyle}
 								/>
 								<Animated.View
 									entering={FadeIn}
 									exiting={FadeOut}
-									style={{
-										bottom: 18,
-										right: 24,
-										position: "absolute"
-									}}
+									style={viewStyle}
 								>
 									<Button
 										size="icon"
 										className="ios:rounded-full rounded-full h-7 w-7"
-										disabled={(value ?? "").length === 0 || !hasInternet}
+										disabled={disabled}
 										onPress={send}
 										hitSlop={15}
 									>

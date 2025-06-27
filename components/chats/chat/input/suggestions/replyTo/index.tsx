@@ -4,10 +4,10 @@ import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/convers
 import { contactName } from "@/lib/utils"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Button } from "@/components/nativewindui/Button"
-import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated"
+import Animated, { SlideInDown, SlideOutDown, type AnimatedStyle } from "react-native-reanimated"
 import { useChatsStore } from "@/stores/chats.store"
 import { Icon } from "@roninoss/icons"
-import { View } from "react-native"
+import { View, type StyleProp, type ViewStyle } from "react-native"
 import { useKeyboardState, KeyboardController } from "react-native-keyboard-controller"
 import { useShallow } from "zustand/shallow"
 import { useMMKVString } from "react-native-mmkv"
@@ -44,6 +44,19 @@ export const ReplyTo = memo(({ chat }: { chat: ChatConversation }) => {
 		}
 	}, [chat.uuid, setReplyToMessage, value])
 
+	const viewStyle = useMemo(() => {
+		return {
+			borderTopLeftRadius: suggestionsVisible ? 0 : 6,
+			borderTopRightRadius: suggestionsVisible ? 0 : 6,
+			flexDirection: "column",
+			justifyContent: "flex-start",
+			alignItems: "flex-start",
+			backgroundColor: colors.card,
+			zIndex: 50,
+			flex: 1
+		} satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
+	}, [colors.card, suggestionsVisible])
+
 	if (!isKeyboardVisible || !replyToMessage) {
 		return null
 	}
@@ -52,16 +65,7 @@ export const ReplyTo = memo(({ chat }: { chat: ChatConversation }) => {
 		<Animated.View
 			entering={SlideInDown}
 			exiting={SlideOutDown}
-			style={{
-				borderTopLeftRadius: suggestionsVisible ? 0 : 6,
-				borderTopRightRadius: suggestionsVisible ? 0 : 6,
-				flexDirection: "column",
-				justifyContent: "flex-start",
-				alignItems: "flex-start",
-				backgroundColor: colors.card,
-				zIndex: 50,
-				flex: 1
-			}}
+			style={viewStyle}
 		>
 			<View className="flex-1 flex-row items-center justify-between px-4 w-full">
 				<Text

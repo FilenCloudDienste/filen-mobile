@@ -1,23 +1,23 @@
 import { ICON_MAPPING, type MaterialIconName } from "@roninoss/icons"
 import { cssInterop } from "nativewind"
-import * as React from "react"
+import { memo, forwardRef } from "react"
 import { View } from "react-native"
+// @ts-expect-error Types exported wrong
 import { ContextMenuView, MenuAttributes, MenuConfig, MenuElementConfig, OnPressMenuItemEvent } from "react-native-ios-context-menu"
-
-import type { ContextItem, ContextMenuConfig, ContextMenuProps, ContextMenuRef, ContextSubMenu } from "./types"
+import { type ContextItem, type ContextMenuConfig, type ContextMenuProps, type ContextMenuRef, type ContextSubMenu } from "./types"
 
 cssInterop(ContextMenuView, {
 	className: "style"
 })
 
-const PREVIEW_CONFIG = {
+export const PREVIEW_CONFIG = {
 	previewSize: "INHERIT",
 	preferredCommitStyle: "dismiss",
 	isResizeAnimated: true,
 	previewType: "CUSTOM"
 } as const
 
-function getAuxiliaryPreviewPosition(position: "start" | "center" | "end") {
+export function getAuxiliaryPreviewPosition(position: "start" | "center" | "end") {
 	switch (position) {
 		case "start":
 			return "targetLeading"
@@ -28,7 +28,7 @@ function getAuxiliaryPreviewPosition(position: "start" | "center" | "end") {
 	}
 }
 
-function getAuxiliaryPreviewConfig(position: "start" | "center" | "end") {
+export function getAuxiliaryPreviewConfig(position: "start" | "center" | "end") {
 	return {
 		verticalAnchorPosition: "automatic",
 		horizontalAlignment: getAuxiliaryPreviewPosition(position),
@@ -42,65 +42,70 @@ function getAuxiliaryPreviewConfig(position: "start" | "center" | "end") {
 	} as const
 }
 
-const ContextMenu = React.forwardRef<ContextMenuRef, ContextMenuProps>(
-	(
-		{
-			items,
-			title,
-			iOSItemSize = "large",
-			onItemPress,
-			enabled = true,
-			iosRenderPreview,
-			iosOnPressMenuPreview,
-			renderAuxiliaryPreview,
-			auxiliaryPreviewPosition = "start",
-			materialPortalHost: _materialPortalHost,
-			materialSideOffset: _materialSideOffset,
-			materialAlignOffset: _materialAlignOffset,
-			materialAlign: _materialAlign,
-			materialWidth: _materialWidth,
-			materialMinWidth: _materialMinWidth,
-			materialLoadingText: _materialLoadingText,
-			materialSubMenuTitlePlaceholder: _materialSubMenuTitlePlaceholder,
-			materialOverlayClassName: _materialOverlayClassName,
-			...props
-		},
-		ref
-	) => {
-		return (
-			<View>
-				<ContextMenuView
-					ref={ref as React.LegacyRef<ContextMenuView>}
-					isContextMenuEnabled={enabled}
-					menuConfig={toConfigMenu(items, iOSItemSize, title)}
-					onPressMenuItem={toOnPressMenuItem(onItemPress)}
-					onPressMenuPreview={iosOnPressMenuPreview}
-					shouldCleanupOnComponentWillUnmountForAuxPreview
-					previewConfig={!iosRenderPreview ? undefined : PREVIEW_CONFIG}
-					renderPreview={iosRenderPreview}
-					shouldPreventLongPressGestureFromPropagating
-					lazyPreview={!!iosRenderPreview}
-					auxiliaryPreviewConfig={!renderAuxiliaryPreview ? undefined : getAuxiliaryPreviewConfig(auxiliaryPreviewPosition)}
-					isAuxiliaryPreviewEnabled={!!renderAuxiliaryPreview}
-					renderAuxiliaryPreview={renderAuxiliaryPreview}
-					{...props}
-				/>
-			</View>
-		)
-	}
+export const ContextMenu = memo(
+	forwardRef<ContextMenuRef, ContextMenuProps>(
+		(
+			{
+				items,
+				title,
+				iOSItemSize = "large",
+				onItemPress,
+				enabled = true,
+				iosRenderPreview,
+				iosOnPressMenuPreview,
+				renderAuxiliaryPreview,
+				auxiliaryPreviewPosition = "start",
+				materialPortalHost: _materialPortalHost,
+				materialSideOffset: _materialSideOffset,
+				materialAlignOffset: _materialAlignOffset,
+				materialAlign: _materialAlign,
+				materialWidth: _materialWidth,
+				materialMinWidth: _materialMinWidth,
+				materialLoadingText: _materialLoadingText,
+				materialSubMenuTitlePlaceholder: _materialSubMenuTitlePlaceholder,
+				materialOverlayClassName: _materialOverlayClassName,
+				...props
+			},
+			ref
+		) => {
+			return (
+				<View>
+					<ContextMenuView
+						ref={ref as React.LegacyRef<ContextMenuView>}
+						isContextMenuEnabled={enabled}
+						menuConfig={toConfigMenu(items, iOSItemSize, title)}
+						onPressMenuItem={toOnPressMenuItem(onItemPress)}
+						onPressMenuPreview={iosOnPressMenuPreview}
+						shouldCleanupOnComponentWillUnmountForAuxPreview
+						previewConfig={!iosRenderPreview ? undefined : PREVIEW_CONFIG}
+						renderPreview={iosRenderPreview}
+						shouldPreventLongPressGestureFromPropagating
+						lazyPreview={!!iosRenderPreview}
+						auxiliaryPreviewConfig={!renderAuxiliaryPreview ? undefined : getAuxiliaryPreviewConfig(auxiliaryPreviewPosition)}
+						isAuxiliaryPreviewEnabled={!!renderAuxiliaryPreview}
+						renderAuxiliaryPreview={renderAuxiliaryPreview}
+						{...props}
+					/>
+				</View>
+			)
+		}
+	)
 )
 
 ContextMenu.displayName = "ContextMenu"
 
-export { ContextMenu }
-
-function toOnPressMenuItem(onItemPress: ContextMenuProps["onItemPress"]): OnPressMenuItemEvent {
+export function toOnPressMenuItem(onItemPress: ContextMenuProps["onItemPress"]): OnPressMenuItemEvent {
+	// @ts-expect-error NativeEvent is not typed correctly
 	return ({ nativeEvent }) => {
 		onItemPress?.({
 			actionKey: nativeEvent.actionKey,
 			title: nativeEvent.actionTitle,
 			subTitle: nativeEvent.actionSubtitle,
-			state: nativeEvent.menuState ? { checked: nativeEvent.menuState === "on" } : undefined,
+			state: nativeEvent.menuState
+				? {
+						checked: nativeEvent.menuState === "on"
+				  }
+				: undefined,
 			destructive: nativeEvent.menuAttributes?.includes("destructive"),
 			disabled: nativeEvent.menuAttributes?.includes("disabled"),
 			hidden: nativeEvent.menuAttributes?.includes("hidden"),
@@ -110,7 +115,7 @@ function toOnPressMenuItem(onItemPress: ContextMenuProps["onItemPress"]): OnPres
 	}
 }
 
-function toConfigMenu(
+export function toConfigMenu(
 	items: ContextMenuConfig["items"],
 	iOSItemSize: ContextMenuConfig["iOSItemSize"],
 	title: ContextMenuConfig["title"]
@@ -122,18 +127,20 @@ function toConfigMenu(
 			if ("items" in item) {
 				return toConfigSubMenu(item)
 			}
+
 			return toConfigItem(item)
 		})
 	}
 }
 
-function toConfigSubMenu(subMenu: ContextSubMenu): MenuElementConfig {
+export function toConfigSubMenu(subMenu: ContextSubMenu): MenuElementConfig {
 	if (subMenu.loading) {
 		return {
 			type: "deferred",
 			deferredID: `${subMenu.title ?? ""}-${Date.now()}`
 		}
 	}
+
 	return {
 		menuOptions: subMenu.iOSType === "inline" ? ["displayInline"] : undefined,
 		menuTitle: subMenu.title ?? "",
@@ -143,31 +150,38 @@ function toConfigSubMenu(subMenu: ContextSubMenu): MenuElementConfig {
 			if ("items" in item) {
 				return toConfigSubMenu(item)
 			}
+
 			return toConfigItem(item)
 		})
 	}
 }
 
-function toConfigItem(item: ContextItem): MenuElementConfig {
+export function toConfigItem(item: ContextItem): MenuElementConfig {
 	if (item.loading) {
 		return {
 			type: "deferred",
 			deferredID: `${item.actionKey}-deferred}`
 		}
 	}
+
 	const menuAttributes: MenuAttributes[] = []
+
 	if (item.destructive) {
 		menuAttributes.push("destructive")
 	}
+
 	if (item.disabled) {
 		menuAttributes.push("disabled")
 	}
+
 	if (item.hidden) {
 		menuAttributes.push("hidden")
 	}
+
 	if (item.keepOpenOnPress) {
 		menuAttributes.push("keepsMenuPresented")
 	}
+
 	return {
 		actionKey: item.actionKey,
 		actionTitle: item.title ?? "",

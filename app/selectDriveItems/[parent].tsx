@@ -186,9 +186,9 @@ export default function SelectDriveItems() {
 					? "Select file"
 					: "Select files"
 				: maxParsed === 1
-					? "Select directory"
-					: "Select directories"
-			: (cache.directoryUUIDToName.get(parent) ?? "Drive")
+				? "Select directory"
+				: "Select directories"
+			: cache.directoryUUIDToName.get(parent) ?? "Drive"
 	}, [parent, typeParsed, maxParsed])
 
 	const cancel = useCallback(() => {
@@ -206,6 +206,109 @@ export default function SelectDriveItems() {
 
 		routerDismissTo(typeof dismissHref === "string" ? dismissHref : "/drive")
 	}, [id, routerCanGoBack, routerDismissTo, dismissHref])
+
+	const header = useMemo(() => {
+		return Platform.OS === "ios" ? (
+			<AdaptiveSearchHeader
+				iosTitle={headerTitle}
+				iosIsLargeTitle={false}
+				iosBackButtonMenuEnabled={true}
+				backgroundColor={colors.card}
+				rightView={() => {
+					return (
+						<Button
+							variant="plain"
+							onPress={cancel}
+						>
+							<Text className="text-blue-500">Cancel</Text>
+						</Button>
+					)
+				}}
+				searchBar={{
+					iosHideWhenScrolling: false,
+					onChangeText: text => setSearchTerm(text),
+					contentTransparent: true,
+					persistBlur: true
+				}}
+			/>
+		) : (
+			<LargeTitleHeader
+				title={headerTitle}
+				materialPreset="inline"
+				backVisible={parent !== baseFolderUUID}
+				backgroundColor={colors.card}
+				rightView={() => {
+					return (
+						<Button
+							variant="plain"
+							onPress={cancel}
+						>
+							<Text className="text-blue-500">Cancel</Text>
+						</Button>
+					)
+				}}
+				searchBar={{
+					onChangeText: text => setSearchTerm(text),
+					contentTransparent: true,
+					persistBlur: true
+				}}
+			/>
+		)
+	}, [baseFolderUUID, colors.card, headerTitle, parent, cancel])
+
+	const listEmpty = useMemo(() => {
+		return (
+			<View className="flex-1 items-center justify-center">
+				{query.status === "success" ? (
+					searchTerm.length > 0 ? (
+						<Text>Nothing found</Text>
+					) : (
+						<Text>No items</Text>
+					)
+				) : (
+					<ActivityIndicator color={colors.foreground} />
+				)}
+			</View>
+		)
+	}, [query.status, searchTerm, colors.foreground])
+
+	const listFooter = useMemo(() => {
+		return (
+			<View className="flex flex-row items-center justify-center h-16 p-4">
+				<Text className="text-sm">{items.length} items</Text>
+			</View>
+		)
+	}, [items.length])
+
+	const refreshControl = useMemo(() => {
+		return (
+			<RefreshControl
+				refreshing={refreshing}
+				onRefresh={async () => {
+					setRefreshing(true)
+
+					await query.refetch().catch(() => {})
+
+					setRefreshing(false)
+				}}
+			/>
+		)
+	}, [refreshing, query])
+
+	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+		return {
+			length: LIST_ITEM_HEIGHT,
+			offset: LIST_ITEM_HEIGHT * index,
+			index
+		}
+	}, [])
+
+	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		return {
+			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
+			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		}
+	}, [screen.height])
 
 	useEffect(() => {
 		if (!multiScreenParsed) {
@@ -227,52 +330,7 @@ export default function SelectDriveItems() {
 
 	return (
 		<RequireInternet>
-			{Platform.OS === "ios" ? (
-				<AdaptiveSearchHeader
-					iosTitle={headerTitle}
-					iosIsLargeTitle={false}
-					iosBackButtonMenuEnabled={true}
-					backgroundColor={colors.card}
-					rightView={() => {
-						return (
-							<Button
-								variant="plain"
-								onPress={cancel}
-							>
-								<Text className="text-blue-500">Cancel</Text>
-							</Button>
-						)
-					}}
-					searchBar={{
-						iosHideWhenScrolling: false,
-						onChangeText: text => setSearchTerm(text),
-						contentTransparent: true,
-						persistBlur: true
-					}}
-				/>
-			) : (
-				<LargeTitleHeader
-					title={headerTitle}
-					materialPreset="inline"
-					backVisible={parent !== baseFolderUUID}
-					backgroundColor={colors.card}
-					rightView={() => {
-						return (
-							<Button
-								variant="plain"
-								onPress={cancel}
-							>
-								<Text className="text-blue-500">Cancel</Text>
-							</Button>
-						)
-					}}
-					searchBar={{
-						onChangeText: text => setSearchTerm(text),
-						contentTransparent: true,
-						persistBlur: true
-					}}
-				/>
-			)}
+			{header}
 			<Container>
 				<List
 					variant="full-width"
@@ -282,48 +340,15 @@ export default function SelectDriveItems() {
 					refreshing={refreshing}
 					contentInsetAdjustmentBehavior="automatic"
 					contentContainerClassName="pb-16"
-					ListEmptyComponent={
-						<View className="flex-1 items-center justify-center">
-							{query.isSuccess ? (
-								searchTerm.length > 0 ? (
-									<Text>Nothing found</Text>
-								) : (
-									<Text>No items</Text>
-								)
-							) : (
-								<ActivityIndicator color={colors.foreground} />
-							)}
-						</View>
-					}
-					ListFooterComponent={
-						<View className="flex flex-row items-center justify-center h-16 p-4">
-							<Text className="text-sm">{items.length} items</Text>
-						</View>
-					}
-					refreshControl={
-						<RefreshControl
-							refreshing={refreshing}
-							onRefresh={async () => {
-								setRefreshing(true)
-
-								await query.refetch().catch(() => {})
-
-								setRefreshing(false)
-							}}
-						/>
-					}
+					ListEmptyComponent={listEmpty}
+					ListFooterComponent={listFooter}
+					refreshControl={refreshControl}
 					removeClippedSubviews={true}
-					initialNumToRender={Math.round(screen.height / LIST_ITEM_HEIGHT)}
-					maxToRenderPerBatch={Math.round(screen.height / LIST_ITEM_HEIGHT / 2)}
+					initialNumToRender={initialNumToRender}
+					maxToRenderPerBatch={maxToRenderPerBatch}
 					updateCellsBatchingPeriod={100}
 					windowSize={3}
-					getItemLayout={(_, index) => {
-						return {
-							length: LIST_ITEM_HEIGHT,
-							offset: LIST_ITEM_HEIGHT * index,
-							index
-						}
-					}}
+					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

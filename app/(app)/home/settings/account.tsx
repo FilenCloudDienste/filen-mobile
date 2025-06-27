@@ -521,114 +521,132 @@ export const Account = memo(() => {
 		})
 	}, [router])
 
+	const items = useMemo(() => {
+		return [
+			{
+				id: "0",
+				title: contactName(account.data?.account.email, account.data?.account.nickName),
+				subTitle: "Change avatar",
+				onPress: changeAvatar,
+				leftView: (
+					<Avatar
+						source={avatarSource}
+						style={{
+							width: 42,
+							height: 42
+						}}
+					/>
+				)
+			},
+			"gap",
+			{
+				id: "1",
+				title: "Email address",
+				rightText: account.data?.account.email ?? "",
+				subTitle: Platform.OS === "android" ? account.data?.account.email ?? "" : undefined,
+				onPress: changeEmail
+			},
+			{
+				id: "1321",
+				title: "Personal information",
+				onPress: onPressPersonalInfo
+			},
+			{
+				id: "13212",
+				title: "Nickname",
+				rightText: contactName(account.data?.account.email, account.data?.account.nickName),
+				subTitle: Platform.OS === "android" ? contactName(account.data?.account.email, account.data?.account.nickName) : undefined,
+				onPress: changeNickname
+			},
+			{
+				id: "12",
+				title: "GDPR info",
+				onPress: gdpr
+			},
+			{
+				id: "123",
+				title: "More account settings",
+				onPress: openWebApp
+			},
+			"gap-1",
+			{
+				id: "1234",
+				title: "File versioning",
+				subTitle: "Enable file versioning to keep track of changes made to your files.",
+				rightView: (
+					<Toggle
+						value={account.data?.settings.versioningEnabled ?? false}
+						onValueChange={toggleVersioning}
+					/>
+				)
+			},
+			{
+				id: "1234x",
+				title: "Login alerts",
+				subTitle: "Receive alerts when your account is accessed.",
+				rightView: (
+					<Toggle
+						value={account.data?.settings.loginAlertsEnabled ?? false}
+						onValueChange={toggleLoginAlerts}
+					/>
+				)
+			},
+			"gap-33",
+			{
+				id: "2xx",
+				title: "Delete versioned files",
+				rightText: formatBytes(account.data?.settings.versionedStorage ?? 0),
+				subTitle: Platform.OS === "android" ? formatBytes(account.data?.settings.versionedStorage ?? 0) : undefined,
+				destructive: true,
+				onPress: deleteVersionedFiles
+			},
+			{
+				id: "21111",
+				title: "Delete all files and directories",
+				rightText: formatBytes(account.data?.account.storage ?? 0),
+				subTitle: Platform.OS === "android" ? formatBytes(account.data?.account.storage ?? 0) : undefined,
+				destructive: true,
+				onPress: deleteAllFilesAndDirectories
+			},
+			"gap-34221",
+			{
+				id: "232",
+				title: "Logout",
+				destructive: true,
+				onPress: logout
+			},
+			"gap-242",
+			{
+				id: "312312",
+				title: "Request account deletion",
+				subTitle: "Request account deletion. We will send you an email with further instructions.",
+				destructive: true,
+				onPress: accountDeletion
+			}
+		]
+	}, [
+		account.data,
+		avatarSource,
+		changeAvatar,
+		changeEmail,
+		changeNickname,
+		gdpr,
+		logout,
+		openWebApp,
+		toggleVersioning,
+		toggleLoginAlerts,
+		onPressPersonalInfo,
+		deleteVersionedFiles,
+		deleteAllFilesAndDirectories,
+		accountDeletion
+	])
+
 	return (
 		<SettingsComponent
 			title="Account"
 			showSearchBar={false}
 			loading={account.status !== "success"}
-			items={[
-				{
-					id: "0",
-					title: contactName(account.data?.account.email, account.data?.account.nickName),
-					subTitle: "Change avatar",
-					onPress: changeAvatar,
-					leftView: (
-						<Avatar
-							source={avatarSource}
-							style={{
-								width: 42,
-								height: 42
-							}}
-						/>
-					)
-				},
-				"gap",
-				{
-					id: "1",
-					title: "Email address",
-					rightText: account.data?.account.email ?? "",
-					subTitle: Platform.OS === "android" ? account.data?.account.email ?? "" : undefined,
-					onPress: changeEmail
-				},
-				{
-					id: "1321",
-					title: "Personal information",
-					onPress: onPressPersonalInfo
-				},
-				{
-					id: "13212",
-					title: "Nickname",
-					rightText: contactName(account.data?.account.email, account.data?.account.nickName),
-					subTitle:
-						Platform.OS === "android" ? contactName(account.data?.account.email, account.data?.account.nickName) : undefined,
-					onPress: changeNickname
-				},
-				{
-					id: "12",
-					title: "GDPR info",
-					onPress: gdpr
-				},
-				{
-					id: "123",
-					title: "More account settings",
-					onPress: openWebApp
-				},
-				"gap-1",
-				{
-					id: "1234",
-					title: "File versioning",
-					subTitle: "Enable file versioning to keep track of changes made to your files.",
-					rightView: (
-						<Toggle
-							value={account.data?.settings.versioningEnabled ?? false}
-							onValueChange={toggleVersioning}
-						/>
-					)
-				},
-				{
-					id: "1234x",
-					title: "Login alerts",
-					subTitle: "Receive alerts when your account is accessed.",
-					rightView: (
-						<Toggle
-							value={account.data?.settings.loginAlertsEnabled ?? false}
-							onValueChange={toggleLoginAlerts}
-						/>
-					)
-				},
-				"gap-33",
-				{
-					id: "2xx",
-					title: "Delete versioned files",
-					rightText: formatBytes(account.data?.settings.versionedStorage ?? 0),
-					subTitle: Platform.OS === "android" ? formatBytes(account.data?.settings.versionedStorage ?? 0) : undefined,
-					destructive: true,
-					onPress: deleteVersionedFiles
-				},
-				{
-					id: "21111",
-					title: "Delete all files and directories",
-					rightText: formatBytes(account.data?.account.storage ?? 0),
-					subTitle: Platform.OS === "android" ? formatBytes(account.data?.account.storage ?? 0) : undefined,
-					destructive: true,
-					onPress: deleteAllFilesAndDirectories
-				},
-				"gap-34221",
-				{
-					id: "232",
-					title: "Logout",
-					destructive: true,
-					onPress: logout
-				},
-				"gap-242",
-				{
-					id: "312312",
-					title: "Request account deletion",
-					subTitle: "Request account deletion. We will send you an email with further instructions.",
-					destructive: true,
-					onPress: accountDeletion
-				}
-			]}
+			items={items}
 		/>
 	)
 })

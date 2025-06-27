@@ -3,7 +3,7 @@ import { useAugmentedRef } from "@rn-primitives/hooks"
 import { Portal } from "@rn-primitives/portal"
 import { Icon } from "@roninoss/icons"
 import { Stack, useNavigation } from "expo-router"
-import { memo, useRef, useId, useState, useEffect, useCallback, useMemo, useLayoutEffect } from "react"
+import { memo, useRef, useId, useState, useEffect, useCallback, useMemo, useLayoutEffect, Fragment } from "react"
 import { BackHandler, TextInput, View } from "react-native"
 import Animated, { FadeIn, FadeInRight, FadeInUp, FadeOut, FadeOutRight, ZoomIn, withTiming } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -144,7 +144,7 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 	}
 
 	return (
-		<>
+		<Fragment>
 			<Stack.Screen options={Object.assign(props.screen ?? {}, SCREEN_OPTIONS)} />
 			{/* Ref is set in View so we can call its methods before the input is mounted */}
 			<View ref={augmentedRef as unknown as React.RefObject<View>} />
@@ -211,12 +211,12 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 							</Button>
 						)}
 						{!!props.rightView && (
-							<>
+							<Fragment>
 								{props.rightView({
 									canGoBack,
 									tintColor: colors.foreground
 								})}
-							</>
+							</Fragment>
 						)}
 					</View>
 				</View>
@@ -313,12 +313,12 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 											</Animated.View>
 										)}
 										{!!props.searchBar.materialRightView && (
-											<>
+											<Fragment>
 												{props.searchBar.materialRightView({
 													canGoBack,
 													tintColor: colors.foreground
 												})}
-											</>
+											</Fragment>
 										)}
 									</View>
 								</Animated.View>
@@ -346,7 +346,7 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 					</Animated.View>
 				</Portal>
 			)}
-		</>
+		</Fragment>
 	)
 })
 
