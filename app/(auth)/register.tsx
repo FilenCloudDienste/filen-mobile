@@ -194,12 +194,12 @@ export const Register = memo(() => {
 						passwordStrength.strength === "weak" && index === 0
 							? "bg-red-500"
 							: passwordStrength.strength === "normal" && index <= 1
-								? "bg-yellow-500"
-								: passwordStrength.strength === "strong" && index <= 2
-									? "bg-blue-500"
-									: passwordStrength.strength === "best" && index <= 3
-										? "bg-green-500"
-										: "bg-gray-500"
+							? "bg-yellow-500"
+							: passwordStrength.strength === "strong" && index <= 2
+							? "bg-blue-500"
+							: passwordStrength.strength === "best" && index <= 3
+							? "bg-green-500"
+							: "bg-gray-500"
 					)}
 				/>
 			)
@@ -223,7 +223,7 @@ export const Register = memo(() => {
 	return (
 		<RequireInternet redirectHref="/(auth)">
 			{header}
-			<Container className="ios:bg-card flex-1 android:py-8">
+			<Container className="ios:bg-card flex-1 py-8">
 				<KeyboardAwareScrollView
 					bottomOffset={keyboardAwareScrollViewBottomOffset}
 					bounces={false}

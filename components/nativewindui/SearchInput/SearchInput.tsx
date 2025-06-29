@@ -45,6 +45,10 @@ export const SearchInput = memo(
 				}
 			})
 
+			const focus = useCallback(() => {
+				inputRef?.current?.focus()
+			}, [inputRef])
+
 			return (
 				<Button
 					variant="plain"

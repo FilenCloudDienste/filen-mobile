@@ -47,6 +47,10 @@ export const TextField = memo(
 				}
 			})
 
+			const focus = useCallback(() => {
+				inputRef?.current?.focus()
+			}, [inputRef])
+
 			return (
 				<Pressable
 					className={cn(editable === false && "opacity-50", containerClassName)}

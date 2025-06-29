@@ -54,6 +54,10 @@ export const TextField = memo(
 				}
 			})
 
+			const focus = useCallback(() => {
+				inputRef?.current?.focus()
+			}, [inputRef])
+
 			const [isFocused, setIsFocused] = useState(false)
 
 			const onFocus = useCallback(

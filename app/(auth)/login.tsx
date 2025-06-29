@@ -168,7 +168,7 @@ export const Login = memo(() => {
 	return (
 		<RequireInternet redirectHref="/(auth)">
 			{header}
-			<Container className="ios:bg-card flex-1 android:py-8">
+			<Container className="ios:bg-card flex-1 py-8">
 				<KeyboardAwareScrollView
 					bottomOffset={keyboardAwareScrollViewBottomOffset}
 					bounces={false}
@@ -239,9 +239,12 @@ export const Login = memo(() => {
 						</View>
 					</View>
 				</KeyboardAwareScrollView>
-				<KeyboardStickyView offset={keyboardStickyViewOffset}>
+				<KeyboardStickyView
+					offset={keyboardStickyViewOffset}
+					className="ios:bg-card bg-background"
+				>
 					{Platform.OS === "ios" ? (
-						<View className=" px-12 py-4">
+						<View className="px-12 py-4">
 							<Button
 								size="lg"
 								onPress={login}
