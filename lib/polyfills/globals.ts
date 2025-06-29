@@ -75,13 +75,21 @@ global.TextEncoder = TextEncoder
 globalThis.TextEncoder = TextEncoder
 
 if (typeof EventTarget === "undefined") {
-	// eslint-disable-next-line @typescript-eslint/no-require-imports
-	require("event-target-polyfill")
+	try {
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		require("event-target-polyfill")
+	} catch {
+		// Noop
+	}
 }
 
 if (!global.structuredClone) {
-	// eslint-disable-next-line @typescript-eslint/no-require-imports
-	global.structuredClone = require("realistic-structured-clone")
+	try {
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		global.structuredClone = require("realistic-structured-clone")
+	} catch {
+		// Noop
+	}
 }
 
 // @ts-expect-error Polyfills
