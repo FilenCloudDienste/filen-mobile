@@ -13,10 +13,20 @@ type Prettify<T> = {
 } & {}
 
 type DriveCloudItem = Prettify<
-	| ({ selected: boolean; thumbnail?: string; favorited: boolean; path?: string } & ({
+	| ({
+			selected: boolean
+			thumbnail?: string
+			favorited: boolean
+			path?: string
+	  } & ({
 			isShared: true
 	  } & import("@filen/sdk").CloudItemShared))
-	| ({ selected: boolean; thumbnail?: string; favorited: boolean; path?: string } & ({
+	| ({
+			selected: boolean
+			thumbnail?: string
+			favorited: boolean
+			path?: string
+	  } & ({
 			isShared: false
 	  } & import("@filen/sdk").CloudItem))
 >
