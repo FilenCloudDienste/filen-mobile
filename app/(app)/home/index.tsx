@@ -16,6 +16,7 @@ import alerts from "@/lib/alerts"
 import useNetInfo from "@/hooks/useNetInfo"
 import OfflineListHeader from "@/components/offlineListHeader"
 import ContainerComponent from "@/components/home/container"
+import { useTranslation } from "react-i18next"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -113,6 +114,7 @@ export const Home = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const router = useRouter()
 	const { hasInternet } = useNetInfo()
+	const { t } = useTranslation()
 
 	const recents = useCloudItemsQuery({
 		parent: "recents",
@@ -299,46 +301,43 @@ export const Home = memo(() => {
 						color={colors.primary}
 					/>
 				</Button>
-				<Button
-					variant="plain"
-					size="icon"
-					onPress={() => {
-						alerts.error("This feature is not implemented yet.")
-					}}
-				>
-					<Icon
-						name="access-point-network"
-						size={24}
-						color={colors.primary}
-					/>
-				</Button>
 			</View>
 		)
 	}, [hasInternet, router, colors.primary])
+
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			await Promise.all([
+				recents.refetch(),
+				favorites.refetch(),
+				links.refetch(),
+				sharedIn.refetch(),
+				sharedOut.refetch(),
+				offline.refetch(),
+				trash.refetch(),
+				account.refetch()
+			])
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
+	}, [recents, favorites, links, sharedIn, sharedOut, offline, trash, account])
 
 	const refreshControl = useMemo(() => {
 		return (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					await Promise.all([
-						recents.refetch(),
-						favorites.refetch(),
-						links.refetch(),
-						sharedIn.refetch(),
-						sharedOut.refetch(),
-						offline.refetch(),
-						trash.refetch(),
-						account.refetch()
-					]).catch(console.error)
-
-					setRefreshing(false)
-				}}
+				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, recents, favorites, links, sharedIn, sharedOut, offline, trash, account])
+	}, [refreshing, onRefresh])
 
 	const items = useMemo(() => {
 		return [
@@ -380,7 +379,7 @@ export const Home = memo(() => {
 	return (
 		<Fragment>
 			<LargeTitleHeader
-				title="Home"
+				title={t("home.title")}
 				backVisible={false}
 				materialPreset="stack"
 				leftView={headerLeftView}

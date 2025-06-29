@@ -7,11 +7,17 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import { useRouter, useLocalSearchParams } from "expo-router"
 import { useShallow } from "zustand/shallow"
+import { useTranslation } from "react-i18next"
+import useSDKConfig from "@/hooks/useSDKConfig"
+import nodeWorker from "@/lib/nodeWorker"
+import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 
 export const Toolbar = memo(() => {
 	const { canGoBack, dismissTo } = useRouter()
 	const selectedItems = useSelectDriveItemsStore(useShallow(state => state.selectedItems))
-	const { id, max, type, dismissHref } = useLocalSearchParams()
+	const { id, max, type, dismissHref, parent } = useLocalSearchParams()
+	const { t } = useTranslation()
+	const [{ baseFolderUUID }] = useSDKConfig()
 
 	const maxParsed = useMemo(() => {
 		return typeof max === "string" ? parseInt(max) : 1
@@ -20,6 +26,20 @@ export const Toolbar = memo(() => {
 	const typeParsed = useMemo(() => {
 		return typeof type === "string" ? (type as "file" | "directory") : "directory"
 	}, [type])
+
+	const queryParams = useMemo(
+		(): FetchCloudItemsParams => ({
+			parent: typeof parent === "string" ? parent : baseFolderUUID,
+			of: "drive",
+			receiverId: 0
+		}),
+		[parent, baseFolderUUID]
+	)
+
+	const query = useCloudItemsQuery({
+		...queryParams,
+		enabled: false
+	})
 
 	const canSubmit = useMemo(() => {
 		return (
@@ -40,10 +60,14 @@ export const Toolbar = memo(() => {
 
 		return selectedItems.length === 1
 			? selectedItems.at(0)
-				? `${selectedItems.at(0)?.name} selected`
+				? t("selectDriveItems.toolbar.selected", {
+						countOrName: selectedItems.at(0)?.name
+				  })
 				: undefined
-			: `${selectedItems.length} selected`
-	}, [selectedItems])
+			: t("selectDriveItems.toolbar.selected", {
+					countOrName: selectedItems.length
+			  })
+	}, [selectedItems, t])
 
 	const submit = useCallback(() => {
 		if (!canSubmit) {
@@ -64,14 +88,15 @@ export const Toolbar = memo(() => {
 
 	const createDirectory = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
-			title: "new dir",
+			title: t("selectDriveItems.prompts.createDirectory.title"),
 			materialIcon: {
 				name: "folder-plus-outline"
 			},
 			prompt: {
 				type: "plain-text",
 				keyboardType: "default",
-				defaultValue: ""
+				defaultValue: "",
+				placeholder: t("selectDriveItems.prompts.createDirectory.placeholder")
 			}
 		})
 
@@ -88,9 +113,12 @@ export const Toolbar = memo(() => {
 		fullScreenLoadingModal.show()
 
 		try {
-			await new Promise<void>(resolve => setTimeout(resolve, 1000))
+			await nodeWorker.proxy("createDirectory", {
+				name,
+				parent: queryParams.parent
+			})
 
-			alerts.normal(`${inputPromptResponse.text} created`)
+			await query.refetch()
 		} catch (e) {
 			console.error(e)
 
@@ -100,7 +128,7 @@ export const Toolbar = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [])
+	}, [t, queryParams, query])
 
 	const leftView = useMemo(() => {
 		return (

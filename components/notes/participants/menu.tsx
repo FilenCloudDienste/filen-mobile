@@ -80,8 +80,8 @@ export const Menu = memo(
 
 		const remove = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
-				title: "remove",
-				message: "Are u sure"
+				title: t("notes.prompts.removeParticipant.title"),
+				message: t("notes.prompts.removeParticipant.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -116,7 +116,7 @@ export const Menu = memo(
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
-		}, [note.uuid, participant.userId])
+		}, [note.uuid, participant.userId, t])
 
 		const changePermissionsWrite = useCallback(
 			async (permissionsWrite: boolean) => {

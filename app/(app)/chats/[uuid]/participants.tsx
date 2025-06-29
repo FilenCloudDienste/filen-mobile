@@ -1,5 +1,5 @@
 import { useLocalSearchParams, Redirect } from "expo-router"
-import { useMemo, useCallback, useState } from "react"
+import { useMemo, useCallback, useState, memo } from "react"
 import { View, Platform, RefreshControl } from "react-native"
 import { type ChatConversation, type ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
@@ -22,6 +22,7 @@ import alerts from "@/lib/alerts"
 import queryUtils from "@/queries/utils"
 import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
+import { useTranslation } from "react-i18next"
 
 export const LIST_ITEM_HEIGHT = Platform.select({
 	ios: 61,
@@ -36,12 +37,80 @@ export type ListItemInfo = {
 	name: string
 }
 
+export const Participant = memo(({ info, chat }: { info: ListRenderItemInfo<ListItemInfo>; chat: ChatConversation }) => {
+	const { colors } = useColorScheme()
+
+	const avatarSource = useMemo(() => {
+		return {
+			uri: info.item.participant.avatar?.startsWith("https") ? info.item.participant.avatar : "avatar_fallback"
+		}
+	}, [info.item.participant.avatar])
+
+	const leftView = useMemo(() => {
+		return (
+			<View className="flex-1 flex-row items-center justify-center px-4">
+				<Avatar
+					source={avatarSource}
+					style={{
+						width: 36,
+						height: 36
+					}}
+				/>
+			</View>
+		)
+	}, [avatarSource])
+
+	const rightView = useMemo(() => {
+		return Platform.OS === "android" ? (
+			<View className="flex-1 flex-row items-center justify-center px-4">
+				<Menu
+					type="dropdown"
+					chat={chat}
+					participant={info.item.participant}
+				>
+					<Button
+						variant="plain"
+						size="icon"
+					>
+						<Icon
+							name="dots-horizontal"
+							size={24}
+							color={colors.foreground}
+						/>
+					</Button>
+				</Menu>
+			</View>
+		) : undefined
+	}, [chat, colors.foreground, info.item.participant])
+
+	return (
+		<Menu
+			type="context"
+			chat={chat}
+			participant={info.item.participant}
+		>
+			<ListItem
+				variant="full-width"
+				removeSeparator={Platform.OS === "android"}
+				isLastInSection={false}
+				isFirstInSection={false}
+				leftView={leftView}
+				rightView={rightView}
+				{...info}
+			/>
+		</Menu>
+	)
+})
+
+Participant.displayName = "Participant"
+
 export default function Participants() {
 	const { uuid } = useLocalSearchParams()
 	const { colors } = useColorScheme()
 	const [{ userId }] = useSDKConfig()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const chatUUIDParsed = useMemo((): string | null => {
 		try {
@@ -100,60 +169,14 @@ export default function Participants() {
 				return null
 			}
 
-			const avatarSource = {
-				uri: info.item.participant.avatar?.startsWith("https") ? info.item.participant.avatar : "avatar_fallback"
-			}
-
 			return (
-				<Menu
-					type="context"
+				<Participant
+					info={info}
 					chat={chat}
-					participant={info.item.participant}
-				>
-					<ListItem
-						variant="full-width"
-						removeSeparator={Platform.OS === "android"}
-						isLastInSection={false}
-						isFirstInSection={false}
-						leftView={
-							<View className="flex-1 flex-row items-center justify-center px-4">
-								<Avatar
-									source={avatarSource}
-									style={{
-										width: 36,
-										height: 36
-									}}
-								/>
-							</View>
-						}
-						rightView={
-							Platform.OS === "android" ? (
-								<View className="flex-1 flex-row items-center justify-center px-4">
-									<Menu
-										type="dropdown"
-										chat={chat}
-										participant={info.item.participant}
-									>
-										<Button
-											variant="plain"
-											size="icon"
-										>
-											<Icon
-												name="dots-horizontal"
-												size={24}
-												color={colors.foreground}
-											/>
-										</Button>
-									</Menu>
-								</View>
-							) : undefined
-						}
-						{...info}
-					/>
-				</Menu>
+				/>
 			)
 		},
-		[chat, colors.foreground]
+		[chat]
 	)
 
 	const addParticipant = useCallback(async () => {
@@ -243,26 +266,37 @@ export default function Participants() {
 		return (
 			<View className="h-16 flex-row items-center justify-center">
 				<Text className="text-sm">
-					{participants.length} {participants.length === 1 ? "participant" : "participants"}
+					{participants.length}{" "}
+					{participants.length === 1 ? t("chats.participants.participant") : t("chats.participants.participants")}
 				</Text>
 			</View>
 		)
-	}, [participants.length])
+	}, [participants.length, t])
+
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			await chatsQuery.refetch()
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
+	}, [chatsQuery])
 
 	const refreshControl = useMemo(() => {
 		return (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					await chatsQuery.refetch().catch(console.error)
-
-					setRefreshing(false)
-				}}
+				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, chatsQuery])
+	}, [refreshing, onRefresh])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {
@@ -286,7 +320,7 @@ export default function Participants() {
 	return (
 		<RequireInternet>
 			<LargeTitleHeader
-				title="Participants"
+				title={t("chats.participants.participants")}
 				iosBlurEffect="systemChromeMaterial"
 				rightView={headerRightView}
 			/>

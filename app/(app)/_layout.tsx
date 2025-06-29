@@ -6,10 +6,12 @@ import Tabs from "@/components/tabs"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Platform } from "react-native"
 import { type NativeBottomTabNavigationOptions } from "@bottom-tabs/react-navigation"
+import { useTranslation } from "react-i18next"
 
 export default function TabsLayout() {
 	const [isAuthed] = useIsAuthed()
 	const { colors } = useColorScheme()
+	const { t } = useTranslation()
 
 	const chatUnreadQuery = useChatUnreadQuery({
 		refetchInterval: 15000
@@ -31,8 +33,8 @@ export default function TabsLayout() {
 
 	const homeOptions = useMemo(() => {
 		return {
-			tabBarLabel: "Home",
-			title: "Home",
+			tabBarLabel: t("tabBar.home"),
+			title: t("tabBar.home"),
 			tabBarIcon: ({ focused }) =>
 				Platform.OS === "ios"
 					? {
@@ -42,12 +44,12 @@ export default function TabsLayout() {
 					? require("../../assets/android_tabs/home_fill.png")
 					: require("../../assets/android_tabs/home.png")
 		} satisfies NativeBottomTabNavigationOptions
-	}, [])
+	}, [t])
 
 	const driveOptions = useMemo(() => {
 		return {
-			tabBarLabel: "Drive",
-			title: "Drive",
+			tabBarLabel: t("tabBar.drive"),
+			title: t("tabBar.drive"),
 			tabBarIcon: ({ focused }) =>
 				Platform.OS === "ios"
 					? {
@@ -57,12 +59,12 @@ export default function TabsLayout() {
 					? require("../../assets/android_tabs/folder_fill.png")
 					: require("../../assets/android_tabs/folder.png")
 		} satisfies NativeBottomTabNavigationOptions
-	}, [])
+	}, [t])
 
 	const photosOptions = useMemo(() => {
 		return {
-			tabBarLabel: "Photos",
-			title: "Photos",
+			tabBarLabel: t("tabBar.photos"),
+			title: t("tabBar.photos"),
 			tabBarIcon: ({ focused }) =>
 				Platform.OS === "ios"
 					? {
@@ -72,12 +74,12 @@ export default function TabsLayout() {
 					? require("../../assets/android_tabs/image_fill.png")
 					: require("../../assets/android_tabs/image.png")
 		} satisfies NativeBottomTabNavigationOptions
-	}, [])
+	}, [t])
 
 	const notesOptions = useMemo(() => {
 		return {
-			tabBarLabel: "Notes",
-			title: "Notes",
+			tabBarLabel: t("tabBar.notes"),
+			title: t("tabBar.notes"),
 			tabBarIcon: ({ focused }) =>
 				Platform.OS === "ios"
 					? {
@@ -87,12 +89,12 @@ export default function TabsLayout() {
 					? require("../../assets/android_tabs/notes_fill.png")
 					: require("../../assets/android_tabs/notes.png")
 		} satisfies NativeBottomTabNavigationOptions
-	}, [])
+	}, [t])
 
 	const chatsOptions = useMemo(() => {
 		return {
-			tabBarLabel: "Chats",
-			title: "Chats",
+			tabBarLabel: t("tabBar.chats"),
+			title: t("tabBar.chats"),
 			tabBarBadge: chatUnread > 0 ? chatUnread.toString() : undefined,
 			tabBarIcon: ({ focused }) =>
 				Platform.OS === "ios"
@@ -103,7 +105,7 @@ export default function TabsLayout() {
 					? require("../../assets/android_tabs/chat_fill.png")
 					: require("../../assets/android_tabs/chat.png")
 		} satisfies NativeBottomTabNavigationOptions
-	}, [chatUnread])
+	}, [chatUnread, t])
 
 	if (!isAuthed) {
 		return <Redirect href="/(auth)" />

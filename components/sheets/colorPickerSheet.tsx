@@ -10,6 +10,7 @@ import { Button } from "../nativewindui/Button"
 import { Text } from "../nativewindui/Text"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { Sheet, useSheetRef } from "@/components/nativewindui/Sheet"
+import { useTranslation } from "react-i18next"
 
 export type ColorPickerResponse =
 	| {
@@ -66,6 +67,7 @@ export const ColorPickerSheet = memo(() => {
 	const selectedColor = useSharedValue<string | null>(null)
 	const id = useRef<string>("")
 	const insets = useSafeAreaInsets()
+	const { t } = useTranslation()
 
 	const onSelectColor = useCallback(
 		({ hex }: { hex: string }) => {
@@ -178,13 +180,13 @@ export const ColorPickerSheet = memo(() => {
 						variant="primary"
 						onPress={close}
 					>
-						<Text>Cancel</Text>
+						<Text>{t("sheets.colorPicker.cancel")}</Text>
 					</Button>
 					<Button
 						variant="primary"
 						onPress={select}
 					>
-						<Text>Select</Text>
+						<Text>{t("sheets.colorPicker.select")}</Text>
 					</Button>
 				</View>
 			</BottomSheetView>

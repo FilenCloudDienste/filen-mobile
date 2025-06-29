@@ -12,6 +12,7 @@ import { useKeyboardState, KeyboardController } from "react-native-keyboard-cont
 import { useShallow } from "zustand/shallow"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
+import { useTranslation } from "react-i18next"
 
 export const ReplyTo = memo(({ chat }: { chat: ChatConversation }) => {
 	const { colors } = useColorScheme()
@@ -25,6 +26,7 @@ export const ReplyTo = memo(({ chat }: { chat: ChatConversation }) => {
 	const mentionText = useChatsStore(useShallow(state => state.mentionText[chat.uuid] ?? ""))
 	const { isVisible: isKeyboardVisible } = useKeyboardState()
 	const [value] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
+	const { t } = useTranslation()
 
 	const suggestionsVisible = useMemo(() => {
 		return (
@@ -72,7 +74,9 @@ export const ReplyTo = memo(({ chat }: { chat: ChatConversation }) => {
 					className="text-sm font-normal text-muted-foreground"
 					numberOfLines={1}
 				>
-					Replying to {contactName(replyToMessage.senderEmail, replyToMessage.senderNickName)}
+					{t("chats.input.suggestions.replyTo.replyingTo", {
+						name: contactName(replyToMessage.senderEmail, replyToMessage.senderNickName)
+					})}
 				</Text>
 				<Button
 					variant="plain"

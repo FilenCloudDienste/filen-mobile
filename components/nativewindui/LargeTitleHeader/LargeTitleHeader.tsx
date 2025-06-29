@@ -17,6 +17,7 @@ import useViewLayout from "@/hooks/useViewLayout"
 import { useShallow } from "zustand/shallow"
 import { useKeyboardState } from "react-native-keyboard-controller"
 import { events } from "@/lib/events"
+import { useTranslation } from "react-i18next"
 
 export const SCREEN_OPTIONS = {
 	headerShown: false
@@ -38,6 +39,7 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 		onLayout
 	} = useViewLayout(viewRef)
 	const keyboardState = useKeyboardState()
+	const { t } = useTranslation()
 
 	const augmentedRef = useAugmentedRef({
 		ref: props.searchBar?.ref ?? fallbackSearchBarRef,
@@ -198,6 +200,7 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 							<Button
 								onPress={() => {
 									setShowSearchBar(true)
+
 									props.searchBar?.onSearchButtonPress?.()
 								}}
 								size="icon"
@@ -277,7 +280,7 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 									>
 										<TextInput
 											autoFocus
-											placeholder={props.searchBar.placeholder ?? "Search..."}
+											placeholder={props.searchBar.placeholder ?? t("nwui.search.placeholder")}
 											className="rounded-r-full flex-1 p-2 text-[17px]"
 											style={{
 												color: props.searchBar.textColor ?? colors.foreground

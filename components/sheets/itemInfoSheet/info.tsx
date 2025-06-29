@@ -159,7 +159,7 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 								<Text numberOfLines={1}>...</Text>
 							)
 						) : (
-							<Text numberOfLines={1}>N/A</Text>
+							<Text numberOfLines={1}>{t("sheets.itemInfo.notAvailable")}</Text>
 						)}
 						<Text
 							className="text-muted-foreground pt-3 text-sm"

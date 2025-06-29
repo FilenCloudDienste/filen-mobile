@@ -54,7 +54,7 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 			contentTransparent: true,
 			placeholder: "Search chats...",
 			iosCancelButtonText: "Abort",
-			iosHideWhenScrolling: true,
+			iosHideWhenScrolling: false,
 			onChangeText: setSearchTerm,
 			persistBlur: true,
 			materialBlurOnSubmit: false

@@ -131,8 +131,8 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 
 	const deleteMessage = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "deleteMessage",
-			message: "Are u sure"
+			title: t("chats.prompts.deleteMessage.title"),
+			message: t("chats.prompts.deleteMessage.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -159,12 +159,12 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [chat.uuid, message.uuid])
+	}, [chat.uuid, message.uuid, t])
 
 	const disableEmbeds = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "disableEmbeds",
-			message: "Are u sure"
+			title: t("chats.prompts.disableEmbeds.title"),
+			message: t("chats.prompts.disableEmbeds.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -199,7 +199,7 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [chat.uuid, message.uuid])
+	}, [chat.uuid, message.uuid, t])
 
 	const copyText = useCallback(async () => {
 		try {
@@ -243,33 +243,35 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 		async (item: Omit<ContextItem, "icon">, _?: boolean) => {
 			try {
 				switch (item.actionKey) {
-					case "reply":
+					case "reply": {
 						reply()
 
 						break
+					}
 
-					case "copyText":
+					case "copyText": {
 						await copyText()
 
 						break
+					}
 
-					case "delete":
+					case "delete": {
 						await deleteMessage()
 
 						break
+					}
 
-					case "disableEmbeds":
+					case "disableEmbeds": {
 						await disableEmbeds()
 
 						break
+					}
 
-					case "edit":
+					case "edit": {
 						edit()
 
 						break
-
-					default:
-						break
+					}
 				}
 			} catch (e) {
 				console.error(e)

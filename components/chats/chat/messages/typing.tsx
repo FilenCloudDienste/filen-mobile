@@ -5,17 +5,23 @@ import { type SocketChatTyping } from "@filen/sdk/dist/types/socket"
 import { contactName } from "@/lib/utils"
 import useSocket from "@/hooks/useSocket"
 import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated"
+import { useTranslation } from "react-i18next"
 
 export const Typing = memo(({ chat }: { chat: ChatConversation }) => {
 	const [usersTyping, setUsersTyping] = useState<SocketChatTyping[]>([])
 	const timeoutUserEventRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({})
 	const { events: socketEvents } = useSocket()
+	const { t } = useTranslation()
 
 	const usersTypingSorted = useMemo(() => {
 		return usersTyping.sort((a, b) =>
 			contactName(a.senderEmail, a.senderNickName).localeCompare(contactName(b.senderEmail, b.senderNickName))
 		)
 	}, [usersTyping])
+
+	const usersTypingText = useMemo(() => {
+		return usersTypingSorted.map(user => contactName(user.senderEmail, user.senderNickName)).join(", ")
+	}, [usersTypingSorted])
 
 	useEffect(() => {
 		const socketEventListener = socketEvents.subscribe("socketEvent", e => {
@@ -64,7 +70,9 @@ export const Typing = memo(({ chat }: { chat: ChatConversation }) => {
 				ellipsizeMode="tail"
 			>
 				{usersTypingSorted.length > 0
-					? `${usersTypingSorted.map(user => contactName(user.senderEmail, user.senderNickName)).join(", ")} typing...`
+					? t("chats.typing", {
+							users: usersTypingText
+					  })
 					: ""}
 			</Text>
 		</Animated.View>

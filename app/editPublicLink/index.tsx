@@ -6,10 +6,12 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import Content from "@/components/editPublicLink/content"
+import { useTranslation } from "react-i18next"
 
 export default function EditPublicLink() {
 	const { item } = useLocalSearchParams()
 	const { colors } = useColorScheme()
+	const { t } = useTranslation()
 
 	const itemParsed = useMemo(() => {
 		if (typeof item !== "string") {
@@ -26,10 +28,10 @@ export default function EditPublicLink() {
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
 			<AdaptiveSearchHeader
-				iosBackButtonTitle="Cancel"
+				iosBackButtonTitle={t("editPublicLink.cancel")}
 				iosBackButtonTitleVisible={true}
 				iosBlurEffect="systemChromeMaterial"
-				iosTitle="Public link"
+				iosTitle={t("editPublicLink.title")}
 				iosIsLargeTitle={false}
 				iosBackButtonMenuEnabled={false}
 				backVisible={true}
@@ -38,11 +40,11 @@ export default function EditPublicLink() {
 			/>
 		) : (
 			<LargeTitleHeader
-				title="Public link"
+				title={t("editPublicLink.title")}
 				backVisible={true}
 			/>
 		)
-	}, [colors.card])
+	}, [colors.card, t])
 
 	if (!itemParsed) {
 		return <Redirect href="/(app)/home" />

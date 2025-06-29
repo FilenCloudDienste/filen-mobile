@@ -45,12 +45,12 @@ export const Menu = memo(
 										namingScheme: "sfSymbol",
 										name: "delete.left",
 										color: colors.destructive
-									}
+								  }
 								: {
 										namingScheme: "material",
 										name: "delete-off-outline",
 										color: colors.destructive
-									}
+								  }
 					})
 				)
 			}
@@ -60,8 +60,8 @@ export const Menu = memo(
 
 		const remove = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
-				title: "remove",
-				message: "Are u sure"
+				title: t("chats.participants.prompts.remove.title"),
+				message: t("chats.participants.prompts.remove.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -83,7 +83,7 @@ export const Menu = memo(
 								? {
 										...c,
 										participants: c.participants.filter(p => p.userId !== participant.userId)
-									}
+								  }
 								: c
 						)
 				})
@@ -96,19 +96,17 @@ export const Menu = memo(
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
-		}, [chat.uuid, participant.userId])
+		}, [chat.uuid, participant.userId, t])
 
 		const onItemPress = useCallback(
 			async (item: Omit<ContextItem, "icon">, _?: boolean) => {
 				try {
 					switch (item.actionKey) {
-						case "remove":
+						case "remove": {
 							await remove()
 
 							break
-
-						default:
-							break
+						}
 					}
 				} catch (e) {
 					console.error(e)

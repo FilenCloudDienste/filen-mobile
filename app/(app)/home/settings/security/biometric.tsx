@@ -17,13 +17,6 @@ import * as LocalAuthentication from "expo-local-authentication"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 
-export const LockAppAfterDropdownItems = [0, 60, 300, 600, 900, 1800, 3600, Number.MAX_SAFE_INTEGER].map(seconds =>
-	createDropdownItem({
-		title: seconds >= Number.MAX_SAFE_INTEGER ? "Never" : seconds === 0 ? "Immediately" : `${seconds / 60} minutes`,
-		actionKey: seconds.toString()
-	})
-)
-
 export const Biometric = memo(() => {
 	const [biometricAuth, setBiometricAuth] = useMMKVObject<BiometricAuth>(BIOMETRIC_AUTH_KEY, mmkvInstance)
 	const { t } = useTranslation()
@@ -33,11 +26,27 @@ export const Biometric = memo(() => {
 		enabled: false
 	})
 
+	const lockAppAfterDropdownItems = useMemo(() => {
+		return [0, 60, 300, 600, 900, 1800, 3600, Number.MAX_SAFE_INTEGER].map(seconds =>
+			createDropdownItem({
+				title:
+					seconds >= Number.MAX_SAFE_INTEGER
+						? t("settings.biometric.lockAppAfter.never")
+						: seconds === 0
+						? t("settings.biometric.lockAppAfter.immediately")
+						: t("settings.biometric.lockAppAfter.minutes", {
+								minutes: Math.floor(seconds / 60)
+						  }),
+				actionKey: seconds.toString()
+			})
+		)
+	}, [t])
+
 	const toggleBiometric = useCallback(
 		async (value: boolean) => {
 			if (value) {
 				const codePrompt = await inputPrompt({
-					title: t("drive.header.rightView.actionSheet.create.directory"),
+					title: t("settings.biometric.prompts.enable.title"),
 					materialIcon: {
 						name: "lock-outline"
 					},
@@ -45,7 +54,7 @@ export const Biometric = memo(() => {
 						type: "secure-text",
 						keyboardType: "default",
 						defaultValue: "",
-						placeholder: "Two-factor code"
+						placeholder: t("settings.biometric.prompts.enable.placeholder")
 					}
 				})
 
@@ -67,8 +76,8 @@ export const Biometric = memo(() => {
 
 				if (hasHardware && isEnrolled && supportedTypes.length > 0) {
 					const result = await LocalAuthentication.authenticateAsync({
-						cancelLabel: "Cancel",
-						promptMessage: "Authenticate to unlock the app",
+						cancelLabel: t("localAuthentication.cancelLabel"),
+						promptMessage: t("localAuthentication.promptMessage"),
 						disableDeviceFallback: true,
 						fallbackLabel: ""
 					})
@@ -90,8 +99,8 @@ export const Biometric = memo(() => {
 				})
 			} else {
 				const alertPromptResponse = await alertPrompt({
-					title: "Delete versioned files",
-					message: "Are you sure you want to delete all versioned files? This action cannot be undone."
+					title: t("settings.biometric.prompts.disable.title"),
+					message: t("settings.biometric.prompts.disable.message")
 				})
 
 				if (alertPromptResponse.cancelled) {
@@ -106,7 +115,14 @@ export const Biometric = memo(() => {
 
 	const togglePinOnly = useCallback(
 		async (value: boolean) => {
-			setBiometricAuth(prev => (prev ? { ...prev, pinOnly: value } : prev))
+			setBiometricAuth(prev =>
+				prev
+					? {
+							...prev,
+							pinOnly: value
+					  }
+					: prev
+			)
 		},
 		[setBiometricAuth]
 	)
@@ -115,7 +131,7 @@ export const Biometric = memo(() => {
 		return [
 			{
 				id: "0",
-				title: "Biometric Authentication",
+				title: t("settings.biometric.items.biometricAuth"),
 				rightView: (
 					<Toggle
 						value={biometricAuth ? biometricAuth.enabled : false}
@@ -127,10 +143,10 @@ export const Biometric = memo(() => {
 				? [
 						{
 							id: "1",
-							title: "Lock app after",
+							title: t("settings.biometric.items.lockAppAfter"),
 							rightView: (
 								<DropdownMenu
-									items={LockAppAfterDropdownItems}
+									items={lockAppAfterDropdownItems}
 									onItemPress={item => {
 										setBiometricAuth(prev =>
 											prev
@@ -149,10 +165,12 @@ export const Biometric = memo(() => {
 									>
 										<Text className="ios:px-0 text-primary px-2 font-normal">
 											{biometricAuth && biometricAuth.enabled && biometricAuth.lockAfter >= Number.MAX_SAFE_INTEGER
-												? "Never"
+												? t("settings.biometric.lockAppAfter.never")
 												: biometricAuth.lockAfter === 0
-												? "Immediately"
-												: `${biometricAuth.lockAfter / 60} minutes`}
+												? t("settings.biometric.lockAppAfter.immediately")
+												: t("settings.biometric.lockAppAfter.minutes", {
+														minutes: Math.floor(biometricAuth.lockAfter / 60)
+												  })}
 										</Text>
 										<Icon
 											name="pencil"
@@ -165,7 +183,7 @@ export const Biometric = memo(() => {
 						},
 						{
 							id: "2",
-							title: "PIN only",
+							title: t("settings.biometric.items.pinOnly"),
 							rightView: (
 								<Toggle
 									value={biometricAuth ? biometricAuth.pinOnly : false}
@@ -176,11 +194,11 @@ export const Biometric = memo(() => {
 				  ]
 				: [])
 		]
-	}, [biometricAuth, toggleBiometric, togglePinOnly, setBiometricAuth, colors.primary])
+	}, [biometricAuth, toggleBiometric, togglePinOnly, setBiometricAuth, colors.primary, t, lockAppAfterDropdownItems])
 
 	return (
 		<SettingsComponent
-			title="Security"
+			title={t("settings.biometric.title")}
 			showSearchBar={false}
 			loading={account.status !== "success"}
 			items={items}

@@ -18,6 +18,7 @@ import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import Container from "../Container"
 import paths from "@/lib/paths"
 import { Paths } from "expo-file-system/next"
+import { useTranslation } from "react-i18next"
 
 export const Toolbar = memo(() => {
 	const { colors } = useColorScheme()
@@ -27,6 +28,7 @@ export const Toolbar = memo(() => {
 	const { onLayout, layout } = useViewLayout(viewRef)
 	const [, setTrackPlayerToolbarHeight] = useMMKVNumber("trackPlayerToolbarHeight", mmkvInstance)
 	const trackPlayerControls = useTrackPlayerControls()
+	const { t } = useTranslation()
 
 	const active = useMemo(() => {
 		if (trackPlayerState.playingTrack && trackPlayerState.queue.length > 0) {
@@ -181,12 +183,12 @@ export const Toolbar = memo(() => {
 								ellipsizeMode="middle"
 							>
 								{!active
-									? "No track queued"
+									? t("trackPlayer.bottom.noTrackQueued")
 									: trackPlayerState.playingTrack?.title
 									? `${trackPlayerState.playingTrack.title}${
 											trackPlayerState.playingTrack.album ? ` - ${trackPlayerState.playingTrack.album}` : ""
 									  }`
-									: "Unknown title"}
+									: t("trackPlayer.bottom.unknownTitle")}
 							</Text>
 							<Text
 								className="text-xs text-muted-foreground"

@@ -2,7 +2,7 @@ import { Icon } from "@roninoss/icons"
 import { View, Platform } from "react-native"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { memo, useCallback, Fragment } from "react"
+import { memo, useCallback, Fragment, useMemo } from "react"
 import { useActionSheet } from "@expo/react-native-action-sheet"
 import * as DocumentPicker from "expo-document-picker"
 import nodeWorker from "@/lib/nodeWorker"
@@ -21,7 +21,6 @@ import * as FileSystem from "expo-file-system/next"
 import * as FileSystemLegacy from "expo-file-system"
 import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
-import { t } from "@/lib/i18n"
 import SAF, { type DocumentFileDetail } from "react-native-saf-x"
 import { promiseAllChunked } from "@/lib/utils"
 import Transfers from "./transfers"
@@ -30,38 +29,6 @@ import { useRouter } from "expo-router"
 import { useShallow } from "zustand/shallow"
 import { type TextEditorItem } from "@/components/textEditor/editor"
 import useNetInfo from "@/hooks/useNetInfo"
-
-const options: string[] = [
-	t("drive.header.rightView.actionSheet.upload.files"),
-	...(Platform.OS === "android" ? [t("drive.header.rightView.actionSheet.upload.directory")] : []),
-	t("drive.header.rightView.actionSheet.upload.media"),
-	t("drive.header.rightView.actionSheet.create.textFile"),
-	t("drive.header.rightView.actionSheet.create.directory"),
-	t("drive.header.rightView.actionSheet.create.photo"),
-	t("drive.header.rightView.actionSheet.cancel")
-]
-
-const createOptions = {
-	options,
-	cancelIndex: options.length - 1,
-	indexToType: Platform.select({
-		android: {
-			0: "uploadFiles",
-			1: "uploadDirectory",
-			2: "uploadMedia",
-			3: "createTextFile",
-			4: "createDirectory",
-			5: "createPhoto"
-		},
-		default: {
-			0: "uploadFiles",
-			1: "uploadMedia",
-			2: "createTextFile",
-			3: "createDirectory",
-			4: "createPhoto"
-		}
-	}) as Record<number, "uploadFiles" | "uploadDirectory" | "createTextFile" | "createDirectory" | "uploadMedia" | "createPhoto">
-}
 
 export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const { colors } = useColorScheme()
@@ -80,6 +47,42 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 		...queryParams,
 		enabled: false
 	})
+
+	const options = useMemo(() => {
+		return [
+			t("drive.header.rightView.actionSheet.upload.files"),
+			...(Platform.OS === "android" ? [t("drive.header.rightView.actionSheet.upload.directory")] : []),
+			t("drive.header.rightView.actionSheet.upload.media"),
+			t("drive.header.rightView.actionSheet.create.textFile"),
+			t("drive.header.rightView.actionSheet.create.directory"),
+			t("drive.header.rightView.actionSheet.create.photo"),
+			t("drive.header.rightView.actionSheet.cancel")
+		]
+	}, [t])
+
+	const createOptions = useMemo(() => {
+		return {
+			options,
+			cancelIndex: options.length - 1,
+			indexToType: Platform.select({
+				android: {
+					0: "uploadFiles",
+					1: "uploadDirectory",
+					2: "uploadMedia",
+					3: "createTextFile",
+					4: "createDirectory",
+					5: "createPhoto"
+				},
+				default: {
+					0: "uploadFiles",
+					1: "uploadMedia",
+					2: "createTextFile",
+					3: "createDirectory",
+					4: "createPhoto"
+				}
+			}) as Record<number, "uploadFiles" | "uploadDirectory" | "createTextFile" | "createDirectory" | "uploadMedia" | "createPhoto">
+		}
+	}, [options])
 
 	const onPlusPress = useCallback(() => {
 		showActionSheetWithOptions(
@@ -113,23 +116,27 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 							return
 						}
 
-						const { parent } = await nodeWorker.proxy("uploadFile", {
-							parent: queryParams.parent,
-							localPath: documentPickerResult.assets[0]!.uri,
-							name: documentPickerResult.assets[0]!.name,
-							id: randomUUID(),
-							size: documentPickerResult.assets[0]!.size!,
-							isShared: false,
-							deleteAfterUpload: true
-						})
-
-						alerts.normal(
-							t("drive.header.rightView.actionSheet.upload.uploaded", {
-								name: documentPickerResult.assets[0]!.name
+						const uploadedItems = await promiseAllChunked(
+							documentPickerResult.assets.map(async asset => {
+								return await nodeWorker.proxy("uploadFile", {
+									parent: queryParams.parent,
+									localPath: asset.uri,
+									name: asset.name,
+									id: randomUUID(),
+									size: asset.size ?? 0,
+									isShared: false,
+									deleteAfterUpload: true
+								})
 							})
 						)
 
-						if (isFocused && parent === queryParams.parent) {
+						alerts.normal(
+							t("drive.header.rightView.actionSheet.itemsUploaded", {
+								count: uploadedItems.length
+							})
+						)
+
+						if (isFocused && uploadedItems.some(item => item.parent === queryParams.parent)) {
 							refetchQuery().catch(console.error)
 						}
 					} else if (type === "createDirectory") {
@@ -252,9 +259,7 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 
 						const imagePickerResult = await ImagePicker.launchCameraAsync({
 							mediaTypes: ["images", "livePhotos", "videos"],
-							allowsEditing: false,
-							allowsMultipleSelection: true,
-							selectionLimit: 0,
+							allowsEditing: true,
 							base64: false,
 							exif: true
 						})
@@ -520,7 +525,8 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 		refetchQuery,
 		showActionSheetWithOptions,
 		t,
-		routerPush
+		routerPush,
+		createOptions
 	])
 
 	const onSelectPress = useCallback(() => {

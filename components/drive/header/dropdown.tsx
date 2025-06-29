@@ -26,7 +26,7 @@ export const Dropdown = memo(() => {
 		return [
 			createDropdownItem({
 				actionKey: "transfers",
-				title: "Transfers",
+				title: t("drive.header.rightView.dropdown.transfers"),
 				icon:
 					Platform.OS === "ios"
 						? {
@@ -42,7 +42,7 @@ export const Dropdown = memo(() => {
 				? [
 						createDropdownItem({
 							actionKey: "listMode",
-							title: "List mode",
+							title: t("drive.header.rightView.dropdown.listMode"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -58,7 +58,7 @@ export const Dropdown = memo(() => {
 				: [
 						createDropdownItem({
 							actionKey: "gridMode",
-							title: "Grid mode",
+							title: t("drive.header.rightView.dropdown.gridMode"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -272,7 +272,7 @@ export const Dropdown = memo(() => {
 				? [
 						createDropdownSubMenu(
 							{
-								title: "bulk actions",
+								title: t("drive.header.rightView.dropdown.bulkActions"),
 								iOSItemSize: "large",
 								iOSType: "dropdown"
 							},

@@ -17,6 +17,7 @@ import Container from "../Container"
 import mimeTypes from "mime-types"
 import useHTTPServer from "@/hooks/useHTTPServer"
 import { type DOMProps } from "expo/dom"
+import { useTranslation } from "react-i18next"
 
 export const bgColors = {
 	normal: {
@@ -63,6 +64,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 	const [value, setValue] = useState<string>("")
 	const queryDataUpdatedRef = useRef<number>(-1)
 	const httpServer = useHTTPServer()
+	const { t } = useTranslation()
 
 	const uri = useMemo(() => {
 		if (item.type === "cloud") {
@@ -125,7 +127,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 
 		try {
 			if (!(await Sharing.isAvailableAsync())) {
-				throw new Error("Sharing is not available on this device.")
+				throw new Error(t("errors.sharingNotAvailable"))
 			}
 
 			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID(), itemName))
@@ -157,7 +159,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				alerts.error(e.message)
 			}
 		}
-	}, [value, itemMime, itemName])
+	}, [value, itemMime, itemName, t])
 
 	const save = useCallback(async () => {
 		if (item.type !== "cloud") {
@@ -201,7 +203,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 			setDidChange(false)
 			setValue(valueCopied)
 
-			alerts.normal("Saved successfully.")
+			alerts.normal(t("textEditor.savedSuccess"))
 		} catch (e) {
 			console.error(e)
 
@@ -215,7 +217,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 
 			fullScreenLoadingModal.hide()
 		}
-	}, [item, itemName, value, didChange])
+	}, [item, itemName, value, didChange, t])
 
 	const viewStyle = useMemo(() => {
 		return {
@@ -258,8 +260,8 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 	}, [item.type, didChange, query.status, save])
 
 	const iosHint = useMemo(() => {
-		return item.type !== "cloud" ? undefined : didChange ? "Unsaved changes" : "Saved"
-	}, [item.type, didChange])
+		return item.type !== "cloud" ? undefined : didChange ? t("textEditor.unsavedChanges") : t("textEditor.saved")
+	}, [item.type, didChange, t])
 
 	useEffect(() => {
 		if (query.isSuccess && queryDataUpdatedRef.current !== query.dataUpdatedAt) {

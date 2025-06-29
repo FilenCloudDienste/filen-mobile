@@ -10,6 +10,7 @@ import Video from "./video"
 import Audio from "./audio"
 import { useShallow } from "zustand/shallow"
 import Header from "../header"
+import { useTranslation } from "react-i18next"
 
 export type XY = {
 	x: number
@@ -75,6 +76,7 @@ export const Item = memo(
 		const galleryVisible = useGalleryStore(useShallow(state => state.visible))
 		const [showHeader, setShowHeader] = useState<boolean>(false)
 		const [headerHeight, setHeaderHeight] = useState<number>(0)
+		const { t } = useTranslation()
 
 		const visible = useMemo(() => {
 			return (
@@ -371,14 +373,14 @@ export const Item = memo(
 										className="flex-1 flex-row items-center justify-center"
 										style={fullScreenStyle}
 									>
-										<Text className="text-white">No preview available</Text>
+										<Text className="text-white">{t("gallery.noPreviewAvailable")}</Text>
 									</View>
 								) : (
 									<View
 										className="flex-1 flex-row items-center justify-center"
 										style={fullScreenStyle}
 									>
-										<Text className="text-white">No preview available</Text>
+										<Text className="text-white">{t("gallery.noPreviewAvailable")}</Text>
 									</View>
 								)}
 							</View>

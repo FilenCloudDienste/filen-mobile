@@ -11,7 +11,14 @@ import useHeaderHeight from "@/hooks/useHeaderHeight"
 import useChatsLastFocusQuery from "@/queries/useChatsLastFocusQuery"
 import Top from "./top"
 import useDimensions from "@/hooks/useDimensions"
-import { type ViewabilityConfig, View, type NativeSyntheticEvent, type NativeScrollEvent, type ViewToken } from "react-native"
+import {
+	type ViewabilityConfig,
+	View,
+	type NativeSyntheticEvent,
+	type NativeScrollEvent,
+	type ViewToken,
+	ActivityIndicator
+} from "react-native"
 import Animated, { useAnimatedStyle, interpolate, FadeIn, FadeOut } from "react-native-reanimated"
 import { useReanimatedKeyboardAnimation } from "react-native-keyboard-controller"
 import Emojis from "../input/suggestions/emojis"
@@ -23,6 +30,7 @@ import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
+import { Text } from "@/components/nativewindui/Text"
 
 export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConversation; isPreview: boolean; inputHeight: number }) => {
 	const headerHeight = useHeaderHeight()
@@ -223,6 +231,30 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 			: undefined
 	}, [scrollToBottomStyle.display])
 
+	const listEmpty = useMemo(() => {
+		return (
+			<View
+				className="flex-1 flex-col gap-2 px-4"
+				style={{
+					transform: [
+						{
+							scaleY: -1
+						}
+					]
+				}}
+			>
+				<Text variant="heading">End-to-end encrypted chat</Text>
+				<Text variant="subhead">Filen secures every chat with zero-knowledge end-to-end encryption by default.</Text>
+				{chatMessagesQuery.status === "pending" && (
+					<ActivityIndicator
+						size="small"
+						color={colors.foreground}
+					/>
+				)}
+			</View>
+		)
+	}, [chatMessagesQuery.status, colors.foreground])
+
 	return (
 		<Fragment>
 			{!isPreview && (
@@ -273,6 +305,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 				onViewableItemsChanged={onViewableItemsChanged}
 				removeClippedSubviews={true}
 				maintainVisibleContentPosition={maintainVisibleContentPosition}
+				ListEmptyComponent={listEmpty}
 			/>
 			{!isPreview && (
 				<Animated.View style={toolbarStyle}>

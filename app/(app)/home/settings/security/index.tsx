@@ -35,8 +35,8 @@ export const Security = memo(() => {
 
 	const changePassword = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "Change password",
-			message: "After changing your password, you will be logged out and need to log in again with the new password."
+			title: t("settings.security.prompts.changePassword1.title"),
+			message: t("settings.security.prompts.changePassword1.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -50,7 +50,7 @@ export const Security = memo(() => {
 		}
 
 		const currentPasswordPrompt = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("settings.security.prompts.currentPassword.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -58,7 +58,7 @@ export const Security = memo(() => {
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: "Password"
+				placeholder: t("settings.security.prompts.currentPassword.placeholder")
 			}
 		})
 
@@ -73,7 +73,7 @@ export const Security = memo(() => {
 		}
 
 		const newPasswordPrompt = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("settings.security.prompts.newPassword.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -81,7 +81,7 @@ export const Security = memo(() => {
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: "Password"
+				placeholder: t("settings.security.prompts.newPassword.placeholder")
 			}
 		})
 
@@ -96,7 +96,7 @@ export const Security = memo(() => {
 		}
 
 		const confirmNewPasswordPrompt = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("settings.security.prompts.confirmNewPassword.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -104,7 +104,7 @@ export const Security = memo(() => {
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: "Password"
+				placeholder: t("settings.security.prompts.confirmNewPassword.placeholder")
 			}
 		})
 
@@ -119,7 +119,7 @@ export const Security = memo(() => {
 		}
 
 		if (request.newPassword !== request.confirmNewPassword) {
-			alerts.error("New passwords do not match.")
+			alerts.error(t("settings.security.errors.passwordsDoNotMatch"))
 
 			return
 		}
@@ -127,9 +127,7 @@ export const Security = memo(() => {
 		const passwordStrength = ratePasswordStrength(request.newPassword)
 
 		if (passwordStrength.strength === "weak") {
-			alerts.error(
-				"Your new password is too weak. Please choose a stronger password. One that is at least 10 characters long, contains a mix of uppercase and lowercase letters, numbers, and special characters."
-			)
+			alerts.error(t("settings.security.errors.weak"))
 
 			return
 		}
@@ -176,25 +174,25 @@ export const Security = memo(() => {
 		return [
 			{
 				id: "0",
-				title: "Change password",
+				title: t("settings.security.items.changePassword"),
 				onPress: changePassword
 			},
 			{
 				id: "1",
-				title: "Two Factor Authentication",
+				title: t("settings.security.items.2fa"),
 				onPress: openTwoFactorAuthentication
 			},
 			{
 				id: "2",
-				title: "Biometric Authentication",
+				title: t("settings.security.items.biometricAuth"),
 				onPress: openBiometric
 			}
 		]
-	}, [changePassword, openBiometric, openTwoFactorAuthentication])
+	}, [changePassword, openBiometric, openTwoFactorAuthentication, t])
 
 	return (
 		<SettingsComponent
-			title="Security"
+			title={t("settings.security.title")}
 			showSearchBar={false}
 			loading={account.status !== "success"}
 			items={items}

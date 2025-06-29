@@ -15,6 +15,8 @@ import { useShallow } from "zustand/shallow"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useDimensions from "@/hooks/useDimensions"
+import { useTranslation } from "react-i18next"
+import ListEmpty from "@/components/listEmpty"
 
 export const Transfers = memo(() => {
 	const transfers = useTransfersStore(useShallow(state => state.transfers))
@@ -24,6 +26,7 @@ export const Transfers = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { colors } = useColorScheme()
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const data = useMemo(() => {
 		return transfers
@@ -163,30 +166,34 @@ export const Transfers = memo(() => {
 			return null
 		}
 
-		return `Transferring ${ongoingTransfers.length} items at ${bpsToReadable(speed)}, ${remaining} remaining`
-	}, [ongoingTransfers.length, speed, remaining])
+		return t("transfers.info", {
+			ongoingTransfers: ongoingTransfers.length,
+			speed: bpsToReadable(speed),
+			remaining: formatBytes(remaining)
+		})
+	}, [ongoingTransfers.length, speed, remaining, t])
 
 	const header = useMemo(() => {
 		return Platform.OS === "android" ? (
 			<LargeTitleHeader
-				title="Transfers"
+				title={t("transfers.header.title")}
 				backVisible={true}
 				materialPreset="stack"
-				iosBackButtonTitle="Back"
+				iosBackButtonTitle={t("transfers.header.back")}
 				iosBackButtonMenuEnabled={false}
 				iosBackButtonTitleVisible={true}
 			/>
 		) : (
 			<AdaptiveSearchHeader
-				iosTitle="Transfers"
+				iosTitle={t("transfers.header.title")}
 				backVisible={true}
-				iosBackButtonTitle="Back"
+				iosBackButtonTitle={t("transfers.header.back")}
 				iosBackButtonMenuEnabled={false}
 				iosBackButtonTitleVisible={true}
 				backgroundColor={colors.card}
 			/>
 		)
-	}, [colors.card])
+	}, [colors.card, t])
 
 	const listHeader = useMemo(() => {
 		return Platform.OS === "android" && info ? (
@@ -204,26 +211,53 @@ export const Transfers = memo(() => {
 
 	const listEmpty = useMemo(() => {
 		return (
-			<View className="flex-1 items-center justify-center">
-				<Text>No transfers</Text>
-			</View>
+			<ListEmpty
+				queryStatus="success"
+				itemCount={transfers.length}
+				texts={{
+					error: t("transfers.list.error"),
+					empty: t("transfers.list.empty"),
+					emptySearch: t("transfers.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "arrow-up"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
 		)
+	}, [transfers.length, t])
+
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			await nodeWorker.updateTransfers()
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
 	}, [])
 
 	const refreshControl = useMemo(() => {
 		return (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					await nodeWorker.updateTransfers().catch(() => {})
-
-					setRefreshing(false)
-				}}
+				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing])
+	}, [refreshing, onRefresh])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {

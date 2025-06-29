@@ -32,7 +32,7 @@ export class AuthService {
 			if (e instanceof Error) {
 				if (e.message.toLowerCase().includes("please enter your two factor authentication code")) {
 					const twoFactorCodePrompt = await inputPrompt({
-						title: t("drive.header.rightView.actionSheet.create.directory"),
+						title: t("auth.prompts.2fa.title"),
 						materialIcon: {
 							name: "lock-outline"
 						},
@@ -40,7 +40,7 @@ export class AuthService {
 							type: "secure-text",
 							keyboardType: "default",
 							defaultValue: "",
-							placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+							placeholder: t("auth.prompts.2fa.placeholder")
 						}
 					})
 
@@ -78,6 +78,8 @@ export class AuthService {
 				email,
 				password
 			})
+
+			alerts.normal(t("auth.registrationSuccessful"))
 		} catch (e) {
 			console.error(e)
 
@@ -91,7 +93,7 @@ export class AuthService {
 
 	public async resendConfirmation(): Promise<void> {
 		const emailPrompt = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("auth.prompts.resendConfirmation.title"),
 			materialIcon: {
 				name: "email-outline"
 			},
@@ -99,7 +101,7 @@ export class AuthService {
 				type: "plain-text",
 				keyboardType: "email-address",
 				defaultValue: "",
-				placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+				placeholder: t("auth.prompts.resendConfirmation.placeholder")
 			}
 		})
 
@@ -120,7 +122,7 @@ export class AuthService {
 				email
 			})
 
-			alerts.normal("Confirmation email resent successfully.")
+			alerts.normal(t("auth.prompts.resendConfirmation.success"))
 		} catch (e) {
 			console.error(e)
 
@@ -134,7 +136,7 @@ export class AuthService {
 
 	public async forgotPassword(): Promise<void> {
 		const emailPrompt = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("auth.prompts.forgotPassword.title"),
 			materialIcon: {
 				name: "email-outline"
 			},
@@ -142,7 +144,7 @@ export class AuthService {
 				type: "plain-text",
 				keyboardType: "email-address",
 				defaultValue: "",
-				placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+				placeholder: t("auth.prompts.forgotPassword.placeholder")
 			}
 		})
 
@@ -163,7 +165,7 @@ export class AuthService {
 				email
 			})
 
-			alerts.normal("Instructions to reset your password have been sent to your email.")
+			alerts.normal(t("auth.prompts.forgotPassword.success"))
 		} catch (e) {
 			console.error(e)
 

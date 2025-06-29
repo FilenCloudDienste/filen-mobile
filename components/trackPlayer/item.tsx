@@ -27,6 +27,7 @@ import { ListItem, type ListRenderItemInfo } from "../nativewindui/List"
 import { Paths } from "expo-file-system/next"
 import { normalizeFilePathForExpo } from "@/lib/utils"
 import paths from "@/lib/paths"
+import { useTranslation } from "react-i18next"
 
 export type ListItemInfo = {
 	title: string
@@ -63,6 +64,7 @@ export const Item = memo(
 		)
 		const setSelectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.setSelectedPlaylists))
 		const selectedPlaylistsCount = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.selectedPlaylists.length))
+		const { t } = useTranslation()
 
 		const playing = useMemo(() => {
 			if (!playingTrack || fromSelect) {
@@ -98,7 +100,12 @@ export const Item = memo(
 		}, [info.item.playlist.files])
 
 		const actionSheetOptions = useMemo(() => {
-			const options = ["Play", "Add to queue", "Delete", "Cancel"]
+			const options = [
+				t("trackPlayer.item.menu.play"),
+				t("trackPlayer.item.menu.addToQueue"),
+				t("trackPlayer.item.menu.delete"),
+				t("trackPlayer.item.menu.cancel")
+			]
 
 			return {
 				options,
@@ -110,7 +117,7 @@ export const Item = memo(
 					2: "delete"
 				} as Record<number, "play" | "addToQueue" | "delete">
 			}
-		}, [])
+		}, [t])
 
 		const play = useCallback(async () => {
 			if (fromSelect) {
@@ -205,8 +212,8 @@ export const Item = memo(
 			}
 
 			const alertPromptResponse = await alertPrompt({
-				title: "deletePlaylist",
-				message: "Are u sure"
+				title: t("trackPlayer.prompts.deletePlaylist.title"),
+				message: t("trackPlayer.prompts.deletePlaylist.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -235,7 +242,7 @@ export const Item = memo(
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
-		}, [info.item.playlist, fromSelect])
+		}, [info.item.playlist, fromSelect, t])
 
 		const onDotsPress = useCallback(() => {
 			if (fromSelect) {

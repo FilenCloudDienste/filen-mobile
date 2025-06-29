@@ -15,25 +15,7 @@ import { cn } from "@/lib/cn"
 import { Icon } from "@roninoss/icons"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import RequireInternet from "@/components/requireInternet"
-
-const labels = {
-	email: Platform.select({
-		ios: undefined,
-		default: "Email"
-	}),
-	password: Platform.select({
-		ios: undefined,
-		default: "Password"
-	}),
-	confirmEmail: Platform.select({
-		ios: undefined,
-		default: "Confirm email"
-	}),
-	confirmPassword: Platform.select({
-		ios: undefined,
-		default: "Confirm password"
-	})
-}
+import { useTranslation } from "react-i18next"
 
 function onSubmitEditing() {
 	KeyboardController.setFocusTo("next")
@@ -52,6 +34,7 @@ export const Register = memo(() => {
 	const [password, setPassword] = useState<string>("")
 	const [confirmPassword, setConfirmPassword] = useState<string>("")
 	const router = useRouter()
+	const { t } = useTranslation()
 
 	const passwordStrength = useMemo(() => {
 		return ratePasswordStrength(password)
@@ -78,15 +61,19 @@ export const Register = memo(() => {
 
 		try {
 			if (disabled) {
-				throw new Error("Please fill in all fields correctly.")
+				throw new Error(t("auth.register.errors.emptyFields"))
 			}
 
 			if (email !== confirmEmail) {
-				throw new Error("Email and confirm email do not match.")
+				throw new Error(t("auth.register.errors.emailAddressesDoNotMatch"))
 			}
 
 			if (password !== confirmPassword) {
-				throw new Error("Password and confirm password do not match.")
+				throw new Error(t("auth.register.errors.passwordsDoNotMatch"))
+			}
+
+			if (passwordStrength.strength === "weak") {
+				throw new Error(t("auth.register.errors.weakPassword"))
 			}
 
 			await authService.register({
@@ -107,7 +94,7 @@ export const Register = memo(() => {
 				console.error(e.message)
 			}
 		}
-	}, [email, password, router, disabled, confirmEmail, confirmPassword])
+	}, [email, password, router, disabled, confirmEmail, confirmPassword, t, passwordStrength.strength])
 
 	const resend = useCallback(() => {
 		KeyboardController.dismiss()
@@ -129,7 +116,7 @@ export const Register = memo(() => {
 				options={{
 					headerShown: true,
 					headerBlurEffect: "systemChromeMaterial",
-					title: "Sign up",
+					title: t("auth.register.header.title"),
 					headerShadowVisible: false,
 					headerBackVisible: false,
 					headerLeft() {
@@ -139,7 +126,7 @@ export const Register = memo(() => {
 								className="ios:px-0"
 								onPress={goBack}
 							>
-								<Text className="text-primary">Cancel</Text>
+								<Text className="text-primary">{t("auth.register.header.cancel")}</Text>
 							</Button>
 						)
 					}
@@ -152,7 +139,7 @@ export const Register = memo(() => {
 				title=""
 			/>
 		)
-	}, [goBack])
+	}, [goBack, t])
 
 	const emailOnFocus = useCallback(() => {
 		setFocusedTextField("email")
@@ -220,6 +207,27 @@ export const Register = memo(() => {
 		return isDarkColorScheme ? require("../../assets/images/logo_light.png") : require("../../assets/images/logo_dark.png")
 	}, [isDarkColorScheme])
 
+	const labels = useMemo(() => {
+		return {
+			email: Platform.select({
+				ios: undefined,
+				default: t("auth.register.form.email.label")
+			}),
+			password: Platform.select({
+				ios: undefined,
+				default: t("auth.register.form.password.label")
+			}),
+			confirmEmail: Platform.select({
+				ios: undefined,
+				default: t("auth.register.form.confirmEmail.label")
+			}),
+			confirmPassword: Platform.select({
+				ios: undefined,
+				default: t("auth.register.form.confirmPassword.label")
+			})
+		}
+	}, [t])
+
 	return (
 		<RequireInternet redirectHref="/(auth)">
 			{header}
@@ -242,16 +250,16 @@ export const Register = memo(() => {
 								variant="title1"
 								className="ios:font-bold pb-1 pt-4 text-center"
 							>
-								Create an account
+								{t("auth.register.hero.create")}
 							</Text>
-							<Text className="ios:text-sm text-muted-foreground text-center">Set up your credentials</Text>
+							<Text className="ios:text-sm text-muted-foreground text-center">{t("auth.register.hero.description")}</Text>
 						</View>
 						<View className="ios:pt-4 pt-6">
 							<Form className="gap-2">
 								<FormSection className="ios:bg-background">
 									<FormItem>
 										<TextField
-											placeholder="Email"
+											placeholder={t("auth.register.form.email.placeholder")}
 											label={labels.email}
 											onSubmitEditing={onSubmitEditing}
 											submitBehavior="submit"
@@ -267,7 +275,7 @@ export const Register = memo(() => {
 									</FormItem>
 									<FormItem>
 										<TextField
-											placeholder="Confirm email"
+											placeholder={t("auth.register.form.confirmEmail.placeholder")}
 											label={labels.confirmEmail}
 											onSubmitEditing={onSubmitEditing}
 											submitBehavior="submit"
@@ -282,7 +290,7 @@ export const Register = memo(() => {
 									</FormItem>
 									<FormItem>
 										<TextField
-											placeholder="Password"
+											placeholder={t("auth.register.form.password.placeholder")}
 											label={labels.password}
 											onSubmitEditing={onSubmitEditing}
 											onFocus={passwordOnFocus}
@@ -297,7 +305,7 @@ export const Register = memo(() => {
 									</FormItem>
 									<FormItem>
 										<TextField
-											placeholder="Confirm password"
+											placeholder={t("auth.register.form.confirmPassword.placeholder")}
 											label={labels.confirmPassword}
 											onFocus={confirmPasswordOnFocus}
 											onBlur={onBlur}
@@ -329,7 +337,7 @@ export const Register = memo(() => {
 													color={colors.destructive}
 												/>
 											)}
-											<Text className="font-normal text-sm">Length</Text>
+											<Text className="font-normal text-sm">{t("auth.register.passwordStrength.length")}</Text>
 										</View>
 										<View className="flex-1 flex-row items-center gap-2">
 											{passwordStrength.uppercase ? (
@@ -345,7 +353,7 @@ export const Register = memo(() => {
 													color={colors.destructive}
 												/>
 											)}
-											<Text className="font-normal text-sm">Uppercase characters</Text>
+											<Text className="font-normal text-sm">{t("auth.register.passwordStrength.uppercase")}</Text>
 										</View>
 										<View className="flex-1 flex-row items-center gap-2">
 											{passwordStrength.lowercase ? (
@@ -361,7 +369,7 @@ export const Register = memo(() => {
 													color={colors.destructive}
 												/>
 											)}
-											<Text className="font-normal text-sm">Lowercase characters</Text>
+											<Text className="font-normal text-sm">{t("auth.register.passwordStrength.lowercase")}</Text>
 										</View>
 										<View className="flex-1 flex-row items-center gap-2">
 											{passwordStrength.specialChars ? (
@@ -377,7 +385,9 @@ export const Register = memo(() => {
 													color={colors.destructive}
 												/>
 											)}
-											<Text className="font-normal text-sm">Special characters</Text>
+											<Text className="font-normal text-sm">
+												{t("auth.register.passwordStrength.specialCharacters")}
+											</Text>
 										</View>
 									</View>
 								</View>
@@ -396,7 +406,7 @@ export const Register = memo(() => {
 								disabled={disabled}
 								onPress={register}
 							>
-								<Text>Create account</Text>
+								<Text>{t("auth.register.createAccount")}</Text>
 							</Button>
 						</View>
 					) : (
@@ -406,13 +416,15 @@ export const Register = memo(() => {
 								className="px-2"
 								onPress={resend}
 							>
-								<Text className="text-primary px-0.5 text-sm">Resend confirmation email</Text>
+								<Text className="text-primary px-0.5 text-sm">{t("auth.register.resendConfirmationEmail")}</Text>
 							</Button>
 							<Button
 								disabled={disabled}
 								onPress={submit}
 							>
-								<Text className="text-sm">{focusedTextField !== "confirmPassword" ? "Next" : "Create account"}</Text>
+								<Text className="text-sm">
+									{focusedTextField !== "confirmPassword" ? t("auth.register.next") : t("auth.register.createAccount")}
+								</Text>
 							</Button>
 						</View>
 					)}
@@ -422,7 +434,7 @@ export const Register = memo(() => {
 						variant="plain"
 						onPress={resend}
 					>
-						<Text className="text-primary text-sm">Resend confirmation email</Text>
+						<Text className="text-primary text-sm">{t("auth.register.resendConfirmationEmail")}</Text>
 					</Button>
 				)}
 			</Container>

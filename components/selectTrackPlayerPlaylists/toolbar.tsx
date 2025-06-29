@@ -45,10 +45,14 @@ export const Toolbar = memo(() => {
 
 		return selectedPlaylists.length === 1
 			? selectedPlaylists.at(0)
-				? `${selectedPlaylists.at(0)?.name} selected`
+				? t("selectTrackPlayerPlaylists.selected", {
+						countOrName: selectedPlaylists.at(0)?.name || ""
+				  })
 				: undefined
-			: `${selectedPlaylists.length} selected`
-	}, [selectedPlaylists])
+			: t("selectTrackPlayerPlaylists.selected", {
+					countOrName: selectedPlaylists.length
+			  })
+	}, [selectedPlaylists, t])
 
 	const submit = useCallback(() => {
 		if (!canSubmit) {
@@ -69,7 +73,7 @@ export const Toolbar = memo(() => {
 
 	const createPlaylist = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("selectTrackPlayerPlaylists.prompts.createPlaylist.title"),
 			materialIcon: {
 				name: "folder-plus-outline"
 			},
@@ -77,7 +81,7 @@ export const Toolbar = memo(() => {
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+				placeholder: t("selectTrackPlayerPlaylists.prompts.createPlaylist.placeholder")
 			}
 		})
 

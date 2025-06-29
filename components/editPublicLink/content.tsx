@@ -1,6 +1,6 @@
 import { memo, useCallback, useState, useEffect, useRef, useMemo } from "react"
 import useItemPublicLinkStatusQuery from "@/queries/useItemPublicLinkStatusQuery"
-import { View, BackHandler, Alert, Share } from "react-native"
+import { View, Share } from "react-native"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
@@ -9,7 +9,6 @@ import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
 import { type PublicLinkExpiration } from "@filen/sdk"
 import { FILE_PUBLIC_LINK_BASE_URL, DIRECTORY_PUBLIC_LINK_BASE_URL } from "@/lib/constants"
-import { useColorScheme } from "@/lib/useColorScheme"
 import { inputPrompt } from "../prompts/inputPrompt"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "@/components/nativewindui/Toolbar"
 import Container from "../Container"
@@ -17,16 +16,20 @@ import useIsProUser from "@/hooks/useIsProUser"
 import { Settings, type SettingsItem } from "../settings"
 import { DropdownMenu } from "../nativewindui/DropdownMenu"
 import { createDropdownItem } from "../nativewindui/DropdownMenu/utils"
+import { useTranslation } from "react-i18next"
+import { useColorScheme } from "@/lib/useColorScheme"
+import { Icon } from "@roninoss/icons"
 
 export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 	const [toggleStatus, setToggleStatus] = useState<boolean>(false)
 	const [downloadEnabled, setDownloadEnabled] = useState<boolean>(false)
 	const [expiration, setExpiration] = useState<PublicLinkExpiration>("never")
 	const [password, setPassword] = useState<string | null>(null)
-	const { isDarkColorScheme } = useColorScheme()
 	const queryDataUpdatedAt = useRef<number>(0)
 	const [didChange, setDidChange] = useState<boolean>(false)
 	const isProUser = useIsProUser()
+	const { colors } = useColorScheme()
+	const { t } = useTranslation()
 
 	const query = useItemPublicLinkStatusQuery({
 		item
@@ -78,7 +81,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 		}
 
 		const inputPromptResponse = await inputPrompt({
-			title: "Edit password",
+			title: t("editPublicLink.prompts.editPassword.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -86,7 +89,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: "Leave empty to disable"
+				placeholder: t("editPublicLink.prompts.editPassword.placeholder")
 			}
 		})
 
@@ -97,7 +100,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 		}
 
 		setDidChange(true)
-	}, [query.status, query.data?.enabled])
+	}, [query.status, query.data?.enabled, t])
 
 	const share = useCallback(async () => {
 		if (query.status !== "success" || !query.data.enabled) {
@@ -121,7 +124,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 					message: link
 				},
 				{
-					dialogTitle: "Filen public link"
+					dialogTitle: t("editPublicLink.shareDialogTile")
 				}
 			)
 		} catch (e) {
@@ -131,7 +134,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 				alerts.error(e.message)
 			}
 		}
-	}, [query.status, query.data, item])
+	}, [query.status, query.data, item, t])
 
 	const toggle = useCallback(async () => {
 		if (query.status !== "success") {
@@ -175,6 +178,46 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 		}
 	}, [query, item])
 
+	const expirationText = useMemo(() => {
+		switch (expiration) {
+			case "never": {
+				return t("editPublicLink.items.expirationNever")
+			}
+
+			case "1h": {
+				return t("editPublicLink.items.expiration1h")
+			}
+
+			case "6h": {
+				return t("editPublicLink.items.expiration6h")
+			}
+
+			case "1d": {
+				return t("editPublicLink.items.expiration1d")
+			}
+
+			case "3d": {
+				return t("editPublicLink.items.expiration3d")
+			}
+
+			case "7d": {
+				return t("editPublicLink.items.expiration7d")
+			}
+
+			case "14d": {
+				return t("editPublicLink.items.expiration14d")
+			}
+
+			case "30d": {
+				return t("editPublicLink.items.expiration30d")
+			}
+
+			default: {
+				return t("editPublicLink.items.expirationNever")
+			}
+		}
+	}, [expiration, t])
+
 	const settingsItems = useMemo(() => {
 		if (query.status !== "success") {
 			return []
@@ -184,7 +227,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 			return [
 				{
 					id: "0",
-					title: "Enabled",
+					title: t("editPublicLink.items.enabled"),
 					rightView: (
 						<Toggle
 							onChange={toggle}
@@ -199,7 +242,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 		return [
 			{
 				id: "0",
-				title: "Enabled",
+				title: t("editPublicLink.items.enabled"),
 				rightView: (
 					<Toggle
 						onChange={toggle}
@@ -211,7 +254,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 			"gap-0",
 			{
 				id: "1",
-				title: "Password",
+				title: t("editPublicLink.items.password"),
 				rightView: (
 					<Button
 						variant="plain"
@@ -219,47 +262,47 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 						onPress={editPassword}
 						hitSlop={15}
 					>
-						<Text className="text-blue-500">Edit</Text>
+						<Text className="text-blue-500">{t("editPublicLink.items.edit")}</Text>
 					</Button>
 				)
 			},
 			{
 				id: "2",
-				title: "Expiration",
+				title: t("editPublicLink.items.expiration"),
 				rightView: (
 					<DropdownMenu
 						items={[
 							createDropdownItem({
 								actionKey: "never",
-								title: "Never"
+								title: t("editPublicLink.items.expirationNever")
 							}),
 							createDropdownItem({
 								actionKey: "1h",
-								title: "1 hour"
+								title: t("editPublicLink.items.expiration1h")
 							}),
 							createDropdownItem({
 								actionKey: "6h",
-								title: "6 hours"
+								title: t("editPublicLink.items.expiration6h")
 							}),
 							createDropdownItem({
 								actionKey: "1d",
-								title: "1 day"
+								title: t("editPublicLink.items.expiration1d")
 							}),
 							createDropdownItem({
 								actionKey: "3d",
-								title: "3 days"
+								title: t("editPublicLink.items.expiration3d")
 							}),
 							createDropdownItem({
 								actionKey: "7d",
-								title: "7 days"
+								title: t("editPublicLink.items.expiration7d")
 							}),
 							createDropdownItem({
 								actionKey: "14d",
-								title: "14 days"
+								title: t("editPublicLink.items.expiration14d")
 							}),
 							createDropdownItem({
 								actionKey: "30d",
-								title: "30 days"
+								title: t("editPublicLink.items.expiration30d")
 							})
 						]}
 						onItemPress={({ actionKey }) => {
@@ -277,14 +320,14 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 							disabled={query.status !== "success" || !query.data.enabled}
 							hitSlop={15}
 						>
-							<Text className="text-blue-500">{expiration}</Text>
+							<Text className="text-blue-500">{expirationText}</Text>
 						</Button>
 					</DropdownMenu>
 				)
 			},
 			{
 				id: "3",
-				title: "Download button",
+				title: t("editPublicLink.items.downloadButton"),
 				rightView: (
 					<Toggle
 						onChange={toggleDownload}
@@ -294,45 +337,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 				)
 			}
 		] satisfies SettingsItem[]
-	}, [toggle, toggleStatus, query.status, query.data?.enabled, editPassword, expiration, downloadEnabled, toggleDownload])
-
-	useEffect(() => {
-		const backAction = () => {
-			if (didChange) {
-				Alert.alert(
-					"Unsaved Changes",
-					"You have unsaved changes. Would you like to save them?",
-					[
-						{
-							text: "Discard",
-							onPress: () => {
-								return true
-							}
-						},
-						{
-							text: "Save",
-							onPress: async () => {
-								await save()
-								return true
-							}
-						}
-					],
-					{
-						userInterfaceStyle: isDarkColorScheme ? "dark" : "light"
-					}
-				)
-
-				return true
-			}
-			return false
-		}
-
-		const backHandlerListener = BackHandler.addEventListener("hardwareBackPress", backAction)
-
-		return () => {
-			backHandlerListener.remove()
-		}
-	}, [didChange, save, isDarkColorScheme])
+	}, [toggle, toggleStatus, query.status, query.data?.enabled, editPassword, downloadEnabled, toggleDownload, t, expirationText])
 
 	useEffect(() => {
 		if (query.status === "success" && query.dataUpdatedAt > queryDataUpdatedAt.current) {
@@ -348,11 +353,16 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 		}
 	}, [query])
 
-	if (!isProUser) {
+	if (isProUser) {
 		return (
 			<Container>
-				<View className="flex-1 items-center justify-center">
-					<Text className="text-red-500 mt-4">Public links are only available for Pro users.</Text>
+				<View className="flex-1 flex-col gap-4 items-center justify-center px-16">
+					<Icon
+						name="link"
+						size={64}
+						color={colors.grey}
+					/>
+					<Text className="font-normal text-sm text-center">{t("editPublicLink.onlyPro")}</Text>
 				</View>
 			</Container>
 		)
@@ -361,7 +371,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 	return (
 		<Container>
 			<Settings
-				title="Settings"
+				title=""
 				showSearchBar={false}
 				items={settingsItems}
 				hideHeader={true}
@@ -369,7 +379,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 			/>
 			<Toolbar
 				iosBlurIntensity={100}
-				iosHint={didChange && query.status === "success" ? "Unsaved changes" : undefined}
+				iosHint={didChange && query.status === "success" ? t("editPublicLink.unsavedChanges") : undefined}
 				leftView={
 					<ToolbarIcon
 						disabled={query.status !== "success" || !query.data?.enabled}

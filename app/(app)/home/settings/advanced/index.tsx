@@ -10,8 +10,11 @@ import paths from "@/lib/paths"
 import * as FileSystem from "expo-file-system/next"
 import sqlite from "@/lib/sqlite"
 import trackPlayerService from "@/lib/trackPlayer"
+import { useTranslation } from "react-i18next"
 
 export const Advanced = memo(() => {
+	const { t } = useTranslation()
+
 	const { data, refetch, status } = useQuery({
 		queryKey: ["settingsAdvancedCacheQuery"],
 		queryFn: async () => {
@@ -80,9 +83,8 @@ export const Advanced = memo(() => {
 
 	const clearCache = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "Clear cache",
-			message:
-				"Clearing the cache will remove temporary files. This can interrupt ongoing uploads or downloads. Are you sure you want to continue?"
+			title: t("settings.advanced.prompts.clearCache.title"),
+			message: t("settings.advanced.prompts.clearCache.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -104,12 +106,12 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [refetch])
+	}, [refetch, t])
 
 	const clearThumbnails = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "Clear thumbnails",
-			message: "Clearing the thumbnails will make the app download every visible thumbnail again. Are you sure you want to continue?"
+			title: t("settings.advanced.prompts.clearThumbnails.title"),
+			message: t("settings.advanced.prompts.clearThumbnails.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -131,12 +133,12 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [refetch])
+	}, [refetch, t])
 
 	const clearTrackPlayer = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "Clear track player",
-			message: "Clearing the track player will remove all cached tracks and pictures. Are you sure you want to continue?"
+			title: t("settings.advanced.prompts.clearTrackPlayer.title"),
+			message: t("settings.advanced.prompts.clearTrackPlayer.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -159,12 +161,12 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [refetch])
+	}, [refetch, t])
 
 	const clearOfflineFiles = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "Clear offline files",
-			message: "Clearing offline files will remove all downloaded files. Are you sure you want to continue?"
+			title: t("settings.advanced.prompts.clearOfflineFiles.title"),
+			message: t("settings.advanced.prompts.clearOfflineFiles.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -188,44 +190,44 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [refetch])
+	}, [refetch, t])
 
 	const items = useMemo(() => {
 		return [
 			{
 				id: "0",
-				title: "Clear cache",
+				title: t("settings.advanced.items.clearCache"),
 				rightText: formatBytes(cacheSize),
 				subTitle: Platform.OS === "android" ? formatBytes(cacheSize) : undefined,
 				onPress: clearCache
 			},
 			{
 				id: "1",
-				title: "Clear thumbnails",
+				title: t("settings.advanced.items.clearThumbnails"),
 				rightText: formatBytes(thumbnailsSize),
 				subTitle: Platform.OS === "android" ? formatBytes(thumbnailsSize) : undefined,
 				onPress: clearThumbnails
 			},
 			{
 				id: "2",
-				title: "Clear track player",
+				title: t("settings.advanced.items.clearTrackPlayer"),
 				rightText: formatBytes(trackPlayerSize),
 				subTitle: Platform.OS === "android" ? formatBytes(trackPlayerSize) : undefined,
 				onPress: clearTrackPlayer
 			},
 			{
 				id: "3",
-				title: "Clear offline files",
+				title: t("settings.advanced.items.clearOfflineFiles"),
 				rightText: formatBytes(offlineFilesSize),
 				subTitle: Platform.OS === "android" ? formatBytes(offlineFilesSize) : undefined,
 				onPress: clearOfflineFiles
 			}
 		]
-	}, [cacheSize, thumbnailsSize, trackPlayerSize, offlineFilesSize, clearCache, clearThumbnails, clearTrackPlayer, clearOfflineFiles])
+	}, [cacheSize, t, thumbnailsSize, trackPlayerSize, offlineFilesSize, clearCache, clearThumbnails, clearTrackPlayer, clearOfflineFiles])
 
 	return (
 		<SettingsComponent
-			title="Advanced"
+			title={t("settings.advanced.title")}
 			showSearchBar={false}
 			loading={status !== "success"}
 			items={items}

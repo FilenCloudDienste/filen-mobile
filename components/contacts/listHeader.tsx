@@ -6,9 +6,11 @@ import { cn } from "@/lib/cn"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import useContactsRequestsQuery from "@/queries/useContactsRequestsQuery"
+import { useTranslation } from "react-i18next"
 
 export const ListHeader = memo(() => {
 	const [contactsActiveTab, setContactsActiveTab] = useMMKVString("contactsActiveTab", mmkvInstance)
+	const { t } = useTranslation()
 
 	const contactsRequestsQuery = useContactsRequestsQuery({
 		enabled: false
@@ -26,7 +28,7 @@ export const ListHeader = memo(() => {
 			directionalLockEnabled={true}
 			contentContainerClassName="gap-2 py-2 h-12 px-4"
 		>
-			{["all", "online", "offline", "requests", "pending", "blocked"].map(tab => {
+			{(["all", "online", "offline", "requests", "pending", "blocked"] as const).map(tab => {
 				return (
 					<Button
 						key={tab}
@@ -40,7 +42,21 @@ export const ListHeader = memo(() => {
 						onPress={() => setContactsActiveTab(tab)}
 						onLongPress={() => setContactsActiveTab(tab)}
 					>
-						<Text className={cn("text-sm", activeTab === tab ? "text-foreground" : "text-muted-foreground")}>{tab}</Text>
+						<Text className={cn("text-sm", activeTab === tab ? "text-foreground" : "text-muted-foreground")}>
+							{tab === "all"
+								? t("settings.contacts.tabs.all")
+								: tab === "blocked"
+								? t("settings.contacts.tabs.blocked")
+								: tab === "offline"
+								? t("settings.contacts.tabs.offline")
+								: tab === "online"
+								? t("settings.contacts.tabs.offline")
+								: tab === "pending"
+								? t("settings.contacts.tabs.pending")
+								: tab === "requests"
+								? t("settings.contacts.tabs.requests")
+								: ""}
+						</Text>
 						{tab === "requests" &&
 							contactsRequestsQuery.status === "success" &&
 							contactsRequestsQuery.data.incoming.length > 0 && (

@@ -631,8 +631,8 @@ export const Menu = memo(
 		const copyId = useCallback(async () => {
 			await Clipboard.setStringAsync(item.uuid)
 
-			alerts.normal("Copied")
-		}, [item.uuid])
+			alerts.normal(t("copiedToClipboard"))
+		}, [item.uuid, t])
 
 		const copyPath = useCallback(async () => {
 			fullScreenLoadingModal.show()
@@ -649,11 +649,11 @@ export const Menu = memo(
 
 				await Clipboard.setStringAsync(path)
 
-				alerts.normal("Copied")
+				alerts.normal(t("copiedToClipboard"))
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
-		}, [item.uuid, item.type])
+		}, [item.uuid, item.type, t])
 
 		const rename = useCallback(async () => {
 			const itemNameParsed = FileSystem.Paths.parse(item.name)
@@ -661,14 +661,15 @@ export const Menu = memo(
 			const itemExt = item.type === "file" && item.name.includes(".") ? itemNameParsed?.ext ?? "" : ""
 
 			const inputPromptResponse = await inputPrompt({
-				title: "rename",
+				title: t("drive.prompts.renameItem.title"),
 				materialIcon: {
 					name: "pencil"
 				},
 				prompt: {
 					type: "plain-text",
 					keyboardType: "default",
-					defaultValue: itemName
+					defaultValue: itemName,
+					placeholder: t("drive.prompts.renameItem.placeholder")
 				}
 			})
 
@@ -757,7 +758,7 @@ export const Menu = memo(
 						: prevItem
 				)
 			)
-		}, [item, queryParams])
+		}, [item, queryParams, t])
 
 		const color = useCallback(async () => {
 			if (item.type !== "directory") {
@@ -975,8 +976,12 @@ export const Menu = memo(
 				fullScreenLoadingModal.hide()
 			}
 
-			alerts.normal("shared")
-		}, [item])
+			alerts.normal(
+				t("drive.itemShared", {
+					name: item.name
+				})
+			)
+		}, [item, t])
 
 		const exportItem = useCallback(async () => {
 			if (item.type !== "file" || !(await Sharing.isAvailableAsync())) {
@@ -986,7 +991,7 @@ export const Menu = memo(
 			const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
 
 			if (freeDiskSpace <= item.size + 1024 * 1024) {
-				throw new Error("Not enough local disk space available.")
+				throw new Error(t("errors.notEnoughDiskSpace"))
 			}
 
 			fullScreenLoadingModal.show()
@@ -1035,12 +1040,12 @@ export const Menu = memo(
 					tempLocation.delete()
 				}
 			}
-		}, [item, offlineStatus])
+		}, [item, offlineStatus, t])
 
 		const trash = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
-				title: "trash",
-				message: "Are u sure"
+				title: t("drive.prompts.trashItem.title"),
+				message: t("drive.prompts.trashItem.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -1082,9 +1087,7 @@ export const Menu = memo(
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			}
-
-			alerts.normal("trashed")
-		}, [item, queryParams, fromPreview])
+		}, [item, queryParams, fromPreview, t])
 
 		const move = useCallback(async () => {
 			const selectDriveItemsResponse = await selectDriveItems({
@@ -1176,8 +1179,6 @@ export const Menu = memo(
 						: prevItem
 				)
 			)
-
-			alerts.normal("moved")
 		}, [item, queryParams, pathname])
 
 		const publicLink = useCallback(() => {
@@ -1214,7 +1215,7 @@ export const Menu = memo(
 					const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
 
 					if (freeDiskSpace <= size + 1024 * 1024) {
-						throw new Error("Not enough local disk space available.")
+						throw new Error(t("errors.notEnoughDiskSpace"))
 					}
 
 					fullScreenLoadingModal.hide()
@@ -1301,7 +1302,7 @@ export const Menu = memo(
 				const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
 
 				if (freeDiskSpace <= item.size + 1024 * 1024) {
-					throw new Error("Not enough local disk space available.")
+					throw new Error(t("errors.notEnoughDiskSpace"))
 				}
 
 				const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID()))
@@ -1339,7 +1340,7 @@ export const Menu = memo(
 					fullScreenLoadingModal.hide()
 				}
 			}
-		}, [item])
+		}, [item, t])
 
 		const makeAvailableOffline = useCallback(async () => {
 			if (item.type !== "file") {
@@ -1353,7 +1354,7 @@ export const Menu = memo(
 			const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
 
 			if (freeDiskSpace <= item.size + 1024 * 1024) {
-				throw new Error("Not enough local disk space available.")
+				throw new Error(t("errors.notEnoughDiskSpace"))
 			}
 
 			const offlineFileDestination = new FileSystem.File(FileSystem.Paths.join(paths.offlineFiles(), item.uuid))
@@ -1389,9 +1390,7 @@ export const Menu = memo(
 				receiverId: 0,
 				updater: prev => [...prev.filter(prevItem => prevItem.uuid !== item.uuid), item]
 			})
-
-			alerts.normal("Available offline")
-		}, [item])
+		}, [item, t])
 
 		const removeOffline = useCallback(async () => {
 			if (item.type !== "file") {
@@ -1412,8 +1411,6 @@ export const Menu = memo(
 					exists: false
 				})
 			})
-
-			alerts.normal("Removed offline")
 		}, [item])
 
 		const saveToGallery = useCallback(async () => {
@@ -1424,7 +1421,7 @@ export const Menu = memo(
 			const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
 
 			if (freeDiskSpace <= item.size + 1024 * 1024) {
-				throw new Error("Not enough local disk space available.")
+				throw new Error(t("errors.notEnoughDiskSpace"))
 			}
 
 			const permissions = await MediaLibrary.requestPermissionsAsync(false)
@@ -1473,7 +1470,7 @@ export const Menu = memo(
 
 				fullScreenLoadingModal.hide()
 			}
-		}, [item, offlineStatus])
+		}, [item, offlineStatus, t])
 
 		const versionHistory = useCallback(() => {
 			router.push({
@@ -1511,8 +1508,6 @@ export const Menu = memo(
 				receiverId: 0,
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 			})
-
-			alerts.normal("removed")
 		}, [item, queryParams])
 
 		const removeSharedOut = useCallback(async () => {
@@ -1543,14 +1538,12 @@ export const Menu = memo(
 				receiverId: 0,
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 			})
-
-			alerts.normal("removed")
 		}, [item, queryParams])
 
 		const deletePermanently = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
-				title: "deletePermanently",
-				message: "Are u sure"
+				title: t("drive.prompts.deletePermanently.title"),
+				message: t("drive.prompts.deletePermanently.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -1587,9 +1580,7 @@ export const Menu = memo(
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			}
-
-			alerts.normal("deleted")
-		}, [item, queryParams])
+		}, [item, queryParams, t])
 
 		const restore = useCallback(async () => {
 			fullScreenLoadingModal.show()
@@ -1620,8 +1611,6 @@ export const Menu = memo(
 				receiverId: 0,
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 			})
-
-			alerts.normal("restored")
 		}, [item, queryParams])
 
 		const disablePublicLink = useCallback(async () => {

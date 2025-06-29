@@ -12,17 +12,7 @@ import Container from "@/components/Container"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import RequireInternet from "@/components/requireInternet"
-
-const labels = {
-	email: Platform.select({
-		ios: undefined,
-		default: "Email"
-	}),
-	password: Platform.select({
-		ios: undefined,
-		default: "Password"
-	})
-}
+import { useTranslation } from "react-i18next"
 
 function onSubmitEditing() {
 	KeyboardController.setFocusTo("next")
@@ -40,6 +30,7 @@ export const Login = memo(() => {
 	const [email, setEmail] = useState<string>("")
 	const [password, setPassword] = useState<string>("")
 	const { isDarkColorScheme } = useColorScheme()
+	const { t } = useTranslation()
 
 	const disabled = useMemo(() => {
 		return !email || !password || email.length === 0 || password.length === 0
@@ -50,7 +41,7 @@ export const Login = memo(() => {
 
 		try {
 			if (disabled) {
-				throw new Error("Please fill in all fields correctly.")
+				throw new Error(t("auth.login.errors.emptyFields"))
 			}
 
 			const didLogin = await authService.login({
@@ -76,7 +67,7 @@ export const Login = memo(() => {
 				console.error(e.message)
 			}
 		}
-	}, [email, password, router, disabled])
+	}, [email, password, router, disabled, t])
 
 	const forgotPassword = useCallback(() => {
 		KeyboardController.dismiss()
@@ -98,7 +89,7 @@ export const Login = memo(() => {
 				options={{
 					headerShown: true,
 					headerBlurEffect: "systemChromeMaterial",
-					title: "Login",
+					title: t("auth.login.title"),
 					headerShadowVisible: false,
 					headerBackVisible: false,
 					headerLeft() {
@@ -108,7 +99,7 @@ export const Login = memo(() => {
 								className="ios:px-0"
 								onPress={goBack}
 							>
-								<Text className="text-primary">Cancel</Text>
+								<Text className="text-primary">{t("auth.login.header.cancel")}</Text>
 							</Button>
 						)
 					}
@@ -121,7 +112,7 @@ export const Login = memo(() => {
 				title=""
 			/>
 		)
-	}, [goBack])
+	}, [goBack, t])
 
 	const logoSource = useMemo(() => {
 		return isDarkColorScheme ? require("../../assets/images/logo_light.png") : require("../../assets/images/logo_dark.png")
@@ -165,6 +156,19 @@ export const Login = memo(() => {
 		}
 	}, [insets.bottom])
 
+	const labels = useMemo(() => {
+		return {
+			email: Platform.select({
+				ios: undefined,
+				default: t("auth.login.form.email.label")
+			}),
+			password: Platform.select({
+				ios: undefined,
+				default: t("auth.login.form.password.label")
+			})
+		}
+	}, [t])
+
 	return (
 		<RequireInternet redirectHref="/(auth)">
 			{header}
@@ -187,16 +191,16 @@ export const Login = memo(() => {
 								variant="title1"
 								className="ios:font-bold pb-1 pt-4 text-center"
 							>
-								Welcome back!
+								{t("auth.login.welcome")}
 							</Text>
-							<Text className="ios:text-sm text-muted-foreground text-center">Login using your credentials</Text>
+							<Text className="ios:text-sm text-muted-foreground text-center">{t("auth.login.loginUsingCreds")}</Text>
 						</View>
 						<View className="ios:pt-4 pt-6">
 							<Form className="gap-2">
 								<FormSection className="ios:bg-background">
 									<FormItem>
 										<TextField
-											placeholder="Email"
+											placeholder={t("auth.login.form.email.placeholder")}
 											label={labels.email}
 											onSubmitEditing={onSubmitEditing}
 											submitBehavior="submit"
@@ -212,7 +216,7 @@ export const Login = memo(() => {
 									</FormItem>
 									<FormItem>
 										<TextField
-											placeholder="Password"
+											placeholder={t("auth.login.form.password.placeholder")}
 											label={labels.password}
 											onFocus={onFocusPassword}
 											onBlur={onBlur}
@@ -232,7 +236,7 @@ export const Login = memo(() => {
 										className="px-0.5"
 										onPress={forgotPassword}
 									>
-										<Text className="text-primary text-sm">Forgot password?</Text>
+										<Text className="text-primary text-sm">{t("auth.login.forgotPassword")}</Text>
 									</Button>
 								</View>
 							</Form>
@@ -250,7 +254,7 @@ export const Login = memo(() => {
 								onPress={login}
 								disabled={disabled}
 							>
-								<Text>Login</Text>
+								<Text>{t("auth.login.login")}</Text>
 							</Button>
 						</View>
 					) : (
@@ -260,13 +264,15 @@ export const Login = memo(() => {
 								className="px-2"
 								onPress={signUp}
 							>
-								<Text className="text-primary px-0.5 text-sm">Sign up for free</Text>
+								<Text className="text-primary px-0.5 text-sm">{t("auth.login.signUp")}</Text>
 							</Button>
 							<Button
 								disabled={disabled}
 								onPress={submit}
 							>
-								<Text className="text-sm">{focusedTextField === "email" ? "Next" : "Submit"}</Text>
+								<Text className="text-sm">
+									{focusedTextField === "email" ? t("auth.login.next") : t("auth.login.submit")}
+								</Text>
 							</Button>
 						</View>
 					)}
@@ -276,7 +282,7 @@ export const Login = memo(() => {
 						variant="plain"
 						onPress={signUp}
 					>
-						<Text className="text-primary text-sm">Sign up for free</Text>
+						<Text className="text-primary text-sm">{t("auth.login.signUp")}</Text>
 					</Button>
 				)}
 			</Container>

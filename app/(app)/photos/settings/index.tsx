@@ -11,10 +11,12 @@ import * as MediaLibrary from "expo-media-library"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import useCameraUploadParentQuery from "@/queries/useCameraUploadParentQuery"
 import RequireInternet from "@/components/requireInternet"
+import { useTranslation } from "react-i18next"
 
 export const Settings = memo(() => {
 	const [cameraUpload, setCameraUpload] = useCameraUpload()
 	const { push: routerPush } = useRouter()
+	const { t } = useTranslation()
 
 	const cameraUploadParentQuery = useCameraUploadParentQuery({
 		enabled: cameraUpload.enabled
@@ -40,7 +42,7 @@ export const Settings = memo(() => {
 						const ask = await MediaLibrary.requestPermissionsAsync(false, ["video", "photo"])
 
 						if (ask.status !== MediaLibrary.PermissionStatus.GRANTED) {
-							alerts.error("Camera upload requires permission to access your photos and videos.")
+							alerts.error(t("photos.settings.index.errors.noPermissions"))
 
 							return
 						}
@@ -63,7 +65,7 @@ export const Settings = memo(() => {
 				enabled: enable
 			}))
 		},
-		[setCameraUpload]
+		[setCameraUpload, t]
 	)
 
 	const toggleCellular = useCallback(() => {
@@ -143,7 +145,7 @@ export const Settings = memo(() => {
 		return [
 			{
 				id: "0",
-				title: "Enabled",
+				title: t("photos.settings.index.items.enabled"),
 				rightView: (
 					<Toggle
 						value={cameraUpload.enabled}
@@ -154,7 +156,8 @@ export const Settings = memo(() => {
 			"gap-0",
 			{
 				id: "1",
-				title: "Albums",
+				title: t("photos.settings.index.items.albums"),
+				subTitle: t("photos.settings.index.items.albumsInfo"),
 				rightText: cameraUpload.albums.length.toString(),
 				leftView: (
 					<IconView
@@ -172,7 +175,7 @@ export const Settings = memo(() => {
 							const ask = await MediaLibrary.requestPermissionsAsync(false, ["video", "photo"])
 
 							if (ask.status !== MediaLibrary.PermissionStatus.GRANTED) {
-								alerts.error("Camera upload requires permission to access your photos and videos.")
+								alerts.error(t("photos.settings.index.errors.noPermissions"))
 
 								return
 							}
@@ -196,8 +199,11 @@ export const Settings = memo(() => {
 			},
 			{
 				id: "2",
-				title: "Cloud directory",
-				subTitle: cameraUpload.remote && validateUUID(cameraUpload.remote.uuid) ? cameraUpload.remote.path : "Not set",
+				title: t("photos.settings.index.items.cloudDirectory"),
+				subTitle:
+					cameraUpload.remote && validateUUID(cameraUpload.remote.uuid)
+						? cameraUpload.remote.path
+						: t("photos.settings.index.items.cloudDirectoryNotSet"),
 				leftView: (
 					<IconView
 						name="cloud-outline"
@@ -208,8 +214,9 @@ export const Settings = memo(() => {
 			},
 			"gap-1",
 			{
-				id: "33",
-				title: "Videos",
+				id: "3",
+				title: t("photos.settings.index.items.videos"),
+				subTitle: t("photos.settings.index.items.videosInfo"),
 				leftView: (
 					<IconView
 						name="signal-cellular-3"
@@ -224,8 +231,9 @@ export const Settings = memo(() => {
 				)
 			},
 			{
-				id: "3",
-				title: "Cellular",
+				id: "4",
+				title: t("photos.settings.index.items.cellular"),
+				subTitle: t("photos.settings.index.items.cellularInfo"),
 				leftView: (
 					<IconView
 						name="signal-cellular-3"
@@ -240,8 +248,9 @@ export const Settings = memo(() => {
 				)
 			},
 			{
-				id: "4",
-				title: "Background",
+				id: "5",
+				title: t("photos.settings.index.items.background"),
+				subTitle: t("photos.settings.index.items.backgroundInfo"),
 				leftView: (
 					<IconView
 						name="signal-cellular-3"
@@ -256,8 +265,9 @@ export const Settings = memo(() => {
 				)
 			},
 			{
-				id: "5",
-				title: "Low battery",
+				id: "6",
+				title: t("photos.settings.index.items.lowBattery"),
+				subTitle: t("photos.settings.index.items.lowBatteryInfo"),
 				leftView: (
 					<IconView
 						name="power-plug-outline"
@@ -272,8 +282,9 @@ export const Settings = memo(() => {
 				)
 			},
 			{
-				id: "6",
-				title: "Compress",
+				id: "7",
+				title: t("photos.settings.index.items.compress"),
+				subTitle: t("photos.settings.index.items.compressInfo"),
 				leftView: (
 					<IconView
 						name="power-plug-outline"
@@ -297,7 +308,8 @@ export const Settings = memo(() => {
 		toggleLowBattery,
 		toggleVideos,
 		selectRemoteDirectory,
-		routerPush
+		routerPush,
+		t
 	])
 
 	useEffect(() => {
@@ -313,7 +325,7 @@ export const Settings = memo(() => {
 	return (
 		<RequireInternet>
 			<SettingsComponent
-				title="Settings"
+				title={t("photos.settings.index.title")}
 				showSearchBar={false}
 				items={items}
 			/>

@@ -88,8 +88,8 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 
 	const deleteTag = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "delete",
-			message: "Are u sure"
+			title: t("notes.prompts.deleteTag.title"),
+			message: t("notes.prompts.deleteTag.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -115,7 +115,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [tag.uuid])
+	}, [tag.uuid, t])
 
 	const favorite = useCallback(
 		async (favorite: boolean) => {
@@ -153,15 +153,15 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 
 	const rename = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("notes.prompts.renameTag.title"),
 			materialIcon: {
-				name: "folder-plus-outline"
+				name: "pencil"
 			},
 			prompt: {
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: tag.name,
-				placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+				placeholder: t("notes.prompts.renameTag.placeholder")
 			}
 		})
 

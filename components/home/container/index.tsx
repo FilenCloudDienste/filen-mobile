@@ -161,6 +161,24 @@ export const Container = memo(
 			})
 		}, [items, layout.width, type])
 
+		const emptyText = useMemo(() => {
+			return type === "recents"
+				? t("home.listEmpty.recents")
+				: type === "favorites"
+				? t("home.listEmpty.favorites")
+				: type === "links"
+				? t("home.listEmpty.links")
+				: type === "sharedIn"
+				? t("home.listEmpty.sharedIn")
+				: type === "sharedOut"
+				? t("home.listEmpty.sharedOut")
+				: type === "offline"
+				? t("home.listEmpty.offline")
+				: type === "trash"
+				? t("home.listEmpty.trash")
+				: ""
+		}, [t, type])
+
 		return (
 			<View
 				className="flex-1 mb-10"
@@ -199,7 +217,13 @@ export const Container = memo(
 					contentInsetAdjustmentBehavior="automatic"
 					removeClippedSubviews={true}
 				>
-					{scrollItems}
+					{scrollItems.length > 0 ? (
+						scrollItems
+					) : (
+						<View className="px-4 py-4 pt-1">
+							<Text className="font-normal text-muted-foreground text-sm">{emptyText}</Text>
+						</View>
+					)}
 				</ScrollView>
 			</View>
 		)

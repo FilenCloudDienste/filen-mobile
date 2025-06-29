@@ -91,8 +91,7 @@ export const Account = memo(() => {
 				}
 
 				if (tmpFile.size > 2.99 * 1024 * 1024) {
-					// 3 MB limit
-					throw new Error("File size exceeds 3 MiB limit.")
+					throw new Error(t("settings.account.errors.avatarLimit"))
 				}
 
 				await nodeWorker.proxy("uploadAvatar", {
@@ -114,12 +113,12 @@ export const Account = memo(() => {
 				alerts.error(e.message)
 			}
 		}
-	}, [account])
+	}, [account, t])
 
 	const openWebApp = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "open webapp",
-			message: "more settings are available in the webapp"
+			title: t("settings.account.prompts.more.title"),
+			message: t("settings.account.prompts.more.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -128,7 +127,7 @@ export const Account = memo(() => {
 
 		try {
 			if (!(await Linking.canOpenURL(WEB_APP_ACCOUNT_SETTINGS_URL))) {
-				throw new Error("Cannot open URL.")
+				throw new Error(t("errors.cannotOpenURL"))
 			}
 
 			await Linking.openURL(WEB_APP_ACCOUNT_SETTINGS_URL)
@@ -139,7 +138,7 @@ export const Account = memo(() => {
 				alerts.error(e.message)
 			}
 		}
-	}, [])
+	}, [t])
 
 	const toggleVersioning = useCallback(
 		async (value: boolean) => {
@@ -195,7 +194,7 @@ export const Account = memo(() => {
 
 	const changeNickname = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("settings.account.prompts.updateNickname.title"),
 			materialIcon: {
 				name: "pencil"
 			},
@@ -203,7 +202,7 @@ export const Account = memo(() => {
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: contactName(account.data?.account.email, account.data?.account.nickName),
-				placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+				placeholder: t("settings.account.prompts.updateNickname.placeholder")
 			}
 		})
 
@@ -244,7 +243,7 @@ export const Account = memo(() => {
 		}
 
 		const emailPrompt = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("settings.account.prompts.changeEmail.newEmail.title"),
 			materialIcon: {
 				name: "email"
 			},
@@ -252,7 +251,7 @@ export const Account = memo(() => {
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+				placeholder: t("settings.account.prompts.changeEmail.newEmail.placeholder")
 			}
 		})
 
@@ -267,7 +266,7 @@ export const Account = memo(() => {
 		}
 
 		const confirmEmailPrompt = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("settings.account.prompts.changeEmail.confirmEmail.title"),
 			materialIcon: {
 				name: "email"
 			},
@@ -275,7 +274,7 @@ export const Account = memo(() => {
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+				placeholder: t("settings.account.prompts.changeEmail.confirmEmail.placeholder")
 			}
 		})
 
@@ -290,7 +289,7 @@ export const Account = memo(() => {
 		}
 
 		const passwordPrompt = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("settings.account.prompts.changeEmail.password.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -298,7 +297,7 @@ export const Account = memo(() => {
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: "Password"
+				placeholder: t("settings.account.prompts.changeEmail.password.placeholder")
 			}
 		})
 
@@ -313,7 +312,7 @@ export const Account = memo(() => {
 		}
 
 		if (request.email !== request.confirmEmail) {
-			alerts.error("Email addresses do not match.")
+			alerts.error(t("settings.account.errors.emailsNotMatching"))
 
 			return
 		}
@@ -378,8 +377,8 @@ export const Account = memo(() => {
 
 	const deleteVersionedFiles = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "Delete versioned files",
-			message: "Are you sure you want to delete all versioned files? This action cannot be undone."
+			title: t("settings.account.prompts.deleteVersionedFiles1.title"),
+			message: t("settings.account.prompts.deleteVersionedFiles1.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -387,8 +386,8 @@ export const Account = memo(() => {
 		}
 
 		const confirmPrompt = await alertPrompt({
-			title: "Delete versioned files",
-			message: "sure?."
+			title: t("settings.account.prompts.deleteVersionedFiles2.title"),
+			message: t("settings.account.prompts.deleteVersionedFiles2.message")
 		})
 
 		if (confirmPrompt.cancelled) {
@@ -410,12 +409,12 @@ export const Account = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [account])
+	}, [account, t])
 
 	const deleteAllFilesAndDirectories = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "Delete all files and directories",
-			message: "Are you sure you want to delete all files and directories? This action cannot be undone."
+			title: t("settings.account.prompts.deleteAllFilesAndDirectories1.title"),
+			message: t("settings.account.prompts.deleteAllFilesAndDirectories1.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -423,8 +422,8 @@ export const Account = memo(() => {
 		}
 
 		const confirmPrompt = await alertPrompt({
-			title: "Delete versioned files",
-			message: "sure?."
+			title: t("settings.account.prompts.deleteAllFilesAndDirectories2.title"),
+			message: t("settings.account.prompts.deleteAllFilesAndDirectories2.message")
 		})
 
 		if (confirmPrompt.cancelled) {
@@ -446,12 +445,12 @@ export const Account = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [account])
+	}, [account, t])
 
 	const accountDeletion = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "Delete all files and directories",
-			message: "Are you sure you want to delete all files and directories? This action cannot be undone."
+			title: t("settings.account.prompts.deleteAccount.title"),
+			message: t("settings.account.prompts.deleteAccount.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -462,7 +461,7 @@ export const Account = memo(() => {
 
 		if (account.data?.settings.twoFactorEnabled) {
 			const twoFactorPrompt = await inputPrompt({
-				title: t("drive.header.rightView.actionSheet.create.directory"),
+				title: t("settings.account.prompts.2fa.title"),
 				materialIcon: {
 					name: "lock-outline"
 				},
@@ -470,7 +469,7 @@ export const Account = memo(() => {
 					type: "secure-text",
 					keyboardType: "default",
 					defaultValue: "",
-					placeholder: "Two-factor code"
+					placeholder: t("settings.account.prompts.2fa.placeholder")
 				}
 			})
 
@@ -506,8 +505,8 @@ export const Account = memo(() => {
 
 	const logout = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "Logout",
-			message: "Are you sure you want to logout? You will need to login again to access your account."
+			title: t("settings.account.prompts.logout.title"),
+			message: t("settings.account.prompts.logout.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -519,14 +518,14 @@ export const Account = memo(() => {
 		router.replace({
 			pathname: "/(auth)"
 		})
-	}, [router])
+	}, [router, t])
 
 	const items = useMemo(() => {
 		return [
 			{
 				id: "0",
 				title: contactName(account.data?.account.email, account.data?.account.nickName),
-				subTitle: "Change avatar",
+				subTitle: t("settings.account.items.changeAvatar"),
 				onPress: changeAvatar,
 				leftView: (
 					<Avatar
@@ -538,41 +537,41 @@ export const Account = memo(() => {
 					/>
 				)
 			},
-			"gap",
+			"gap-0",
 			{
 				id: "1",
-				title: "Email address",
+				title: t("settings.account.items.emailAddress"),
 				rightText: account.data?.account.email ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.email ?? "" : undefined,
 				onPress: changeEmail
 			},
 			{
-				id: "1321",
-				title: "Personal information",
+				id: "2",
+				title: t("settings.account.items.personalInformation"),
 				onPress: onPressPersonalInfo
 			},
 			{
-				id: "13212",
-				title: "Nickname",
+				id: "3",
+				title: t("settings.account.items.nickname"),
 				rightText: contactName(account.data?.account.email, account.data?.account.nickName),
 				subTitle: Platform.OS === "android" ? contactName(account.data?.account.email, account.data?.account.nickName) : undefined,
 				onPress: changeNickname
 			},
 			{
-				id: "12",
-				title: "GDPR info",
+				id: "4",
+				title: t("settings.account.items.gdpr"),
 				onPress: gdpr
 			},
 			{
-				id: "123",
-				title: "More account settings",
+				id: "5",
+				title: t("settings.account.items.more"),
 				onPress: openWebApp
 			},
 			"gap-1",
 			{
-				id: "1234",
-				title: "File versioning",
-				subTitle: "Enable file versioning to keep track of changes made to your files.",
+				id: "6",
+				title: t("settings.account.items.fileVersioning"),
+				subTitle: t("settings.account.items.fileVersioningInfo"),
 				rightView: (
 					<Toggle
 						value={account.data?.settings.versioningEnabled ?? false}
@@ -581,9 +580,9 @@ export const Account = memo(() => {
 				)
 			},
 			{
-				id: "1234x",
-				title: "Login alerts",
-				subTitle: "Receive alerts when your account is accessed.",
+				id: "7",
+				title: t("settings.account.items.loginAlerts"),
+				subTitle: t("settings.account.items.loginAlertsInfo"),
 				rightView: (
 					<Toggle
 						value={account.data?.settings.loginAlertsEnabled ?? false}
@@ -591,35 +590,35 @@ export const Account = memo(() => {
 					/>
 				)
 			},
-			"gap-33",
+			"gap-2",
 			{
-				id: "2xx",
-				title: "Delete versioned files",
+				id: "8",
+				title: t("settings.account.items.deleteVersionedFiles"),
 				rightText: formatBytes(account.data?.settings.versionedStorage ?? 0),
 				subTitle: Platform.OS === "android" ? formatBytes(account.data?.settings.versionedStorage ?? 0) : undefined,
 				destructive: true,
 				onPress: deleteVersionedFiles
 			},
 			{
-				id: "21111",
-				title: "Delete all files and directories",
+				id: "9",
+				title: t("settings.account.items.deleteAllFilesAndDirectories"),
 				rightText: formatBytes(account.data?.account.storage ?? 0),
 				subTitle: Platform.OS === "android" ? formatBytes(account.data?.account.storage ?? 0) : undefined,
 				destructive: true,
 				onPress: deleteAllFilesAndDirectories
 			},
-			"gap-34221",
+			"gap-3",
 			{
-				id: "232",
-				title: "Logout",
+				id: "10",
+				title: t("settings.account.items.logout"),
 				destructive: true,
 				onPress: logout
 			},
-			"gap-242",
+			"gap-4",
 			{
-				id: "312312",
-				title: "Request account deletion",
-				subTitle: "Request account deletion. We will send you an email with further instructions.",
+				id: "11",
+				title: t("settings.account.items.requestAccountDeletion"),
+				subTitle: t("settings.account.items.requestAccountDeletionInfo"),
 				destructive: true,
 				onPress: accountDeletion
 			}
@@ -638,12 +637,13 @@ export const Account = memo(() => {
 		onPressPersonalInfo,
 		deleteVersionedFiles,
 		deleteAllFilesAndDirectories,
-		accountDeletion
+		accountDeletion,
+		t
 	])
 
 	return (
 		<SettingsComponent
-			title="Account"
+			title={t("settings.account.title")}
 			showSearchBar={false}
 			loading={account.status !== "success"}
 			items={items}

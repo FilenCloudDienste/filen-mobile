@@ -5,6 +5,8 @@ import { simpleDate } from "@/lib/utils"
 import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "./item"
 import Container from "@/components/Container"
 import useDimensions from "@/hooks/useDimensions"
+import { useTranslation } from "react-i18next"
+import ListEmpty from "@/components/listEmpty"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -12,6 +14,7 @@ const contentContainerStyle = {
 
 export const List = memo(({ item }: { item: DriveCloudItem }) => {
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const query = useFileVersionsQuery({
 		uuid: item.uuid
@@ -56,6 +59,31 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 		}
 	}, [])
 
+	const listEmpty = useMemo(() => {
+		return (
+			<ListEmpty
+				queryStatus={query.status}
+				itemCount={versions.length}
+				texts={{
+					error: t("fileVersionHistory.list.error"),
+					empty: t("fileVersionHistory.list.empty"),
+					emptySearch: t("fileVersionHistory.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "clock-outline"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
+		)
+	}, [query.status, versions.length, t])
+
 	return (
 		<Container>
 			<ListComponent
@@ -66,6 +94,7 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 				contentInsetAdjustmentBehavior="automatic"
 				refreshing={query.status === "pending"}
 				contentContainerStyle={contentContainerStyle}
+				ListEmptyComponent={listEmpty}
 				removeClippedSubviews={true}
 				initialNumToRender={initialNumToRender}
 				maxToRenderPerBatch={maxToRenderPerBatch}

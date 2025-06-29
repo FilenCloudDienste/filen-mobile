@@ -28,6 +28,9 @@ import Transfers from "@/components/drive/header/transfers"
 import useDimensions from "@/hooks/useDimensions"
 import OfflineListHeader from "@/components/offlineListHeader"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
+import { useTranslation } from "react-i18next"
+import ListEmpty from "@/components/listEmpty"
+import alerts from "@/lib/alerts"
 
 const contentContainerStyle = {
 	paddingBottom: 100,
@@ -150,6 +153,7 @@ export const Photos = memo(() => {
 	const router = useRouter()
 	const syncState = useCameraUploadStore(useShallow(state => state.syncState))
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const queryParams = useMemo(
 		(): FetchCloudItemsParams => ({
@@ -244,7 +248,7 @@ export const Photos = memo(() => {
 									color={colors.primary}
 									size={24}
 								/>
-								<Text>Synced</Text>
+								<Text>{t("photos.state.synced")}</Text>
 							</View>
 						) : (
 							<View className="flex-row items-center gap-2">
@@ -253,7 +257,10 @@ export const Photos = memo(() => {
 									color={colors.foreground}
 								/>
 								<Text>
-									{syncState.done} of {syncState.count} items synced
+									{t("photos.state.syncingProgress", {
+										done: syncState.done,
+										total: syncState.count
+									})}
 								</Text>
 							</View>
 						)}
@@ -269,15 +276,15 @@ export const Photos = memo(() => {
 						}}
 					>
 						<Icon
-							name="stop-circle-outline"
-							color={colors.destructive}
+							name="cog-outline"
+							color={colors.primary}
 							size={24}
 						/>
 					</Button>
 				)}
 			</View>
 		)
-	}, [cameraUpload.enabled, colors.destructive, colors.primary, colors.foreground, router, syncState.count, syncState.done, hasInternet])
+	}, [cameraUpload.enabled, colors.primary, t, colors.foreground, router, syncState.count, syncState.done, hasInternet])
 
 	const headerRightView = useCallback(() => {
 		if (!hasInternet) {
@@ -291,7 +298,7 @@ export const Photos = memo(() => {
 					items={[
 						createDropdownItem({
 							actionKey: "settings",
-							title: "Settings",
+							title: t("photos.menu.settings"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -330,61 +337,59 @@ export const Photos = memo(() => {
 				</DropdownMenu>
 			</View>
 		)
-	}, [colors.primary, hasInternet, router])
+	}, [colors.primary, hasInternet, router, t])
+
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			foregroundCameraUpload.run().catch(console.error)
+
+			await query.refetch()
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
+	}, [query])
 
 	const refreshControl = useMemo(() => {
 		return (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					foregroundCameraUpload.run().catch(console.error)
-
-					await query.refetch().catch(console.error)
-
-					setRefreshing(false)
-				}}
+				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, query])
+	}, [refreshing, onRefresh])
 
 	const listEmpty = useMemo(() => {
 		return (
-			<View className="flex-1 items-center justify-center">
-				{query.status === "pending" && (
-					<Fragment>
-						{queryEnabled ? (
-							<ActivityIndicator color={colors.foreground} />
-						) : (
-							<Text
-								variant="title3"
-								className="text-muted-foreground text-center"
-							>
-								Setup first
-							</Text>
-						)}
-					</Fragment>
-				)}
-				{query.status === "error" && (
-					<Text
-						variant="title3"
-						className="text-muted-foreground text-center"
-					>
-						{query.error.message}
-					</Text>
-				)}
-				{query.status === "success" && (
-					<Text
-						variant="title3"
-						className="text-muted-foreground text-center"
-					>
-						No items found
-					</Text>
-				)}
-			</View>
+			<ListEmpty
+				queryStatus={query.status}
+				itemCount={items.length}
+				texts={{
+					error: t("photos.list.error"),
+					empty: t("photos.list.empty"),
+					emptySearch: t("photos.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "image-multiple-outline"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
 		)
-	}, [query.status, query.error, colors.foreground, queryEnabled])
+	}, [query.status, items.length, t])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {
@@ -418,7 +423,7 @@ export const Photos = memo(() => {
 	return (
 		<Fragment>
 			<LargeTitleHeader
-				title="Photos"
+				title={t("photos.title")}
 				backVisible={false}
 				materialPreset="stack"
 				leftView={headerLeftView}

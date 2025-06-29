@@ -3,7 +3,7 @@ import Container from "@/components/Container"
 import ListHeader from "@/components/notes/listHeader"
 import useNotesQuery from "@/queries/useNotesQuery"
 import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
-import { View, RefreshControl, ActivityIndicator, type ListRenderItemInfo, FlatList } from "react-native"
+import { View, RefreshControl, type ListRenderItemInfo, FlatList } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useNotesStore } from "@/stores/notes.store"
 import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
@@ -12,8 +12,10 @@ import mmkvInstance from "@/lib/mmkv"
 import { useMMKVString } from "react-native-mmkv"
 import Item from "@/components/notes/item"
 import Header from "@/components/notes/header"
-import { useColorScheme } from "@/lib/useColorScheme"
 import { useShallow } from "zustand/shallow"
+import alerts from "@/lib/alerts"
+import { useTranslation } from "react-i18next"
+import ListEmpty from "@/components/listEmpty"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -24,8 +26,8 @@ export const Notes = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const [selectedTag] = useMMKVString("selectedTag", mmkvInstance)
 	const setNotes = useNotesStore(useShallow(state => state.setNotes))
-	const { colors } = useColorScheme()
 	const listRef = useRef<FlatList<Note>>(null)
+	const { t } = useTranslation()
 
 	const notesQuery = useNotesQuery({})
 	const notesTagsQuery = useNotesTagsQuery({})
@@ -101,20 +103,30 @@ export const Notes = memo(() => {
 		})
 	}, [notesQuery.data, notesQuery.status, searchTerm, selectedTag])
 
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			await Promise.all([notesQuery.refetch(), notesTagsQuery.refetch()])
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
+	}, [notesQuery, notesTagsQuery])
+
 	const refreshControl = useMemo(() => {
 		return (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					await Promise.all([notesQuery.refetch(), notesTagsQuery.refetch()]).catch(console.error)
-
-					setRefreshing(false)
-				}}
+				onRefresh={onRefresh}
 			/>
 		)
-	}, [notesQuery, notesTagsQuery, refreshing])
+	}, [onRefresh, refreshing])
 
 	const renderItem = useCallback((info: ListRenderItemInfo<Note>) => {
 		return <Item note={info.item} />
@@ -123,61 +135,40 @@ export const Notes = memo(() => {
 	const listFooter = useMemo(() => {
 		return notes.length > 0 ? (
 			<View className="flex-row items-center justify-center h-16">
-				<Text className="text-sm">{notes.length} items</Text>
+				<Text className="text-sm">
+					{t("notes.list.footer", {
+						count: notes.length
+					})}
+				</Text>
 			</View>
 		) : undefined
-	}, [notes.length])
+	}, [notes.length, t])
 
 	const listEmpty = useMemo(() => {
-		if (notesQuery.status === "pending") {
-			return (
-				<View className="flex-row items-center justify-center h-16">
-					<ActivityIndicator
-						size="small"
-						color={colors.foreground}
-					/>
-				</View>
-			)
-		}
-
-		if (notesQuery.status === "error") {
-			return (
-				<View className="flex-row items-center justify-center h-16">
-					<Text className="text-sm">Error loading notes</Text>
-				</View>
-			)
-		}
-
-		if (notes.length === 0) {
-			if (searchTerm.length > 0) {
-				return (
-					<View className="flex-row items-center justify-center h-16">
-						<Text className="text-sm">No notes found for this search</Text>
-					</View>
-				)
-			}
-
-			if (selectedTag !== "all") {
-				return (
-					<View className="flex-row items-center justify-center h-16">
-						<Text className="text-sm">No notes found for this tag</Text>
-					</View>
-				)
-			}
-
-			return (
-				<View className="flex-row items-center justify-center h-16">
-					<Text className="text-sm">No notes found</Text>
-				</View>
-			)
-		}
-
 		return (
-			<View className="flex-row items-center justify-center h-16">
-				<Text className="text-sm">No notes found</Text>
-			</View>
+			<ListEmpty
+				queryStatus={notesQuery.status}
+				itemCount={notes.length}
+				searchTermLength={searchTerm.length}
+				texts={{
+					error: t("notes.list.error"),
+					empty: t("notes.list.empty"),
+					emptySearch: t("notes.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "book-open-outline"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
 		)
-	}, [notesQuery.status, notes.length, searchTerm, selectedTag, colors.foreground])
+	}, [notesQuery.status, notes.length, t, searchTerm.length])
 
 	useEffect(() => {
 		setNotes(notes)

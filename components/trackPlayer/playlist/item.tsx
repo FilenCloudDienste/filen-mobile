@@ -24,6 +24,7 @@ import { ListItem, type ListRenderItemInfo } from "../../nativewindui/List"
 import { Paths } from "expo-file-system/next"
 import { normalizeFilePathForExpo } from "@/lib/utils"
 import paths from "@/lib/paths"
+import { useTranslation } from "react-i18next"
 
 export type ListItemInfo = {
 	title: string
@@ -49,6 +50,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 	const updatePlaylistRemoteMutex = useRef<Semaphore>(new Semaphore(1))
 	const { playingTrack } = useTrackPlayerState()
 	const trackPlayerControls = useTrackPlayerControls()
+	const { t } = useTranslation()
 
 	const onPress = useCallback(async () => {
 		try {
@@ -91,7 +93,13 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 	}, [trackPlayerControls, info.item.playlist, info.index])
 
 	const actionSheetOptions = useMemo(() => {
-		const options = ["Play", "Add to playlist", "Add to queue", "Remove from playlist", "Cancel"]
+		const options = [
+			t("trackPlayer.playlist.item.menu.play"),
+			t("trackPlayer.playlist.item.menu.addToPlaylist"),
+			t("trackPlayer.playlist.item.menu.addToQueue"),
+			t("trackPlayer.playlist.item.menu.removeFromPlaylist"),
+			t("trackPlayer.playlist.item.menu.cancel")
+		]
 
 		return {
 			options,
@@ -104,7 +112,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 				3: "remove"
 			} as Record<number, "play" | "addToPlaylist" | "addToQueue" | "remove">
 		}
-	}, [])
+	}, [t])
 
 	const play = useCallback(() => {
 		onPress()
@@ -319,7 +327,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		return (
 			<View className="flex-row items-center px-4">
 				<Button
-					className="flex-row items-center  justify-center"
+					className="flex-row items-center justify-center"
 					size="icon"
 					variant="plain"
 					unstable_pressDelay={100}

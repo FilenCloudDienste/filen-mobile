@@ -5,6 +5,7 @@ import { View, Platform, Image } from "react-native"
 import { Link } from "expo-router"
 import Container from "@/components/Container"
 import { useColorScheme } from "@/lib/useColorScheme"
+import { useTranslation } from "react-i18next"
 
 const buttonSize = Platform.select({
 	ios: "lg",
@@ -13,6 +14,7 @@ const buttonSize = Platform.select({
 
 export const Index = memo(() => {
 	const { isDarkColorScheme } = useColorScheme()
+	const { t } = useTranslation()
 
 	const logoSource = useMemo(() => {
 		return isDarkColorScheme ? require("../../assets/images/logo_light.png") : require("../../assets/images/logo_dark.png")
@@ -29,8 +31,8 @@ export const Index = memo(() => {
 					/>
 				</View>
 				<View className="pb-5 pt-2">
-					<Text className="ios:font-extrabold text-center text-3xl font-medium">Brace Yourself</Text>
-					<Text className="ios:font-extrabold text-center text-3xl font-medium">for whats Next</Text>
+					<Text className="ios:font-extrabold text-center text-3xl font-medium">{t("auth.index.hero.1")}</Text>
+					<Text className="ios:font-extrabold text-center text-3xl font-medium">{t("auth.index.hero.2")}</Text>
 				</View>
 				<Link
 					href="/(auth)/register"
@@ -40,7 +42,7 @@ export const Index = memo(() => {
 						variant="primary"
 						size={buttonSize}
 					>
-						<Text>Sign up for free</Text>
+						<Text>{t("auth.index.signUp")}</Text>
 					</Button>
 				</Link>
 				<Link
@@ -51,7 +53,7 @@ export const Index = memo(() => {
 						variant="plain"
 						size={buttonSize}
 					>
-						<Text className="text-primary">Log in</Text>
+						<Text className="text-primary">{t("auth.index.login")}</Text>
 					</Button>
 				</Link>
 			</View>

@@ -35,10 +35,8 @@ export const IOS = memo(({ headerTitle, queryParams }: { headerTitle: string; qu
 	const searchBar = useMemo(() => {
 		return {
 			ref: searchBarRef?.current ? (searchBarRef as React.RefObject<AdaptiveSearchBarRef>) : undefined,
-			iosCancelButtonText: "Abort",
 			iosHideWhenScrolling: false,
-			onChangeText: (text: string) => setSearchTerm(text),
-			placeholder: "Search...",
+			onChangeText: setSearchTerm,
 			content: (
 				<Search
 					searchTerm={searchTerm}

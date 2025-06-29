@@ -20,6 +20,7 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
+import { useTranslation } from "react-i18next"
 
 export const LIST_ITEM_HEIGHT = Platform.select({
 	ios: 71,
@@ -31,6 +32,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 	const { push: routerPush } = useRouter()
 	const { colors } = useColorScheme()
 	const { hasInternet } = useNetInfo()
+	const { t } = useTranslation()
 
 	const avatarSource = useMemo(() => {
 		const participants = info.item.participants
@@ -92,7 +94,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 			})
 
 			if (!cachedChat) {
-				alerts.error("You are offline.")
+				alerts.error(t("errors.youAreOffline"))
 
 				return
 			}
@@ -106,7 +108,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 				uuid: info.item.uuid
 			}
 		})
-	}, [info.item.uuid, routerPush, markAsRead, hasInternet])
+	}, [info.item.uuid, routerPush, markAsRead, hasInternet, t])
 
 	return (
 		<Menu

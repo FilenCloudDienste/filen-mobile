@@ -14,23 +14,7 @@ export type TransfersStore = {
 }
 
 export const useTransfersStore = create<TransfersStore>()(set => ({
-	transfers: [
-		{
-			id: "1234",
-			type: "upload",
-			itemType: "file",
-			uuid: "123",
-			state: "started",
-			bytes: 500,
-			name: "test.txt",
-			size: 1337,
-			startedTimestamp: Date.now(),
-			finishedTimestamp: Date.now(),
-			queuedTimestamp: Date.now(),
-			errorTimestamp: Date.now(),
-			progressTimestamp: Date.now()
-		}
-	],
+	transfers: [],
 	finishedTransfers: [],
 	speed: 0,
 	remaining: 0,

@@ -24,6 +24,7 @@ import { type DOCXPreviewItem } from "@/app/docxPreview"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import cache from "@/lib/cache"
+import { useTranslation } from "react-i18next"
 
 export type ListItemInfo = {
 	title: string
@@ -62,6 +63,7 @@ export const ListItem = memo(
 		const { hasInternet } = useNetInfo()
 		const pathname = usePathname()
 		const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
+		const { t } = useTranslation()
 
 		const directorySize = useDirectorySizeQuery({
 			uuid: info.item.item.uuid,
@@ -198,12 +200,12 @@ export const ListItem = memo(
 					pathname: pathname.startsWith("/home/links")
 						? "/home/links/[uuid]"
 						: pathname.startsWith("/home/sharedOut")
-							? "/home/sharedOut/[uuid]"
-							: pathname.startsWith("/home/sharedIn")
-								? "/home/sharedIn/[uuid]"
-								: pathname.startsWith("/home/offline")
-									? "/home/offline/[uuid]"
-									: "/drive/[uuid]",
+						? "/home/sharedOut/[uuid]"
+						: pathname.startsWith("/home/sharedIn")
+						? "/home/sharedIn/[uuid]"
+						: pathname.startsWith("/home/offline")
+						? "/home/offline/[uuid]"
+						: "/drive/[uuid]",
 					params: {
 						uuid: info.item.item.uuid,
 						...(info.item.item.isShared
@@ -213,7 +215,7 @@ export const ListItem = memo(
 									receivers: JSON.stringify(info.item.item.receivers),
 									sharerId: info.item.item.sharerId,
 									sharerEmail: info.item.item.sharerEmail
-								}
+							  }
 							: {})
 					}
 				})
@@ -225,7 +227,7 @@ export const ListItem = memo(
 
 			if (!hasInternet || offlineStatus?.exists) {
 				if (!offlineStatus || !offlineStatus.exists) {
-					alerts.error("You are offline.")
+					alerts.error(t("errors.youAreOffline"))
 
 					return
 				}
@@ -261,7 +263,7 @@ export const ListItem = memo(
 											item,
 											queryParams
 										}
-									}
+								  }
 								: null
 						})
 						.filter(item => item !== null)
@@ -329,7 +331,8 @@ export const ListItem = memo(
 			items,
 			queryParams,
 			fromSearch,
-			onPressFromSearch
+			onPressFromSearch,
+			t
 		])
 
 		if (gridModeEnabled && !fromSearch) {

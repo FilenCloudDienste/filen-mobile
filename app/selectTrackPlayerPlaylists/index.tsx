@@ -3,7 +3,7 @@ import { type Playlist, usePlaylistsQuery } from "@/queries/usePlaylistsQuery"
 import RequireInternet from "@/components/requireInternet"
 import { useCallback, useState, useMemo, useEffect } from "react"
 import events from "@/lib/events"
-import { RefreshControl, Platform } from "react-native"
+import { RefreshControl, Platform, View } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useLocalSearchParams, useRouter } from "expo-router"
@@ -17,6 +17,9 @@ import { Button } from "@/components/nativewindui/Button"
 import { useShallow } from "zustand/shallow"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useDimensions from "@/hooks/useDimensions"
+import alerts from "@/lib/alerts"
+import { useTranslation } from "react-i18next"
+import ListEmpty from "@/components/listEmpty"
 
 export type SelectTrackPlayerPlaylistsResponse =
 	| {
@@ -80,6 +83,7 @@ export default function SelectTrackPlayerPlaylists() {
 	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo } = useRouter()
 	const setSelectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.setSelectedPlaylists))
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const playlistsQuery = usePlaylistsQuery({})
 
@@ -103,10 +107,13 @@ export default function SelectTrackPlayerPlaylists() {
 			.map(playlist => ({
 				id: playlist.uuid,
 				title: playlist.name,
-				subTitle: `${playlist.files.length} files, updated ${formatMessageDate(playlist.updated)}`,
+				subTitle: t("selectTrackPlayerPlaylists.item.subTitle", {
+					count: playlist.files.length,
+					updated: formatMessageDate(playlist.updated)
+				}),
 				playlist
 			})) satisfies ListItemInfo[]
-	}, [playlistsQuery.data, playlistsQuery.status, searchTerm])
+	}, [playlistsQuery.data, playlistsQuery.status, searchTerm, t])
 
 	const renderItem = useCallback(
 		(info: ListRenderItemInfo<ListItemInfo>) => {
@@ -157,25 +164,76 @@ export default function SelectTrackPlayerPlaylists() {
 		}
 	}, [])
 
+	const listEmpty = useMemo(() => {
+		return (
+			<ListEmpty
+				queryStatus={playlistsQuery.status}
+				itemCount={playlists.length}
+				texts={{
+					error: t("selectTrackPlayerPlaylists.list.error"),
+					empty: t("selectTrackPlayerPlaylists.list.empty"),
+					emptySearch: t("selectTrackPlayerPlaylists.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "playlist-music"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
+		)
+	}, [playlistsQuery.status, playlists.length, t])
+
+	const listFooter = useMemo(() => {
+		return (
+			<View className="flex flex-row items-center justify-center h-16 p-4">
+				<Text className="text-sm">
+					{t("selectTrackPlayerPlaylists.list.footer", {
+						count: playlists.length
+					})}
+				</Text>
+			</View>
+		)
+	}, [playlists.length, t])
+
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			await playlistsQuery.refetch()
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
+	}, [playlistsQuery])
+
 	const refreshControl = useMemo(() => {
 		return (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					await playlistsQuery.refetch().catch(console.error)
-
-					setRefreshing(false)
-				}}
+				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, playlistsQuery])
+	}, [refreshing, onRefresh])
 
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
 			<AdaptiveSearchHeader
-				iosTitle={maxParsed === 1 ? "Select playlist" : "Select playlists"}
+				iosTitle={
+					maxParsed === 1
+						? t("selectTrackPlayerPlaylists.header.selectPlaylist")
+						: t("selectTrackPlayerPlaylists.header.selectPlaylists")
+				}
 				iosIsLargeTitle={false}
 				iosBackButtonMenuEnabled={true}
 				backgroundColor={colors.card}
@@ -185,20 +243,24 @@ export default function SelectTrackPlayerPlaylists() {
 							variant="plain"
 							onPress={cancel}
 						>
-							<Text className="text-blue-500">Cancel</Text>
+							<Text className="text-blue-500">{t("selectTrackPlayerPlaylists.header.cancel")}</Text>
 						</Button>
 					)
 				}}
 				searchBar={{
 					iosHideWhenScrolling: false,
-					onChangeText: text => setSearchTerm(text),
+					onChangeText: setSearchTerm,
 					contentTransparent: true,
 					persistBlur: true
 				}}
 			/>
 		) : (
 			<LargeTitleHeader
-				title={maxParsed === 1 ? "Select playlist" : "Select playlists"}
+				title={
+					maxParsed === 1
+						? t("selectTrackPlayerPlaylists.header.selectPlaylist")
+						: t("selectTrackPlayerPlaylists.header.selectPlaylists")
+				}
 				materialPreset="inline"
 				backVisible={false}
 				backgroundColor={colors.card}
@@ -208,24 +270,24 @@ export default function SelectTrackPlayerPlaylists() {
 							variant="plain"
 							onPress={cancel}
 						>
-							<Text className="text-blue-500">Cancel</Text>
+							<Text className="text-blue-500">{t("selectTrackPlayerPlaylists.header.cancel")}</Text>
 						</Button>
 					)
 				}}
 				searchBar={{
-					onChangeText: text => setSearchTerm(text),
+					onChangeText: setSearchTerm,
 					contentTransparent: true,
 					persistBlur: true
 				}}
 			/>
 		)
-	}, [cancel, colors.card, maxParsed])
+	}, [cancel, colors.card, maxParsed, t])
 
 	useEffect(() => {
 		setSelectedPlaylists([])
 
 		return () => {
-			events.emit("selectDriveItems", {
+			events.emit("selectTrackPlayerPlaylists", {
 				type: "response",
 				data: {
 					id: typeof id === "string" ? id : "none",
@@ -247,6 +309,8 @@ export default function SelectTrackPlayerPlaylists() {
 					showsHorizontalScrollIndicator={false}
 					contentInsetAdjustmentBehavior="automatic"
 					contentContainerStyle={contentContainerStyle}
+					ListEmptyComponent={listEmpty}
+					ListFooterComponent={listFooter}
 					refreshing={refreshing}
 					refreshControl={refreshControl}
 					removeClippedSubviews={true}

@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next"
 
 export const Action = memo(({ lockedSeconds, pinAuth }: { lockedSeconds: number; pinAuth: () => Promise<void> }) => {
 	const [seconds, setSeconds] = useState<number>(lockedSeconds)
+	const { t } = useTranslation()
 
 	useEffect(() => {
 		if (lockedSeconds <= 0) {
@@ -39,14 +40,18 @@ export const Action = memo(({ lockedSeconds, pinAuth }: { lockedSeconds: number;
 	}, [lockedSeconds])
 
 	return seconds > 0 ? (
-		<Text className="text-foreground font-normal">App locked for {seconds} seconds.</Text>
+		<Text className="text-foreground font-normal">
+			{t("biometric.appLockedFor", {
+				seconds
+			})}
+		</Text>
 	) : (
 		<Button
 			variant="plain"
 			size={Platform.OS === "ios" ? "none" : "md"}
 			onPress={pinAuth}
 		>
-			<Text className="text-primary">Authenticate using PIN</Text>
+			<Text className="text-primary">{t("biometric.authenticateUsingPin")}</Text>
 		</Button>
 	)
 })
@@ -151,8 +156,8 @@ export const Biometric = memo(() => {
 			}
 
 			const result = await LocalAuthentication.authenticateAsync({
-				cancelLabel: "Cancel",
-				promptMessage: "Authenticate to unlock the app",
+				cancelLabel: t("localAuthentication.cancelLabel"),
+				promptMessage: t("localAuthentication.promptMessage"),
 				disableDeviceFallback: true,
 				fallbackLabel: ""
 			})
@@ -169,7 +174,7 @@ export const Biometric = memo(() => {
 				alerts.error(e.message)
 			}
 		}
-	}, [canPromptLocalAuthentication, authenticated])
+	}, [canPromptLocalAuthentication, authenticated, t])
 
 	const onBackButtonPress = useCallback(() => {
 		if (show) {
@@ -185,7 +190,7 @@ export const Biometric = memo(() => {
 		}
 
 		const codePrompt = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("biometric.prompts.pin.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -193,7 +198,7 @@ export const Biometric = memo(() => {
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: "Two-factor code"
+				placeholder: t("biometric.prompts.pin.placeholder")
 			}
 		})
 
@@ -224,7 +229,7 @@ export const Biometric = memo(() => {
 						: prev
 				)
 
-				alerts.error("Too many incorrect attempts. Please try again later.")
+				alerts.error(t("biometric.errors.tooManyIncorrectAttempts"))
 
 				return
 			}
@@ -238,7 +243,7 @@ export const Biometric = memo(() => {
 					: prev
 			)
 
-			alerts.error("Incorrect code. Please try again.")
+			alerts.error(t("biometric.errors.incorrectPin"))
 
 			return
 		}

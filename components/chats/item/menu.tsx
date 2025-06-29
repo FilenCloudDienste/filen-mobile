@@ -181,8 +181,8 @@ export const Menu = memo(
 
 		const leave = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
-				title: "leave",
-				message: "Are u sure"
+				title: t("chats.prompts.leaveChat.title"),
+				message: t("chats.prompts.leaveChat.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -213,12 +213,12 @@ export const Menu = memo(
 					router.back()
 				}
 			}
-		}, [chat.uuid, insideChat, router, userId])
+		}, [chat.uuid, insideChat, router, userId, t])
 
 		const deleteChat = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
-				title: "delete",
-				message: "Are u sure"
+				title: t("chats.prompts.deleteChat.title"),
+				message: t("chats.prompts.deleteChat.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -248,19 +248,19 @@ export const Menu = memo(
 					router.back()
 				}
 			}
-		}, [chat.uuid, insideChat, router])
+		}, [chat.uuid, insideChat, router, t])
 
 		const rename = useCallback(async () => {
 			const inputPromptResponse = await inputPrompt({
-				title: t("drive.header.rightView.actionSheet.create.directory"),
+				title: t("chats.prompts.renameChat.title"),
 				materialIcon: {
-					name: "folder-plus-outline"
+					name: "pencil"
 				},
 				prompt: {
 					type: "plain-text",
 					keyboardType: "default",
 					defaultValue: "",
-					placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+					placeholder: t("chats.prompts.renameChat.placeholder")
 				}
 			})
 
@@ -475,6 +475,14 @@ export const Menu = memo(
 			)
 		}, [chat, screen.width, screen.height])
 
+		const renderPreview = useMemo(() => {
+			return hasInternet && (isPortrait || isTablet) ? iosRenderPreview : undefined
+		}, [iosRenderPreview, hasInternet, isPortrait, isTablet])
+
+		const contextKey = useMemo(() => {
+			return !hasInternet ? undefined : `${isPortrait}:${isTablet}`
+		}, [hasInternet, isPortrait, isTablet])
+
 		if (menuItems.length === 0) {
 			return children
 		}
@@ -484,8 +492,8 @@ export const Menu = memo(
 				<ContextMenu
 					items={menuItems}
 					onItemPress={onItemPress}
-					key={!hasInternet ? undefined : `${isPortrait}:${isTablet}`}
-					iosRenderPreview={hasInternet && (isPortrait || isTablet) ? iosRenderPreview : undefined}
+					key={contextKey}
+					iosRenderPreview={renderPreview}
 				>
 					{children}
 				</ContextMenu>

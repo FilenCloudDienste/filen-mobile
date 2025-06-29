@@ -5,7 +5,6 @@ import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import { RefreshControl, View, Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
-import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import Container from "@/components/Container"
@@ -21,6 +20,9 @@ import { useShallow } from "zustand/shallow"
 import { type PreviewType } from "@/stores/gallery.store"
 import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
+import { useTranslation } from "react-i18next"
+import ListEmpty from "@/components/listEmpty"
+import alerts from "@/lib/alerts"
 
 export type ListItemInfo = {
 	title: string
@@ -93,6 +95,7 @@ export default function SelectDriveItems() {
 	const setSelectedItems = useSelectDriveItemsStore(useShallow(state => state.setSelectedItems))
 	const [{ baseFolderUUID }] = useSDKConfig()
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const maxParsed = useMemo(() => {
 		return typeof max === "string" ? parseInt(max) : 1
@@ -139,7 +142,7 @@ export default function SelectDriveItems() {
 			type: "nameAsc"
 		}).map(item => ({
 			id: item.uuid,
-			title: `${item.favorited ? "(F) " : ""}${item.name}`,
+			title: item.name,
 			subTitle:
 				item.type === "directory"
 					? simpleDate(item.lastModified)
@@ -183,13 +186,13 @@ export default function SelectDriveItems() {
 		return typeof parent !== "string" || !cache.directoryUUIDToName.has(parent)
 			? typeParsed === "file"
 				? maxParsed === 1
-					? "Select file"
-					: "Select files"
+					? t("selectDriveItems.header.selectFile")
+					: t("selectDriveItems.header.selectFiles")
 				: maxParsed === 1
-				? "Select directory"
-				: "Select directories"
-			: cache.directoryUUIDToName.get(parent) ?? "Drive"
-	}, [parent, typeParsed, maxParsed])
+				? t("selectDriveItems.header.selectDirectory")
+				: t("selectDriveItems.header.selectDirectories")
+			: cache.directoryUUIDToName.get(parent) ?? t("selectDriveItems.header.drive")
+	}, [parent, typeParsed, maxParsed, t])
 
 	const cancel = useCallback(() => {
 		if (!routerCanGoBack()) {
@@ -220,13 +223,13 @@ export default function SelectDriveItems() {
 							variant="plain"
 							onPress={cancel}
 						>
-							<Text className="text-blue-500">Cancel</Text>
+							<Text className="text-blue-500">{t("selectDriveItems.header.cancel")}</Text>
 						</Button>
 					)
 				}}
 				searchBar={{
 					iosHideWhenScrolling: false,
-					onChangeText: text => setSearchTerm(text),
+					onChangeText: setSearchTerm,
 					contentTransparent: true,
 					persistBlur: true
 				}}
@@ -243,57 +246,80 @@ export default function SelectDriveItems() {
 							variant="plain"
 							onPress={cancel}
 						>
-							<Text className="text-blue-500">Cancel</Text>
+							<Text className="text-blue-500">{t("selectDriveItems.header.cancel")}</Text>
 						</Button>
 					)
 				}}
 				searchBar={{
-					onChangeText: text => setSearchTerm(text),
+					onChangeText: setSearchTerm,
 					contentTransparent: true,
 					persistBlur: true
 				}}
 			/>
 		)
-	}, [baseFolderUUID, colors.card, headerTitle, parent, cancel])
+	}, [baseFolderUUID, colors.card, headerTitle, parent, cancel, t])
 
 	const listEmpty = useMemo(() => {
 		return (
-			<View className="flex-1 items-center justify-center">
-				{query.status === "success" ? (
-					searchTerm.length > 0 ? (
-						<Text>Nothing found</Text>
-					) : (
-						<Text>No items</Text>
-					)
-				) : (
-					<ActivityIndicator color={colors.foreground} />
-				)}
-			</View>
+			<ListEmpty
+				queryStatus={query.status}
+				itemCount={items.length}
+				texts={{
+					error: t("selectDriveItems.list.error"),
+					empty: t("selectDriveItems.list.empty"),
+					emptySearch: t("selectDriveItems.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "file-document-outline"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
 		)
-	}, [query.status, searchTerm, colors.foreground])
+	}, [query.status, items.length, t])
 
 	const listFooter = useMemo(() => {
 		return (
 			<View className="flex flex-row items-center justify-center h-16 p-4">
-				<Text className="text-sm">{items.length} items</Text>
+				<Text className="text-sm">
+					{t("selectDriveItems.list.footer", {
+						count: items.length
+					})}
+				</Text>
 			</View>
 		)
-	}, [items.length])
+	}, [items.length, t])
+
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			await query.refetch()
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
+	}, [query])
 
 	const refreshControl = useMemo(() => {
 		return (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					await query.refetch().catch(() => {})
-
-					setRefreshing(false)
-				}}
+				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, query])
+	}, [refreshing, onRefresh])
 
 	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
 		return {

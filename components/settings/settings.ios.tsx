@@ -116,7 +116,7 @@ export const Settings = memo((props: SettingsProps) => {
 	const headerSearchBar = useMemo(() => {
 		return props.showSearchBar
 			? {
-					iosHideWhenScrolling: true
+					iosHideWhenScrolling: false
 			  }
 			: undefined
 	}, [props.showSearchBar])

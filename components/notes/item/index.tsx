@@ -20,6 +20,7 @@ import events from "@/lib/events"
 import queryUtils from "@/queries/utils"
 import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
+import { useTranslation } from "react-i18next"
 
 const ICON_SIZE = 24
 
@@ -28,6 +29,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 	const [{ userId }] = useSDKConfig()
 	const { colors } = useColorScheme()
 	const { hasInternet } = useNetInfo()
+	const { t } = useTranslation()
 
 	const hasWriteAccess = useMemo(() => {
 		if (note.isOwner) {
@@ -73,7 +75,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 			})
 
 			if (!cachedContent) {
-				alerts.error("You are offline.")
+				alerts.error(t("errors.youAreOffline"))
 
 				return
 			}
@@ -85,7 +87,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 				uuid: note.uuid
 			}
 		})
-	}, [routerPush, note.uuid, hasInternet])
+	}, [routerPush, note.uuid, hasInternet, t])
 
 	const noop = useCallback(() => {}, [])
 

@@ -18,6 +18,7 @@ import { useChatsStore } from "@/stores/chats.store"
 import { useShallow } from "zustand/shallow"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import useNetInfo from "@/hooks/useNetInfo"
+import { useTranslation } from "react-i18next"
 
 export const MENTION_REGEX = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/g
 export const customEmojisList = customEmojis.map(emoji => emoji.id)
@@ -66,6 +67,7 @@ Mention.displayName = "Mention"
 
 export const CodeBlock = memo(({ match }: { match: string }) => {
 	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
+	const { t } = useTranslation()
 
 	const code = useMemo(() => {
 		let code = match.split("```").join("").trim()
@@ -89,7 +91,7 @@ export const CodeBlock = memo(({ match }: { match: string }) => {
 
 				await Clipboard.setStringAsync(code)
 
-				alerts.normal("Copied to clipboard.")
+				alerts.normal(t("copiedToClipboard"))
 			} catch (e) {
 				console.error(e)
 
@@ -98,7 +100,7 @@ export const CodeBlock = memo(({ match }: { match: string }) => {
 				}
 			}
 		},
-		[code]
+		[code, t]
 	)
 
 	return (
@@ -178,6 +180,8 @@ export const ReplacedMessageContent = memo(
 		embedsDisabled: boolean
 		edited: boolean
 	}) => {
+		const { t } = useTranslation()
+
 		const replaced = useMemo(() => {
 			const emojiCount = message.message.match(emojiRegexWithSkinTones)
 			const defaultSize = typeof emojiSize === "number" ? emojiSize : 32
@@ -198,17 +202,17 @@ export const ReplacedMessageContent = memo(
 						const email = match.slice(1).trim()
 
 						if (email === "everyone") {
-							return <Mention name="everyone" />
+							return <Mention name={t("chats.messages.everyone")} />
 						}
 
 						if (!email.includes("@")) {
-							return <Mention name="Unknown" />
+							return <Mention name={t("chats.messages.unknown")} />
 						}
 
 						const foundParticipant = chat.participants.find(p => p.email === email)
 
 						if (!foundParticipant) {
-							return <Mention name="Unknown" />
+							return <Mention name={t("chats.messages.unknown")} />
 						}
 
 						return (
@@ -272,7 +276,7 @@ export const ReplacedMessageContent = memo(
 			}
 
 			return regexed
-		}, [message.message, chat.participants, emojiSize, embedsDisabled, edited])
+		}, [message.message, chat.participants, emojiSize, embedsDisabled, edited, t])
 
 		return (
 			<View className="flex-1 flex-row flex-wrap text-wrap justify-start break-all items-center">
@@ -317,6 +321,8 @@ export const ReplacedMessageContentInline = memo(
 		emojiSize?: number
 		linkClassName?: string
 	}) => {
+		const { t } = useTranslation()
+
 		const replaced = useMemo(() => {
 			const regexed = regexifyString({
 				pattern: messageContentRegex,
@@ -325,17 +331,17 @@ export const ReplacedMessageContentInline = memo(
 						const email = match.slice(1).trim()
 
 						if (email === "everyone") {
-							return <Text className={cn(textClassName, "text-foreground")}>@everyone</Text>
+							return <Text className={cn(textClassName, "text-foreground")}>@{t("chats.messages.everyone")}</Text>
 						}
 
 						if (!email.includes("@")) {
-							return <Text className={cn(textClassName, "text-foreground")}>@Unknown</Text>
+							return <Text className={cn(textClassName, "text-foreground")}>@{t("chats.messages.unknown")}</Text>
 						}
 
 						const foundParticipant = chat.participants.find(p => p.email === email)
 
 						if (!foundParticipant) {
-							return <Text className={cn(textClassName, "text-foreground")}>@Unknown</Text>
+							return <Text className={cn(textClassName, "text-foreground")}>@{t("chats.messages.everyone")}</Text>
 						}
 
 						return (
@@ -389,7 +395,7 @@ export const ReplacedMessageContentInline = memo(
 			})
 
 			return regexed
-		}, [message.message, chat.participants, textClassName, emojiSize, linkClassName])
+		}, [message.message, chat.participants, textClassName, emojiSize, linkClassName, t])
 
 		return (
 			<View className="flex-1 flex-row flex-wrap text-wrap justify-start items-center">

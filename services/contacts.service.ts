@@ -10,8 +10,8 @@ import { t } from "@/lib/i18n"
 export class ContactsService {
 	public async remove(params: Parameters<typeof nodeWorker.proxy<"removeContact">>[1]) {
 		const alertPromptResponse = await alertPrompt({
-			title: "Remove Contact",
-			message: "Are you sure you want to remove this contact? This action cannot be undone."
+			title: t("settings.contacts.prompts.remove.title"),
+			message: t("settings.contacts.prompts.remove.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -40,8 +40,8 @@ export class ContactsService {
 
 	public async block(params: Parameters<typeof nodeWorker.proxy<"blockContact">>[1]) {
 		const alertPromptResponse = await alertPrompt({
-			title: "Block Contact",
-			message: "Are you sure you want to block this contact?"
+			title: t("settings.contacts.prompts.block.title"),
+			message: t("settings.contacts.prompts.block.title")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -74,8 +74,8 @@ export class ContactsService {
 
 	public async unblock(params: Parameters<typeof nodeWorker.proxy<"unblockContact">>[1]) {
 		const alertPromptResponse = await alertPrompt({
-			title: "Unblock Contact",
-			message: "Are you sure you want to unblock this contact?"
+			title: t("settings.contacts.prompts.unblock.title"),
+			message: t("settings.contacts.prompts.unblock.title")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -181,7 +181,7 @@ export class ContactsService {
 
 	public async sendRequest() {
 		const inputPromptResponse = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("settings.contacts.prompts.sendRequest.title"),
 			materialIcon: {
 				name: "email"
 			},
@@ -189,7 +189,7 @@ export class ContactsService {
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+				placeholder: t("settings.contacts.prompts.sendRequest.placeholder")
 			}
 		})
 
@@ -213,6 +213,12 @@ export class ContactsService {
 			await queryClient.refetchQueries({
 				queryKey: ["useContactsRequestsQuery"]
 			})
+
+			alerts.normal(
+				t("settings.contacts.prompts.sendRequest.success", {
+					email
+				})
+			)
 		} catch (e) {
 			console.error(e)
 

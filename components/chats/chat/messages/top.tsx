@@ -8,10 +8,12 @@ import nodeWorker from "@/lib/nodeWorker"
 import queryUtils from "@/queries/utils"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import Container from "@/components/Container"
+import { useTranslation } from "react-i18next"
 
 export const Top = memo(({ chat, messages, lastFocus }: { chat: ChatConversation; messages: ChatMessage[]; lastFocus: number | null }) => {
 	const headerHeight = useHeaderHeight()
 	const [{ userId }] = useSDKConfig()
+	const { t } = useTranslation()
 
 	const lastMessagesSince = useMemo(() => {
 		if (!lastFocus || messages.length === 0) {
@@ -97,7 +99,9 @@ export const Top = memo(({ chat, messages, lastFocus }: { chat: ChatConversation
 					numberOfLines={1}
 					className="flex-1 font-normal"
 				>
-					{lastMessagesSince} new messages
+					{t("chats.header.newMessages", {
+						count: lastMessagesSince
+					})}
 				</Text>
 			</Container>
 		</Button>

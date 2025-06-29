@@ -4,6 +4,7 @@ import { type AlertRef, type AlertProps, type AlertInputValue } from "../nativew
 import { type AlertButton } from "react-native"
 import events from "@/lib/events"
 import { randomUUID } from "expo-crypto"
+import { useTranslation } from "react-i18next"
 
 export type AlertPromptParams = DistributiveOmit<AlertProps, "buttons" | "children"> & {
 	id: string
@@ -55,11 +56,12 @@ export function alertPrompt(params: DistributiveOmit<AlertPromptParams, "id">): 
 
 export const AlertPrompt = memo(() => {
 	const alertRef = useRef<AlertRef>(null)
+	const { t } = useTranslation()
 	const [state, setState] = useState<AlertPromptParams>({
 		id: "none",
-		title: "Title",
-		okText: "OK",
-		cancelText: "Cancel"
+		title: t("alertPrompt.defaults.title"),
+		okText: t("alertPrompt.defaults.okText"),
+		cancelText: t("alertPrompt.defaults.cancelText")
 	})
 
 	const buttons = useMemo((): (Omit<AlertButton, "onPress"> & {
@@ -67,7 +69,7 @@ export const AlertPrompt = memo(() => {
 	})[] => {
 		return [
 			{
-				text: state.cancelText ?? "Cancel",
+				text: state.cancelText ?? t("alertPrompt.defaults.cancelText"),
 				style: "cancel",
 				onPress: () => {
 					events.emit("alertPrompt", {
@@ -80,7 +82,7 @@ export const AlertPrompt = memo(() => {
 				}
 			},
 			{
-				text: state.okText ?? "OK",
+				text: state.okText ?? t("alertPrompt.defaults.okText"),
 				onPress: () => {
 					events.emit("alertPrompt", {
 						type: "response",
@@ -92,7 +94,7 @@ export const AlertPrompt = memo(() => {
 				}
 			}
 		]
-	}, [state.id, state.cancelText, state.okText])
+	}, [state.id, state.cancelText, state.okText, t])
 
 	useEffect(() => {
 		const sub = events.subscribe("alertPrompt", e => {

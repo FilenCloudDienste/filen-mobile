@@ -647,7 +647,7 @@ export const Menu = memo(
 				const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
 
 				if (freeDiskSpace <= content.length + 1024 * 1024) {
-					throw new Error("Not enough local disk space available.")
+					throw new Error(t("errors.notEnoughDiskSpace"))
 				}
 
 				const fileName = `${sanitizeFileName(note.title)}.txt`
@@ -682,13 +682,13 @@ export const Menu = memo(
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
-		}, [note.uuid, note.title, note.type])
+		}, [note.uuid, note.title, note.type, t])
 
 		const copyId = useCallback(async () => {
 			try {
 				await Clipboard.setStringAsync(note.uuid)
 
-				alerts.normal("Note ID copied to clipboard")
+				alerts.normal(t("copiedToClipboard"))
 			} catch (e) {
 				console.error(e)
 
@@ -696,7 +696,7 @@ export const Menu = memo(
 					alerts.error(e.message)
 				}
 			}
-		}, [note.uuid])
+		}, [note.uuid, t])
 
 		const archive = useCallback(async () => {
 			fullScreenLoadingModal.show()
@@ -731,8 +731,8 @@ export const Menu = memo(
 
 		const trash = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
-				title: "trash",
-				message: "Are u sure"
+				title: t("notes.prompts.trashNote.title"),
+				message: t("notes.prompts.trashNote.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -768,7 +768,7 @@ export const Menu = memo(
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
-		}, [note.uuid])
+		}, [note.uuid, t])
 
 		const restore = useCallback(async () => {
 			fullScreenLoadingModal.show()
@@ -804,15 +804,15 @@ export const Menu = memo(
 
 		const rename = useCallback(async () => {
 			const inputPromptResponse = await inputPrompt({
-				title: t("drive.header.rightView.actionSheet.create.directory"),
+				title: t("notes.prompts.renameNote.title"),
 				materialIcon: {
-					name: "folder-plus-outline"
+					name: "pencil"
 				},
 				prompt: {
 					type: "plain-text",
 					keyboardType: "default",
 					defaultValue: note.title,
-					placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+					placeholder: t("notes.prompts.renameNote.placeholder")
 				}
 			})
 
@@ -859,8 +859,8 @@ export const Menu = memo(
 
 		const deleteNote = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
-				title: "delete",
-				message: "Are u sure"
+				title: t("notes.prompts.deleteNote.title"),
+				message: t("notes.prompts.deleteNote.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -890,12 +890,12 @@ export const Menu = memo(
 					router.back()
 				}
 			}
-		}, [note.uuid, insideNote, router])
+		}, [note.uuid, insideNote, router, t])
 
 		const leave = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
-				title: "leave",
-				message: "Are u sure"
+				title: t("notes.prompts.leaveNote.title"),
+				message: t("notes.prompts.leaveNote.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -926,7 +926,7 @@ export const Menu = memo(
 					router.back()
 				}
 			}
-		}, [note.uuid, insideNote, router, userId])
+		}, [note.uuid, insideNote, router, userId, t])
 
 		const tagNote = useCallback(
 			async (tag: NoteTag) => {

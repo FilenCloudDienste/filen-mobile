@@ -7,12 +7,14 @@ import { type PDFPreviewItem } from "@/app/pdfPreview"
 import useHTTPServer from "@/hooks/useHTTPServer"
 import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
+import { useTranslation } from "react-i18next"
 
 export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 	const { colors } = useColorScheme()
 	const [page, setPage] = useState<number | undefined>(undefined)
 	const [, setNumPages] = useState<number | null>(null)
 	const httpServer = useHTTPServer()
+	const { t } = useTranslation()
 
 	const source = useMemo(() => {
 		if (item.type === "cloud") {
@@ -67,21 +69,26 @@ export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 		console.error("PDF error:", error)
 	}, [])
 
-	const onPressLink = useCallback(async (uri: string) => {
-		try {
-			if (!(await Linking.canOpenURL(uri))) {
-				return
-			}
+	const onPressLink = useCallback(
+		async (uri: string) => {
+			try {
+				if (!(await Linking.canOpenURL(uri))) {
+					alerts.error(t("errors.cannotOpenURL"))
 
-			await Linking.openURL(uri)
-		} catch (e) {
-			console.error(e)
+					return
+				}
 
-			if (e instanceof Error) {
-				alerts.error(e.message)
+				await Linking.openURL(uri)
+			} catch (e) {
+				console.error(e)
+
+				if (e instanceof Error) {
+					alerts.error(e.message)
+				}
 			}
-		}
-	}, [])
+		},
+		[t]
+	)
 
 	const style = useMemo(() => {
 		return {

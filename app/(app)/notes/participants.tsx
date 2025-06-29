@@ -22,6 +22,8 @@ import alerts from "@/lib/alerts"
 import queryUtils from "@/queries/utils"
 import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
+import ListEmpty from "@/components/listEmpty"
+import { useTranslation } from "react-i18next"
 
 export type ListItemInfo = {
 	title: string
@@ -114,6 +116,7 @@ export default function Participants() {
 	const [{ userId }] = useSDKConfig()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const noteUUIDParsed = useMemo((): string | null => {
 		try {
@@ -276,26 +279,63 @@ export default function Participants() {
 		return (
 			<View className="h-16 flex-row items-center justify-center">
 				<Text className="text-sm">
-					{participants.length} {participants.length === 1 ? "participant" : "participants"}
+					{t("notes.participants.list.footer", {
+						count: participants.length
+					})}
 				</Text>
 			</View>
 		)
-	}, [participants.length])
+	}, [participants.length, t])
+
+	const listEmpty = useMemo(() => {
+		return (
+			<ListEmpty
+				queryStatus={notesQuery.status}
+				itemCount={participants.length}
+				texts={{
+					error: t("notes.participants.list.error"),
+					empty: t("notes.participants.list.empty"),
+					emptySearch: t("notes.participants.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "account-multiple-outline"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
+		)
+	}, [notesQuery.status, participants.length, t])
+
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			await notesQuery.refetch().catch(console.error)
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
+	}, [notesQuery])
 
 	const refreshControl = useMemo(() => {
 		return (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					await notesQuery.refetch().catch(console.error)
-
-					setRefreshing(false)
-				}}
+				onRefresh={onRefresh}
 			/>
 		)
-	}, [notesQuery, refreshing])
+	}, [onRefresh, refreshing])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {
@@ -319,7 +359,7 @@ export default function Participants() {
 	return (
 		<RequireInternet>
 			<LargeTitleHeader
-				title="Participants"
+				title={t("notes.participants.title")}
 				iosBlurEffect="systemChromeMaterial"
 				rightView={headerRightView}
 			/>
@@ -332,6 +372,7 @@ export default function Participants() {
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
 					ListFooterComponent={listFooter}
+					ListEmptyComponent={listEmpty}
 					refreshControl={refreshControl}
 					removeClippedSubviews={true}
 					initialNumToRender={initialNumToRender}

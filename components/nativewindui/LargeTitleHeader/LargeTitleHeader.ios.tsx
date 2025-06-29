@@ -13,6 +13,7 @@ import {
 import { useColorScheme } from "~/lib/useColorScheme"
 import { useKeyboardState } from "react-native-keyboard-controller"
 import events from "@/lib/events"
+import { useTranslation } from "react-i18next"
 
 export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 	const id = useId()
@@ -21,6 +22,7 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 	const [isFocused, setIsFocused] = useState<boolean>(false)
 	const keyboardState = useKeyboardState()
 	const ref = useRef<LargeTitleSearchBarRef | null>(props.searchBar?.ref?.current ?? null)
+	const { t } = useTranslation()
 
 	const options = useMemo(() => {
 		return {
@@ -74,14 +76,14 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 							props.searchBar?.onFocus?.()
 						},
 						onSearchButtonPress: props.searchBar?.onSearchButtonPress,
-						placeholder: props.searchBar?.placeholder ?? "Search...",
+						placeholder: props.searchBar?.placeholder ?? t("nwui.search.placeholder"),
 						ref: (ref as NativeStackNavigationSearchBarOptions["ref"]) ?? undefined,
 						textColor: props.searchBar?.textColor
 				  }
 				: undefined,
 			...props.screen
 		} satisfies NativeStackNavigationOptions
-	}, [props, isFocused, colors.background])
+	}, [props, isFocused, colors.background, t])
 
 	const viewStyle = useMemo(() => {
 		return {

@@ -38,15 +38,15 @@ export const Tag = memo(
 
 		const createTag = useCallback(async () => {
 			const inputPromptResponse = await inputPrompt({
-				title: t("drive.header.rightView.actionSheet.create.directory"),
+				title: t("notes.prompts.createTag.title"),
 				materialIcon: {
-					name: "folder-plus-outline"
+					name: "tag-outline"
 				},
 				prompt: {
 					type: "plain-text",
 					keyboardType: "default",
 					defaultValue: "",
-					placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+					placeholder: t("notes.prompts.createTag.placeholder")
 				}
 			})
 

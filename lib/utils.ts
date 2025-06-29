@@ -86,6 +86,18 @@ export function simpleDateNoDate(timestamp: number | Date): string {
 	return simpleDateNoDateFormatter.format(date)
 }
 
+export const formatBytesSizes = [
+	t("formatBytes.b"),
+	t("formatBytes.kib"),
+	t("formatBytes.mib"),
+	t("formatBytes.gib"),
+	t("formatBytes.tib"),
+	t("formatBytes.pib"),
+	t("formatBytes.eib"),
+	t("formatBytes.zib"),
+	t("formatBytes.yib")
+]
+
 export function formatBytes(bytes: number, decimals: number = 2): string {
 	if (bytes === 0) {
 		return "0 Bytes"
@@ -93,10 +105,9 @@ export function formatBytes(bytes: number, decimals: number = 2): string {
 
 	const k = 1024
 	const dm = decimals < 0 ? 0 : decimals
-	const sizes = ["Bytes", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"]
 	const i = Math.floor(Math.log(bytes) / Math.log(k))
 
-	return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i]
+	return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + formatBytesSizes[i]
 }
 
 export function parseNumbersFromString(string: string): number {
@@ -243,20 +254,30 @@ export function normalizeTransferProgress(size: number, bytes: number): number {
 	return result
 }
 
+export const bpsToReadableUnits = [
+	t("bpsToReadable.kib"),
+	t("bpsToReadable.mib"),
+	t("bpsToReadable.gib"),
+	t("bpsToReadable.tib"),
+	t("bpsToReadable.pib"),
+	t("bpsToReadable.eib"),
+	t("bpsToReadable.zib"),
+	t("bpsToReadable.yib")
+]
+
 export function bpsToReadable(bps: number): string {
 	if (!(bps > 0 && bps < 1024 * 1024 * 1024 * 1024)) {
 		bps = 1
 	}
 
 	let i = -1
-	const byteUnits = [" KiB/s", " MiB/s", " GiB/s", " TiB/s", " PiB/s", " EiB/s", " ZiB/s", " YiB/s"]
 
 	do {
 		bps = bps / 1024
 		i++
 	} while (bps > 1024)
 
-	return Math.max(bps, 0.1).toFixed(1) + byteUnits[i]
+	return Math.max(bps, 0.1).toFixed(1) + " " + bpsToReadableUnits[i]
 }
 
 export function getPreviewType(name: string): PreviewType {
@@ -275,10 +296,14 @@ export function getPreviewType(name: string): PreviewType {
 	}
 
 	switch (extname) {
-		case ".pdf":
+		case ".pdf": {
 			return "pdf"
-		case ".txt":
+		}
+
+		case ".txt": {
 			return "text"
+		}
+
 		case ".js":
 		case ".cjs":
 		case ".mjs":
@@ -325,12 +350,17 @@ export function getPreviewType(name: string): PreviewType {
 		case ".bat":
 		case ".ps":
 		case ".protobuf":
-		case ".proto":
+		case ".proto": {
 			return "code"
-		case ".docx":
+		}
+
+		case ".docx": {
 			return "docx"
-		default:
+		}
+
+		default: {
 			return "unknown"
+		}
 	}
 }
 

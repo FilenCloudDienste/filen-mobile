@@ -9,13 +9,15 @@ import mmkvInstance from "@/lib/mmkv"
 import useContactsRequestsQuery from "@/queries/useContactsRequestsQuery"
 import Contact, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/contacts/contact"
 import ListHeader from "@/components/contacts/listHeader"
-import ListEmpty from "@/components/contacts/listEmpty"
+import ListEmpty from "@/components/listEmpty"
 import { Button } from "@/components/nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import contactsService from "@/services/contacts.service"
 import { CONTACTS_ONLINE_TIMEOUT } from "@/lib/constants"
 import useDimensions from "@/hooks/useDimensions"
+import alerts from "@/lib/alerts"
+import { useTranslation } from "react-i18next"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -23,10 +25,13 @@ const contentContainerStyle = {
 
 export const Contacts = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
-	const [contactsActiveTab] = useMMKVString("contactsActiveTab", mmkvInstance)
+	const [contactsActiveTab] = useMMKVString("contactsActiveTab", mmkvInstance) as unknown as [
+		"requests" | "pending" | "all" | "blocked" | "online" | "offline" | undefined
+	]
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { colors } = useColorScheme()
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const allContactsQuery = useContactsQuery({
 		type: "all"
@@ -125,6 +130,15 @@ export const Contacts = memo(() => {
 		contactsRequestsQuery.data
 	])
 
+	const queryPending = useMemo(() => {
+		return (
+			refreshing ||
+			allContactsQuery.status === "pending" ||
+			blockedContactsQuery.status === "pending" ||
+			contactsRequestsQuery.status === "pending"
+		)
+	}, [refreshing, allContactsQuery.status, blockedContactsQuery.status, contactsRequestsQuery.status])
+
 	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
 		return <Contact info={info} />
 	}, [])
@@ -140,7 +154,7 @@ export const Contacts = memo(() => {
 	const headerSearchBar = useMemo(() => {
 		return {
 			onChangeText: setSearchTerm,
-			iosHideWhenScrolling: true
+			iosHideWhenScrolling: false
 		}
 	}, [setSearchTerm])
 
@@ -163,32 +177,106 @@ export const Contacts = memo(() => {
 	const listEmpty = useMemo(() => {
 		return (
 			<ListEmpty
-				activeTab={activeTab}
-				pending={
-					allContactsQuery.status === "pending" ||
-					blockedContactsQuery.status === "pending" ||
-					contactsRequestsQuery.status === "pending"
+				queryStatus={
+					activeTab === "all"
+						? allContactsQuery.status
+						: activeTab === "blocked"
+						? blockedContactsQuery.status
+						: contactsRequestsQuery.status
 				}
+				itemCount={listData.length}
+				searchTermLength={searchTerm.length}
+				texts={{
+					error:
+						activeTab === "all"
+							? t("settings.contacts.listEmpty.all.error")
+							: activeTab === "blocked"
+							? t("settings.contacts.listEmpty.blocked.error")
+							: activeTab === "requests"
+							? t("settings.contacts.listEmpty.requests.error")
+							: activeTab === "pending"
+							? t("settings.contacts.listEmpty.pending.error")
+							: activeTab === "online"
+							? t("settings.contacts.listEmpty.online.error")
+							: activeTab === "offline"
+							? t("settings.contacts.listEmpty.offline.error")
+							: undefined,
+					empty:
+						activeTab === "all"
+							? t("settings.contacts.listEmpty.all.empty")
+							: activeTab === "blocked"
+							? t("settings.contacts.listEmpty.blocked.empty")
+							: activeTab === "requests"
+							? t("settings.contacts.listEmpty.requests.empty")
+							: activeTab === "pending"
+							? t("settings.contacts.listEmpty.pending.empty")
+							: activeTab === "online"
+							? t("settings.contacts.listEmpty.online.empty")
+							: activeTab === "offline"
+							? t("settings.contacts.listEmpty.offline.empty")
+							: undefined,
+					emptySearch:
+						activeTab === "all"
+							? t("settings.contacts.listEmpty.all.emptySearch")
+							: activeTab === "blocked"
+							? t("settings.contacts.listEmpty.blocked.emptySearch")
+							: activeTab === "requests"
+							? t("settings.contacts.listEmpty.requests.emptySearch")
+							: activeTab === "pending"
+							? t("settings.contacts.listEmpty.pending.emptySearch")
+							: activeTab === "online"
+							? t("settings.contacts.listEmpty.online.emptySearch")
+							: activeTab === "offline"
+							? t("settings.contacts.listEmpty.offline.emptySearch")
+							: undefined
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "account-multiple-outline"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
 			/>
 		)
-	}, [activeTab, allContactsQuery.status, blockedContactsQuery.status, contactsRequestsQuery.status])
+	}, [
+		activeTab,
+		allContactsQuery.status,
+		blockedContactsQuery.status,
+		contactsRequestsQuery.status,
+		listData.length,
+		searchTerm.length,
+		t
+	])
+
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			await Promise.all([blockedContactsQuery.refetch(), allContactsQuery.refetch(), contactsRequestsQuery.refetch()])
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
+	}, [setRefreshing, allContactsQuery, blockedContactsQuery, contactsRequestsQuery])
 
 	const refreshControl = useMemo(() => {
 		return (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					await Promise.all([blockedContactsQuery.refetch(), allContactsQuery.refetch(), contactsRequestsQuery.refetch()]).catch(
-						console.error
-					)
-
-					setRefreshing(false)
-				}}
+				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, blockedContactsQuery, allContactsQuery, contactsRequestsQuery])
+	}, [refreshing, onRefresh])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {
@@ -208,7 +296,7 @@ export const Contacts = memo(() => {
 	return (
 		<Fragment>
 			<LargeTitleHeader
-				title="Contacts"
+				title={t("settings.contacts.title")}
 				searchBar={headerSearchBar}
 				rightView={headerRightView}
 			/>
@@ -220,12 +308,7 @@ export const Contacts = memo(() => {
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
 				ListEmptyComponent={listEmpty}
-				refreshing={
-					refreshing ||
-					allContactsQuery.status === "pending" ||
-					blockedContactsQuery.status === "pending" ||
-					contactsRequestsQuery.status === "pending"
-				}
+				refreshing={queryPending}
 				refreshControl={refreshControl}
 				ListHeaderComponent={ListHeader}
 				removeClippedSubviews={true}

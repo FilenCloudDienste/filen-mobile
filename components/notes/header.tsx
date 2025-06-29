@@ -1,7 +1,7 @@
 import { memo, Fragment, useCallback, useMemo } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
-import { createDropdownSubMenu, createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils"
+import { createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils"
 import { Text } from "@/components/nativewindui/Text"
 import { useNotesStore } from "@/stores/notes.store"
 import { Button } from "../nativewindui/Button"
@@ -29,7 +29,7 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 
 	const createNote = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("notes.prompts.createNote.title"),
 			materialIcon: {
 				name: "folder-plus-outline"
 			},
@@ -37,7 +37,7 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+				placeholder: t("notes.prompts.createNote.placeholder")
 			}
 		})
 
@@ -75,9 +75,7 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 
 	const headerSearchBar = useMemo(() => {
 		return {
-			placeholder: "Search notes...",
-			iosCancelButtonText: "Abort",
-			iosHideWhenScrolling: true,
+			iosHideWhenScrolling: false,
 			onChangeText: setSearchTerm,
 			materialBlurOnSubmit: false,
 			persistBlur: true,
@@ -102,23 +100,7 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 							createDropdownItem({
 								actionKey: "settings",
 								title: "Settings"
-							}),
-							createDropdownSubMenu(
-								{
-									title: "Submenu 1",
-									iOSItemSize: "large"
-								},
-								[
-									createDropdownItem({
-										actionKey: "sub-first",
-										title: "Sub Item 1"
-									}),
-									createDropdownItem({
-										actionKey: "sub-second",
-										title: "Sub Item 2"
-									})
-								]
-							)
+							})
 						]}
 						onItemPress={item => {
 							console.log(item)
@@ -155,7 +137,7 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 
 	return (
 		<LargeTitleHeader
-			title="Notes"
+			title={t("notes.header.title")}
 			backVisible={false}
 			materialPreset="inline"
 			searchBar={headerSearchBar}

@@ -16,6 +16,7 @@ import useNoteHistoryQuery from "@/queries/useNoteHistoryQuery"
 import { useTranslation } from "react-i18next"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import useDimensions from "@/hooks/useDimensions"
+import ListEmpty from "@/components/listEmpty"
 
 export type ListItemInfo = {
 	title: string
@@ -39,8 +40,8 @@ export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInf
 
 	const restore = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: "disableEmbeds",
-			message: "Are u sure"
+			title: t("notes.history.prompts.restore.title"),
+			message: t("notes.history.prompts.restore.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -90,7 +91,7 @@ export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInf
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [note.uuid, info.item.history, noteHistoryQuery])
+	}, [note.uuid, info.item.history, noteHistoryQuery, t])
 
 	const rightView = useMemo(() => {
 		return (
@@ -99,7 +100,7 @@ export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInf
 					size="sm"
 					onPress={restore}
 				>
-					<Text>{t("fileVersionHistory.list.item.restore")}</Text>
+					<Text>{t("notes.history.restore")}</Text>
 				</Button>
 			</View>
 		)
@@ -126,6 +127,7 @@ Item.displayName = "Item"
 
 export const History = memo(({ note }: { note: Note }) => {
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const noteHistoryQuery = useNoteHistoryQuery({
 		uuid: note.uuid
@@ -141,10 +143,10 @@ export const History = memo(({ note }: { note: Note }) => {
 			.map(history => ({
 				id: history.id.toString(),
 				title: simpleDate(history.editedTimestamp),
-				subTitle: history.preview.length > 0 ? history.preview : "No preview available",
+				subTitle: history.preview.length > 0 ? history.preview : t("notes.history.noPreview"),
 				history: history
 			}))
-	}, [noteHistoryQuery.data, noteHistoryQuery.status])
+	}, [noteHistoryQuery.data, noteHistoryQuery.status, t])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
 		return typeof item === "string" ? item : item.id
@@ -162,13 +164,42 @@ export const History = memo(({ note }: { note: Note }) => {
 		[note]
 	)
 
-	const ListFooter = useMemo(() => {
+	const listEmpty = useMemo(() => {
+		return (
+			<ListEmpty
+				queryStatus={noteHistoryQuery.status}
+				itemCount={history.length}
+				texts={{
+					error: t("notes.history.list.error"),
+					empty: t("notes.history.list.empty"),
+					emptySearch: t("notes.history.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "clock-outline"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
+		)
+	}, [noteHistoryQuery.status, history.length, t])
+
+	const listFooter = useMemo(() => {
 		return (
 			<View className="h-16 flex-row items-center justify-center">
-				<Text className="text-sm">{history.length} items</Text>
+				<Text className="text-sm">
+					{t("notes.history.list.footer", {
+						count: history.length
+					})}
+				</Text>
 			</View>
 		)
-	}, [history.length])
+	}, [history.length, t])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {
@@ -188,7 +219,7 @@ export const History = memo(({ note }: { note: Note }) => {
 	return (
 		<Fragment>
 			<LargeTitleHeader
-				title="History"
+				title={t("notes.history.title")}
 				backVisible={true}
 				iosBackButtonMenuEnabled={false}
 				iosBlurEffect="systemChromeMaterial"
@@ -201,7 +232,8 @@ export const History = memo(({ note }: { note: Note }) => {
 					data={history}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
-					ListFooterComponent={ListFooter}
+					ListFooterComponent={listFooter}
+					ListEmptyComponent={listEmpty}
 					removeClippedSubviews={true}
 					initialNumToRender={initialNumToRender}
 					maxToRenderPerBatch={maxToRenderPerBatch}

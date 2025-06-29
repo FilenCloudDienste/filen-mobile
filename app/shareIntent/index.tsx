@@ -1,5 +1,5 @@
 import { View, Platform } from "react-native"
-import { Stack } from "expo-router"
+import { Stack, Redirect } from "expo-router"
 import { useShareIntentContext, type ShareIntentFile } from "expo-share-intent"
 import { useMemo, useCallback, memo } from "react"
 import { Text } from "@/components/nativewindui/Text"
@@ -20,6 +20,7 @@ import Container from "@/components/Container"
 import paths from "@/lib/paths"
 import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
+import { useTranslation } from "react-i18next"
 
 export type ListItemInfo = {
 	title: string
@@ -88,6 +89,7 @@ Item.displayName = "Item"
 export default function ShareIntent() {
 	const { shareIntent, resetShareIntent } = useShareIntentContext()
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const upload = useCallback(async () => {
 		if (!shareIntent.files) {
@@ -171,10 +173,10 @@ export default function ShareIntent() {
 				variant="plain"
 				onPress={upload}
 			>
-				<Text className="text-primary font-normal">Upload</Text>
+				<Text className="text-primary font-normal">{t("shareIntent.header.upload")}</Text>
 			</Button>
 		)
-	}, [upload])
+	}, [upload, t])
 
 	const headerLeft = useCallback(() => {
 		return (
@@ -183,10 +185,10 @@ export default function ShareIntent() {
 				variant="plain"
 				onPress={cancel}
 			>
-				<Text className="text-primary font-normal">Cancel</Text>
+				<Text className="text-primary font-normal">{t("shareIntent.header.cancel")}</Text>
 			</Button>
 		)
-	}, [cancel])
+	}, [cancel, t])
 
 	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
 		return <Item info={info} />
@@ -198,7 +200,7 @@ export default function ShareIntent() {
 				<Stack.Screen
 					options={{
 						headerShown: true,
-						headerTitle: "Save to Filen",
+						headerTitle: t("shareIntent.header.title"),
 						headerBackVisible: false,
 						headerRight,
 						headerLeft
@@ -207,7 +209,7 @@ export default function ShareIntent() {
 			),
 			default: (
 				<LargeTitleHeader
-					title="Save to Filen"
+					title={t("shareIntent.header.title")}
 					materialPreset="inline"
 					backVisible={false}
 					rightView={headerRight}
@@ -215,7 +217,7 @@ export default function ShareIntent() {
 				/>
 			)
 		})
-	}, [headerRight, headerLeft])
+	}, [headerRight, headerLeft, t])
 
 	const items = useMemo(() => {
 		return (
@@ -246,6 +248,10 @@ export default function ShareIntent() {
 			index
 		}
 	}, [])
+
+	if (items.length === 0) {
+		return <Redirect href="/(app)/home" />
+	}
 
 	return (
 		<RequireInternet>

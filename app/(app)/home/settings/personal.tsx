@@ -12,6 +12,7 @@ import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Icon } from "@roninoss/icons"
 import { Text } from "@/components/nativewindui/Text"
+import { useTranslation } from "react-i18next"
 
 export const countries: string[] = [
 	"Afghanistan",
@@ -222,6 +223,7 @@ export const countryDropdownItems = countries.map(country =>
 
 export const Personal = memo(() => {
 	const { colors } = useColorScheme()
+	const { t } = useTranslation()
 
 	const account = useAccountQuery({
 		enabled: false
@@ -230,7 +232,7 @@ export const Personal = memo(() => {
 	const onPress = useCallback(
 		async (type: "firstName" | "lastName" | "city" | "postalCode" | "street" | "streetNumber" | "companyName" | "vatId") => {
 			const inputPromptResponse = await inputPrompt({
-				title: "Edit",
+				title: t("settings.personal.prompts.edit.title"),
 				materialIcon: {
 					name: "pencil"
 				},
@@ -238,7 +240,7 @@ export const Personal = memo(() => {
 					type: "plain-text",
 					keyboardType: "default",
 					defaultValue: account.data?.account.personal[type] ?? "",
-					placeholder: type
+					placeholder: ""
 				}
 			})
 
@@ -278,7 +280,7 @@ export const Personal = memo(() => {
 				fullScreenLoadingModal.hide()
 			}
 		},
-		[account]
+		[account, t]
 	)
 
 	const changeCountry = useCallback(
@@ -320,63 +322,63 @@ export const Personal = memo(() => {
 		return [
 			{
 				id: "0",
-				title: "First name",
+				title: t("settings.personal.items.firstName"),
 				rightText: account.data?.account.personal.firstName ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.firstName ?? "" : undefined,
 				onPress: () => onPress("firstName")
 			},
 			{
 				id: "1",
-				title: "Last name",
+				title: t("settings.personal.items.lastName"),
 				rightText: account.data?.account.personal.lastName ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.lastName ?? "" : undefined,
 				onPress: () => onPress("lastName")
 			},
 			{
 				id: "2",
-				title: "Company name",
+				title: t("settings.personal.items.companyName"),
 				rightText: account.data?.account.personal.companyName ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.companyName ?? "" : undefined,
 				onPress: () => onPress("companyName")
 			},
 			{
 				id: "3",
-				title: "Vat ID",
+				title: t("settings.personal.items.vatId"),
 				rightText: account.data?.account.personal.vatId ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.vatId ?? "" : undefined,
 				onPress: () => onPress("vatId")
 			},
 			{
 				id: "4",
-				title: "Street",
+				title: t("settings.personal.items.street"),
 				rightText: account.data?.account.personal.street ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.street ?? "" : undefined,
 				onPress: () => onPress("street")
 			},
 			{
 				id: "5",
-				title: "Street number",
+				title: t("settings.personal.items.streetNumber"),
 				rightText: account.data?.account.personal.streetNumber ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.streetNumber ?? "" : undefined,
 				onPress: () => onPress("streetNumber")
 			},
 			{
 				id: "6",
-				title: "City",
+				title: t("settings.personal.items.city"),
 				rightText: account.data?.account.personal.city ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.city ?? "" : undefined,
 				onPress: () => onPress("city")
 			},
 			{
 				id: "7",
-				title: "Postal code",
+				title: t("settings.personal.items.postalCode"),
 				rightText: account.data?.account.personal.postalCode ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.postalCode ?? "" : undefined,
 				onPress: () => onPress("postalCode")
 			},
 			{
 				id: "8",
-				title: "Country",
+				title: t("settings.personal.items.country"),
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.country ?? "" : undefined,
 				rightView: (
 					<DropdownMenu
@@ -408,6 +410,7 @@ export const Personal = memo(() => {
 			}
 		]
 	}, [
+		t,
 		account.data?.account.personal.city,
 		account.data?.account.personal.companyName,
 		account.data?.account.personal.country,
@@ -424,7 +427,7 @@ export const Personal = memo(() => {
 
 	return (
 		<SettingsComponent
-			title="Personal information"
+			title={t("settings.personal.title")}
 			showSearchBar={false}
 			loading={account.status !== "success"}
 			items={items}

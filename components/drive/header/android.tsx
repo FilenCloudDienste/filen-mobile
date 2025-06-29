@@ -33,10 +33,8 @@ export const Android = memo(({ headerTitle, queryParams }: { headerTitle: string
 
 	const searchBar = useMemo(() => {
 		return {
-			iosCancelButtonText: "Abort",
 			iosHideWhenScrolling: false,
-			onChangeText: text => setSearchTerm(text),
-			placeholder: "Search...",
+			onChangeText: setSearchTerm,
 			materialBlurOnSubmit: false,
 			content: (
 				<Search

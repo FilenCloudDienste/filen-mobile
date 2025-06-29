@@ -4,14 +4,15 @@ import { List, type ListDataItem, ListItem, type ListRenderItemInfo } from "@/co
 import useLocalAlbumsQuery from "@/queries/useLocalAlbumsQuery"
 import * as MediaLibrary from "expo-media-library"
 import Container from "@/components/Container"
-import { useColorScheme } from "@/lib/useColorScheme"
-import { ActivityIndicator, View, Platform } from "react-native"
+import { View, Platform } from "react-native"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import { cn } from "@/lib/cn"
 import useCameraUpload from "@/hooks/useCameraUpload"
 import { Image } from "expo-image"
 import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
+import { useTranslation } from "react-i18next"
+import ListEmpty from "@/components/listEmpty"
 
 export type ListItemInfo = {
 	title: string
@@ -97,8 +98,8 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 Item.displayName = "Item"
 
 export const Albums = memo(() => {
-	const { colors } = useColorScheme()
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const localAlbumsQuery = useLocalAlbumsQuery({})
 
@@ -112,10 +113,12 @@ export const Albums = memo(() => {
 			.map(album => ({
 				id: album.album.id,
 				title: album.album.title,
-				subTitle: `${album.album.assetCount} items`,
+				subTitle: t("photos.settings.albums.item.subTitle", {
+					count: album.album.assetCount
+				}),
 				album
 			}))
-	}, [localAlbumsQuery.data, localAlbumsQuery.status])
+	}, [localAlbumsQuery.data, localAlbumsQuery.status, t])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
 		return typeof item === "string" ? item : item.id
@@ -141,12 +144,33 @@ export const Albums = memo(() => {
 	}, [])
 
 	const listEmpty = useMemo(() => {
-		return <ActivityIndicator color={colors.foreground} />
-	}, [colors.foreground])
+		return (
+			<ListEmpty
+				queryStatus={localAlbumsQuery.status}
+				itemCount={items.length}
+				texts={{
+					error: t("photos.settings.albums.list.error"),
+					empty: t("photos.settings.albums.list.empty"),
+					emptySearch: t("photos.settings.albums.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "image-multiple-outline"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
+		)
+	}, [localAlbumsQuery.status, items.length, t])
 
 	return (
 		<RequireInternet>
-			<LargeTitleHeader title="Albums" />
+			<LargeTitleHeader title={t("photos.settings.albums.title")} />
 			<Container>
 				<List
 					contentContainerClassName="pt-4 pb-20"

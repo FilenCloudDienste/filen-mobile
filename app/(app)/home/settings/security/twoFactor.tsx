@@ -84,7 +84,7 @@ export const TwoFactor = memo(() => {
 
 	const toggleTwoFactor = useCallback(async () => {
 		const twoFactorPrompt = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("settings.twoFactorAuth.prompts.enable.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -92,7 +92,7 @@ export const TwoFactor = memo(() => {
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: "Two-factor code"
+				placeholder: t("settings.twoFactorAuth.prompts.enable.placeholder")
 			}
 		})
 
@@ -141,7 +141,7 @@ export const TwoFactor = memo(() => {
 		try {
 			await Clipboard.setStringAsync(account.data.settings.twoFactorKey)
 
-			alerts.normal("Two-factor key copied to clipboard")
+			alerts.normal(t("settings.twoFactorAuth.copied"))
 		} catch (e) {
 			console.error(e)
 
@@ -149,13 +149,13 @@ export const TwoFactor = memo(() => {
 				alerts.error(e.message)
 			}
 		}
-	}, [account.data?.settings.twoFactorKey])
+	}, [account.data?.settings.twoFactorKey, t])
 
 	const items = useMemo(() => {
 		return [
 			{
 				id: "0",
-				title: "Two Factor Authentication",
+				title: t("settings.twoFactorAuth.items.2fa"),
 				rightView: (
 					<Toggle
 						value={twoFactorEnabled}
@@ -164,7 +164,7 @@ export const TwoFactor = memo(() => {
 				)
 			}
 		]
-	}, [toggleTwoFactor, twoFactorEnabled])
+	}, [toggleTwoFactor, twoFactorEnabled, t])
 
 	const listFooter = useMemo(() => {
 		return (
@@ -186,7 +186,7 @@ export const TwoFactor = memo(() => {
 							size="sm"
 							onPress={copyKeyToClipboard}
 						>
-							<Text className="text-primary">Copy Key</Text>
+							<Text className="text-primary">{t("settings.twoFactorAuth.copyKey")}</Text>
 							<Icon
 								name="clipboard-outline"
 								size={24}
@@ -197,11 +197,11 @@ export const TwoFactor = memo(() => {
 				</View>
 			)
 		)
-	}, [account.data?.settings.twoFactorKey, colors.primary, copyKeyToClipboard, qrCodeValue, screen.width, twoFactorEnabled])
+	}, [account.data?.settings.twoFactorKey, colors.primary, copyKeyToClipboard, qrCodeValue, screen.width, twoFactorEnabled, t])
 
 	return (
 		<SettingsComponent
-			title="Security"
+			title={t("settings.twoFactorAuth.title")}
 			showSearchBar={false}
 			loading={account.status !== "success"}
 			items={items}

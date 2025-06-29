@@ -17,6 +17,7 @@ import { cn } from "@/lib/cn"
 import Container from "../Container"
 import paths from "@/lib/paths"
 import { Paths } from "expo-file-system/next"
+import { useTranslation } from "react-i18next"
 
 export const Bottom = memo(() => {
 	const trackPlayerState = useTrackPlayerState()
@@ -25,6 +26,7 @@ export const Bottom = memo(() => {
 	const { colors } = useColorScheme()
 	const trackPlayerControls = useTrackPlayerControls()
 	const pathname = usePathname()
+	const { t } = useTranslation()
 
 	const show = useMemo(() => {
 		if (
@@ -157,7 +159,7 @@ export const Bottom = memo(() => {
 											? `${trackPlayerState.playingTrack.title}${
 													trackPlayerState.playingTrack.album ? ` - ${trackPlayerState.playingTrack.album}` : ""
 											  }`
-											: "Unknown title"}
+											: t("trackPlayer.bottom.unknownTitle")}
 									</Text>
 									<Text
 										className="text-xs text-muted-foreground"

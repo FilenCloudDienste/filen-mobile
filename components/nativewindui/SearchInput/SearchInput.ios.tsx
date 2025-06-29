@@ -1,12 +1,13 @@
 import { useAugmentedRef, useControllableState } from "@rn-primitives/hooks"
 import { Icon } from "@roninoss/icons"
-import { memo, forwardRef, useState, useCallback } from "react"
+import { memo, forwardRef, useState, useCallback, useMemo } from "react"
 import { Pressable, TextInput, View, ViewStyle, type NativeSyntheticEvent, type TextInputFocusEventData } from "react-native"
 import Animated, { measure, useAnimatedRef, useAnimatedStyle, useDerivedValue, withTiming } from "react-native-reanimated"
 import { type SearchInputProps } from "./types"
 import { Text } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 import { useColorScheme } from "@/lib/useColorScheme"
+import { useTranslation } from "react-i18next"
 
 // Add as class when possible: https://github.com/marklawlor/nativewind/issues/522
 export const BORDER_CURVE: ViewStyle = {
@@ -20,8 +21,8 @@ export const SearchInput = memo(
 				value: valueProp,
 				onChangeText: onChangeTextProp,
 				onFocus: onFocusProp,
-				placeholder = "Search...",
-				cancelText = "Cancel",
+				placeholder,
+				cancelText,
 				containerClassName,
 				iconContainerClassName,
 				className,
@@ -31,6 +32,7 @@ export const SearchInput = memo(
 			ref
 		) => {
 			const { colors } = useColorScheme()
+			const { t } = useTranslation()
 
 			const inputRef = useAugmentedRef({
 				ref,
@@ -55,6 +57,8 @@ export const SearchInput = memo(
 				onChange: onChangeTextProp
 			})
 
+			const cancelString = useMemo(() => cancelText ?? t("nwui.search.cancel"), [cancelText, t])
+
 			const rootStyle = useAnimatedStyle(() => {
 				if (_WORKLET) {
 					// safely use measure
@@ -62,13 +66,13 @@ export const SearchInput = memo(
 
 					return {
 						paddingRight: showCancelDerivedValue.value
-							? withTiming(measurement?.width ?? cancelText.length * 11.2)
+							? withTiming(measurement?.width ?? cancelString.length * 11.2)
 							: withTiming(0)
 					}
 				}
 
 				return {
-					paddingRight: showCancelDerivedValue.value ? withTiming(cancelText.length * 11.2) : withTiming(0)
+					paddingRight: showCancelDerivedValue.value ? withTiming(cancelString.length * 11.2) : withTiming(0)
 				}
 			})
 
@@ -87,7 +91,7 @@ export const SearchInput = memo(
 									? withTiming(0)
 									: measurement?.width
 									? withTiming(measurement.width)
-									: cancelText.length * 11.2
+									: cancelString.length * 11.2
 							}
 						]
 					}
@@ -99,7 +103,7 @@ export const SearchInput = memo(
 					opacity: showCancelDerivedValue.value ? withTiming(1) : withTiming(0),
 					transform: [
 						{
-							translateX: showCancelDerivedValue.value ? withTiming(0) : withTiming(cancelText.length * 11.2)
+							translateX: showCancelDerivedValue.value ? withTiming(0) : withTiming(cancelString.length * 11.2)
 						}
 					]
 				}
@@ -139,7 +143,7 @@ export const SearchInput = memo(
 						</View>
 						<TextInput
 							ref={inputRef}
-							placeholder={placeholder}
+							placeholder={placeholder ?? t("nwui.search.placeholder")}
 							className={cn(
 								!showCancel && "active:bg-muted/5 dark:active:bg-muted/20",
 								"text-foreground flex-1 rounded-lg py-2 pl-8  pr-1 text-[17px]",
@@ -164,7 +168,7 @@ export const SearchInput = memo(
 							pointerEvents={!showCancel ? "none" : "auto"}
 							className="flex-1 justify-center active:opacity-50"
 						>
-							<Text className="text-primary px-2">{cancelText}</Text>
+							<Text className="text-primary px-2">{cancelString}</Text>
 						</Pressable>
 					</Animated.View>
 				</Animated.View>

@@ -7,6 +7,7 @@ import type { SearchInputProps } from "./types"
 import { Button } from "@/components/nativewindui/Button"
 import { cn } from "@/lib/cn"
 import { useColorScheme } from "@/lib/useColorScheme"
+import { useTranslation } from "react-i18next"
 
 export const SearchInput = memo(
 	forwardRef<React.ElementRef<typeof TextInput>, SearchInputProps>(
@@ -14,8 +15,8 @@ export const SearchInput = memo(
 			{
 				value: valueProp,
 				onChangeText: onChangeTextProp,
-				placeholder = "Search...",
-				cancelText = "Cancel",
+				placeholder,
+				cancelText,
 				containerClassName,
 				iconContainerClassName,
 				className,
@@ -25,6 +26,7 @@ export const SearchInput = memo(
 			ref
 		) => {
 			const { colors } = useColorScheme()
+			const { t } = useTranslation()
 
 			const [value = "", onChangeText] = useControllableState({
 				prop: valueProp,
@@ -71,7 +73,7 @@ export const SearchInput = memo(
 					>
 						<TextInput
 							ref={inputRef}
-							placeholder={placeholder}
+							placeholder={placeholder ?? t("nwui.search.placeholder")}
 							className={cn("text-foreground flex-1 rounded-r-full p-2 text-[17px]", className)}
 							placeholderTextColor={colors.grey2}
 							value={value}

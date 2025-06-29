@@ -39,11 +39,21 @@ import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
 import useNetInfo from "@/hooks/useNetInfo"
+import { useTranslation } from "react-i18next"
 
 const avatarStyle = {
 	width: 36,
 	height: 36
 }
+
+const springConfig = {
+	damping: 20,
+	stiffness: 300,
+	mass: 0.4,
+	overshootClamping: false,
+	restDisplacementThreshold: 0.01,
+	restSpeedThreshold: 2
+} satisfies WithSpringConfig
 
 export const Message = memo(
 	({
@@ -79,12 +89,20 @@ export const Message = memo(
 		const setEditMessage = useChatsStore(useShallow(state => state.setEditMessage))
 		const [, setChatInputValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
 		const { hasInternet } = useNetInfo()
+		const { t } = useTranslation()
 
 		const actionSheetOptions = useMemo(() => {
 			const options =
 				info.item.senderId === userId
-					? ["Reply", "Copy text", "Edit", "Disable embeds", "Delete", "Cancel"]
-					: ["Reply", "Copy text", "Cancel"]
+					? [
+							t("chats.messages.menu.reply"),
+							t("chats.messages.menu.copyText"),
+							t("chats.messages.menu.edit"),
+							t("chats.messages.menu.disableEmbeds"),
+							t("chats.messages.menu.delete"),
+							t("chats.messages.menu.cancel")
+					  ]
+					: [t("chats.messages.menu.reply"), t("chats.messages.menu.copyText"), t("chats.messages.menu.cancel")]
 
 			return {
 				options,
@@ -103,12 +121,12 @@ export const Message = memo(
 							1: "copyText"
 					  }) as Record<number, "reply" | "copyText" | "edit" | "delete" | "disableEmbeds">
 			}
-		}, [info.item.senderId, userId])
+		}, [info.item.senderId, userId, t])
 
 		const deleteMessage = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
-				title: "deleteMessage",
-				message: "Are u sure"
+				title: t("chats.prompts.deleteMessage.title"),
+				message: t("chats.prompts.deleteMessage.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -135,12 +153,12 @@ export const Message = memo(
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
-		}, [chat.uuid, info.item.uuid])
+		}, [chat.uuid, info.item.uuid, t])
 
 		const disableEmbeds = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
-				title: "disableEmbeds",
-				message: "Are u sure"
+				title: t("chats.prompts.disableEmbeds.title"),
+				message: t("chats.prompts.disableEmbeds.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -175,7 +193,7 @@ export const Message = memo(
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
-		}, [chat.uuid, info.item.uuid])
+		}, [chat.uuid, info.item.uuid, t])
 
 		const reply = useCallback(() => {
 			setReplyToMessage(prev => ({
@@ -422,17 +440,6 @@ export const Message = memo(
 			}))
 		}, [setReplyToMessage, chat.uuid, info.item, hasInternet])
 
-		const springConfig = useMemo(() => {
-			return {
-				damping: 20,
-				stiffness: 300,
-				mass: 0.4,
-				overshootClamping: false,
-				restDisplacementThreshold: 0.01,
-				restSpeedThreshold: 2
-			} satisfies WithSpringConfig
-		}, [])
-
 		const panGesture = useMemo(() => {
 			return Gesture.Pan()
 				.onStart(() => {
@@ -488,7 +495,7 @@ export const Message = memo(
 				.activeOffsetX([-20, 20])
 				.failOffsetY([-10, 10])
 				.shouldCancelWhenOutside(true)
-		}, [MAX_SWIPE_DISTANCE, SWIPE_THRESHOLD, onSwipeLeft, onSwipeRight, springConfig, translateX, contextX])
+		}, [MAX_SWIPE_DISTANCE, SWIPE_THRESHOLD, onSwipeLeft, onSwipeRight, translateX, contextX])
 
 		const panStyle = useAnimatedStyle(() => {
 			return {
@@ -570,7 +577,7 @@ export const Message = memo(
 								variant="caption2"
 								className="text-foreground uppercase font-normal"
 							>
-								NEW
+								{t("chats.messages.new").toUpperCase()}
 							</Text>
 						</View>
 					</View>

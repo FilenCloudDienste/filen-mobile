@@ -10,6 +10,7 @@ import { useChatsStore } from "@/stores/chats.store"
 import User from "./user"
 import { useKeyboardState } from "react-native-keyboard-controller"
 import { useShallow } from "zustand/shallow"
+import { useTranslation } from "react-i18next"
 
 export const Mention = memo(({ chat }: { chat: ChatConversation }) => {
 	const { colors } = useColorScheme()
@@ -17,6 +18,7 @@ export const Mention = memo(({ chat }: { chat: ChatConversation }) => {
 	const mentionSuggestions = useChatsStore(useShallow(state => state.mentionSuggestions[chat.uuid] ?? []))
 	const mentionText = useChatsStore(useShallow(state => state.mentionText[chat.uuid] ?? ""))
 	const { isVisible: isKeyboardVisible } = useKeyboardState()
+	const { t } = useTranslation()
 
 	const resetSuggestions = useCallback(() => {
 		useChatsStore.getState().resetSuggestions(chat.uuid)
@@ -50,7 +52,9 @@ export const Mention = memo(({ chat }: { chat: ChatConversation }) => {
 					className="text-sm font-normal text-muted-foreground flex-1"
 					numberOfLines={1}
 				>
-					Users matching {mentionText}
+					{t("chats.input.suggestions.mention.matching", {
+						query: mentionText
+					})}
 				</Text>
 				<Button
 					variant="plain"

@@ -39,6 +39,7 @@ import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-rean
 import { useShallow } from "zustand/shallow"
 import useIsProUser from "@/hooks/useIsProUser"
 import useNetInfo from "@/hooks/useNetInfo"
+import { useTranslation } from "react-i18next"
 
 export const Input = memo(
 	({ chat, setInputHeight }: { chat: ChatConversation; setInputHeight: React.Dispatch<React.SetStateAction<number>> }) => {
@@ -71,6 +72,7 @@ export const Input = memo(
 		const setEditMessage = useChatsStore(useShallow(state => state.setEditMessage))
 		const editMessage = useChatsStore(useShallow(state => state.editMessage[chat.uuid] ?? null))
 		const { hasInternet } = useNetInfo()
+		const { t } = useTranslation()
 
 		const suggestionsOrReplyOrEditVisible = useMemo(() => {
 			return (
@@ -550,7 +552,7 @@ export const Input = memo(
 									value={textValue}
 									onChangeText={onChangeText}
 									onPress={onTextInputPress}
-									placeholder="Type a message"
+									placeholder={t("chats.input.placeholder")}
 									multiline={true}
 									scrollEnabled={true}
 									autoFocus={false}

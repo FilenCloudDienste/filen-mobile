@@ -3,15 +3,16 @@ import useChatsQuery from "@/queries/useChatsQuery"
 import Header from "@/components/chats/header"
 import Container from "@/components/Container"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
-import { View, RefreshControl, ActivityIndicator, type ListRenderItemInfo, FlatList } from "react-native"
+import { View, RefreshControl, type ListRenderItemInfo, FlatList } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { contactName } from "@/lib/utils"
-import { useColorScheme } from "@/lib/useColorScheme"
 import alerts from "@/lib/alerts"
 import Item, { LIST_ITEM_HEIGHT } from "@/components/chats/item"
 import useDimensions from "@/hooks/useDimensions"
 import useNetInfo from "@/hooks/useNetInfo"
 import OfflineListHeader from "@/components/offlineListHeader"
+import { useTranslation } from "react-i18next"
+import ListEmpty from "@/components/listEmpty"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -21,9 +22,9 @@ export const Chats = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const listRef = useRef<FlatList<ChatConversation>>(null)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
-	const { colors } = useColorScheme()
 	const { screen } = useDimensions()
 	const { hasInternet } = useNetInfo()
+	const { t } = useTranslation()
 
 	const chatsQuery = useChatsQuery({})
 
@@ -77,56 +78,41 @@ export const Chats = memo(() => {
 		)
 	}, [refreshing, onRefresh])
 
-	const ListFooter = useMemo(() => {
+	const listFooter = useMemo(() => {
 		return chats.length > 0 ? (
 			<View className="flex-row items-center justify-center h-16">
-				<Text className="text-sm">{chats.length} chats</Text>
+				<Text className="text-sm">
+					{chats.length} {chats.length === 1 ? t("chats.chat") : t("chats.chats")}
+				</Text>
 			</View>
 		) : undefined
-	}, [chats.length])
+	}, [chats.length, t])
 
-	const ListEmpty = useMemo(() => {
-		if (chatsQuery.status === "pending") {
-			return (
-				<View className="flex-row items-center justify-center h-16">
-					<ActivityIndicator
-						size="small"
-						color={colors.foreground}
-					/>
-				</View>
-			)
-		}
-
-		if (chatsQuery.status === "error") {
-			return (
-				<View className="flex-row items-center justify-center h-16">
-					<Text className="text-sm">Error loading chats</Text>
-				</View>
-			)
-		}
-
-		if (chats.length === 0) {
-			if (searchTerm.length > 0) {
-				return (
-					<View className="flex-row items-center justify-center h-16">
-						<Text className="text-sm">No chats found for this search</Text>
-					</View>
-				)
-			}
-
-			return (
-				<View className="flex-row items-center justify-center h-16">
-					<Text className="text-sm">No chats found</Text>
-				</View>
-			)
-		}
-
+	const listEmpty = useMemo(() => {
 		return (
-			<View className="flex-row items-center justify-center h-16">
-				<Text className="text-sm">No chats found</Text>
-			</View>
+			<ListEmpty
+				queryStatus={chatsQuery.status}
+				itemCount={chats.length}
+				searchTermLength={searchTerm.length}
+				texts={{
+					error: t("chats.list.error"),
+					empty: t("chats.list.empty"),
+					emptySearch: t("chats.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "message-outline"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
 		)
-	}, [chatsQuery.status, chats.length, searchTerm, colors.foreground])
+	}, [chatsQuery.status, chats.length, searchTerm, t])
 
 	const renderItem = useCallback((info: ListRenderItemInfo<ChatConversation>) => {
 		return <Item info={info} />
@@ -163,8 +149,8 @@ export const Chats = memo(() => {
 					renderItem={renderItem}
 					refreshing={refreshing || chatsQuery.status === "pending"}
 					contentContainerStyle={contentContainerStyle}
-					ListEmptyComponent={ListEmpty}
-					ListFooterComponent={ListFooter}
+					ListEmptyComponent={listEmpty}
+					ListFooterComponent={listFooter}
 					refreshControl={refreshControl}
 					ListHeaderComponent={listHeader}
 					removeClippedSubviews={true}

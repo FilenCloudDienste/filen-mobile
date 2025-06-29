@@ -5,9 +5,12 @@ import useAccountQuery from "@/queries/useAccountQuery"
 import { formatBytes } from "@/lib/utils"
 import { useRouter } from "expo-router"
 import { Toggle } from "@/components/nativewindui/Toggle"
+import { useTranslation } from "react-i18next"
+import { Platform } from "react-native"
 
 export const Settings = memo(() => {
 	const router = useRouter()
+	const { t } = useTranslation()
 
 	const account = useAccountQuery({})
 
@@ -68,11 +71,13 @@ export const Settings = memo(() => {
 	const items = useMemo(() => {
 		return [
 			{
-				id: "1",
+				id: "0",
 				title: account.data?.account.email ?? "",
-				subTitle: `${formatBytes(account.data?.account.storage ?? 0)} used of ${formatBytes(
-					account.data?.account.maxStorage ?? 0
-				)} (${(((account.data?.account.storage ?? 0) / (account.data?.account.maxStorage ?? 1)) * 100).toFixed(2)}%)`,
+				subTitle: t("settings.index.items.used", {
+					used: formatBytes(account.data?.account.storage ?? 0),
+					max: formatBytes(account.data?.account.maxStorage ?? 0),
+					percentage: (((account.data?.account.storage ?? 0) / (account.data?.account.maxStorage ?? 1)) * 100).toFixed(2)
+				}),
 				onPress: onPressAccount,
 				leftView: (
 					<Avatar
@@ -86,8 +91,8 @@ export const Settings = memo(() => {
 			},
 			"gap-0",
 			{
-				id: "2",
-				title: "Security",
+				id: "1",
+				title: t("settings.index.items.security"),
 				onPress: onPressSecurity,
 				leftView: (
 					<IconView
@@ -97,8 +102,8 @@ export const Settings = memo(() => {
 				)
 			},
 			{
-				id: "4",
-				title: "Events",
+				id: "2",
+				title: t("settings.index.items.events"),
 				onPress: onPressEvents,
 				leftView: (
 					<IconView
@@ -107,10 +112,10 @@ export const Settings = memo(() => {
 					/>
 				)
 			},
-			"gap-5",
+			"gap-1",
 			{
 				id: "3",
-				title: "Camera upload",
+				title: t("settings.index.items.cameraUpload"),
 				onPress: onPressCameraUpload,
 				leftView: (
 					<IconView
@@ -120,8 +125,15 @@ export const Settings = memo(() => {
 				)
 			},
 			{
-				id: "333",
-				title: "File provider",
+				id: "4",
+				title: Platform.select({
+					ios: t("settings.index.items.fileProvider"),
+					default: t("settings.index.items.documentsProvider")
+				}),
+				subTitle: Platform.select({
+					ios: t("settings.index.items.fileProviderInfo"),
+					default: t("settings.index.items.documentsProviderInfo")
+				}),
 				leftView: (
 					<IconView
 						name="folder-open"
@@ -132,8 +144,8 @@ export const Settings = memo(() => {
 			},
 			"gap-2",
 			{
-				id: "111",
-				title: "Contacts",
+				id: "5",
+				title: t("settings.index.items.contacts"),
 				onPress: onPressContacts,
 				leftView: (
 					<IconView
@@ -142,10 +154,10 @@ export const Settings = memo(() => {
 					/>
 				)
 			},
-			"gap-1",
+			"gap-3",
 			{
-				id: "7",
-				title: "Advanced",
+				id: "6",
+				title: t("settings.index.items.advanced"),
 				onPress: onPressAdvanced,
 				leftView: (
 					<IconView
@@ -156,6 +168,7 @@ export const Settings = memo(() => {
 			}
 		]
 	}, [
+		t,
 		account.data?.account.email,
 		account.data?.account.maxStorage,
 		account.data?.account.storage,
@@ -170,7 +183,7 @@ export const Settings = memo(() => {
 
 	return (
 		<SettingsComponent
-			title="Settings"
+			title={t("settings.index.title")}
 			showSearchBar={false}
 			loading={account.status !== "success"}
 			items={items}

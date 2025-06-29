@@ -8,10 +8,12 @@ import alerts from "@/lib/alerts"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { type ListItemInfo } from "."
 import contactsService from "@/services/contacts.service"
+import { useTranslation } from "react-i18next"
 
 export const Menu = memo(
 	({ info, type, children }: { info: ListRenderItemInfo<ListItemInfo>; type: "context" | "dropdown"; children: React.ReactNode }) => {
 		const { colors } = useColorScheme()
+		const { t } = useTranslation()
 
 		const menuItems = useMemo(() => {
 			const items: (ContextItem | ContextSubMenu)[] = []
@@ -21,7 +23,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "remove",
-							title: "Remove",
+							title: t("contacts.menu.remove"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -41,7 +43,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "block",
-							title: "Block",
+							title: t("contacts.menu.block"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -65,7 +67,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "unblock",
-							title: "Unblock",
+							title: t("contacts.menu.unblock"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -89,7 +91,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "deleteRequest",
-							title: "Remove",
+							title: t("contacts.menu.remove"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -113,7 +115,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "acceptRequest",
-							title: "Accept",
+							title: t("contacts.menu.accept"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -130,7 +132,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "denyRequest",
-							title: "Decline",
+							title: t("contacts.menu.decline"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -152,7 +154,7 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [info.item.type, colors.destructive])
+		}, [info.item.type, colors.destructive, t])
 
 		const onItemPress = useCallback(
 			async (item: Omit<ContextItem, "icon">, _?: boolean) => {

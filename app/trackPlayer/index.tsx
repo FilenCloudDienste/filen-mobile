@@ -12,6 +12,9 @@ import Container from "@/components/Container"
 import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/trackPlayer/item"
 import { formatMessageDate } from "@/lib/utils"
 import useDimensions from "@/hooks/useDimensions"
+import ListEmpty from "@/components/listEmpty"
+import { useTranslation } from "react-i18next"
+import alerts from "@/lib/alerts"
 
 const contentContainerStyle = {
 	paddingTop: 8
@@ -22,6 +25,7 @@ export const TrackPlayer = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const playlistsSearchTerm = useTrackPlayerStore(useShallow(state => state.playlistsSearchTerm))
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const playlistsQuery = usePlaylistsQuery({})
 
@@ -41,10 +45,13 @@ export const TrackPlayer = memo(() => {
 			.map(playlist => ({
 				id: playlist.uuid,
 				title: playlist.name,
-				subTitle: `${playlist.files.length} files, updated ${formatMessageDate(playlist.updated)}`,
+				subTitle: t("trackPlayer.item.subTitle", {
+					count: playlist.files.length,
+					updated: formatMessageDate(playlist.updated)
+				}),
 				playlist
 			})) satisfies ListItemInfo[]
-	}, [playlistsQuery.data, playlistsQuery.status, playlistsSearchTerm])
+	}, [playlistsQuery.data, playlistsQuery.status, playlistsSearchTerm, t])
 
 	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
 		return <Item info={info} />
@@ -74,20 +81,55 @@ export const TrackPlayer = memo(() => {
 		)
 	}, [trackPlayerToolbarHeight])
 
+	const listEmpty = useMemo(() => {
+		return (
+			<ListEmpty
+				queryStatus={playlistsQuery.status}
+				itemCount={playlists.length}
+				texts={{
+					error: t("trackPlayer.list.error"),
+					empty: t("trackPlayer.list.empty"),
+					emptySearch: t("trackPlayer.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "playlist-music"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
+		)
+	}, [playlistsQuery.status, playlists.length, t])
+
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			await playlistsQuery.refetch()
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
+	}, [playlistsQuery])
+
 	const refreshControl = useMemo(() => {
 		return (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					await playlistsQuery.refetch().catch(console.error)
-
-					setRefreshing(false)
-				}}
+				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, playlistsQuery])
+	}, [refreshing, onRefresh])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {
@@ -118,6 +160,7 @@ export const TrackPlayer = memo(() => {
 					scrollIndicatorInsets={scrollIndicatorInsets}
 					contentContainerStyle={contentContainerStyle}
 					ListFooterComponent={listFooter}
+					ListEmptyComponent={listEmpty}
 					refreshing={refreshing}
 					refreshControl={refreshControl}
 					removeClippedSubviews={true}

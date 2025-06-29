@@ -14,6 +14,7 @@ import useDimensions from "@/hooks/useDimensions"
 import alerts from "@/lib/alerts"
 import { useSelectContactsStore } from "@/stores/selectContacts.store"
 import { useShallow } from "zustand/shallow"
+import { useTranslation } from "react-i18next"
 
 export type ListItemInfo = {
 	title: string
@@ -53,6 +54,7 @@ export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<Li
 	const selectedContacts = useSelectContactsStore(useShallow(state => state.selectedContacts))
 	const setSelectedContacts = useSelectContactsStore(useShallow(state => state.setSelectedContacts))
 	const selectedContactsCount = useSelectContactsStore(useShallow(state => state.selectedContacts.length))
+	const { t } = useTranslation()
 
 	const isSelected = useMemo(() => {
 		if (!contact) {
@@ -87,14 +89,14 @@ export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<Li
 	const actionSheetOptions = useMemo(() => {
 		const options =
 			info.item.type === "contact"
-				? ["Remove", "Block", "Cancel"]
+				? [t("contacts.menu.remove"), t("contacts.menu.block"), t("contacts.menu.cancel")]
 				: info.item.type === "blocked"
-				? ["Unblock", "Cancel"]
+				? [t("contacts.menu.unblock"), t("contacts.menu.cancel")]
 				: info.item.type === "incomingRequest"
-				? ["Accept", "Decline", "Cancel"]
+				? [t("contacts.menu.accept"), t("contacts.menu.decline"), t("contacts.menu.cancel")]
 				: info.item.type === "outgoingRequest"
-				? ["Remove", "Cancel"]
-				: ["Cancel"]
+				? [t("contacts.menu.remove"), t("contacts.menu.cancel")]
+				: [t("contacts.menu.cancel")]
 
 		return {
 			options,
@@ -118,7 +120,7 @@ export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<Li
 						0: "deleteRequest"
 				  }) as Record<number, "remove" | "block" | "unblock" | "acceptRequest" | "denyRequest" | "deleteRequest">
 		}
-	}, [info.item])
+	}, [info.item, t])
 
 	const onPress = useCallback(() => {
 		if (fromSelect) {

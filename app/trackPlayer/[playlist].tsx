@@ -129,20 +129,30 @@ export const Playlist = memo(() => {
 		)
 	}, [trackPlayerToolbarHeight])
 
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			await playlistsQuery.refetch()
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
+	}, [playlistsQuery])
+
 	const refreshControl = useMemo(() => {
 		return Platform.OS === "ios" ? (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					await playlistsQuery.refetch().catch(console.error)
-
-					setRefreshing(false)
-				}}
+				onRefresh={onRefresh}
 			/>
 		) : undefined
-	}, [refreshing, playlistsQuery])
+	}, [refreshing, onRefresh])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {

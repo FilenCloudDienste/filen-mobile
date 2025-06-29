@@ -1,8 +1,19 @@
 import i18n from "i18next"
 import { initReactI18next } from "react-i18next"
 import en from "@/locales/en/en.json"
+import * as ExpoLocalization from "expo-localization"
 
 let initalized: boolean = false
+
+let locales: string[] = ["en"]
+
+try {
+	locales = ExpoLocalization.getLocales()
+		.map(locale => locale.languageCode ?? "")
+		.filter(locale => locale.length > 0)
+} catch (e) {
+	console.error(e)
+}
 
 i18n.use(initReactI18next)
 	.init({
@@ -13,7 +24,7 @@ i18n.use(initReactI18next)
 		},
 		ns: ["translation"],
 		defaultNS: "translation",
-		lng: "en",
+		lng: locales.at(0)?.trim().toLowerCase() ?? "en",
 		debug: true,
 		fallbackLng: "en",
 		supportedLngs: ["en"],

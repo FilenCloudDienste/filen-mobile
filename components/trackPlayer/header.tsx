@@ -52,7 +52,7 @@ export const Header = memo(() => {
 
 	const createPlaylist = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
-			title: t("drive.header.rightView.actionSheet.create.directory"),
+			title: t("trackPlayer.prompts.createPlaylist.title"),
 			materialIcon: {
 				name: "folder-plus-outline"
 			},
@@ -60,7 +60,7 @@ export const Header = memo(() => {
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+				placeholder: t("trackPlayer.prompts.createPlaylist.placeholder")
 			}
 		})
 
@@ -257,7 +257,7 @@ export const Header = memo(() => {
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
 			<AdaptiveSearchHeader
-				iosTitle={playlist ? playlist.name : "Playlists"}
+				iosTitle={playlist ? playlist.name : t("trackPlayer.header.title")}
 				iosIsLargeTitle={false}
 				iosBackButtonMenuEnabled={false}
 				backVisible={playlist !== null}
@@ -280,7 +280,7 @@ export const Header = memo(() => {
 			/>
 		) : (
 			<LargeTitleHeader
-				title={playlist ? playlist.name : "Playlists"}
+				title={playlist ? playlist.name : t("trackPlayer.header.title")}
 				materialPreset="inline"
 				backVisible={true}
 				backgroundColor={colors.card}
@@ -299,7 +299,7 @@ export const Header = memo(() => {
 				}}
 			/>
 		)
-	}, [playlist, colors.card, rightView, setPlaylistSearchTerm, setPlaylistsSearchTerm])
+	}, [playlist, colors.card, rightView, setPlaylistSearchTerm, setPlaylistsSearchTerm, t])
 
 	return header
 })

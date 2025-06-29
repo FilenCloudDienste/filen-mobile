@@ -17,6 +17,7 @@ import { ListItem } from "@/components/nativewindui/List"
 import { type TextEditorItem } from "@/components/textEditor/editor"
 import { type PDFPreviewItem } from "@/app/pdfPreview"
 import { type DOCXPreviewItem } from "@/app/docxPreview"
+import { useTranslation } from "react-i18next"
 
 export const ICON_HEIGHT: number = 44
 
@@ -41,6 +42,7 @@ export const Item = memo(
 		const { colors } = useColorScheme()
 		const { push: routerPush } = useRouter()
 		const { hasInternet } = useNetInfo()
+		const { t } = useTranslation()
 
 		const queryParams = useMemo(() => {
 			return {
@@ -113,7 +115,7 @@ export const Item = memo(
 
 			if (!hasInternet || offlineStatus?.exists) {
 				if (!offlineStatus || !offlineStatus.exists) {
-					alerts.error("You are offline.")
+					alerts.error(t("errors.youAreOffline"))
 
 					return
 				}
@@ -194,7 +196,7 @@ export const Item = memo(
 					}
 				})
 			}
-		}, [routerPush, item, hasInternet, offlineStatus, items, type, queryParams])
+		}, [routerPush, item, hasInternet, offlineStatus, items, type, queryParams, t])
 
 		const itemInfo = useMemo(() => {
 			return {

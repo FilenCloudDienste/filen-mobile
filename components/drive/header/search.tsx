@@ -1,9 +1,8 @@
 import { memo, useCallback, useEffect, useState, useMemo } from "react"
 import nodeWorker from "@/lib/nodeWorker"
-import { View, ActivityIndicator } from "react-native"
+import { View } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import alerts from "@/lib/alerts"
-import { useColorScheme } from "@/lib/useColorScheme"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import ListItem, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/drive/list/listItem"
@@ -12,12 +11,14 @@ import { useDebouncedCallback } from "use-debounce"
 import cache from "@/lib/cache"
 import { type SearchFindItemDecrypted } from "@filen/sdk/dist/types/api/v3/search/find"
 import useDimensions from "@/hooks/useDimensions"
+import { useTranslation } from "react-i18next"
+import ListEmpty from "@/components/listEmpty"
 
 export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; queryParams: FetchCloudItemsParams }) => {
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const [result, setResults] = useState<SearchFindItemDecrypted[]>([])
-	const { colors } = useColorScheme()
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const query = useCloudItemsQuery({
 		...queryParams,
@@ -168,21 +169,42 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 		}
 	}, 1000)
 
-	const listEmpty = useMemo(() => {
+	const listFooter = useMemo(() => {
 		return (
-			<View className="flex-1 flex-row items-center justify-center">
-				{!isLoading ? <Text>Nothing found</Text> : <ActivityIndicator color={colors.foreground} />}
+			<View className="h-16 flex-row items-center justify-center">
+				<Text className="text-sm">
+					{t("drive.search.list.footer", {
+						count: items.length
+					})}
+				</Text>
 			</View>
 		)
-	}, [isLoading, colors.foreground])
+	}, [items.length, t])
 
-	const listFooter = useMemo(() => {
-		return items.length > 0 ? (
-			<View className="h-16 pb-2 flex flex-row items-center justify-center">
-				<Text className="text-sm">{items.length} items</Text>
-			</View>
-		) : undefined
-	}, [items.length])
+	const listEmpty = useMemo(() => {
+		return (
+			<ListEmpty
+				queryStatus={isLoading ? "pending" : "success"}
+				itemCount={items.length}
+				texts={{
+					error: t("notes.participants.list.error"),
+					empty: t("notes.participants.list.empty"),
+					emptySearch: t("notes.participants.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "file-document-multiple"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
+		)
+	}, [t, items.length, isLoading])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {

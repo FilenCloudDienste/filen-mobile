@@ -5,7 +5,7 @@ import useContactsQuery from "@/queries/useContactsQuery"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import { RefreshControl, View, Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
-import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
+import { useTranslation } from "react-i18next"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { useLocalSearchParams, useRouter } from "expo-router"
@@ -21,6 +21,8 @@ import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import { Contact as ContactType } from "@filen/sdk/dist/types/api/v3/contacts"
+import ListEmpty from "@/components/listEmpty"
+import alerts from "@/lib/alerts"
 
 export type SelectContactsResponse =
 	| {
@@ -80,6 +82,7 @@ export default function SelectContacts() {
 	const selectedContacts = useSelectContactsStore(useShallow(state => state.selectedContacts))
 	const setSelectedContacts = useSelectContactsStore(useShallow(state => state.setSelectedContacts))
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const query = useContactsQuery({
 		type: typeof type === "string" ? (type as "all" | "blocked") : "all"
@@ -183,15 +186,19 @@ export default function SelectContacts() {
 
 		return selectedContacts.length === 1
 			? selectedContacts.at(0)
-				? `${contactName(selectedContacts.at(0)?.email, selectedContacts.at(0)?.nickName)} selected`
+				? t("selectContacts.toolbar.selected", {
+						countOrName: contactName(selectedContacts.at(0)?.email, selectedContacts.at(0)?.nickName)
+				  })
 				: undefined
-			: `${selectedContacts.length} selected`
-	}, [selectedContacts])
+			: t("selectContacts.toolbar.selected", {
+					countOrName: selectedContacts.length
+			  })
+	}, [selectedContacts, t])
 
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
 			<AdaptiveSearchHeader
-				iosTitle={maxParsed === 1 ? "Select contact" : "Select contacts"}
+				iosTitle={maxParsed === 1 ? t("selectContacts.header.selectContact") : t("selectContacts.header.selectContacts")}
 				iosIsLargeTitle={false}
 				iosBackButtonMenuEnabled={true}
 				backgroundColor={colors.card}
@@ -201,20 +208,20 @@ export default function SelectContacts() {
 							variant="plain"
 							onPress={cancel}
 						>
-							<Text className="text-blue-500">Cancel</Text>
+							<Text className="text-blue-500">{t("selectContacts.header.cancel")}</Text>
 						</Button>
 					)
 				}}
 				searchBar={{
 					iosHideWhenScrolling: false,
-					onChangeText: text => setSearchTerm(text),
+					onChangeText: setSearchTerm,
 					contentTransparent: true,
 					persistBlur: true
 				}}
 			/>
 		) : (
 			<LargeTitleHeader
-				title={maxParsed === 1 ? "Select contact" : "Select contacts"}
+				title={maxParsed === 1 ? t("selectContacts.header.selectContact") : t("selectContacts.header.selectContacts")}
 				materialPreset="inline"
 				backVisible={true}
 				backgroundColor={colors.card}
@@ -224,7 +231,7 @@ export default function SelectContacts() {
 							variant="plain"
 							onPress={cancel}
 						>
-							<Text className="text-blue-500">Cancel</Text>
+							<Text className="text-blue-500">{t("selectContacts.header.cancel")}</Text>
 						</Button>
 					)
 				}}
@@ -235,46 +242,69 @@ export default function SelectContacts() {
 				}}
 			/>
 		)
-	}, [cancel, colors.card, maxParsed])
+	}, [cancel, colors.card, maxParsed, t])
 
 	const listEmpty = useMemo(() => {
 		return (
-			<View className="flex-1 items-center justify-center">
-				{query.status === "success" ? (
-					searchTerm.length > 0 ? (
-						<Text>Nothing found</Text>
-					) : (
-						<Text>No contacts</Text>
-					)
-				) : (
-					<ActivityIndicator color={colors.foreground} />
-				)}
-			</View>
+			<ListEmpty
+				queryStatus={query.status}
+				itemCount={contacts.length}
+				texts={{
+					error: t("selectContacts.list.error"),
+					empty: t("selectContacts.list.empty"),
+					emptySearch: t("selectContacts.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "account-multiple-outline"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
 		)
-	}, [query.status, searchTerm, colors.foreground])
+	}, [query.status, contacts.length, t])
 
 	const listFooter = useMemo(() => {
 		return (
 			<View className="flex flex-row items-center justify-center h-16 p-4">
-				<Text className="text-sm">{contacts.length} contacts</Text>
+				<Text className="text-sm">
+					{t("selectContacts.list.footer", {
+						count: contacts.length
+					})}
+				</Text>
 			</View>
 		)
-	}, [contacts.length])
+	}, [contacts.length, t])
+
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			await query.refetch()
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
+	}, [query])
 
 	const refreshControl = useMemo(() => {
 		return (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					await query.refetch().catch(() => {})
-
-					setRefreshing(false)
-				}}
+				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, query])
+	}, [refreshing, onRefresh])
 
 	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
 		return {
