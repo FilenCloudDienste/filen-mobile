@@ -1,80 +1,6 @@
-import ping from "./ping"
-import login from "./login"
-import reinitSDK from "./reinitSDK"
-import fetchCloudItems from "./fetchCloudItems"
-import uploadFile from "./uploadFile"
-import downloadFile from "./downloadFile"
-import transferAction from "./transferAction"
-import fetchNotes from "./fetchNotes"
-import renameFile from "./renameFile"
-import renameDirectory from "./renameDirectory"
-import changeDirectoryColor from "./changeDirectoryColor"
-import favoriteDirectory from "./favoriteDirectory"
-import favoriteFile from "./favoriteFile"
-import shareItems from "./shareItems"
-import fetchContacts from "./fetchContacts"
-import trashFile from "./trashFile"
-import trashDirectory from "./trashDirectory"
-import fetchDirectorySize from "./fetchDirectorySize"
-import moveFile from "./moveFile"
-import moveDirectory from "./moveDirectory"
-import createDirectory from "./createDirectory"
-import toggleItemPublicLink from "./toggleItemPublicLink"
-import directoryPublicLinkStatus from "./directoryPublicLinkStatus"
-import editItemPublicLink from "./editItemPublicLink"
-import decryptDirectoryPublicLinkKey from "./decryptDirectoryPublicLinkKey"
-import getDirectoryTree from "./getDirectoryTree"
-import uploadDirectory from "./uploadDirectory"
-import downloadDirectory from "./downloadDirectory"
-import directoryUUIDToPath from "./directoryUUIDToPath"
-import fileUUIDToPath from "./fileUUIDToPath"
-import queryGlobalSearch from "./queryGlobalSearch"
-import fetchFileVersions from "./fetchFileVersions"
-import restoreFileVersion from "./restoreFileVersion"
-import deleteDirectory from "./deleteDirectory"
-import deleteFile from "./deleteFile"
-import getDirectory from "./getDirectory"
-import getFile from "./getFile"
-import fetchTransfers from "./fetchTransfers"
-import fetchAccount from "./fetchAccount"
-import editFileMetadata from "./editFileMetadata"
-import editDirectoryMetadata from "./editDirectoryMetadata"
-import fetchNoteContent from "./fetchNoteContent"
-import editNote from "./editNote"
-import fileExists from "./fileExists"
-import directoryExists from "./directoryExists"
-import favoriteNote from "./favoriteNote"
-import pinNote from "./pinNote"
-import duplicateNote from "./duplicateNote"
-import changeNoteType from "./changeNoteType"
-import restoreNote from "./restoreNote"
-import trashNote from "./trashNote"
-import deleteNote from "./deleteNote"
-import archiveNote from "./archiveNote"
-import fetchNotesTags from "./fetchNotesTags"
-import tagNote from "./tagNote"
-import untagNote from "./untagNote"
-import changeNoteParticipantPermissions from "./changeNoteParticipantPermissions"
-import fetchUserPublicKey from "./fetchUserPublicKey"
-import addNoteParticipant from "./addNoteParticipant"
-import removeNoteParticipant from "./removeNoteParticipant"
-import fetchNoteHistory from "./fetchNoteHistory"
-import restoreNoteHistory from "./restoreNoteHistory"
-import createNote from "./createNote"
-import deleteNoteTag from "./deleteNoteTag"
-import favoriteNoteTag from "./favoriteNoteTag"
-import renameNoteTag from "./renameNoteTag"
-import createNoteTag from "./createNoteTag"
-import renameNote from "./renameNote"
-import filePublicLinkStatus from "./filePublicLinkStatus"
-import restoreFile from "./restoreFile"
-import restoreDirectory from "./restoreDirectory"
-import removeSharedItem from "./removeSharedIn"
-import stopSharingItem from "./stopSharingItem"
-import decryptChatMessage from "./decryptChatMessage"
-import exit from "./exit"
-import httpStatus from "./httpStatus"
-
+import { fetchTransfers, transferAction } from "./transfers"
+import { exit, ping, httpStatus, parseAudioMetadata } from "./utils"
+import { decryptChatMessage, decryptDirectoryPublicLinkKey } from "./crypto"
 import {
 	createChat,
 	leaveChat,
@@ -97,17 +23,80 @@ import {
 	updateChatsLastFocus,
 	muteChat
 } from "./chats"
-
-import { filePublicLinkHasPassword, filePublicLinkInfo, directoryPublicLinkInfo, directorySizePublicLink } from "./cloud"
-
+import {
+	changeDirectoryColor,
+	createDirectory,
+	removeSharedItem,
+	renameDirectory,
+	renameFile,
+	restoreDirectory,
+	restoreFile,
+	restoreFileVersion,
+	filePublicLinkHasPassword,
+	filePublicLinkInfo,
+	directoryPublicLinkInfo,
+	directorySizePublicLink,
+	favoriteDirectory,
+	favoriteFile,
+	fetchCloudItems,
+	fetchDirectorySize,
+	fetchFileVersions,
+	fileExists,
+	filePublicLinkStatus,
+	fileUUIDToPath,
+	getDirectory,
+	getDirectoryTree,
+	getFile,
+	queryGlobalSearch,
+	editDirectoryMetadata,
+	editFileMetadata,
+	editItemPublicLink,
+	uploadDirectory,
+	uploadFile,
+	deleteDirectory,
+	deleteFile,
+	directoryExists,
+	directoryPublicLinkStatus,
+	directoryUUIDToPath,
+	downloadDirectory,
+	downloadFile,
+	moveDirectory,
+	moveFile,
+	toggleItemPublicLink,
+	trashDirectory,
+	trashFile,
+	shareItems,
+	stopSharingItem
+} from "./cloud"
 import { readFileAsString, writeFileAsString } from "./fs"
-
-import { parseAudioMetadata } from "./utils"
-
-import register from "./register"
-import resendConfirmation from "./resendConfirmation"
-import forgotPassword from "./forgotPassword"
-
+import {
+	removeNoteParticipant,
+	renameNote,
+	renameNoteTag,
+	restoreNote,
+	restoreNoteHistory,
+	deleteNote,
+	deleteNoteTag,
+	duplicateNote,
+	editNote,
+	changeNoteParticipantPermissions,
+	changeNoteType,
+	createNote,
+	createNoteTag,
+	addNoteParticipant,
+	archiveNote,
+	favoriteNote,
+	favoriteNoteTag,
+	fetchNoteContent,
+	fetchNoteHistory,
+	fetchNotes,
+	fetchNotesTags,
+	tagNote,
+	trashNote,
+	pinNote,
+	untagNote
+} from "./notes"
+import { login, register, forgotPassword, reinitSDK, resendConfirmation } from "./auth"
 import {
 	uploadAvatar,
 	updateNickname,
@@ -123,9 +112,10 @@ import {
 	disableTwoFactorAuthentication,
 	deleteAccount,
 	deleteAllVersionedFiles,
-	deleteEverything
+	deleteEverything,
+	fetchAccount,
+	fetchUserPublicKey
 } from "./user"
-
 import {
 	deleteOutgoingContactRequest,
 	fetchIncomingContactRequests,
@@ -135,7 +125,8 @@ import {
 	denyContactRequest,
 	sendContactRequest,
 	removeContact,
-	unblockContact
+	unblockContact,
+	fetchContacts
 } from "./contacts"
 
 export {

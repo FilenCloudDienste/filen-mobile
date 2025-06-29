@@ -37,3 +37,18 @@ export async function fetchOutgoingContactRequests(this: NodeWorker) {
 export async function deleteOutgoingContactRequest(this: NodeWorker, params: Parameters<Contacts["deleteOutgoingRequest"]>[0]) {
 	return await sdk.get().contacts().deleteOutgoingRequest(params)
 }
+
+export async function fetchContacts(params: { type: "all" | "blocked" }) {
+	switch (params.type) {
+		case "blocked": {
+			return (await sdk.get().contacts().blocked()).map(blockedContact => ({
+				...blockedContact,
+				lastActive: 0
+			}))
+		}
+
+		default: {
+			return await sdk.get().contacts().all()
+		}
+	}
+}

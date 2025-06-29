@@ -75,3 +75,16 @@ export async function uploadAvatar(
 		buffer
 	})
 }
+
+export async function fetchAccount(this: NodeWorker) {
+	const [account, settings] = await Promise.all([sdk.get().user().account(), sdk.get().user().settings()])
+
+	return {
+		account,
+		settings
+	}
+}
+
+export async function fetchUserPublicKey(this: NodeWorker, params: Parameters<User["publicKey"]>[0]) {
+	return await sdk.get().user().publicKey(params)
+}
