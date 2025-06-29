@@ -24,7 +24,6 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 import AlertPrompt from "@/components/prompts/alertPrompt"
 import ShareIntentProvider from "@/providers/shareIntentProvider"
 import GalleryModal from "@/components/gallery/modal"
-import Background from "@/components/background"
 import SocketEvents from "@/components/socketEvents"
 import { NotifierWrapper } from "react-native-notifier"
 import Biometric from "@/components/biometric"
@@ -156,7 +155,6 @@ export default function RootLayout() {
 														<ItemInfoSheet />
 														<AuthedListeners />
 														<SocketEvents />
-														<Background />
 														<Biometric />
 													</Fragment>
 												)}

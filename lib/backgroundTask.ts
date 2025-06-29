@@ -4,6 +4,24 @@ import { backgroundCameraUpload } from "./cameraUpload"
 import { BACKGROUND_TASK_IDENTIFIER } from "./constants"
 import setup from "./setup"
 
+export async function registerBackgroundTask() {
+	const status = await ExpoBackgroundTask.getStatusAsync()
+
+	console.log("BackgroundTask status:", status)
+
+	if (status !== ExpoBackgroundTask.BackgroundTaskStatus.Available) {
+		return
+	}
+
+	await ExpoBackgroundTask.registerTaskAsync(BACKGROUND_TASK_IDENTIFIER, {
+		minimumInterval: Math.floor(1440 / 24) // 24 times a day, every hour
+	})
+
+	console.log("BackgroundTask registered!")
+}
+
+registerBackgroundTask()
+
 ExpoTaskManager.defineTask(BACKGROUND_TASK_IDENTIFIER, async () => {
 	try {
 		const abortController = new AbortController()

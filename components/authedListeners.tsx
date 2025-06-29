@@ -1,16 +1,16 @@
-import { memo, useEffect, useCallback } from "react"
+import { memo, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "expo-router"
 import events from "@/lib/events"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
-import { useAppStateStore } from "@/stores/appState.store"
-import { useShallow } from "zustand/shallow"
+import { AppState } from "react-native"
+import { foregroundCameraUpload } from "@/lib/cameraUpload"
 
 export const AuthedListeners = memo(() => {
 	const { push: routerPush } = useRouter()
 	const [{ baseFolderUUID, userId }] = useSDKConfig()
-	const appState = useAppStateStore(useShallow(state => state.appState))
+	const nextCameraUploadRunRef = useRef<number>(0)
 
 	const updateTransfers = useCallback(async () => {
 		try {
@@ -25,20 +25,38 @@ export const AuthedListeners = memo(() => {
 	}, [])
 
 	useEffect(() => {
+		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
+			const now = Date.now()
+
+			if (nextAppState === "active" && now > nextCameraUploadRunRef.current) {
+				nextCameraUploadRunRef.current = now + 60000
+
+				foregroundCameraUpload.run().catch(console.error)
+			}
+		})
+
+		return () => {
+			appStateChangeListener.remove()
+		}
+	}, [])
+
+	useEffect(() => {
 		const updateTransfersInterval = setInterval(() => {
 			updateTransfers().catch(console.error)
 		}, 3000)
 
-		if (appState === "active") {
-			updateTransfers().catch(console.error)
-		} else {
-			clearInterval(updateTransfersInterval)
-		}
+		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
+			if (nextAppState === "active") {
+				updateTransfers().catch(console.error)
+			} else {
+				clearInterval(updateTransfersInterval)
+			}
+		})
 
 		return () => {
-			clearInterval(updateTransfersInterval)
+			appStateChangeListener.remove()
 		}
-	}, [appState, updateTransfers])
+	}, [updateTransfers])
 
 	useEffect(() => {
 		const selectContactsSub = events.subscribe("selectContacts", e => {

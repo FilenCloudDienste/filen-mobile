@@ -106,7 +106,13 @@ export class CameraUpload {
 
 		const state = getCameraUploadState()
 
-		if (!state.enabled || state.albums.length === 0 || !state.remote || !validateUUID(state.remote.uuid)) {
+		if (
+			(this.type === "background" && !state.background) ||
+			!state.enabled ||
+			state.albums.length === 0 ||
+			!state.remote ||
+			!validateUUID(state.remote.uuid)
+		) {
 			return false
 		}
 
