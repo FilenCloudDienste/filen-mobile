@@ -31,7 +31,7 @@ export class NodeWorker {
 	public constructor() {
 		nodejs.channel.addListener("message", (message: NodeBridgeMessage) => {
 			switch (message.type) {
-				case "response":
+				case "response": {
 					if (message.data.success) {
 						const fn = this.resolves.get(message.id)
 
@@ -50,13 +50,9 @@ export class NodeWorker {
 					this.rejects.delete(message.id)
 
 					break
+				}
 
-				case "socketEvent":
-					events.emit("socketEvent", message.event)
-
-					break
-
-				case "transfers":
+				case "transfers": {
 					this.setTransfers(message.data.transfers)
 					this.setFinishedTransfers(message.data.finishedTransfers)
 					this.setProgress(message.data.progress)
@@ -64,29 +60,34 @@ export class NodeWorker {
 					this.setSpeed(message.data.speed)
 
 					break
+				}
 
-				case "shareItemsProgress":
+				case "shareItemsProgress": {
 					events.emit("shareItemsProgress", message.data)
 
 					break
+				}
 
-				case "toggleItemPublicLinkProgress":
+				case "toggleItemPublicLinkProgress": {
 					events.emit("toggleItemPublicLinkProgress", message.data)
 
 					break
+				}
 
-				case "httpServer":
+				case "httpServer": {
 					this.httpServerPort = message.data.port
 					this.httpAuthToken = message.data.authToken
 
 					break
+				}
 
-				case "debug":
+				case "debug": {
 					if (__DEV__) {
 						console.log("[DEBUG] Node worker debug", message.data)
 					}
 
 					break
+				}
 			}
 		})
 	}
