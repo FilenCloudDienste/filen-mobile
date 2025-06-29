@@ -394,7 +394,6 @@ export class NodeWorker {
 		directorySizePublicLink: handlers.directorySizePublicLink.bind(this),
 		readFileAsString: handlers.readFileAsString.bind(this),
 		writeFileAsString: handlers.writeFileAsString.bind(this),
-		parseAudioMetadata: handlers.parseAudioMetadata.bind(this),
 		uploadAvatar: handlers.uploadAvatar.bind(this),
 		updateNickname: handlers.updateNickname.bind(this),
 		updatePersonalInformation: handlers.updatePersonalInformation.bind(this),

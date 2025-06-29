@@ -7,7 +7,6 @@
 		"@types/cors": "^2.8.17",
 		"@types/express": "^5.0.0",
 		"@types/fs-extra": "^11.0.4",
-		"@types/jsmediatags": "^3.9.6",
 		"@types/mime-types": "^2.1.4",
 		"@types/uuid": "^10.0.0",
 		"esbuild": "^0.25.4",
@@ -37,7 +36,6 @@
 		"argon2": "^0.43.0",
 		"express": "^4.21.1",
 		"fs-extra": "^11.2.0",
-		"jsmediatags": "^3.9.7",
 		"mime-types": "^2.1.35",
 		"uuid": "^11.0.2",
 		"zustand": "^5.0.0"

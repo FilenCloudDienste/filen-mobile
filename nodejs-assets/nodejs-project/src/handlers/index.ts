@@ -1,5 +1,5 @@
 import { fetchTransfers, transferAction } from "./transfers"
-import { exit, ping, httpStatus, parseAudioMetadata } from "./utils"
+import { exit, ping, httpStatus } from "./utils"
 import { decryptChatMessage, decryptDirectoryPublicLinkKey } from "./crypto"
 import {
 	createChat,
@@ -231,7 +231,6 @@ export {
 	directorySizePublicLink,
 	readFileAsString,
 	writeFileAsString,
-	parseAudioMetadata,
 	uploadAvatar,
 	updateNickname,
 	updatePersonalInformation,
