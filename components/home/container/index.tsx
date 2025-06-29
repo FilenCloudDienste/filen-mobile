@@ -137,6 +137,30 @@ export const Container = memo(
 			})
 		}, [])
 
+		const scrollItems = useMemo(() => {
+			return chunkArray(items, 3).map((chunk, index) => {
+				return (
+					<View
+						key={index.toString()}
+						className="flex-1 flex-col pr-4"
+						style={{
+							width: Math.floor(layout.width - 32)
+						}}
+					>
+						{chunk.map((item, index) => (
+							<Item
+								key={index}
+								item={item}
+								type={type}
+								items={items}
+								index={index}
+							/>
+						))}
+					</View>
+				)
+			})
+		}, [items, layout.width, type])
+
 		return (
 			<View
 				className="flex-1 mb-10"
@@ -175,27 +199,7 @@ export const Container = memo(
 					contentInsetAdjustmentBehavior="automatic"
 					removeClippedSubviews={true}
 				>
-					{chunkArray(items, 3).map((chunk, index) => {
-						return (
-							<View
-								key={index.toString()}
-								className="flex-1 flex-col pr-4"
-								style={{
-									width: Math.floor(layout.width - 32)
-								}}
-							>
-								{chunk.map((item, index) => (
-									<Item
-										key={index}
-										item={item}
-										type={type}
-										items={items}
-										index={index}
-									/>
-								))}
-							</View>
-						)
-					})}
+					{scrollItems}
 				</ScrollView>
 			</View>
 		)

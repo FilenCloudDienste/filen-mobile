@@ -81,11 +81,12 @@ export const Item = memo(
 					})
 				}
 
-				if (type === "sharedOut") {
+				if (type === "sharedOut" && item.isShared) {
 					routerPush({
 						pathname: "/(app)/home/sharedOut/[uuid]",
 						params: {
-							uuid: item.uuid
+							uuid: item.uuid,
+							receiverId: item.receiverId
 						}
 					})
 				}
