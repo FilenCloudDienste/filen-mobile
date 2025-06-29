@@ -9,9 +9,10 @@ import { useQuery } from "@tanstack/react-query"
 import paths from "@/lib/paths"
 import * as FileSystem from "expo-file-system/next"
 import sqlite from "@/lib/sqlite"
+import trackPlayerService from "@/lib/trackPlayer"
 
 export const Advanced = memo(() => {
-	const cacheQuery = useQuery({
+	const { data, refetch, status } = useQuery({
 		queryKey: ["settingsAdvancedCacheQuery"],
 		queryFn: async () => {
 			const thumbnailsSize = new FileSystem.Directory(paths.thumbnails())
@@ -62,24 +63,20 @@ export const Advanced = memo(() => {
 	})
 
 	const cacheSize = useMemo(() => {
-		return (
-			(cacheQuery.data?.exportsSize ?? 0) +
-			(cacheQuery.data?.temporaryDownloadsSize ?? 0) +
-			(cacheQuery.data?.temporaryUploadsSize ?? 0)
-		)
-	}, [cacheQuery.data])
+		return (data?.exportsSize ?? 0) + (data?.temporaryDownloadsSize ?? 0) + (data?.temporaryUploadsSize ?? 0)
+	}, [data])
 
 	const thumbnailsSize = useMemo(() => {
-		return cacheQuery.data?.thumbnailsSize ?? 0
-	}, [cacheQuery.data])
+		return data?.thumbnailsSize ?? 0
+	}, [data])
 
 	const trackPlayerSize = useMemo(() => {
-		return (cacheQuery.data?.trackPlayerSize ?? 0) + (cacheQuery.data?.trackPlayerPicturesSize ?? 0)
-	}, [cacheQuery.data])
+		return (data?.trackPlayerSize ?? 0) + (data?.trackPlayerPicturesSize ?? 0)
+	}, [data])
 
 	const offlineFilesSize = useMemo(() => {
-		return cacheQuery.data?.offlineFilesSize ?? 0
-	}, [cacheQuery.data])
+		return data?.offlineFilesSize ?? 0
+	}, [data])
 
 	const clearCache = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
@@ -96,6 +93,8 @@ export const Advanced = memo(() => {
 
 		try {
 			paths.clearTempDirectories()
+
+			await refetch()
 		} catch (e) {
 			console.error(e)
 
@@ -105,7 +104,7 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [])
+	}, [refetch])
 
 	const clearThumbnails = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
@@ -121,6 +120,8 @@ export const Advanced = memo(() => {
 
 		try {
 			paths.clearThumbnails()
+
+			await refetch()
 		} catch (e) {
 			console.error(e)
 
@@ -130,7 +131,7 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [])
+	}, [refetch])
 
 	const clearTrackPlayer = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
@@ -145,7 +146,10 @@ export const Advanced = memo(() => {
 		fullScreenLoadingModal.show()
 
 		try {
-			paths.clearThumbnails()
+			paths.clearTrackPlayer()
+			trackPlayerService.clearState()
+
+			await refetch()
 		} catch (e) {
 			console.error(e)
 
@@ -155,7 +159,7 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [])
+	}, [refetch])
 
 	const clearOfflineFiles = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
@@ -173,6 +177,8 @@ export const Advanced = memo(() => {
 			paths.clearOfflineFiles()
 
 			await sqlite.offlineFiles.clear()
+
+			await refetch()
 		} catch (e) {
 			console.error(e)
 
@@ -182,7 +188,7 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [])
+	}, [refetch])
 
 	const items = useMemo(() => {
 		return [
@@ -221,7 +227,7 @@ export const Advanced = memo(() => {
 		<SettingsComponent
 			title="Advanced"
 			showSearchBar={false}
-			loading={cacheQuery.status !== "success"}
+			loading={status !== "success"}
 			items={items}
 		/>
 	)

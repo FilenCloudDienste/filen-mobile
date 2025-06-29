@@ -48,6 +48,24 @@ export class TrackPlayerService {
 	private readonly loadFileForTrackMutex: Semaphore = new Semaphore(1)
 	private readonly controlsMutex: Semaphore = new Semaphore(1)
 
+	public clearState(): void {
+		mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify([]))
+		mmkvInstance.delete(TRACK_PLAYER_PLAYING_TRACK_KEY)
+		mmkvInstance.delete(TRACK_PLAYER_TIMINGS_KEY)
+		mmkvInstance.delete(TRACK_PLAYER_REPEAT_MODE_KEY)
+		mmkvInstance.delete(TRACK_PLAYER_PLAYBACK_SPEED_KEY)
+		mmkvInstance.delete(TRACK_PLAYER_VOLUME_KEY)
+
+		const metadataKey = this.getTrackMetadataKeyFromUUID("")
+		const metadataKeys = mmkvInstance.getAllKeys().filter(key => key.startsWith(metadataKey))
+
+		for (const key of metadataKeys) {
+			mmkvInstance.delete(key)
+		}
+
+		AudioPro.clear()
+	}
+
 	public saveState(): void {
 		const playingTrack = AudioPro.getPlayingTrack() as AudioProTrackExtended
 		const playbackSpeed = AudioPro.getPlaybackSpeed()

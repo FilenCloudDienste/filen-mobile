@@ -1,7 +1,7 @@
 import { memo, useCallback, useMemo } from "react"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { View, Platform } from "react-native"
-import { simpleDate, formatBytes, getPreviewType } from "@/lib/utils"
+import { simpleDate, formatBytes, getPreviewType, normalizeFilePathForExpo } from "@/lib/utils"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
@@ -19,6 +19,12 @@ import { type PDFPreviewItem } from "@/app/pdfPreview"
 import { type DOCXPreviewItem } from "@/app/docxPreview"
 
 export const ICON_HEIGHT: number = 44
+
+const separators = {
+	highlight: () => {},
+	unhighlight: () => {},
+	updateProps: () => {}
+}
 
 export const Item = memo(
 	({
@@ -113,7 +119,7 @@ export const Item = memo(
 				}
 
 				viewDocument({
-					uri: offlineStatus.path,
+					uri: normalizeFilePathForExpo(offlineStatus.path),
 					grantPermissions: "read",
 					headerTitle: item.name,
 					mimeType: item.mime,
@@ -129,7 +135,7 @@ export const Item = memo(
 				return
 			}
 
-			if ((previewType === "image" || previewType === "video" || previewType === "audio") && hasInternet && item.size > 0) {
+			if ((previewType === "image" || previewType === "video" || previewType === "audio") && item.size > 0) {
 				useGalleryStore.getState().setItems(
 					items
 						.map(item => {
@@ -153,7 +159,7 @@ export const Item = memo(
 				useGalleryStore.getState().setVisible(true)
 			}
 
-			if ((previewType === "text" || previewType === "code") && hasInternet) {
+			if (previewType === "text" || previewType === "code") {
 				routerPush({
 					pathname: "/textEditor",
 					params: {
@@ -165,7 +171,7 @@ export const Item = memo(
 				})
 			}
 
-			if (previewType === "pdf" && hasInternet && item.size > 0) {
+			if (previewType === "pdf" && item.size > 0) {
 				routerPush({
 					pathname: "/pdfPreview",
 					params: {
@@ -177,7 +183,7 @@ export const Item = memo(
 				})
 			}
 
-			if (previewType === "docx" && hasInternet && item.size > 0) {
+			if (previewType === "docx" && item.size > 0) {
 				routerPush({
 					pathname: "/docxPreview",
 					params: {
@@ -198,14 +204,6 @@ export const Item = memo(
 				)}`
 			}
 		}, [item, directorySize.data?.size])
-
-		const separators = useMemo(() => {
-			return {
-				highlight: () => {},
-				unhighlight: () => {},
-				updateProps: () => {}
-			}
-		}, [])
 
 		const leftView = useMemo(() => {
 			return (

@@ -21,96 +21,90 @@ const contentContainerStyle = {
 	paddingBottom: 100
 }
 
-export const Item = memo(
-	({
-		type,
-		items
-	}: {
-		type: "recents" | "favorites" | "links" | "sharedIn" | "sharedOut" | "offline" | "trash" | "bottom"
-		items: DriveCloudItem[]
-	}) => {
-		if (type === "bottom") {
-			return (
-				<View
-					key={type}
-					className="w-full flex-1 h-8"
-				/>
-			)
-		}
+export type ItemType = "recents" | "favorites" | "links" | "sharedIn" | "sharedOut" | "offline" | "trash" | "bottom"
 
-		if (type === "recents") {
-			return (
-				<ContainerComponent
-					key={type}
-					type="recents"
-					items={items}
-				/>
-			)
-		}
-
-		if (type === "favorites") {
-			return (
-				<ContainerComponent
-					key={type}
-					type="favorites"
-					items={items}
-				/>
-			)
-		}
-
-		if (type === "links") {
-			return (
-				<ContainerComponent
-					key={type}
-					type="links"
-					items={items}
-				/>
-			)
-		}
-
-		if (type === "sharedIn") {
-			return (
-				<ContainerComponent
-					key={type}
-					type="sharedIn"
-					items={items}
-				/>
-			)
-		}
-
-		if (type === "sharedOut") {
-			return (
-				<ContainerComponent
-					key={type}
-					type="sharedOut"
-					items={items}
-				/>
-			)
-		}
-
-		if (type === "offline") {
-			return (
-				<ContainerComponent
-					key={type}
-					type="offline"
-					items={items}
-				/>
-			)
-		}
-
-		if (type === "trash") {
-			return (
-				<ContainerComponent
-					key={type}
-					type="trash"
-					items={items}
-				/>
-			)
-		}
-
-		return null
+export const Item = memo(({ type, items }: { type: ItemType; items: DriveCloudItem[] }) => {
+	if (type === "bottom") {
+		return (
+			<View
+				key={type}
+				className="w-full flex-1 h-8"
+			/>
+		)
 	}
-)
+
+	if (type === "recents") {
+		return (
+			<ContainerComponent
+				key={type}
+				type="recents"
+				items={items}
+			/>
+		)
+	}
+
+	if (type === "favorites") {
+		return (
+			<ContainerComponent
+				key={type}
+				type="favorites"
+				items={items}
+			/>
+		)
+	}
+
+	if (type === "links") {
+		return (
+			<ContainerComponent
+				key={type}
+				type="links"
+				items={items}
+			/>
+		)
+	}
+
+	if (type === "sharedIn") {
+		return (
+			<ContainerComponent
+				key={type}
+				type="sharedIn"
+				items={items}
+			/>
+		)
+	}
+
+	if (type === "sharedOut") {
+		return (
+			<ContainerComponent
+				key={type}
+				type="sharedOut"
+				items={items}
+			/>
+		)
+	}
+
+	if (type === "offline") {
+		return (
+			<ContainerComponent
+				key={type}
+				type="offline"
+				items={items}
+			/>
+		)
+	}
+
+	if (type === "trash") {
+		return (
+			<ContainerComponent
+				key={type}
+				type="trash"
+				items={items}
+			/>
+		)
+	}
+
+	return null
+})
 
 Item.displayName = "Item"
 
@@ -346,6 +340,43 @@ export const Home = memo(() => {
 		)
 	}, [refreshing, recents, favorites, links, sharedIn, sharedOut, offline, trash, account])
 
+	const items = useMemo(() => {
+		return [
+			"recents",
+			...(hasInternet ? ["favorites"] : []),
+			...(hasInternet ? ["links"] : []),
+			"sharedIn",
+			...(hasInternet ? ["sharedOut"] : []),
+			"offline",
+			...(hasInternet ? ["trash"] : []),
+			"bottom"
+		].map(type => {
+			return (
+				<Item
+					key={type}
+					type={type as unknown as ItemType}
+					items={
+						type === "recents"
+							? recentsItems
+							: type === "favorites"
+							? favoritesItems
+							: type === "links"
+							? linksItems
+							: type === "sharedIn"
+							? sharedInItems
+							: type === "sharedOut"
+							? sharedOutItems
+							: type === "offline"
+							? offlineItems
+							: type === "trash"
+							? trashItems
+							: []
+					}
+				/>
+			)
+		})
+	}, [hasInternet, recentsItems, favoritesItems, linksItems, sharedInItems, sharedOutItems, offlineItems, trashItems])
+
 	return (
 		<Fragment>
 			<LargeTitleHeader
@@ -370,31 +401,7 @@ export const Home = memo(() => {
 						refreshControl={refreshControl}
 					>
 						{!hasInternet && <OfflineListHeader className="mb-4" />}
-						{(["recents", "favorites", "links", "sharedIn", "sharedOut", "offline", "trash", "bottom"] as const).map(type => {
-							return (
-								<Item
-									key={type}
-									type={type}
-									items={
-										type === "recents"
-											? recentsItems
-											: type === "favorites"
-											? favoritesItems
-											: type === "links"
-											? linksItems
-											: type === "sharedIn"
-											? sharedInItems
-											: type === "sharedOut"
-											? sharedOutItems
-											: type === "offline"
-											? offlineItems
-											: type === "trash"
-											? trashItems
-											: []
-									}
-								/>
-							)
-						})}
+						{items}
 					</ScrollView>
 				)}
 			</Container>

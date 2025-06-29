@@ -27,6 +27,7 @@ import Menu from "@/components/drive/list/listItem/menu"
 import Transfers from "@/components/drive/header/transfers"
 import useDimensions from "@/hooks/useDimensions"
 import OfflineListHeader from "@/components/offlineListHeader"
+import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
 
 const contentContainerStyle = {
 	paddingBottom: 100,
@@ -50,6 +51,48 @@ export const Photo = memo(
 	}) => {
 		const { colors } = useColorScheme()
 
+		const fileOfflineStatus = useFileOfflineStatusQuery({
+			uuid: info.item.uuid
+		})
+
+		const offlineStatus = useMemo(() => {
+			return fileOfflineStatus.status === "success" ? fileOfflineStatus.data : null
+		}, [fileOfflineStatus.status, fileOfflineStatus.data])
+
+		const onPress = useCallback(() => {
+			useGalleryStore.getState().setItems(
+				items
+					.map(item => {
+						const previewType = getPreviewType(item.name)
+
+						return item.size > 0
+							? {
+									itemType: "cloudItem" as const,
+									previewType,
+									data: {
+										item,
+										queryParams
+									}
+							  }
+							: null
+					})
+					.filter(item => item !== null)
+			)
+
+			useGalleryStore.getState().setInitialUUID(info.item.uuid)
+			useGalleryStore.getState().setVisible(true)
+		}, [items, info.item.uuid, queryParams])
+
+		const imageStyle = useMemo(() => {
+			return {
+				width: itemSize,
+				height: itemSize,
+				marginRight: spacing,
+				marginBottom: spacing,
+				backgroundColor: colors.card
+			}
+		}, [colors.card, itemSize, spacing])
+
 		return (
 			<Menu
 				item={info.item}
@@ -57,48 +100,38 @@ export const Photo = memo(
 				type="context"
 				fromPhotos={true}
 			>
-				<TouchableHighlight
-					onPress={() => {
-						useGalleryStore.getState().setItems(
-							items
-								.map(item => {
-									const previewType = getPreviewType(item.name)
-
-									return item.size > 0
-										? {
-												itemType: "cloudItem" as const,
-												previewType,
-												data: {
-													item,
-													queryParams
-												}
-										  }
-										: null
-								})
-								.filter(item => item !== null)
-						)
-
-						useGalleryStore.getState().setInitialUUID(info.item.uuid)
-						useGalleryStore.getState().setVisible(true)
-					}}
-				>
-					<Thumbnail
-						item={info.item}
-						size={itemSize}
-						imageClassName="bg-card"
-						imageContentFit="cover"
-						imageCachePolicy="none"
-						imageStyle={{
-							width: itemSize,
-							height: itemSize,
-							marginRight: spacing,
-							marginBottom: spacing,
-							backgroundColor: colors.card
-						}}
-						spacing={spacing}
-						type="photos"
-						queryParams={queryParams}
-					/>
+				<TouchableHighlight onPress={onPress}>
+					<View>
+						{offlineStatus?.exists && (
+							<View className="w-[16px] h-[16px] absolute bottom-1 left-1 bg-green-500 rounded-full z-50 flex-row items-center justify-center border-white border-[1px]">
+								<Icon
+									name="arrow-down"
+									size={10}
+									color="white"
+								/>
+							</View>
+						)}
+						{info.item.favorited && (
+							<View className="w-[16px] h-[16px] absolute bottom-1 right-1 bg-red-500 rounded-full z-50 flex-row items-center justify-center border-white border-[1px]">
+								<Icon
+									name="heart"
+									size={10}
+									color="white"
+								/>
+							</View>
+						)}
+						<Thumbnail
+							item={info.item}
+							size={itemSize}
+							imageClassName="bg-card"
+							imageContentFit="cover"
+							imageCachePolicy="none"
+							imageStyle={imageStyle}
+							spacing={spacing}
+							type="photos"
+							queryParams={queryParams}
+						/>
+					</View>
 				</TouchableHighlight>
 			</Menu>
 		)
