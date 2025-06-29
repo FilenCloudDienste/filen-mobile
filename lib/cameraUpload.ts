@@ -42,6 +42,7 @@ export type Delta = {
 export type CameraUploadType = "foreground" | "background"
 
 const runMutex: Semaphore = new Semaphore(1)
+const processDeltaSemaphore: Semaphore = new Semaphore(10)
 
 export class CameraUpload {
 	private readonly type: CameraUploadType
@@ -276,13 +277,15 @@ export class CameraUpload {
 			const localItem = localItems[path]
 			const remoteItem = remoteItems[path]
 
-			if (
-				(localItem && !remoteItem) ||
+			/*
+			||
 				(localItem &&
 					remoteItem &&
 					this.normalizeModificationTimestampForComparison(localItem.lastModified) >
 						this.normalizeModificationTimestampForComparison(remoteItem.lastModified))
-			) {
+			*/
+
+			if (localItem && !remoteItem) {
 				deltas.push({
 					type: "upload",
 					item: localItem
@@ -295,11 +298,11 @@ export class CameraUpload {
 		})
 	}
 
-	public async compress({ item, copiedPath }: { item: TreeItem; copiedPath: string }): Promise<string> {
+	public async compress({ item, file }: { item: TreeItem; file: FileSystem.File }): Promise<void> {
 		const extname = FileSystem.Paths.extname(item.name.trim().toLowerCase())
 
 		if (!EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS.includes(extname)) {
-			return copiedPath
+			return
 		}
 
 		if (
@@ -310,16 +313,10 @@ export class CameraUpload {
 				checkAppState: true
 			}))
 		) {
-			return copiedPath
+			return
 		}
 
-		const originalFile = new FileSystem.File(copiedPath)
-
-		if (!originalFile.exists) {
-			return copiedPath
-		}
-
-		const manipulated = await ImageManipulator.manipulate(normalizeFilePathForExpo(originalFile.uri)).renderAsync()
+		const manipulated = await ImageManipulator.manipulate(normalizeFilePathForExpo(file.uri)).renderAsync()
 		const result = await manipulated.saveAsync({
 			compress: 0.8,
 			format: SaveFormat.JPEG,
@@ -332,193 +329,177 @@ export class CameraUpload {
 			throw new Error(`Generated file at ${manipulatedFile.uri} does not exist.`)
 		}
 
-		if (!manipulatedFile.size || !originalFile.size || manipulatedFile.size >= originalFile.size) {
+		if (!manipulatedFile.size || !file.size || manipulatedFile.size >= file.size) {
 			// If the manipulated file is larger than the original, delete it
 			if (manipulatedFile.exists) {
 				manipulatedFile.delete()
 			}
 
-			return copiedPath
+			return
 		}
 
-		if (originalFile.exists) {
-			originalFile.delete()
+		if (file.exists) {
+			file.delete()
 		}
 
-		manipulatedFile.move(originalFile)
-
-		return copiedPath
+		manipulatedFile.move(file)
 	}
 
 	public async processDelta(delta: Delta, abortSignal?: AbortSignal): Promise<void> {
-		const errorKey = `${delta.type}:${delta.item.path}`
-
-		if (this.deltaErrors[errorKey] && this.deltaErrors[errorKey] >= 3) {
-			return
-		}
-
-		if (abortSignal?.aborted) {
-			throw new Error("Aborted")
-		}
-
-		if (
-			!(await this.canRun({
-				checkPermissions: false,
-				checkBattery: true,
-				checkNetwork: true,
-				checkAppState: true
-			}))
-		) {
-			return
-		}
-
-		if (abortSignal?.aborted) {
-			throw new Error("Aborted")
-		}
-
-		const state = getCameraUploadState()
-
-		if (!state.remote || !validateUUID(state.remote.uuid)) {
-			return
-		}
-
-		if (abortSignal?.aborted) {
-			throw new Error("Aborted")
-		}
-
-		const uploadId = randomUUID()
+		await processDeltaSemaphore.acquire()
 
 		try {
-			if (delta.type === "upload") {
-				if (delta.item.type !== "local") {
-					return
-				}
+			const errorKey = `${delta.type}:${delta.item.path}`
 
-				if (abortSignal?.aborted) {
-					throw new Error("Aborted")
-				}
+			if (this.deltaErrors[errorKey] && this.deltaErrors[errorKey] >= 3) {
+				return
+			}
 
-				const parentName = FileSystem.Paths.dirname(delta.item.path)
-				const parentUUID =
-					!parentName || parentName.length === 0 || parentName === "."
-						? state.remote.uuid
-						: this.type === "foreground"
-						? await nodeWorker.proxy("createDirectory", {
-								name: parentName,
-								parent: state.remote.uuid
-						  })
-						: await getSDK().cloud().createDirectory({
-								name: parentName,
-								parent: state.remote.uuid
-						  })
+			if (abortSignal?.aborted) {
+				throw new Error("Aborted")
+			}
 
-				if (abortSignal?.aborted) {
-					throw new Error("Aborted")
-				}
+			if (
+				!(await this.canRun({
+					checkPermissions: false,
+					checkBattery: true,
+					checkNetwork: true,
+					checkAppState: true
+				}))
+			) {
+				return
+			}
 
-				const stat = await MediaLibrary.getAssetInfoAsync(delta.item.asset, {
-					shouldDownloadFromNetwork: true
-				})
+			if (abortSignal?.aborted) {
+				throw new Error("Aborted")
+			}
 
-				if (abortSignal?.aborted) {
-					throw new Error("Aborted")
-				}
+			const state = getCameraUploadState()
 
-				if (!stat.localUri) {
-					return
-				}
+			if (!state.remote || !validateUUID(state.remote.uuid)) {
+				return
+			}
 
-				const localFile = new FileSystem.File(stat.localUri)
+			if (abortSignal?.aborted) {
+				throw new Error("Aborted")
+			}
 
-				if (!localFile.exists || (localFile.size && localFile.size > this.maxSize)) {
-					return
-				}
+			const uploadId = randomUUID()
 
-				const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
-
-				if (abortSignal?.aborted) {
-					throw new Error("Aborted")
-				}
-
-				try {
-					if (tmpFile.exists) {
-						tmpFile.delete()
+			try {
+				if (delta.type === "upload") {
+					if (delta.item.type !== "local") {
+						return
 					}
 
 					if (abortSignal?.aborted) {
 						throw new Error("Aborted")
 					}
 
-					localFile.copy(tmpFile)
-
-					if (!tmpFile.exists || !tmpFile.size) {
-						throw new Error(`Could not get size of file at "${tmpFile.uri}".`)
-					}
-
-					if (abortSignal?.aborted) {
-						throw new Error("Aborted")
-					}
-
-					let tmpFileURIToUpload: string = tmpFile.uri
-
-					if (state.compress) {
-						tmpFileURIToUpload = await this.compress({
-							item: delta.item,
-							copiedPath: tmpFileURIToUpload
-						})
-					}
-
-					if (abortSignal?.aborted) {
-						throw new Error("Aborted")
-					}
-
-					const item =
-						this.type === "foreground"
-							? await uploadService.file.foreground({
-									parent: parentUUID,
-									localPath: tmpFileURIToUpload,
-									name: delta.item.name,
-									id: uploadId,
-									size: tmpFile.size,
-									isShared: false,
-									deleteAfterUpload: true,
-									creation: delta.item.creation,
-									lastModified: delta.item.lastModified
+					const parentName = FileSystem.Paths.dirname(delta.item.path)
+					const parentUUID =
+						!parentName || parentName.length === 0 || parentName === "."
+							? state.remote.uuid
+							: this.type === "foreground"
+							? await nodeWorker.proxy("createDirectory", {
+									name: parentName,
+									parent: state.remote.uuid
 							  })
-							: await uploadService.file.background({
-									parent: parentUUID,
-									localPath: tmpFileURIToUpload,
-									name: delta.item.name,
-									id: uploadId,
-									size: tmpFile.size,
-									isShared: false,
-									deleteAfterUpload: true,
-									creation: delta.item.creation,
-									lastModified: delta.item.lastModified,
-									abortSignal
+							: await getSDK().cloud().createDirectory({
+									name: parentName,
+									parent: state.remote.uuid
 							  })
 
-					if (item.type !== "file") {
-						throw new Error("Invalid response from uploadFile.")
+					if (abortSignal?.aborted) {
+						throw new Error("Aborted")
 					}
 
-					if (this.type === "foreground") {
-						await nodeWorker.proxy("editFileMetadata", {
-							uuid: item.uuid,
-							metadata: {
-								name: item.name,
-								creation: delta.item.creation,
-								lastModified: delta.item.lastModified,
-								mime: item.mime,
-								size: item.size,
-								hash: item.hash,
-								key: item.key
-							} satisfies FileMetadata
-						})
-					} else {
-						await getSDK()
-							.cloud()
-							.editFileMetadata({
+					const stat = await MediaLibrary.getAssetInfoAsync(delta.item.asset, {
+						shouldDownloadFromNetwork: true
+					})
+
+					if (abortSignal?.aborted) {
+						throw new Error("Aborted")
+					}
+
+					if (!stat.localUri) {
+						return
+					}
+
+					const localFile = new FileSystem.File(stat.localUri)
+
+					if (!localFile.exists || (localFile.size && localFile.size > this.maxSize)) {
+						return
+					}
+
+					const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+
+					if (abortSignal?.aborted) {
+						throw new Error("Aborted")
+					}
+
+					try {
+						if (tmpFile.exists) {
+							tmpFile.delete()
+						}
+
+						if (abortSignal?.aborted) {
+							throw new Error("Aborted")
+						}
+
+						localFile.copy(tmpFile)
+
+						if (!tmpFile.exists || !tmpFile.size) {
+							throw new Error(`Could not get size of file at "${tmpFile.uri}".`)
+						}
+
+						if (abortSignal?.aborted) {
+							throw new Error("Aborted")
+						}
+
+						if (state.compress) {
+							await this.compress({
+								item: delta.item,
+								file: tmpFile
+							})
+						}
+
+						if (abortSignal?.aborted) {
+							throw new Error("Aborted")
+						}
+
+						const item =
+							this.type === "foreground"
+								? await uploadService.file.foreground({
+										parent: parentUUID,
+										localPath: tmpFile.uri,
+										name: delta.item.name,
+										id: uploadId,
+										size: tmpFile.size,
+										isShared: false,
+										deleteAfterUpload: true,
+										creation: delta.item.creation,
+										lastModified: delta.item.lastModified
+								  })
+								: await uploadService.file.background({
+										parent: parentUUID,
+										localPath: tmpFile.uri,
+										name: delta.item.name,
+										id: uploadId,
+										size: tmpFile.size,
+										isShared: false,
+										deleteAfterUpload: true,
+										creation: delta.item.creation,
+										lastModified: delta.item.lastModified,
+										abortSignal
+								  })
+
+						if (item.type !== "file") {
+							throw new Error("Invalid response from uploadFile.")
+						}
+
+						if (this.type === "foreground") {
+							await nodeWorker.proxy("editFileMetadata", {
 								uuid: item.uuid,
 								metadata: {
 									name: item.name,
@@ -530,23 +511,41 @@ export class CameraUpload {
 									key: item.key
 								} satisfies FileMetadata
 							})
-					}
-				} finally {
-					if (tmpFile.exists) {
-						tmpFile.delete()
+						} else {
+							await getSDK()
+								.cloud()
+								.editFileMetadata({
+									uuid: item.uuid,
+									metadata: {
+										name: item.name,
+										creation: delta.item.creation,
+										lastModified: delta.item.lastModified,
+										mime: item.mime,
+										size: item.size,
+										hash: item.hash,
+										key: item.key
+									} satisfies FileMetadata
+								})
+						}
+					} finally {
+						if (tmpFile.exists) {
+							tmpFile.delete()
+						}
 					}
 				}
-			}
 
-			delete this.deltaErrors[errorKey]
-		} catch (e) {
-			console.error(e)
+				delete this.deltaErrors[errorKey]
+			} catch (e) {
+				console.error(e)
 
-			if (this.deltaErrors[errorKey]) {
-				this.deltaErrors[errorKey]++
-			} else {
-				this.deltaErrors[errorKey] = 1
+				if (this.deltaErrors[errorKey]) {
+					this.deltaErrors[errorKey]++
+				} else {
+					this.deltaErrors[errorKey] = 1
+				}
 			}
+		} finally {
+			processDeltaSemaphore.release()
 		}
 	}
 
