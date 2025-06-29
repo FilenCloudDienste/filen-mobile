@@ -457,3 +457,5 @@ export function getStickyHeaderIndices<T extends ListDataItem>(data: T[]) {
 	}
 	return indices
 }
+
+export { ListRenderItemInfo }
