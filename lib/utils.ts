@@ -146,6 +146,8 @@ export type OrderByType =
 	| "lastModifiedDesc"
 	| "uploadDateAsc"
 	| "uploadDateDesc"
+	| "creationAsc"
+	| "creationDesc"
 
 export const orderItemsByTypeCompareItemTypes = (a: DriveCloudItem, b: DriveCloudItem): number => {
 	if (a.type !== b.type) {
@@ -211,6 +213,25 @@ export const orderItemsByTypeCompareFunctions = {
 		}
 
 		return isAscending ? a.lastModified - b.lastModified : b.lastModified - a.lastModified
+	},
+	creation: (a: DriveCloudItem, b: DriveCloudItem, isAscending: boolean = true): number => {
+		const typeComparison = orderItemsByTypeCompareItemTypes(a, b)
+
+		if (typeComparison !== 0) {
+			return typeComparison
+		}
+
+		const aTime = a.type === "file" ? a.creation ?? a.lastModified ?? a.timestamp : a.lastModified ?? a.timestamp
+		const bTime = b.type === "file" ? b.creation ?? b.lastModified ?? b.timestamp : b.lastModified ?? b.timestamp
+
+		if (aTime === bTime) {
+			const aUuid = parseNumbersFromString(a.uuid)
+			const bUuid = parseNumbersFromString(b.uuid)
+
+			return isAscending ? aUuid - bUuid : bUuid - aUuid
+		}
+
+		return isAscending ? aTime - bTime : bTime - aTime
 	}
 }
 
@@ -226,7 +247,9 @@ export const orderItemsByTypeSortMap: Record<string, (a: DriveCloudItem, b: Driv
 	lastModifiedAsc: (a, b) => orderItemsByTypeCompareFunctions.lastModified(a, b, true),
 	uploadDateAsc: (a, b) => orderItemsByTypeCompareFunctions.date(a, b, true),
 	uploadDateDesc: (a, b) => orderItemsByTypeCompareFunctions.date(a, b, false),
-	lastModifiedDesc: (a, b) => orderItemsByTypeCompareFunctions.lastModified(a, b, false)
+	lastModifiedDesc: (a, b) => orderItemsByTypeCompareFunctions.lastModified(a, b, false),
+	creationAsc: (a, b) => orderItemsByTypeCompareFunctions.creation(a, b, true),
+	creationDesc: (a, b) => orderItemsByTypeCompareFunctions.creation(a, b, false)
 }
 
 export function orderItemsByType({ items, type }: { items: DriveCloudItem[]; type: OrderByType }): DriveCloudItem[] {

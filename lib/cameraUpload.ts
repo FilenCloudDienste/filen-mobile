@@ -261,7 +261,7 @@ export class CameraUpload {
 			items[pathNormalized] = {
 				type: "remote",
 				name: file.name,
-				creation: file.creation ?? Date.now(),
+				creation: file.creation ?? file.lastModified ?? file.timestamp,
 				lastModified: file.lastModified,
 				path: pathNormalized
 			}

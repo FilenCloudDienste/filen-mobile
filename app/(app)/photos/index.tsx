@@ -197,7 +197,7 @@ export const Photos = memo(() => {
 
 				return false
 			}),
-			type: "uploadDateDesc"
+			type: "creationDesc"
 		})
 	}, [query.status, query.data, cameraUpload.remote])
 
