@@ -163,7 +163,8 @@
 			"uploaded": "Uploaded",
 			"directories": "Directories",
 			"files": "Files",
-			"notAvailable": "N/A"
+			"notAvailable": "N/A",
+			"creation": "Created"
 		},
 		"colorPicker": {
 			"select": "Select",

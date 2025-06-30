@@ -86,7 +86,7 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 								>
 									{t("sheets.itemInfo.directories")}
 								</Text>
-								{directorySize.isSuccess ? (
+								{directorySize.status === "success" ? (
 									<Text numberOfLines={1}>{directorySize.data.folders}</Text>
 								) : (
 									<Text numberOfLines={1}>...</Text>
@@ -109,6 +109,18 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 							{t("sheets.itemInfo.modified")}
 						</Text>
 						<Text numberOfLines={1}>{simpleDate(item.lastModified)}</Text>
+						{item.type === "file" && item.creation && (
+							<Fragment>
+								<Text
+									className="text-muted-foreground pt-3 text-sm"
+									numberOfLines={1}
+									ellipsizeMode="middle"
+								>
+									{t("sheets.itemInfo.creation")}
+								</Text>
+								<Text numberOfLines={1}>{simpleDate(item.creation)}</Text>
+							</Fragment>
+						)}
 					</View>
 					<View className="flex-col w-1/2">
 						<Text
@@ -120,7 +132,7 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 						</Text>
 						{item.type === "directory" ? (
 							<Fragment>
-								{directorySize.isSuccess ? (
+								{directorySize.status === "success" ? (
 									<Text numberOfLines={1}>{formatBytes(directorySize.data.size)}</Text>
 								) : (
 									<Text numberOfLines={1}>...</Text>
@@ -138,7 +150,7 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 								>
 									{t("sheets.itemInfo.files")}
 								</Text>
-								{directorySize.isSuccess ? (
+								{directorySize.status === "success" ? (
 									<Text numberOfLines={1}>{directorySize.data.files}</Text>
 								) : (
 									<Text numberOfLines={1}>...</Text>
@@ -153,7 +165,7 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 							{t("sheets.itemInfo.location")}
 						</Text>
 						{isOwner ? (
-							itemPath.isSuccess ? (
+							itemPath.status === "success" ? (
 								<Text numberOfLines={1}>{itemPath.data}</Text>
 							) : (
 								<Text numberOfLines={1}>...</Text>
