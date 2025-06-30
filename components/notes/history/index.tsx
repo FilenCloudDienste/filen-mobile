@@ -17,6 +17,8 @@ import { useTranslation } from "react-i18next"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import useDimensions from "@/hooks/useDimensions"
 import ListEmpty from "@/components/listEmpty"
+import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
+import { useColorScheme } from "@/lib/useColorScheme"
 
 export type ListItemInfo = {
 	title: string
@@ -128,6 +130,7 @@ Item.displayName = "Item"
 export const History = memo(({ note }: { note: Note }) => {
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { colors } = useColorScheme()
 
 	const noteHistoryQuery = useNoteHistoryQuery({
 		uuid: note.uuid
@@ -216,14 +219,31 @@ export const History = memo(({ note }: { note: Note }) => {
 		}
 	}, [])
 
-	return (
-		<Fragment>
-			<LargeTitleHeader
-				title={t("notes.history.title")}
+	const header = useMemo(() => {
+		return Platform.OS === "ios" ? (
+			<AdaptiveSearchHeader
+				iosTitle={t("notes.history.title")}
+				iosIsLargeTitle={false}
+				iosBackButtonMenuEnabled={true}
+				backgroundColor={colors.card}
 				backVisible={true}
-				iosBackButtonMenuEnabled={false}
+				iosBackVisible={true}
+				iosBackButtonTitleVisible={true}
 				iosBlurEffect="systemChromeMaterial"
 			/>
+		) : (
+			<LargeTitleHeader
+				title={t("notes.history.title")}
+				materialPreset="inline"
+				backVisible={true}
+				backgroundColor={colors.card}
+			/>
+		)
+	}, [colors.card, t])
+
+	return (
+		<Fragment>
+			{header}
 			<Container>
 				<List
 					contentContainerClassName="pb-20"

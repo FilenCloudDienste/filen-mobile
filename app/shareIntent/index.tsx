@@ -1,5 +1,5 @@
 import { View, Platform } from "react-native"
-import { Stack, Redirect } from "expo-router"
+import { Stack } from "expo-router"
 import { useShareIntentContext, type ShareIntentFile } from "expo-share-intent"
 import { useMemo, useCallback, memo } from "react"
 import { Text } from "@/components/nativewindui/Text"
@@ -91,8 +91,19 @@ export default function ShareIntent() {
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
 
+	const items = useMemo(() => {
+		return (
+			shareIntent.files?.map(file => ({
+				title: file.fileName,
+				subTitle: formatBytes(file.size ?? 0),
+				id: file.path,
+				item: file
+			})) ?? []
+		)
+	}, [shareIntent.files])
+
 	const upload = useCallback(async () => {
-		if (!shareIntent.files) {
+		if (!shareIntent.files || items.length === 0) {
 			return
 		}
 
@@ -160,13 +171,17 @@ export default function ShareIntent() {
 
 			resetShareIntent()
 		}
-	}, [shareIntent.files, resetShareIntent])
+	}, [shareIntent.files, resetShareIntent, items.length])
 
 	const cancel = useCallback(() => {
 		resetShareIntent()
 	}, [resetShareIntent])
 
 	const headerRight = useCallback(() => {
+		if (items.length === 0) {
+			return undefined
+		}
+
 		return (
 			<Button
 				size="none"
@@ -176,7 +191,7 @@ export default function ShareIntent() {
 				<Text className="text-primary font-normal">{t("shareIntent.header.upload")}</Text>
 			</Button>
 		)
-	}, [upload, t])
+	}, [upload, t, items.length])
 
 	const headerLeft = useCallback(() => {
 		return (
@@ -219,17 +234,6 @@ export default function ShareIntent() {
 		})
 	}, [headerRight, headerLeft, t])
 
-	const items = useMemo(() => {
-		return (
-			shareIntent.files?.map(file => ({
-				title: file.fileName,
-				subTitle: formatBytes(file.size ?? 0),
-				id: file.path,
-				item: file
-			})) ?? []
-		)
-	}, [shareIntent.files])
-
 	const keyExtractor = useCallback((item: ListItemInfo) => {
 		return item.id
 	}, [])
@@ -248,10 +252,6 @@ export default function ShareIntent() {
 			index
 		}
 	}, [])
-
-	if (items.length === 0) {
-		return <Redirect href="/(app)/home" />
-	}
 
 	return (
 		<RequireInternet>

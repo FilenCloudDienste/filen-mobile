@@ -1001,7 +1001,7 @@ export const Menu = memo(
 
 						case "history": {
 							router.push({
-								pathname: "/notes/history",
+								pathname: "/noteHistory",
 								params: {
 									uuid: note.uuid
 								}
