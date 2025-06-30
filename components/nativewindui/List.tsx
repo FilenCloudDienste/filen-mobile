@@ -176,6 +176,9 @@ export type ListItemProps<T extends ListDataItem> = PressableProps &
 	ListRenderItemProps<T> & {
 		androidRootClassName?: string
 		titleClassName?: string
+		titleEllipsizeMode?: "head" | "middle" | "tail" | "clip"
+		subTitleEllipsizeMode?: "head" | "middle" | "tail" | "clip"
+		className?: string
 		titleStyle?: StyleProp<TextStyle>
 		textNumberOfLines?: number
 		subTitleClassName?: string
@@ -267,6 +270,8 @@ export function ListItemComponent<T extends ListDataItem>(
 		className,
 		androidRootClassName,
 		titleClassName,
+		titleEllipsizeMode = "tail",
+		subTitleEllipsizeMode = "tail",
 		titleStyle,
 		textNumberOfLines,
 		subTitleStyle,
@@ -340,7 +345,8 @@ export function ListItemComponent<T extends ListDataItem>(
 							<Text
 								numberOfLines={textNumberOfLines}
 								style={titleStyle}
-								className={titleClassName}
+								className={cn("flex-1", titleClassName)}
+								ellipsizeMode={titleEllipsizeMode}
 							>
 								{item.title}
 							</Text>
@@ -349,7 +355,8 @@ export function ListItemComponent<T extends ListDataItem>(
 									numberOfLines={subTitleNumberOfLines}
 									variant="subhead"
 									style={subTitleStyle}
-									className={cn("text-muted-foreground", subTitleClassName)}
+									className={cn("flex-1 text-muted-foreground", subTitleClassName)}
+									ellipsizeMode={subTitleEllipsizeMode}
 								>
 									{item.subTitle}
 								</Text>
