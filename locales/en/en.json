@@ -852,7 +852,7 @@
 					"cellular": "Cellular",
 					"cellularInfo": "Allow camera upload over cellular data. This can lead to high data usage.",
 					"background": "Background",
-					"backgroundInfo": "Allow camera upload in the background. This can lead to high battery usage.",
+					"backgroundInfo": "Allow camera upload in the background. This can lead to high battery usage. Background uploads only include images.",
 					"lowBattery": "Low battery",
 					"lowBatteryInfo": "Disable camera upload when the battery is low.",
 					"compress": "Compress",
