@@ -170,6 +170,10 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 	}, 1000)
 
 	const listFooter = useMemo(() => {
+		if (isLoading || items.length === 0) {
+			return undefined
+		}
+
 		return (
 			<View className="h-16 flex-row items-center justify-center">
 				<Text className="text-sm">
@@ -179,7 +183,7 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 				</Text>
 			</View>
 		)
-	}, [items.length, t])
+	}, [items.length, t, isLoading])
 
 	const listEmpty = useMemo(() => {
 		return (
@@ -187,9 +191,9 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 				queryStatus={isLoading ? "pending" : "success"}
 				itemCount={items.length}
 				texts={{
-					error: t("notes.participants.list.error"),
-					empty: t("notes.participants.list.empty"),
-					emptySearch: t("notes.participants.list.emptySearch")
+					error: t("drive.search.list.error"),
+					empty: t("drive.search.list.empty"),
+					emptySearch: t("drive.search.list.emptySearch")
 				}}
 				icons={{
 					error: {
