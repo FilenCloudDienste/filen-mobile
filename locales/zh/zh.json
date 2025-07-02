@@ -1,0 +1,1210 @@
+{
+	"copiedToClipboard": "已复制到剪贴板",
+	"localAuthentication": {
+		"cancelLabel": "取消",
+		"promptMessage": "请验证以继续"
+	},
+	"errors": {
+		"cannotOpenURL": "无法打开网址。",
+		"youAreOffline": "您当前处于离线状态。请检查您的网络连接。",
+		"notEnoughDiskSpace": "本地磁盘空间不足。",
+		"sharingNotAvailable": "在此设备上不支持共享。"
+	},
+	"alertPrompt": {
+		"defaults": {
+			"title": "标题",
+			"okText": "确定",
+			"cancelText": "取消"
+		}
+	},
+	"inputPrompt": {
+		"defaults": {
+			"title": "标题",
+			"okText": "确定",
+			"cancelText": "取消"
+		}
+	},
+	"drive": {
+		"header": {
+			"title": {
+				"drive": "云盘",
+				"selected": "已选择{{count}}项",
+				"recents": "最近",
+				"favorites": "收藏",
+				"sharedIn": "与您共享",
+				"sharedOut": "与他人共享",
+				"offline": "离线可用",
+				"links": "公开链接",
+				"trash": "回收站"
+			},
+			"rightView": {
+				"actionSheet": {
+					"upload": {
+						"files": "上传文件",
+						"directory": "上传文件夹",
+						"media": "上传媒体",
+						"uploaded": "{{name}}已上传"
+					},
+					"create": {
+						"textFile": "创建文本文件",
+						"directory": "创建文件夹",
+						"photo": "拍摄照片",
+						"created": "{{name}}已创建"
+					},
+					"cancel": "取消",
+					"noMediaPermissions": "您需要授予媒体权限才能上传照片或视频。",
+					"itemsUploaded": "{{count}}项已上传",
+					"directoryNamePlaceholder": "文件夹名称",
+					"textFileNamePlaceholder": "文本文件名称"
+				},
+				"dropdown": {
+					"sortBy": {
+						"sortBy": "排序方式",
+						"ascending": "升序",
+						"descending": "降序",
+						"name": "名称",
+						"uploadDate": "上传日期",
+						"lastModified": "修改日期",
+						"type": "类型",
+						"size": "大小"
+					},
+					"transfers": "传输",
+					"listMode": "列表模式",
+					"gridMode": "网格模式",
+					"bulkActions": "批量操作"
+				},
+				"selectAll": "全选",
+				"deselectAll": "取消全选"
+			}
+		},
+		"list": {
+			"item": {
+				"menu": {
+					"select": "选择",
+					"deselect": "取消选择",
+					"download": "下载",
+					"publicLink": "公开链接",
+					"share": "共享",
+					"export": "导出",
+					"favorite": "收藏",
+					"unfavorite": "取消收藏",
+					"info": "信息",
+					"rename": "重命名",
+					"move": "移动",
+					"copyId": "复制ID",
+					"delete": "删除",
+					"trash": "移到回收站",
+					"restore": "恢复",
+					"preview": "预览",
+					"deletePermanently": "永久删除",
+					"open": "打开",
+					"color": "颜色",
+					"copyPath": "复制路径",
+					"makeAvailableOffline": "设为离线可用",
+					"removeOffline": "移除离线文件",
+					"downloadFolder": "下载文件夹",
+					"saveToGallery": "保存到相册",
+					"copy": "复制",
+					"id": "ID",
+					"path": "路径",
+					"location": "位置",
+					"versionHistory": "版本历史",
+					"properties": "属性",
+					"clipboard": "剪贴板",
+					"withUser": "与用户",
+					"removeSharedIn": "移除",
+					"removeSharedOut": "停止共享",
+					"disablePublicLink": "禁用公开链接",
+					"availableOffline": "离线可用"
+				}
+			}
+		},
+		"search": {
+			"list": {
+				"footer": "{{count}}项",
+				"empty": "未找到任何项",
+				"emptySearch": "此搜索未找到任何项",
+				"error": "加载搜索结果时出错，请稍后重试"
+			}
+		},
+		"prompts": {
+			"renameItem": {
+				"title": "重命名",
+				"placeholder": "新名称"
+			},
+			"trashItem": {
+				"title": "移到回收站",
+				"message": "您确定要将此项移到回收站吗？您可以稍后恢复它。"
+			},
+			"deletePermanently": {
+				"title": "永久删除",
+				"message": "您确定要永久删除此项吗？此操作无法撤销！"
+			}
+		},
+		"itemSharedWith": "{{name}}已共享给{{email}}",
+		"itemShared": "{{name}}已共享"
+	},
+	"gallery": {
+		"noPreviewAvailable": "无预览可用"
+	},
+	"nwui": {
+		"search": {
+			"placeholder": "搜索...",
+			"cancel": "取消"
+		}
+	},
+	"sheets": {
+		"itemInfo": {
+			"name": "名称",
+			"size": "大小",
+			"type": "类型",
+			"location": "位置",
+			"modified": "修改日期",
+			"uploaded": "上传日期",
+			"directories": "文件夹",
+			"files": "文件",
+			"notAvailable": "不可用",
+			"creation": "已创建"
+		},
+		"colorPicker": {
+			"select": "选择",
+			"cancel": "取消"
+		}
+	},
+	"fileVersionHistory": {
+		"header": {
+			"title": "版本历史"
+		},
+		"list": {
+			"item": {
+				"current": "当前",
+				"delete": "删除",
+				"restore": "恢复"
+			},
+			"empty": "尚无版本",
+			"emptySearch": "此搜索未找到任何版本",
+			"error": "加载文件版本时出错，请稍后重试"
+		},
+		"alerts": {
+			"delete": {
+				"title": "删除版本",
+				"message": "您确定要删除此版本吗？此操作无法撤销！",
+				"confirm": "删除",
+				"cancel": "取消"
+			},
+			"restore": {
+				"title": "恢复版本",
+				"message": "您确定要恢复此版本吗？这将覆盖当前文件。",
+				"confirm": "恢复",
+				"cancel": "取消"
+			}
+		}
+	},
+	"home": {
+		"title": "首页",
+		"container": {
+			"recents": {
+				"title": "最近"
+			},
+			"favorites": {
+				"title": "收藏"
+			},
+			"sharedIn": {
+				"title": "与您共享"
+			},
+			"sharedOut": {
+				"title": "与他人共享"
+			},
+			"offline": {
+				"title": "离线可用"
+			},
+			"links": {
+				"title": "公开链接"
+			},
+			"trash": {
+				"title": "回收站"
+			}
+		},
+		"listEmpty": {
+			"recents": "尚无最近项",
+			"favorites": "尚无收藏",
+			"sharedIn": "尚无共享项",
+			"sharedOut": "尚无共享项",
+			"offline": "尚无离线项",
+			"links": "尚无公开链接",
+			"trash": "回收站尚无任何项"
+		}
+	},
+	"chats": {
+		"chat": "聊天",
+		"chats": "聊天列表",
+		"typing": "{{users}}正在输入...",
+		"messages": {
+			"menu": {
+				"copyText": "复制文本",
+				"copyId": "复制ID",
+				"reply": "回复",
+				"edit": "编辑",
+				"delete": "删除",
+				"disableEmbeds": "禁用嵌入内容",
+				"cancel": "取消"
+			},
+			"time": {
+				"now": "现在",
+				"todayAt": "今天{{date}}",
+				"yesterdayAt": "昨天{{date}}",
+				"secondAgo": "{{seconds}}秒前",
+				"secondsAgo": "{{seconds}}秒前",
+				"minuteAgo": "{{minutes}}分钟前",
+				"minutesAgo": "{{minutes}}分钟前",
+				"hourAgo": "{{hours}}小时前",
+				"hoursAgo": "{{hours}}小时前"
+			},
+			"new": "新消息",
+			"everyone": "所有人",
+			"unknown": "未知"
+		},
+		"menu": {
+			"leave": "离开",
+			"delete": "删除",
+			"rename": "重命名",
+			"mute": "静音",
+			"unmute": "取消静音",
+			"archive": "归档",
+			"unarchive": "取消归档",
+			"pin": "置顶",
+			"unpin": "取消置顶",
+			"favorite": "收藏",
+			"unfavorite": "取消收藏",
+			"markAsRead": "标记为已读",
+			"participants": "参与者",
+			"muted": "已静音"
+		},
+		"prompts": {
+			"deleteMessage": {
+				"title": "删除消息",
+				"message": "您确定要删除此消息吗？此操作无法撤销！"
+			},
+			"disableEmbeds": {
+				"title": "禁用嵌入内容",
+				"message": "您确定要为此消息禁用嵌入内容吗？这将移除所有嵌入内容。"
+			},
+			"leaveChat": {
+				"title": "离开聊天",
+				"message": "您确定要离开此聊天吗？您将无法再查看或发送消息。"
+			},
+			"deleteChat": {
+				"title": "删除聊天",
+				"message": "您确定要删除此聊天吗？这将从您的列表中移除聊天，您将无法再查看或发送消息。"
+			},
+			"renameChat": {
+				"title": "重命名聊天",
+				"placeholder": "新名称"
+			}
+		},
+		"participants": {
+			"menu": {
+				"remove": "移除"
+			},
+			"participants": "位参与者",
+			"participant": "位参与者",
+			"prompts": {
+				"remove": {
+					"title": "移除参与者",
+					"message": "您确定要移除此参与者吗？他们将无法再查看或发送消息。",
+					"success": "{{name}}已移除"
+				}
+			}
+		},
+		"list": {
+			"empty": "未找到聊天",
+			"emptySearch": "此搜索未找到聊天",
+			"error": "加载您的聊天时出错，请稍后重试"
+		},
+		"input": {
+			"placeholder": "输入消息",
+			"send": "发送",
+			"suggestions": {
+				"emojis": {
+					"matching": "匹配{{query}}的表情"
+				},
+				"mention": {
+					"matching": "匹配{{query}}的用户"
+				},
+				"replyTo": {
+					"replyingTo": "回复给{{name}}"
+				}
+			}
+		},
+		"header": {
+			"newMessages": "{{count}}条新消息"
+		},
+		"item": {
+			"draft": "草稿",
+			"you": "您",
+			"noMessages": "尚无消息"
+		}
+	},
+	"notes": {
+		"title": "笔记",
+		"list": {
+			"footer": "{{count}}项",
+			"empty": "尚无笔记",
+			"emptySearch": "此搜索未找到笔记",
+			"error": "加载您的笔记时出错，请稍后重试"
+		},
+		"menu": {
+			"history": "历史",
+			"participants": "参与者",
+			"type": "类型",
+			"types": {
+				"text": "文本",
+				"checklist": "清单",
+				"rich": "富文本",
+				"md": "Markdown",
+				"code": "代码"
+			},
+			"pin": "置顶",
+			"unpin": "取消置顶",
+			"favorite": "收藏",
+			"unfavorite": "取消收藏",
+			"tags": "标签",
+			"duplicate": "复制",
+			"export": "导出",
+			"clipboard": "剪贴板",
+			"copyId": "复制ID",
+			"archive": "归档",
+			"trash": "移到回收站",
+			"restore": "恢复",
+			"delete": "删除",
+			"pinned": "已置顶",
+			"favorited": "已收藏",
+			"leave": "离开",
+			"preview": "预览",
+			"rename": "重命名"
+		},
+		"participants": {
+			"title": "参与者",
+			"menu": {
+				"remove": "移除",
+				"permissionsWrite": "写入权限"
+			},
+			"list": {
+				"footer": "{{count}}位参与者",
+				"empty": "尚无参与者",
+				"emptySearch": "此搜索未找到参与者",
+				"error": "加载参与者时出错，请稍后重试"
+			}
+		},
+		"tags": {
+			"names": {
+				"all": "全部",
+				"favorited": "已收藏",
+				"archived": "已归档",
+				"pinned": "已置顶",
+				"shared": "已共享",
+				"trash": "回收站"
+			},
+			"menu": {
+				"rename": "重命名",
+				"delete": "删除",
+				"favorited": "已收藏"
+			}
+		},
+		"history": {
+			"title": "历史",
+			"noPreview": "无预览可用",
+			"list": {
+				"footer": "{{count}}项",
+				"empty": "无历史记录",
+				"emptySearch": "此搜索未找到记录",
+				"error": "加载历史记录时出错，请稍后重试"
+			},
+			"restore": "恢复",
+			"prompts": {
+				"restore": {
+					"title": "恢复笔记",
+					"message": "您确定要恢复此笔记吗？这将覆盖当前笔记。"
+				}
+			}
+		},
+		"prompts": {
+			"createNote": {
+				"title": "创建笔记",
+				"placeholder": "笔记标题"
+			},
+			"trashNote": {
+				"title": "移到回收站",
+				"message": "您确定要将此笔记移到回收站吗？您可以稍后恢复它。"
+			},
+			"renameNote": {
+				"title": "重命名笔记",
+				"placeholder": "新名称"
+			},
+			"deleteNote": {
+				"title": "删除笔记",
+				"message": "您确定要永久删除此笔记吗？此操作无法撤销！"
+			},
+			"leaveNote": {
+				"title": "离开笔记",
+				"message": "您确定要离开此笔记吗？您将无法再查看或编辑它。"
+			},
+			"removeParticipant": {
+				"title": "移除参与者",
+				"message": "您确定要移除此参与者吗？他们将无法再查看或编辑此笔记。"
+			},
+			"createTag": {
+				"title": "创建标签",
+				"placeholder": "标签名称"
+			},
+			"deleteTag": {
+				"title": "删除标签",
+				"message": "您确定要删除此标签吗？此操作无法撤销！"
+			},
+			"renameTag": {
+				"title": "重命名标签",
+				"placeholder": "新标签名称"
+			}
+		},
+		"header": {
+			"title": "笔记",
+			"menu": {
+				"settings": "设置"
+			}
+		},
+		"content": {
+			"placeholders": {
+				"text": "在此输入文本...",
+				"code": "在此输入代码..."
+			}
+		}
+	},
+	"listEmpty": {
+		"error": "发生错误，请稍后重试",
+		"empty": "未找到任何内容",
+		"emptySearch": "此搜索未找到任何内容"
+	},
+	"settings": {
+		"advanced": {
+			"title": "高级",
+			"prompts": {
+				"clearCache": {
+					"title": "清除缓存",
+					"message": "清除缓存将删除临时文件。这可能会中断正在进行的上传或下载。您确定要继续吗？"
+				},
+				"clearThumbnails": {
+					"title": "清除缩略图",
+					"message": "清除缩略图将使应用重新下载所有可见缩略图。您确定要继续吗？"
+				},
+				"clearTrackPlayer": {
+					"title": "清除播放器缓存",
+					"message": "清除播放器缓存将移除缓存的曲目和图片。这可能会导致加载时间增加。您确定要继续吗？"
+				},
+				"clearOfflineFiles": {
+					"title": "清除离线文件",
+					"message": "清除离线文件将移除所有离线可用文件。您确定要继续吗？"
+				}
+			},
+			"items": {
+				"clearCache": "清除缓存",
+				"clearThumbnails": "清除缩略图",
+				"clearTrackPlayer": "清除播放器缓存",
+				"clearOfflineFiles": "清除离线文件"
+			}
+		},
+		"contacts": {
+			"title": "联系人",
+			"tabs": {
+				"all": "全部",
+				"online": "在线",
+				"offline": "离线",
+				"blocked": "已拉黑",
+				"requests": "请求",
+				"pending": "待处理"
+			},
+			"listEmpty": {
+				"all": {
+					"error": "加载您的联系人时出错，请稍后重试",
+					"empty": "未找到联系人",
+					"emptySearch": "此搜索未找到联系人"
+				},
+				"online": {
+					"error": "加载您的联系人时出错，请稍后重试",
+					"empty": "未找到在线联系人",
+					"emptySearch": "此搜索未找到在线联系人"
+				},
+				"offline": {
+					"error": "加载您的联系人时出错，请稍后重试",
+					"empty": "未找到离线联系人",
+					"emptySearch": "此搜索未找到离线联系人"
+				},
+				"blocked": {
+					"error": "加载您的联系人时出错，请稍后重试",
+					"empty": "未找到已拉黑的联系人",
+					"emptySearch": "此搜索未找到已拉黑的联系人"
+				},
+				"requests": {
+					"error": "加载您的联系人请求时出错，请稍后重试",
+					"empty": "未找到联系人请求",
+					"emptySearch": "此搜索未找到联系人请求"
+				},
+				"pending": {
+					"error": "加载您的联系人请求时出错，请稍后重试",
+					"empty": "未找到联系人请求",
+					"emptySearch": "此搜索未找到联系人请求"
+				}
+			},
+			"prompts": {
+				"remove": {
+					"title": "移除联系人",
+					"message": "您确定要移除此联系人吗？",
+					"success": "{{email}}已移除"
+				},
+				"block": {
+					"title": "拉黑联系人",
+					"message": "您确定要拉黑此联系人吗？",
+					"success": "{{email}}已拉黑"
+				},
+				"unblock": {
+					"title": "取消拉黑联系人",
+					"message": "您确定要取消拉黑此联系人吗？",
+					"success": "{{email}}已取消拉黑"
+				},
+				"sendRequest": {
+					"title": "发送联系人请求",
+					"placeholder": "联系人的 Filen 电子邮件地址",
+					"success": "联系人请求已发送至{{email}}"
+				}
+			}
+		},
+		"events": {
+			"title": "事件",
+			"event": "事件",
+			"events": "事件",
+			"listEmpty": {
+				"error": "加载您的事件时出错，请稍后重试",
+				"empty": "未找到事件",
+				"emptySearch": "此搜索未找到事件"
+			},
+			"eventInfo": {
+				"2faDisabled": "双重认证已禁用",
+				"2faEnabled": "双重认证已启用",
+				"deleteFilePermanently": "{{name}}已永久删除",
+				"deleteAll": "所有文件夹和文件已永久删除",
+				"codeRedeemed": "代码“{{code}}”已兑换",
+				"baseFolderCreated": "基础文件夹已创建",
+				"deleteFolderPermanently": "{{name}}已永久删除",
+				"deleteUnfinished": "未完成的上传已删除",
+				"login": "已登录",
+				"deleteVersioned": "所有版本文件已删除",
+				"emailChangeAttempt": "尝试更改电子邮件地址",
+				"emailChanged": "电子邮件地址已更改",
+				"passwordChanged": "密码已更改",
+				"failedLogin": "尝试登录失败",
+				"fileLinkEdited": "{{name}}的公开链接已编辑",
+				"fileMetadataChanged": "{{name}}的元数据已更改",
+				"fileMoved": "{{name}}已移动",
+				"fileRenamed": "{{oldName}}已重命名为{{newName}}",
+				"fileShared": "{{name}}已共享给{{email}}",
+				"fileUploaded": "{{name}}已上传",
+				"fileRestored": "{{name}}已恢复",
+				"fileRm": "{{name}}已删除",
+				"fileTrash": "{{name}}已移到回收站",
+				"fileVersioned": "{{name}}已计入版本",
+				"folderColorChanged": "文件夹{{name}}的颜色已更改",
+				"folderLinkEdited": "文件夹的公开链接已编辑",
+				"folderMetadataChanged": "文件夹{{name}}的元数据已更改",
+				"folderMoved": "文件夹{{name}}已移动",
+				"folderRenamed": "文件夹{{oldName}}已重命名为{{newName}}",
+				"folderShared": "文件夹{{name}}已共享给{{email}}",
+				"folderRestored": "文件夹{{name}}已恢复",
+				"folderTrash": "文件夹{{name}}已移到回收站",
+				"itemFavorited": "{{name}}已收藏",
+				"itemUnfavorited": "{{name}}已取消收藏",
+				"removedSharedInItems": "已从{{email}}移除共享项",
+				"removedSharedOutItems": "已从{{email}}移除共享项",
+				"requestAccountDeletion": "已请求删除账户",
+				"subFolderCreated": "文件夹{{name}}已创建",
+				"trashEmptied": "回收站已清空",
+				"versionedFileRestored": "{{name}}的版本已恢复"
+			}
+		},
+		"biometric": {
+			"title": "安全",
+			"lockAppAfter": {
+				"never": "从不",
+				"immediately": "立即",
+				"60": "1分钟后",
+				"300": "5分钟后",
+				"600": "10分钟后",
+				"900": "15分钟后",
+				"1800": "30分钟后",
+				"3600": "1小时后",
+				"minutes": "{{minutes}}分钟后"
+			},
+			"items": {
+				"biometricAuth": "生物识别验证",
+				"lockAppAfter": "锁定应用时间",
+				"pinOnly": "仅使用PIN"
+			},
+			"prompts": {
+				"enable": {
+					"title": "设置备用PIN",
+					"placeholder": "备用PIN"
+				},
+				"disable": {
+					"title": "禁用生物识别验证",
+					"message": "您确定要禁用生物识别验证吗？"
+				}
+			}
+		},
+		"security": {
+			"title": "安全",
+			"items": {
+				"changePassword": "更改密码",
+				"2fa": "双重认证",
+				"biometricAuth": "生物识别验证"
+			},
+			"prompts": {
+				"changePassword1": {
+					"title": "更改密码",
+					"message": "更改密码后，您将被强制登出，需要使用新密码重新登录。"
+				},
+				"currentPassword": {
+					"title": "当前密码",
+					"placeholder": "当前密码"
+				},
+				"newPassword": {
+					"title": "新密码",
+					"placeholder": "新密码"
+				},
+				"confirmNewPassword": {
+					"title": "确认新密码",
+					"placeholder": "确认密码"
+				}
+			},
+			"errors": {
+				"passwordsDoNotMatch": "新密码不匹配。",
+				"weak": "您的新密码太弱。请选择一个更强的密码，至少10个字符，包含大小写字母、数字和特殊字符。"
+			}
+		},
+		"twoFactorAuth": {
+			"title": "安全",
+			"copyKey": "复制密钥",
+			"copied": "密钥已复制到剪贴板",
+			"items": {
+				"2fa": "双重认证"
+			},
+			"prompts": {
+				"enable": {
+					"title": "输入代码",
+					"placeholder": "代码"
+				}
+			}
+		},
+		"account": {
+			"title": "账户",
+			"items": {
+				"changeAvatar": "更改头像",
+				"emailAddress": "电子邮件地址",
+				"personalInformation": "个人信息",
+				"nickname": "昵称",
+				"gdpr": "GDPR信息",
+				"more": "更多账户设置",
+				"fileVersioning": "文件版本控制",
+				"fileVersioningInfo": "启用文件版本控制以跟踪文件更改。",
+				"loginAlerts": "登录提醒",
+				"loginAlertsInfo": "当您的账户被访问时接收提醒。",
+				"deleteVersionedFiles": "删除版本文件",
+				"deleteAllFilesAndDirectories": "删除所有文件和文件夹",
+				"logout": "登出",
+				"requestAccountDeletion": "请求删除账户",
+				"requestAccountDeletionInfo": "请求删除账户。我们将向您发送一封包含进一步说明的电子邮件。"
+			},
+			"prompts": {
+				"logout": {
+					"title": "登出",
+					"message": "您确定要登出吗？您需要重新登录以访问您的账户。"
+				},
+				"deleteAccount": {
+					"title": "请求删除账户",
+					"message": "您确定要请求删除账户吗？您将收到一封包含进一步说明的电子邮件。"
+				},
+				"2fa": {
+					"title": "双重认证",
+					"placeholder": "代码"
+				},
+				"deleteAllFilesAndDirectories1": {
+					"title": "删除所有文件和文件夹",
+					"message": "您确定要删除所有文件和文件夹吗？此操作无法撤销！"
+				},
+				"deleteAllFilesAndDirectories2": {
+					"title": "删除所有文件和文件夹",
+					"message": "您真的确定吗？此操作无法撤销！"
+				},
+				"deleteVersionedFiles1": {
+					"title": "删除版本文件",
+					"message": "您确定要删除所有版本文件吗？此操作无法撤销！"
+				},
+				"deleteVersionedFiles2": {
+					"title": "删除版本文件",
+					"message": "您真的确定吗？此操作无法撤销！"
+				},
+				"changeEmail": {
+					"newEmail": {
+						"title": "新电子邮件地址",
+						"placeholder": "新电子邮件地址"
+					},
+					"confirmEmail": {
+						"title": "确认新电子邮件地址",
+						"placeholder": "确认新电子邮件地址"
+					},
+					"password": {
+						"title": "您的密码",
+						"placeholder": "密码"
+					}
+				},
+				"updateNickname": {
+					"title": "更新昵称",
+					"placeholder": "新昵称"
+				},
+				"more": {
+					"title": "打开网页应用",
+					"message": "更多设置可在网页应用中找到。您想现在打开吗？"
+				}
+			},
+			"errors": {
+				"emailsNotMatching": "新电子邮件地址不匹配。",
+				"avatarLimit": "头像图片大小超过最大3MiB的限制。"
+			}
+		},
+		"index": {
+			"title": "设置",
+			"items": {
+				"used": "已使用{{used}}，共{{max}}（{{percentage}}%）",
+				"security": "安全",
+				"events": "事件",
+				"cameraUpload": "相机上传",
+				"fileProvider": "文件提供程序",
+				"fileProviderInfo": "启用iOS文件集成以在应用外访问您的文件。",
+				"documentsProvider": "文档提供程序",
+				"documentsProviderInfo": "启用Android文件集成以在应用外访问您的文件。",
+				"contacts": "联系人",
+				"advanced": "高级"
+			}
+		},
+		"personal": {
+			"title": "个人信息",
+			"items": {
+				"firstName": "名",
+				"lastName": "姓",
+				"city": "城市",
+				"country": "国家",
+				"companyName": "公司名称",
+				"vatId": "增值税ID",
+				"street": "街道",
+				"postalCode": "邮政编码",
+				"streetNumber": "门牌号"
+			},
+			"prompts": {
+				"edit": {
+					"title": "编辑"
+				}
+			}
+		}
+	},
+	"photos": {
+		"title": "照片",
+		"list": {
+			"empty": "尚无照片",
+			"emptySearch": "此搜索未找到照片",
+			"error": "加载您的照片时出错，请稍后重试"
+		},
+		"state": {
+			"synced": "已同步",
+			"syncing": "正在同步",
+			"syncingProgress": "已同步{{done}}项，共{{total}}项"
+		},
+		"menu": {
+			"settings": "设置"
+		},
+		"settings": {
+			"albums": {
+				"title": "相册",
+				"item": {
+					"subTitle": "{{count}}项"
+				},
+				"list": {
+					"empty": "未找到相册",
+					"emptySearch": "此搜索未找到相册",
+					"error": "加载您的相册时出错，请稍后重试"
+				}
+			},
+			"index": {
+				"title": "设置",
+				"items": {
+					"enabled": "已启用",
+					"albums": "相册",
+					"albumsInfo": "选择要包含在相机上传中的相册。",
+					"cloudDirectory": "云文件夹",
+					"cloudDirectoryNotSet": "未设置",
+					"videos": "视频",
+					"videosInfo": "在相机上传中包含视频。",
+					"cellular": "蜂窝数据",
+					"cellularInfo": "允许通过蜂窝数据进行相机上传。这可能会导致高流量使用量。",
+					"background": "后台",
+					"backgroundInfo": "允许在后台进行相机上传。这可能会导致高电池使用量。后台上传仅包含图像。",
+					"lowBattery": "低电量",
+					"lowBatteryInfo": "电量低时禁用相机上传。",
+					"compress": "压缩",
+					"compressInfo": "压缩照片以节省存储空间。这可能会降低照片质量。JPG压缩质量为80%。"
+				},
+				"errors": {
+					"noPermissions": "您需要授予媒体权限才能访问您的照片。"
+				}
+			}
+		}
+	},
+	"tabBar": {
+		"home": "首页",
+		"drive": "云盘",
+		"photos": "照片",
+		"notes": "笔记",
+		"chats": "聊天",
+		"settings": "设置"
+	},
+	"auth": {
+		"prompts": {
+			"2fa": {
+				"title": "双重认证",
+				"placeholder": "代码"
+			},
+			"resendConfirmation": {
+				"title": "重新发送确认邮件",
+				"placeholder": "电子邮件地址",
+				"success": "如果电子邮件地址已注册，将向{{email}}发送确认邮件。"
+			},
+			"forgotPassword": {
+				"title": "忘记密码",
+				"placeholder": "电子邮件地址",
+				"success": "如果电子邮件地址已注册，您将收到一封包含重置密码说明的邮件。"
+			}
+		},
+		"registrationSuccessful": "注册成功！请检查您的电子邮箱以确认账户。",
+		"index": {
+			"hero": {
+				"1": "端到端加密",
+				"2": "的云平台"
+			},
+			"signUp": "免费注册",
+			"login": "登录"
+		},
+		"login": {
+			"title": "登录",
+			"header": {
+				"cancel": "取消"
+			},
+			"welcome": "欢迎回来！",
+			"loginUsingCreds": "使用您的凭据登录",
+			"forgotPassword": "忘记密码？",
+			"login": "登录",
+			"signUp": "免费注册",
+			"next": "下一步",
+			"submit": "提交",
+			"errors": {
+				"emptyFields": "请填写所有字段。"
+			},
+			"form": {
+				"email": {
+					"label": "电子邮件地址",
+					"placeholder": "输入您的电子邮件地址"
+				},
+				"password": {
+					"label": "密码",
+					"placeholder": "输入您的密码"
+				}
+			}
+		},
+		"register": {
+			"title": "注册",
+			"header": {
+				"cancel": "取消",
+				"title": "注册"
+			},
+			"hero": {
+				"create": "创建您的免费账户",
+				"description": "设置您的凭据以开始使用Filen账户。"
+			},
+			"form": {
+				"email": {
+					"label": "电子邮件地址",
+					"placeholder": "输入您的电子邮件地址"
+				},
+				"confirmEmail": {
+					"label": "确认电子邮件地址",
+					"placeholder": "确认您的电子邮件地址"
+				},
+				"password": {
+					"label": "密码",
+					"placeholder": "输入您的密码"
+				},
+				"confirmPassword": {
+					"label": "确认密码",
+					"placeholder": "确认您的密码"
+				}
+			},
+			"passwordStrength": {
+				"length": "长度",
+				"uppercase": "大写字母",
+				"lowercase": "小写字母",
+				"numbers": "数字",
+				"specialCharacters": "特殊字符",
+				"weak": "弱",
+				"medium": "中等",
+				"strong": "强",
+				"best": "最佳"
+			},
+			"errors": {
+				"emptyFields": "请填写所有字段。",
+				"passwordsDoNotMatch": "密码不匹配。",
+				"emailAddressesDoNotMatch": "电子邮件地址不匹配。",
+				"weakPassword": "您的密码太弱。请选择一个更强的密码，至少10个字符，包含大小写字母、数字和特殊字符。"
+			},
+			"createAccount": "创建账户",
+			"resendConfirmationEmail": "重新发送确认邮件",
+			"next": "下一步"
+		}
+	},
+	"editPublicLink": {
+		"title": "编辑公开链接",
+		"cancel": "取消",
+		"prompts": {
+			"editPassword": {
+				"title": "编辑密码",
+				"placeholder": "留空以移除密码"
+			}
+		},
+		"shareDialogTile": "Filen 公开链接",
+		"items": {
+			"enabled": "启用",
+			"password": "密码",
+			"edit": "编辑",
+			"expiration": "过期时间",
+			"expirationNever": "永不过期",
+			"expiration1h": "1小时后",
+			"expiration6h": "6小时后",
+			"expiration12h": "12小时后",
+			"expiration1d": "1天后",
+			"expiration3d": "3天后",
+			"expiration7d": "7天后",
+			"expiration14d": "14天后",
+			"expiration30d": "30天后",
+			"downloadButton": "下载按钮"
+		},
+		"onlyPro": "此功能仅适用于Filen Pro用户。订阅任何Filen计划以启用。",
+		"unsavedChanges": "未保存的更改"
+	},
+	"selectContacts": {
+		"header": {
+			"selectContacts": "选择联系人",
+			"cancel": "取消",
+			"done": "完成",
+			"selectContact": "选择联系人"
+		},
+		"toolbar": {
+			"selected": "已选择{{countOrName}}"
+		},
+		"list": {
+			"footer": "{{count}}位联系人",
+			"empty": "尚无联系人",
+			"emptySearch": "此搜索未找到联系人",
+			"error": "加载您的联系人时出错，请稍后重试"
+		}
+	},
+	"selectDriveItems": {
+		"header": {
+			"selectItems": "选择项",
+			"cancel": "取消",
+			"done": "完成",
+			"selectItem": "选择项",
+			"selectFile": "选择文件",
+			"selectDirectory": "选择文件夹",
+			"selectFiles": "选择文件",
+			"selectDirectories": "选择文件夹",
+			"drive": "云盘"
+		},
+		"toolbar": {
+			"selected": "已选择{{countOrName}}"
+		},
+		"list": {
+			"footer": "{{count}}项",
+			"empty": "尚未上传任何内容",
+			"emptySearch": "此搜索未找到项",
+			"error": "加载您的文件时出错，请稍后重试"
+		},
+		"prompts": {
+			"createDirectory": {
+				"title": "创建文件夹",
+				"placeholder": "文件夹名称",
+				"success": "{{name}}已创建"
+			}
+		}
+	},
+	"selectTrackPlayerPlaylists": {
+		"selected": "已选择{{countOrName}}",
+		"header": {
+			"selectPlaylists": "选择播放列表",
+			"cancel": "取消",
+			"done": "完成",
+			"selectPlaylist": "选择播放列表"
+		},
+		"toolbar": {
+			"selected": "已选择{{countOrName}}"
+		},
+		"list": {
+			"footer": "{{count}}个播放列表",
+			"empty": "尚无播放列表",
+			"emptySearch": "此搜索未找到播放列表",
+			"error": "加载您的播放列表时出错，请稍后重试"
+		},
+		"item": {
+			"subTitle": "{{count}}首曲目，更新于{{date}}"
+		},
+		"prompts": {
+			"createPlaylist": {
+				"title": "创建播放列表",
+				"placeholder": "播放列表名称"
+			}
+		}
+	},
+	"shareIntent": {
+		"header": {
+			"title": "保存到Filen",
+			"cancel": "取消",
+			"upload": "上传"
+		}
+	},
+	"trackPlayer": {
+		"item": {
+			"subTitle": "{{count}}首曲目，更新于{{date}}",
+			"menu": {
+				"play": "播放",
+				"delete": "删除",
+				"addToQueue": "添加到队列",
+				"cancel": "取消"
+			}
+		},
+		"list": {
+			"footer": "{{count}}个播放列表",
+			"empty": "尚无播放列表",
+			"emptySearch": "此搜索未找到播放列表",
+			"error": "加载您的播放列表时出错，请稍后重试"
+		},
+		"playlist": {
+			"item": {
+				"menu": {
+					"play": "播放",
+					"addToPlaylist": "添加到播放列表",
+					"addToQueue": "添加到队列",
+					"removeFromPlaylist": "从播放列表中移除",
+					"cancel": "取消"
+				}
+			}
+		},
+		"bottom": {
+			"unknownTitle": "未知标题",
+			"unknownArtist": "未知艺术家",
+			"noTrackQueued": "无排队曲目"
+		},
+		"prompts": {
+			"createPlaylist": {
+				"title": "创建播放列表",
+				"placeholder": "播放列表名称"
+			},
+			"deletePlaylist": {
+				"title": "删除播放列表",
+				"message": "您确定要删除此播放列表吗？此操作无法撤销！"
+			}
+		},
+		"header": {
+			"title": "播放列表"
+		}
+	},
+	"transfers": {
+		"header": {
+			"title": "传输",
+			"back": "返回"
+		},
+		"info": "正在以{{speed}}的速度传输{{ongoingTransfers}}项，剩余{{remaining}}",
+		"list": {
+			"empty": "尚无传输",
+			"emptySearch": "此搜索未找到传输",
+			"error": "加载您的传输时出错，请稍后重试"
+		},
+		"transfer": {
+			"resume": "恢复",
+			"pause": "暂停",
+			"cancel": "取消",
+			"cancelAll": "全部取消",
+			"stop": "停止",
+			"stopAll": "全部停止"
+		}
+	},
+	"textEditor": {
+		"header": {
+			"back": "返回"
+		},
+		"unsavedChanges": "未保存的更改",
+		"savedSuccess": "保存成功",
+		"saved": "已保存"
+	},
+	"contacts": {
+		"menu": {
+			"remove": "移除",
+			"block": "拉黑",
+			"unblock": "取消拉黑",
+			"cancel": "取消",
+			"accept": "接受",
+			"decline": "拒绝"
+		}
+	},
+	"biometric": {
+		"appLockedFor": "应用已锁定{{seconds}}秒",
+		"authenticateUsingPin": "使用您的PIN验证",
+		"prompts": {
+			"pin": {
+				"title": "输入您的PIN",
+				"placeholder": "PIN"
+			}
+		},
+		"errors": {
+			"tooManyIncorrectAttempts": "错误尝试次数过多。请稍后重试。",
+			"incorrectPin": "PIN错误。请重试。"
+		}
+	},
+	"offlineListHeader": {
+		"title": "离线模式"
+	},
+	"formatBytes": {
+		"b": "字节",
+		"kib": "KiB",
+		"mib": "MiB",
+		"gib": "GiB",
+		"tib": "TiB",
+		"pib": "PiB",
+		"eib": "EiB",
+		"zib": "ZiB",
+		"yib": "YiB"
+	},
+	"bpsToReadable": {
+		"b": "B/秒",
+		"kib": "KiB/秒",
+		"mib": "MiB/秒",
+		"gib": "GiB/秒",
+		"tib": "TiB/秒",
+		"pib": "PiB/秒",
+		"eib": "EiB/秒",
+		"zib": "ZiB/秒",
+		"yib": "YiB/秒"
+	}
+}
