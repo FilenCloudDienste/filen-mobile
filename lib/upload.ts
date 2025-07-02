@@ -5,7 +5,7 @@ import { Readable } from "stream"
 import { type ReadableStream } from "stream/web"
 import { type NodeWorkerHandlers } from "nodeWorker"
 
-export class UploadService {
+export class Upload {
 	private isAuthed(): boolean {
 		const apiKey = getSDK().config.apiKey
 
@@ -105,6 +105,6 @@ export class UploadService {
 	}
 }
 
-export const uploadService = new UploadService()
+export const upload = new Upload()
 
-export default uploadService
+export default upload

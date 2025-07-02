@@ -156,7 +156,7 @@ export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<Li
 								return
 							}
 
-							await contactsService.remove({
+							await contactsService.removeContact({
 								uuid: info.item.contact.uuid
 							})
 
@@ -168,7 +168,7 @@ export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<Li
 								return
 							}
 
-							await contactsService.block({
+							await contactsService.blockContact({
 								email: info.item.contact.email
 							})
 
@@ -180,7 +180,7 @@ export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<Li
 								return
 							}
 
-							await contactsService.unblock({
+							await contactsService.unblockContact({
 								uuid: info.item.contact.uuid
 							})
 

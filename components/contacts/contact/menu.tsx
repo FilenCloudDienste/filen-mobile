@@ -165,7 +165,7 @@ export const Menu = memo(
 								return
 							}
 
-							await contactsService.remove({
+							await contactsService.removeContact({
 								uuid: info.item.contact.uuid
 							})
 
@@ -177,7 +177,7 @@ export const Menu = memo(
 								return
 							}
 
-							await contactsService.block({
+							await contactsService.blockContact({
 								email: info.item.contact.email
 							})
 
@@ -189,7 +189,7 @@ export const Menu = memo(
 								return
 							}
 
-							await contactsService.unblock({
+							await contactsService.unblockContact({
 								uuid: info.item.contact.uuid
 							})
 

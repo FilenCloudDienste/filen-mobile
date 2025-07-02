@@ -13,6 +13,8 @@ import * as FileSystem from "expo-file-system/next"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import useNetInfo from "@/hooks/useNetInfo"
+import upload from "@/lib/upload"
+import download from "@/lib/download"
 
 export const PlaylistFileSchema = Type.Object({
 	uuid: Type.String(),
@@ -131,7 +133,7 @@ export async function updatePlaylist(playlist: Playlist): Promise<void> {
 			throw new Error("Temporary upload file is empty.")
 		}
 
-		await nodeWorker.proxy("uploadFile", {
+		await upload.file.foreground({
 			parent: playlistsDirectoryUUID,
 			localPath: tmpFile.uri,
 			name: `${playlist.uuid}.json`,
@@ -174,7 +176,7 @@ export async function fetchPlaylists(): Promise<(Playlist & { fileUUID: string }
 							tmpFile.delete()
 						}
 
-						await nodeWorker.proxy("downloadFile", {
+						await download.file.foreground({
 							id: randomUUID(),
 							uuid: item.uuid,
 							bucket: item.type === "file" ? item.bucket : "",

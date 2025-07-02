@@ -28,6 +28,7 @@ import { useRouter } from "expo-router"
 import { useShallow } from "zustand/shallow"
 import { type TextEditorItem } from "@/components/textEditor/editor"
 import useNetInfo from "@/hooks/useNetInfo"
+import upload from "@/lib/upload"
 
 export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const { colors } = useColorScheme()
@@ -115,7 +116,7 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 
 						const uploadedItems = await promiseAllChunked(
 							documentPickerResult.assets.map(async asset => {
-								return await nodeWorker.proxy("uploadFile", {
+								return await upload.file.foreground({
 									parent: queryParams.parent,
 									localPath: asset.uri,
 									name: asset.name,
@@ -225,7 +226,7 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 										throw new Error(`Could not get size of file at "${tmpFile.uri}".`)
 									}
 
-									return await nodeWorker.proxy("uploadFile", {
+									return await upload.file.foreground({
 										parent: queryParams.parent,
 										localPath: tmpFile.uri,
 										name: asset.fileName,
@@ -290,7 +291,7 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 										throw new Error(`Could not get size of file at "${tmpFile.uri}".`)
 									}
 
-									return await nodeWorker.proxy("uploadFile", {
+									return await upload.file.foreground({
 										parent: queryParams.parent,
 										localPath: tmpFile.uri,
 										name: asset.fileName,
@@ -410,7 +411,7 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 								throw new Error("Could not copy directory.")
 							}
 
-							await nodeWorker.proxy("uploadDirectory", {
+							await upload.directory.foreground({
 								parent: queryParams.parent,
 								localPath: dirToUpload.uri,
 								name: dirToUpload.name,
@@ -477,7 +478,7 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 
 							tmpFile.create()
 
-							const item = await nodeWorker.proxy("uploadFile", {
+							const item = await upload.file.foreground({
 								parent: queryParams.parent,
 								localPath: tmpFile.uri,
 								name: fileNameWithExtension,

@@ -7,8 +7,20 @@ import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { t } from "@/lib/i18n"
 
 export class AuthService {
-	public async login({ email, password, twoFactorCode }: { email: string; password: string; twoFactorCode?: string }): Promise<boolean> {
-		fullScreenLoadingModal.show()
+	public async login({
+		email,
+		password,
+		twoFactorCode,
+		disableLoader
+	}: {
+		email: string
+		password: string
+		twoFactorCode?: string
+		disableLoader?: boolean
+	}): Promise<boolean> {
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
 
 		try {
 			const sdkConfig = await nodeWorker.proxy("login", {
@@ -66,12 +78,26 @@ export class AuthService {
 
 			return false
 		} finally {
-			fullScreenLoadingModal.hide()
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
 		}
 	}
 
-	public async register({ email, password }: { email: string; password: string }): Promise<void> {
-		fullScreenLoadingModal.show()
+	public async register({
+		email,
+		password,
+		disableLoader,
+		disableAlert
+	}: {
+		email: string
+		password: string
+		disableLoader?: boolean
+		disableAlert?: boolean
+	}): Promise<void> {
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
 
 		try {
 			await nodeWorker.proxy("register", {
@@ -79,7 +105,9 @@ export class AuthService {
 				password
 			})
 
-			alerts.normal(t("auth.registrationSuccessful"))
+			if (!disableAlert) {
+				alerts.normal(t("auth.registrationSuccessful"))
+			}
 		} catch (e) {
 			console.error(e)
 
@@ -87,42 +115,60 @@ export class AuthService {
 				alerts.error(e.message)
 			}
 		} finally {
-			fullScreenLoadingModal.hide()
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
 		}
 	}
 
-	public async resendConfirmation(): Promise<void> {
-		const emailPrompt = await inputPrompt({
-			title: t("auth.prompts.resendConfirmation.title"),
-			materialIcon: {
-				name: "email-outline"
-			},
-			prompt: {
-				type: "plain-text",
-				keyboardType: "email-address",
-				defaultValue: "",
-				placeholder: t("auth.prompts.resendConfirmation.placeholder")
+	public async resendConfirmation({
+		disableAlert,
+		disableLoader,
+		email
+	}: {
+		disableAlert?: boolean
+		disableLoader?: boolean
+		email?: string
+	}): Promise<void> {
+		if (!email) {
+			const emailPrompt = await inputPrompt({
+				title: t("auth.prompts.resendConfirmation.title"),
+				materialIcon: {
+					name: "email-outline"
+				},
+				prompt: {
+					type: "plain-text",
+					keyboardType: "email-address",
+					defaultValue: "",
+					placeholder: t("auth.prompts.resendConfirmation.placeholder")
+				}
+			})
+
+			if (emailPrompt.cancelled || emailPrompt.type !== "text") {
+				return
 			}
-		})
 
-		if (emailPrompt.cancelled || emailPrompt.type !== "text") {
-			return
+			const typedEmail = emailPrompt.text.trim()
+
+			if (typedEmail.length === 0) {
+				return
+			}
+
+			email = typedEmail
 		}
 
-		const email = emailPrompt.text.trim()
-
-		if (email.length === 0) {
-			return
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
 		}
-
-		fullScreenLoadingModal.show()
 
 		try {
 			await nodeWorker.proxy("resendConfirmation", {
 				email
 			})
 
-			alerts.normal(t("auth.prompts.resendConfirmation.success"))
+			if (!disableAlert) {
+				alerts.normal(t("auth.prompts.resendConfirmation.success"))
+			}
 		} catch (e) {
 			console.error(e)
 
@@ -130,42 +176,60 @@ export class AuthService {
 				alerts.error(e.message)
 			}
 		} finally {
-			fullScreenLoadingModal.hide()
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
 		}
 	}
 
-	public async forgotPassword(): Promise<void> {
-		const emailPrompt = await inputPrompt({
-			title: t("auth.prompts.forgotPassword.title"),
-			materialIcon: {
-				name: "email-outline"
-			},
-			prompt: {
-				type: "plain-text",
-				keyboardType: "email-address",
-				defaultValue: "",
-				placeholder: t("auth.prompts.forgotPassword.placeholder")
+	public async forgotPassword({
+		disableAlert,
+		disableLoader,
+		email
+	}: {
+		disableAlert?: boolean
+		disableLoader?: boolean
+		email?: string
+	}): Promise<void> {
+		if (!email) {
+			const emailPrompt = await inputPrompt({
+				title: t("auth.prompts.forgotPassword.title"),
+				materialIcon: {
+					name: "email-outline"
+				},
+				prompt: {
+					type: "plain-text",
+					keyboardType: "email-address",
+					defaultValue: "",
+					placeholder: t("auth.prompts.forgotPassword.placeholder")
+				}
+			})
+
+			if (emailPrompt.cancelled || emailPrompt.type !== "text") {
+				return
 			}
-		})
 
-		if (emailPrompt.cancelled || emailPrompt.type !== "text") {
-			return
+			const typedEmail = emailPrompt.text.trim()
+
+			if (typedEmail.length === 0) {
+				return
+			}
+
+			email = typedEmail
 		}
 
-		const email = emailPrompt.text.trim()
-
-		if (email.length === 0) {
-			return
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
 		}
-
-		fullScreenLoadingModal.show()
 
 		try {
 			await nodeWorker.proxy("forgotPassword", {
 				email
 			})
 
-			alerts.normal(t("auth.prompts.forgotPassword.success"))
+			if (!disableAlert) {
+				alerts.normal(t("auth.prompts.forgotPassword.success"))
+			}
 		} catch (e) {
 			console.error(e)
 
@@ -173,7 +237,9 @@ export class AuthService {
 				alerts.error(e.message)
 			}
 		} finally {
-			fullScreenLoadingModal.hide()
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
 		}
 	}
 }

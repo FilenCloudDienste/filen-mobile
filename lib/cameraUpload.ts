@@ -15,7 +15,7 @@ import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS } from "./constants"
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator"
 import { type FileMetadata } from "@filen/sdk"
 import { getSDK } from "./sdk"
-import uploadService from "@/services/upload.service"
+import upload from "@/lib/upload"
 
 export type TreeItem = (
 	| {
@@ -470,7 +470,7 @@ export class CameraUpload {
 
 						const item =
 							this.type === "foreground"
-								? await uploadService.file.foreground({
+								? await upload.file.foreground({
 										parent: parentUUID,
 										localPath: tmpFile.uri,
 										name: delta.item.name,
@@ -481,7 +481,7 @@ export class CameraUpload {
 										creation: delta.item.creation,
 										lastModified: delta.item.lastModified
 								  })
-								: await uploadService.file.background({
+								: await upload.file.background({
 										parent: parentUUID,
 										localPath: tmpFile.uri,
 										name: delta.item.name,

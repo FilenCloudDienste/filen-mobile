@@ -99,7 +99,7 @@ export const Register = memo(() => {
 	const resend = useCallback(() => {
 		KeyboardController.dismiss()
 
-		authService.resendConfirmation()
+		authService.resendConfirmation({})
 	}, [])
 
 	const goBack = useCallback(() => {

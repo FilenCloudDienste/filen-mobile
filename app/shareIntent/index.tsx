@@ -6,7 +6,6 @@ import { Text } from "@/components/nativewindui/Text"
 import { Image } from "expo-image"
 import { getPreviewType, formatBytes } from "@/lib/utils"
 import { selectDriveItems } from "@/app/selectDriveItems/[parent]"
-import nodeWorker from "@/lib/nodeWorker"
 import { randomUUID } from "expo-crypto"
 import * as FileSystem from "expo-file-system/next"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
@@ -21,6 +20,7 @@ import paths from "@/lib/paths"
 import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
+import upload from "@/lib/upload"
 
 export type ListItemInfo = {
 	title: string
@@ -102,7 +102,7 @@ export default function ShareIntent() {
 		)
 	}, [shareIntent.files])
 
-	const upload = useCallback(async () => {
+	const onPress = useCallback(async () => {
 		if (!shareIntent.files || items.length === 0) {
 			return
 		}
@@ -149,7 +149,7 @@ export default function ShareIntent() {
 						source = tmpFile
 					}
 
-					await nodeWorker.proxy("uploadFile", {
+					await upload.file.foreground({
 						parent,
 						localPath: source.uri,
 						name: file.fileName,
@@ -186,12 +186,12 @@ export default function ShareIntent() {
 			<Button
 				size="none"
 				variant="plain"
-				onPress={upload}
+				onPress={onPress}
 			>
 				<Text className="text-primary font-normal">{t("shareIntent.header.upload")}</Text>
 			</Button>
 		)
-	}, [upload, t, items.length])
+	}, [onPress, t, items.length])
 
 	const headerLeft = useCallback(() => {
 		return (

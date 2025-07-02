@@ -10,6 +10,7 @@ import sqlite from "./sqlite"
 import queryUtils from "@/queries/utils"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS, EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS } from "./constants"
+import download from "./download"
 
 export const THUMBNAILS_MAX_ERRORS: number = 3
 export const THUMBNAILS_SIZE: number = 256
@@ -159,7 +160,7 @@ export class Thumbnails {
 
 			try {
 				if (EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS.includes(extname)) {
-					await nodeWorker.proxy("downloadFile", {
+					await download.file.foreground({
 						id,
 						uuid: item.uuid,
 						bucket: item.bucket,

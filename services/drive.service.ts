@@ -27,6 +27,7 @@ import * as MediaLibrary from "expo-media-library"
 import { fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatusQuery"
 import { type Contact } from "@filen/sdk/dist/types/api/v3/contacts"
 import { useDriveStore } from "@/stores/drive.store"
+import download from "@/lib/download"
 
 export class DriveService {
 	public async copyItemPath({
@@ -601,7 +602,7 @@ export class DriveService {
 
 				offlineFile.copy(tempLocation)
 			} else {
-				await nodeWorker.proxy("downloadFile", {
+				await download.file.foreground({
 					id: randomUUID(),
 					uuid: item.uuid,
 					bucket: item.bucket,
@@ -852,7 +853,7 @@ export class DriveService {
 					fullScreenLoadingModal.hide()
 				}
 
-				await nodeWorker.proxy("downloadDirectory", {
+				await download.directory.foreground({
 					uuid: item.uuid,
 					destination: tmpDir.uri,
 					size,
@@ -946,7 +947,7 @@ export class DriveService {
 					return
 				}
 
-				await nodeWorker.proxy("downloadFile", {
+				await download.file.foreground({
 					id: randomUUID(),
 					uuid: item.uuid,
 					bucket: item.bucket,
@@ -1034,7 +1035,7 @@ export class DriveService {
 					throw new Error(t("errors.notEnoughDiskSpace"))
 				}
 
-				await nodeWorker.proxy("downloadFile", {
+				await download.file.foreground({
 					id: randomUUID(),
 					uuid: item.uuid,
 					bucket: item.bucket,
@@ -1112,7 +1113,7 @@ export class DriveService {
 
 				offlineFile.copy(tmpFile)
 			} else {
-				await nodeWorker.proxy("downloadFile", {
+				await download.file.foreground({
 					id: randomUUID(),
 					uuid: item.uuid,
 					bucket: item.bucket,

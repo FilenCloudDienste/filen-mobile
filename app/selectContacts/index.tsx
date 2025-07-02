@@ -160,7 +160,7 @@ export default function SelectContacts() {
 	}, [id, selectedContacts, canGoBack, back])
 
 	const add = useCallback(() => {
-		contactsService.sendRequest()
+		contactsService.sendRequest({})
 	}, [])
 
 	const cancel = useCallback(() => {

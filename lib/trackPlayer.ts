@@ -10,7 +10,7 @@ import mimeTypes from "mime-types"
 import { AudioPro } from "./audioPro"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import assets from "./assets"
-import downloadService from "@/services/download.service"
+import download from "@/lib/download"
 import { getAudioMetadata } from "@missingcore/audio-metadata"
 
 export type AudioProTrackExtended = AudioProTrack & {
@@ -504,7 +504,7 @@ export class TrackPlayerService {
 			)
 
 			if (!destination.exists) {
-				await downloadService.file.background({
+				await download.file.background({
 					id: randomUUID(),
 					uuid: track.file.uuid,
 					bucket: track.file.bucket,

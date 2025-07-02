@@ -72,7 +72,7 @@ export const Login = memo(() => {
 	const forgotPassword = useCallback(() => {
 		KeyboardController.dismiss()
 
-		authService.forgotPassword()
+		authService.forgotPassword({})
 	}, [])
 
 	const goBack = useCallback(() => {

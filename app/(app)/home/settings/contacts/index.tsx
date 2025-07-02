@@ -148,7 +148,7 @@ export const Contacts = memo(() => {
 	}, [])
 
 	const sendRequest = useCallback(() => {
-		contactsService.sendRequest()
+		contactsService.sendRequest({})
 	}, [])
 
 	const headerSearchBar = useMemo(() => {

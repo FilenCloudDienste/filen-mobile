@@ -8,7 +8,6 @@ import { getPreviewType } from "@/lib/utils"
 import * as FileSystem from "expo-file-system/next"
 import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
-import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "../modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import { KeyboardAvoidingView } from "react-native-keyboard-controller"
@@ -18,6 +17,7 @@ import mimeTypes from "mime-types"
 import useHTTPServer from "@/hooks/useHTTPServer"
 import { type DOMProps } from "expo/dom"
 import { useTranslation } from "react-i18next"
+import upload from "@/lib/upload"
 
 export const bgColors = {
 	normal: {
@@ -189,7 +189,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				tmpFile.write(valueCopied)
 			}
 
-			await nodeWorker.proxy("uploadFile", {
+			await upload.file.foreground({
 				parent: item.driveItem.parent,
 				localPath: tmpFile.uri,
 				name: itemName,

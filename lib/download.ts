@@ -7,7 +7,7 @@ import Semaphore from "@/lib/semaphore"
 import { type NodeWorkerHandlers } from "nodeWorker"
 import type Cloud from "@filen/sdk/dist/types/cloud"
 
-export class DownloadService {
+export class Download {
 	private isAuthed(): boolean {
 		const apiKey = getSDK().config.apiKey
 
@@ -15,7 +15,7 @@ export class DownloadService {
 	}
 
 	public directory = {
-		foreground: async (params: Parameters<NodeWorkerHandlers["downloadFile"]>[0]): Promise<void> => {
+		foreground: async (params: Parameters<NodeWorkerHandlers["downloadDirectory"]>[0]): Promise<void> => {
 			if (!this.isAuthed()) {
 				throw new Error("You must be authenticated to download files.")
 			}
@@ -232,6 +232,6 @@ export class DownloadService {
 	}
 }
 
-export const downloadService = new DownloadService()
+export const download = new Download()
 
-export default downloadService
+export default download

@@ -1,5 +1,4 @@
 import { memo, useMemo, useEffect, useState, Fragment, useCallback } from "react"
-import nodeWorker from "@/lib/nodeWorker"
 import { type GalleryItem } from "@/stores/gallery.store"
 import { View, ActivityIndicator, Pressable, Platform } from "react-native"
 import { type WH } from "."
@@ -24,6 +23,7 @@ import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import useHTTPServer from "@/hooks/useHTTPServer"
+import download from "@/lib/download"
 
 export const Audio = memo(({ item, layout }: { item: GalleryItem; layout: WH }) => {
 	useSetExpoAudioMode()
@@ -120,7 +120,7 @@ export const Audio = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 				tempLocation.delete()
 			}
 
-			await nodeWorker.proxy("downloadFile", {
+			await download.file.foreground({
 				id: randomUUID(),
 				uuid: item.data.item.uuid,
 				bucket: item.data.item.bucket,
