@@ -34,7 +34,6 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 	const { isTablet, isPortrait, screen } = useDimensions()
-	const setDriveItems = useDriveStore(useShallow(state => state.setItems))
 
 	const cloudItemsQuery = useCloudItemsQuery(queryParams)
 
@@ -184,9 +183,8 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 
 	useFocusEffect(
 		useCallback(() => {
-			setDriveItems(driveItems)
 			setSelectedItems([])
-		}, [setSelectedItems, driveItems, setDriveItems])
+		}, [setSelectedItems])
 	)
 
 	return (

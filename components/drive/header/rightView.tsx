@@ -7,7 +7,6 @@ import { useActionSheet } from "@expo/react-native-action-sheet"
 import * as DocumentPicker from "expo-document-picker"
 import nodeWorker from "@/lib/nodeWorker"
 import { useDriveStore } from "@/stores/drive.store"
-import { Text } from "@/components/nativewindui/Text"
 import Dropdown from "./dropdown"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { useIsFocused } from "@react-navigation/native"
@@ -34,8 +33,6 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 	const { colors } = useColorScheme()
 	const { showActionSheetWithOptions } = useActionSheet()
 	const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
-	const setSelectedItems = useDriveStore(useShallow(state => state.setSelectedItems))
-	const itemsCount = useDriveStore(useShallow(state => state.items.length))
 	const isFocused = useIsFocused()
 	const { bottom: bottomInsets } = useSafeAreaInsets()
 	const { t } = useTranslation()
@@ -529,21 +526,13 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 		createOptions
 	])
 
-	const onSelectPress = useCallback(() => {
-		if (selectedItemsCount >= itemsCount) {
-			setSelectedItems([])
-		} else {
-			setSelectedItems(useDriveStore.getState().items)
-		}
-	}, [itemsCount, setSelectedItems, selectedItemsCount])
-
 	if (!hasInternet) {
 		return null
 	}
 
 	return (
 		<View className="flex-row items-center">
-			{selectedItemsCount === 0 ? (
+			{selectedItemsCount === 0 && (
 				<Fragment>
 					<Transfers />
 					{allowed.upload && (
@@ -560,19 +549,8 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 						</Button>
 					)}
 				</Fragment>
-			) : (
-				<View className="flex-row items-center pr-2">
-					<Text
-						className="text-blue-500"
-						onPress={onSelectPress}
-						numberOfLines={1}
-						ellipsizeMode="tail"
-					>
-						{selectedItemsCount >= itemsCount ? t("drive.header.rightView.deselectAll") : t("drive.header.rightView.selectAll")}
-					</Text>
-				</View>
 			)}
-			<Dropdown />
+			<Dropdown queryParams={queryParams} />
 		</View>
 	)
 })

@@ -144,7 +144,7 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 	)
 
 	const debouncedSearch = useDebouncedCallback(async (searchValue: string) => {
-		if (searchValue.trim().length === 0) {
+		if (searchValue.trim().length === 0 || queryParams.of !== "drive" || searchValue.length < 3) {
 			setResults([])
 
 			return
@@ -229,12 +229,21 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 		if (searchTerm.length === 0) {
 			setResults([])
 			setIsLoading(false)
-		} else {
-			setIsLoading(true)
 
-			debouncedSearch(searchTerm)
+			return
 		}
-	}, [searchTerm, debouncedSearch])
+
+		if (queryParams.of !== "drive") {
+			setResults([])
+			setIsLoading(false)
+
+			return
+		}
+
+		setIsLoading(true)
+
+		debouncedSearch(searchTerm)
+	}, [searchTerm, debouncedSearch, queryParams.of])
 
 	return (
 		<List
