@@ -29,3 +29,5 @@ nodejs-assets/build-native-modules-MacOS-helper-script-node.sh
 
 yalc.lock
 .yalc/
+
+rust/

@@ -170,6 +170,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 				},
 				imageWidth: 128
 			}
+		],
+		[
+			"./plugins/withAndroidRustBuild.ts",
+			{
+				repoUrl: "https://github.com/FilenCloudDienste/filen-rs.git",
+				targetPath: "rust",
+				crateName: "filen-mobile-native-cache",
+				libName: "filen_mobile_native_cache",
+				targets: ["x86_64", "arm64-v8a"]
+			}
 		]
 	],
 	experiments: {
