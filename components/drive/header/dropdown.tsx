@@ -78,35 +78,39 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 		}
 
 		if (gridModeEnabled) {
-			createDropdownItem({
-				actionKey: "listMode",
-				title: t("drive.header.rightView.dropdown.listMode"),
-				icon:
-					Platform.OS === "ios"
-						? {
-								namingScheme: "sfSymbol",
-								name: "list.bullet"
-						  }
-						: {
-								namingScheme: "material",
-								name: "format-list-bulleted"
-						  }
-			})
+			items.push(
+				createDropdownItem({
+					actionKey: "listMode",
+					title: t("drive.header.rightView.dropdown.listMode"),
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "list.bullet"
+							  }
+							: {
+									namingScheme: "material",
+									name: "format-list-bulleted"
+							  }
+				})
+			)
 		} else {
-			createDropdownItem({
-				actionKey: "gridMode",
-				title: t("drive.header.rightView.dropdown.gridMode"),
-				icon:
-					Platform.OS === "ios"
-						? {
-								namingScheme: "sfSymbol",
-								name: "grid"
-						  }
-						: {
-								namingScheme: "material",
-								name: "grid"
-						  }
-			})
+			items.push(
+				createDropdownItem({
+					actionKey: "gridMode",
+					title: t("drive.header.rightView.dropdown.gridMode"),
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "grid"
+							  }
+							: {
+									namingScheme: "material",
+									name: "grid"
+							  }
+				})
+			)
 		}
 
 		if (selectedItemsCount === 0) {
