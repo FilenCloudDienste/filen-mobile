@@ -100,7 +100,7 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 						>
 							{t("sheets.itemInfo.type")}
 						</Text>
-						<Text numberOfLines={1}>{item.type === "directory" ? "Directory" : item.mime}</Text>
+						<Text numberOfLines={1}>{item.type === "directory" ? t("sheets.itemInfo.directory") : item.mime}</Text>
 						<Text
 							className="text-muted-foreground pt-3 text-sm"
 							numberOfLines={1}
