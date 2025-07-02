@@ -13,12 +13,15 @@ import { type SearchFindItemDecrypted } from "@filen/sdk/dist/types/api/v3/searc
 import useDimensions from "@/hooks/useDimensions"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
+import { useDriveStore } from "@/stores/drive.store"
+import { useShallow } from "zustand/shallow"
 
-export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; queryParams: FetchCloudItemsParams }) => {
+export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const [result, setResults] = useState<SearchFindItemDecrypted[]>([])
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const searchTerm = useDriveStore(useShallow(state => state.searchTerm))
 
 	const query = useCloudItemsQuery({
 		...queryParams,
@@ -226,14 +229,7 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 	}, [])
 
 	useEffect(() => {
-		if (searchTerm.length === 0) {
-			setResults([])
-			setIsLoading(false)
-
-			return
-		}
-
-		if (queryParams.of !== "drive") {
+		if (searchTerm.length < 3 || queryParams.of !== "drive") {
 			setResults([])
 			setIsLoading(false)
 

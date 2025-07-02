@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from "expo-router"
-import { memo, useRef, useCallback, useMemo, useState } from "react"
+import { memo, useRef, useCallback, useMemo } from "react"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { type AdaptiveSearchBarRef, type AdaptiveSearchHeaderProps } from "@/components/nativewindui/AdaptiveSearchHeader/types"
 import { useDriveStore } from "@/stores/drive.store"
@@ -12,7 +12,6 @@ export const IOS = memo(({ headerTitle, queryParams }: { headerTitle: string; qu
 	const searchBarRef = useRef<AdaptiveSearchBarRef>(null)
 	const { uuid } = useLocalSearchParams()
 	const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
-	const [searchTerm, setSearchTerm] = useState<string>("")
 	const { hasInternet } = useNetInfo()
 
 	const rightView = useCallback(() => {
@@ -36,15 +35,12 @@ export const IOS = memo(({ headerTitle, queryParams }: { headerTitle: string; qu
 		return {
 			ref: searchBarRef?.current ? (searchBarRef as React.RefObject<AdaptiveSearchBarRef>) : undefined,
 			iosHideWhenScrolling: false,
-			onChangeText: setSearchTerm,
-			content: (
-				<Search
-					searchTerm={searchTerm}
-					queryParams={queryParams}
-				/>
-			)
+			onChangeText: text => useDriveStore.getState().setSearchTerm(text),
+			persistBlur: queryParams.of !== "drive",
+			contentTransparent: queryParams.of !== "drive",
+			content: queryParams.of === "drive" ? <Search queryParams={queryParams} /> : undefined
 		} satisfies AdaptiveSearchHeaderProps["searchBar"]
-	}, [searchTerm, queryParams])
+	}, [queryParams])
 
 	return (
 		<AdaptiveSearchHeader

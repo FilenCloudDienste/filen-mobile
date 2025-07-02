@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from "expo-router"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { memo, useCallback, useMemo, useState } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { useDriveStore } from "@/stores/drive.store"
 import RightView from "./rightView"
 import Search from "./search"
@@ -11,7 +11,6 @@ import useNetInfo from "@/hooks/useNetInfo"
 export const Android = memo(({ headerTitle, queryParams }: { headerTitle: string; queryParams: FetchCloudItemsParams }) => {
 	const { uuid } = useLocalSearchParams()
 	const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
-	const [searchTerm, setSearchTerm] = useState<string>("")
 	const { hasInternet } = useNetInfo()
 
 	const rightView = useCallback(() => {
@@ -34,16 +33,13 @@ export const Android = memo(({ headerTitle, queryParams }: { headerTitle: string
 	const searchBar = useMemo(() => {
 		return {
 			iosHideWhenScrolling: false,
-			onChangeText: setSearchTerm,
+			onChangeText: text => useDriveStore.getState().setSearchTerm(text),
 			materialBlurOnSubmit: false,
-			content: (
-				<Search
-					searchTerm={searchTerm}
-					queryParams={queryParams}
-				/>
-			)
+			persistBlur: queryParams.of !== "drive",
+			contentTransparent: queryParams.of !== "drive",
+			content: queryParams.of === "drive" ? <Search queryParams={queryParams} /> : undefined
 		} satisfies AdaptiveSearchHeaderProps["searchBar"]
-	}, [searchTerm, queryParams])
+	}, [queryParams])
 
 	return (
 		<LargeTitleHeader

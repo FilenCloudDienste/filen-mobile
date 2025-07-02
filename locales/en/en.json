@@ -78,6 +78,10 @@
 			}
 		},
 		"list": {
+			"footer": "{{count}} items",
+			"empty": "No items found",
+			"emptySearch": "No items found for this search",
+			"error": "There was an error loading your drive, please try again later",
 			"item": {
 				"menu": {
 					"select": "Select",

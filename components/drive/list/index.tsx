@@ -1,11 +1,9 @@
 import { View, RefreshControl, FlatList, type ListRenderItemInfo } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
-import { useColorScheme } from "@/lib/useColorScheme"
 import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react"
 import { List, ListDataItem } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { simpleDate, formatBytes, orderItemsByType, type OrderByType } from "@/lib/utils"
-import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
 import { Container } from "@/components/Container"
 import ListItem, { type ListItemInfo, LIST_ITEM_HEIGHT } from "./listItem"
 import { useFocusEffect } from "expo-router"
@@ -17,13 +15,15 @@ import useViewLayout from "@/hooks/useViewLayout"
 import useDimensions from "@/hooks/useDimensions"
 import { useShallow } from "zustand/shallow"
 import OfflineListHeader from "@/components/offlineListHeader"
+import { useKeyboardState } from "react-native-keyboard-controller"
+import ListEmpty from "@/components/listEmpty"
+import { useTranslation } from "react-i18next"
 
 const contentContainerStyle = {
 	paddingBottom: 100
 }
 
 export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: FetchCloudItemsParams; scrollToUUID?: string }) => {
-	const { colors } = useColorScheme()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const searchTerm = useDriveStore(useShallow(state => state.searchTerm))
 	const setSelectedItems = useDriveStore(useShallow(state => state.setSelectedItems))
@@ -34,6 +34,8 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 	const { isTablet, isPortrait, screen } = useDimensions()
+	const keyboardState = useKeyboardState()
+	const { t } = useTranslation()
 
 	const cloudItemsQuery = useCloudItemsQuery(queryParams)
 
@@ -151,31 +153,47 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 
 	const listEmpty = useMemo(() => {
 		return (
-			<View className="flex-1 flex-row items-center justify-center">
-				{cloudItemsQuery.status === "success" ? (
-					searchTerm.length > 0 ? (
-						<Text>Nothing found</Text>
-					) : (
-						<Text>Directory is empty</Text>
-					)
-				) : (
-					<ActivityIndicator color={colors.foreground} />
-				)}
-			</View>
+			<ListEmpty
+				queryStatus={cloudItemsQuery.status}
+				itemCount={items.length}
+				searchTermLength={searchTerm.length}
+				texts={{
+					error: t("drive.list.error"),
+					empty: t("drive.list.empty"),
+					emptySearch: t("drive.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "cloud-outline"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
 		)
-	}, [cloudItemsQuery.status, searchTerm.length, colors.foreground])
+	}, [cloudItemsQuery.status, searchTerm.length, items.length, t])
 
 	const listFooter = useMemo(() => {
-		if (items.length === 0) {
-			return undefined
-		}
-
-		return (
-			<View className="h-16 flex-1 flex-row items-center justify-center">
-				<Text className="text-sm">{items.length} items</Text>
+		return items.length > 0 ? (
+			<View className="flex-row items-center justify-center h-16">
+				<Text className="text-sm">
+					{t("drive.list.footer", {
+						count: items.length
+					})}
+				</Text>
 			</View>
-		)
-	}, [items.length])
+		) : undefined
+	}, [items.length, t])
+
+	const viewStyle = useMemo(() => {
+		return {
+			paddingBottom: keyboardState.isVisible && queryParams.of !== "drive" ? keyboardState.height : 0
+		}
+	}, [keyboardState.isVisible, keyboardState.height, queryParams.of])
 
 	useLayoutEffect(() => {
 		onLayout()
@@ -193,6 +211,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 				ref={viewRef}
 				onLayout={onLayout}
 				className="flex-1"
+				style={viewStyle}
 			>
 				{gridModeEnabled ? (
 					<FlatList

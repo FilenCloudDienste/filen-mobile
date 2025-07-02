@@ -114,16 +114,9 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 				createDropdownItem({
 					actionKey: "selectAll",
 					title: t("drive.list.item.menu.selectAll"),
-					icon:
-						Platform.OS === "ios"
-							? {
-									namingScheme: "sfSymbol",
-									name: "arrow.down"
-							  }
-							: {
-									namingScheme: "material",
-									name: "arrow-down"
-							  }
+					icon: {
+						name: "check-circle-outline"
+					}
 				})
 			)
 
@@ -334,16 +327,9 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 					createDropdownItem({
 						actionKey: "deselectAll",
 						title: t("drive.list.item.menu.deselectAll"),
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "arrow.down"
-								  }
-								: {
-										namingScheme: "material",
-										name: "arrow-down"
-								  }
+						icon: {
+							name: "check-circle-outline"
+						}
 					})
 				)
 			} else {
@@ -351,16 +337,9 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 					createDropdownItem({
 						actionKey: "selectAll",
 						title: t("drive.list.item.menu.selectAll"),
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "arrow.down"
-								  }
-								: {
-										namingScheme: "material",
-										name: "arrow-down"
-								  }
+						icon: {
+							name: "check-circle-outline"
+						}
 					})
 				)
 			}
