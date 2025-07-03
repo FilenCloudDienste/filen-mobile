@@ -78,6 +78,10 @@
 			}
 		},
 		"list": {
+			"footer": "{{count}} 个项目",
+			"empty": "未找到项目",
+			"emptySearch": "此次搜索未找到项目",
+			"error": "加载云盘时出错，请稍后重试",
 			"item": {
 				"menu": {
 					"select": "选择",
@@ -88,6 +92,9 @@
 					"export": "导出",
 					"favorite": "收藏",
 					"unfavorite": "取消收藏",
+					"favorited": "已收藏",
+					"selectAll": "全选",
+					"deselectAll": "取消全选",
 					"info": "信息",
 					"rename": "重命名",
 					"move": "移动",
@@ -164,7 +171,8 @@
 			"directories": "文件夹",
 			"files": "文件",
 			"notAvailable": "不可用",
-			"creation": "已创建"
+			"creation": "已创建",
+                        "directory": "文件夹"
 		},
 		"colorPicker": {
 			"select": "选择",
