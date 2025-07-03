@@ -26,7 +26,6 @@ const contentContainerStyle = {
 export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: FetchCloudItemsParams; scrollToUUID?: string }) => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const searchTerm = useDriveStore(useShallow(state => state.searchTerm))
-	const setSelectedItems = useDriveStore(useShallow(state => state.setSelectedItems))
 	const { hasInternet } = useNetInfo()
 	const [orderBy] = useMMKVString("orderBy", mmkvInstance) as [OrderByType | undefined, (value: OrderByType) => void]
 	const listRef = useRef<FlatList<ListItemInfo>>(null)
@@ -201,8 +200,8 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 
 	useFocusEffect(
 		useCallback(() => {
-			setSelectedItems([])
-		}, [setSelectedItems])
+			useDriveStore.getState().setSelectedItems([])
+		}, [])
 	)
 
 	return (

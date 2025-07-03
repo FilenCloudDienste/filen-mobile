@@ -5,7 +5,7 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useRouter } from "expo-router"
 import { Button } from "@/components/nativewindui/Button"
-import { type TrackMetadata, trackPlayerService } from "@/lib/trackPlayer"
+import { type TrackMetadata, trackPlayerService, TRACK_PLAYER_MMKV_PREFIX } from "@/lib/trackPlayer"
 import mmkvInstance from "@/lib/mmkv"
 import { Image } from "expo-image"
 import { cn } from "@/lib/cn"
@@ -79,7 +79,7 @@ export const Item = memo(
 
 			for (const file of info.item.playlist.files) {
 				try {
-					const metadata = mmkvInstance.getString(`trackPlayerFileMetadata:${file.uuid}`)
+					const metadata = mmkvInstance.getString(`${TRACK_PLAYER_MMKV_PREFIX}trackPlayerFileMetadata:${file.uuid}`)
 					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 					if (metadataParsed?.picture) {

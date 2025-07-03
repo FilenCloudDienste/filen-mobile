@@ -12,6 +12,7 @@ import { validate as validateUUID } from "uuid"
 import { Buffer } from "buffer"
 import { getRandomValues } from "expo-crypto"
 import mimeTypes from "mime-types"
+import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
 
 export function serializeError(error: Error): SerializedError {
 	return {
@@ -901,4 +902,71 @@ export function ratePasswordStrength(password: string): {
 		specialChars: hasSpecialChars,
 		length: length >= 10
 	}
+}
+
+export function sortAndFilterNotes({ notes, searchTerm, selectedTag }: { notes: Note[]; searchTerm: string; selectedTag: string }): Note[] {
+	const lowercaseSearchTerm = (searchTerm ?? "").toLowerCase().trim()
+	const filteredBySearchTerm =
+		lowercaseSearchTerm.length > 0
+			? notes.filter(
+					note =>
+						note.title.toLowerCase().trim().includes(lowercaseSearchTerm) ||
+						note.preview.toLowerCase().trim().includes(lowercaseSearchTerm) ||
+						note.type.toLowerCase().trim().includes(lowercaseSearchTerm) ||
+						note.tags.some(tag => tag.name.toLowerCase().trim().includes(lowercaseSearchTerm))
+			  )
+			: notes
+
+	const selectedTagIsUUID = validateUUID(selectedTag)
+
+	const filteredByTag =
+		selectedTag !== "all" && selectedTag !== undefined && selectedTag !== null
+			? filteredBySearchTerm.filter(note => {
+					if (selectedTagIsUUID) {
+						return note.tags.some(tag => tag.uuid === selectedTag)
+					}
+
+					if (selectedTag === "favorited") {
+						return note.favorite
+					}
+
+					if (selectedTag === "pinned") {
+						return note.pinned
+					}
+
+					if (selectedTag === "trash") {
+						return note.trash
+					}
+
+					if (selectedTag === "archived") {
+						return note.archive
+					}
+
+					if (selectedTag === "shared") {
+						return note.isOwner && note.participants.length > 1
+					}
+
+					return true
+			  })
+			: filteredBySearchTerm
+
+	return filteredByTag.sort((a, b) => {
+		if (a.pinned !== b.pinned) {
+			return b.pinned ? 1 : -1
+		}
+
+		if (a.trash !== b.trash && a.archive === false) {
+			return a.trash ? 1 : -1
+		}
+
+		if (a.archive !== b.archive) {
+			return a.archive ? 1 : -1
+		}
+
+		if (a.trash !== b.trash) {
+			return a.trash ? 1 : -1
+		}
+
+		return b.editedTimestamp - a.editedTimestamp
+	})
 }

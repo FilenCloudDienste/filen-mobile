@@ -9,14 +9,22 @@ import { t } from "@/lib/i18n"
 import { selectContacts } from "@/app/selectContacts"
 
 export class ContactsService {
-	public async removeContact({ uuid, disableLoader }: { uuid?: string; disableLoader?: boolean }) {
+	public async removeContact({
+		uuid,
+		disableLoader,
+		disableAlertPrompt
+	}: {
+		uuid?: string
+		disableLoader?: boolean
+		disableAlertPrompt?: boolean
+	}) {
 		if (!uuid) {
 			const selectContactsResponse = await selectContacts({
 				type: "all",
 				max: 1
 			})
 
-			if (selectContactsResponse.cancelled) {
+			if (selectContactsResponse.cancelled || selectContactsResponse.contacts.length === 0) {
 				return
 			}
 
@@ -29,13 +37,15 @@ export class ContactsService {
 			uuid = contact.uuid
 		}
 
-		const alertPromptResponse = await alertPrompt({
-			title: t("settings.contacts.prompts.remove.title"),
-			message: t("settings.contacts.prompts.remove.message")
-		})
+		if (!disableAlertPrompt) {
+			const alertPromptResponse = await alertPrompt({
+				title: t("settings.contacts.prompts.removeContact.title"),
+				message: t("settings.contacts.prompts.removeContact.message")
+			})
 
-		if (alertPromptResponse.cancelled) {
-			return
+			if (alertPromptResponse.cancelled) {
+				return
+			}
 		}
 
 		if (!disableLoader) {
@@ -51,12 +61,6 @@ export class ContactsService {
 				type: "all",
 				updater: prev => prev.filter(c => c.uuid !== uuid)
 			})
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -64,7 +68,15 @@ export class ContactsService {
 		}
 	}
 
-	public async blockContact({ email, disableLoader }: { email?: string; disableLoader?: boolean }) {
+	public async blockContact({
+		email,
+		disableLoader,
+		disableAlertPrompt
+	}: {
+		email?: string
+		disableLoader?: boolean
+		disableAlertPrompt?: boolean
+	}) {
 		if (!email) {
 			const selectContactsResponse = await selectContacts({
 				type: "all",
@@ -84,13 +96,15 @@ export class ContactsService {
 			email = contact.email
 		}
 
-		const alertPromptResponse = await alertPrompt({
-			title: t("settings.contacts.prompts.block.title"),
-			message: t("settings.contacts.prompts.block.title")
-		})
+		if (!disableAlertPrompt) {
+			const alertPromptResponse = await alertPrompt({
+				title: t("settings.contacts.prompts.blockContact.title"),
+				message: t("settings.contacts.prompts.blockContact.title")
+			})
 
-		if (alertPromptResponse.cancelled) {
-			return
+			if (alertPromptResponse.cancelled) {
+				return
+			}
 		}
 
 		if (!disableLoader) {
@@ -110,12 +124,6 @@ export class ContactsService {
 				type: "all",
 				updater: prev => prev.filter(c => c.email !== email)
 			})
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -123,7 +131,15 @@ export class ContactsService {
 		}
 	}
 
-	public async unblockContact({ uuid, disableLoader }: { uuid?: string; disableLoader?: boolean }) {
+	public async unblockContact({
+		uuid,
+		disableLoader,
+		disableAlertPrompt
+	}: {
+		uuid?: string
+		disableLoader?: boolean
+		disableAlertPrompt?: boolean
+	}) {
 		if (!uuid) {
 			const selectContactsResponse = await selectContacts({
 				type: "blocked",
@@ -143,13 +159,15 @@ export class ContactsService {
 			uuid = contact.uuid
 		}
 
-		const alertPromptResponse = await alertPrompt({
-			title: t("settings.contacts.prompts.unblock.title"),
-			message: t("settings.contacts.prompts.unblock.title")
-		})
+		if (!disableAlertPrompt) {
+			const alertPromptResponse = await alertPrompt({
+				title: t("settings.contacts.prompts.unblockContact.title"),
+				message: t("settings.contacts.prompts.unblockContact.title")
+			})
 
-		if (alertPromptResponse.cancelled) {
-			return
+			if (alertPromptResponse.cancelled) {
+				return
+			}
 		}
 
 		if (!disableLoader) {
@@ -169,12 +187,6 @@ export class ContactsService {
 				type: "blocked",
 				updater: prev => prev.filter(c => c.uuid !== uuid)
 			})
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -202,12 +214,6 @@ export class ContactsService {
 					incoming: prev.incoming.filter(r => r.uuid !== uuid)
 				})
 			})
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -231,12 +237,6 @@ export class ContactsService {
 					incoming: prev.incoming.filter(r => r.uuid !== uuid)
 				})
 			})
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -260,12 +260,6 @@ export class ContactsService {
 					outgoing: prev.outgoing.filter(r => r.uuid !== uuid)
 				})
 			})
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -273,7 +267,7 @@ export class ContactsService {
 		}
 	}
 
-	public async sendRequest({ email, disableLoader }: { email?: string; disableLoader?: boolean }) {
+	public async sendRequest({ email, disableLoader, disableAlert }: { email?: string; disableLoader?: boolean; disableAlert?: boolean }) {
 		if (!email) {
 			const inputPromptResponse = await inputPrompt({
 				title: t("settings.contacts.prompts.sendRequest.title"),
@@ -314,16 +308,12 @@ export class ContactsService {
 				queryKey: ["useContactsRequestsQuery"]
 			})
 
-			alerts.normal(
-				t("settings.contacts.prompts.sendRequest.success", {
-					email
-				})
-			)
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
+			if (!disableAlert) {
+				alerts.normal(
+					t("settings.contacts.prompts.sendRequest.success", {
+						email
+					})
+				)
 			}
 		} finally {
 			if (!disableLoader) {

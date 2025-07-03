@@ -10,6 +10,7 @@ import paths from "./paths"
 import assets from "./assets"
 import { normalizeFilePathForNode } from "./utils"
 import { reinitSDK } from "./sdk"
+import mmkvInstance from "./mmkv"
 
 const mutex = new Semaphore(1)
 
@@ -29,6 +30,9 @@ export default async function setup(params?: { isAuthed?: boolean; sdkConfig?: R
 			await nodeWorker.start()
 
 			paths.clearTempDirectories()
+
+			mmkvInstance.delete("notesSearchTerm")
+			mmkvInstance.delete("notesSelectedTag")
 		}
 
 		const thumbnailWarmup = params?.background ? Promise.resolve() : thumbnails.warmupCache()

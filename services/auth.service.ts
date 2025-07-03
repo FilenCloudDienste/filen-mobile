@@ -108,12 +108,6 @@ export class AuthService {
 			if (!disableAlert) {
 				alerts.normal(t("auth.registrationSuccessful"))
 			}
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -169,12 +163,6 @@ export class AuthService {
 			if (!disableAlert) {
 				alerts.normal(t("auth.prompts.resendConfirmation.success"))
 			}
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -229,12 +217,6 @@ export class AuthService {
 
 			if (!disableAlert) {
 				alerts.normal(t("auth.prompts.forgotPassword.success"))
-			}
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
 			}
 		} finally {
 			if (!disableLoader) {

@@ -17,7 +17,7 @@ import { cn } from "@/lib/cn"
 
 export const Tag = memo(
 	({ tag, name, id, withRightMargin }: { tag: NoteTag | null; name: string; id: string; withRightMargin?: boolean }) => {
-		const [selectedTag, setSelectedTag] = useMMKVString("selectedTag", mmkvInstance)
+		const [selectedTag, setSelectedTag] = useMMKVString("notesSelectedTag", mmkvInstance)
 		const { t } = useTranslation()
 
 		const isValidUUID = useMemo(() => {

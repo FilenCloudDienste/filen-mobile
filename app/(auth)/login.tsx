@@ -13,6 +13,7 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
+import alerts from "@/lib/alerts"
 
 function onSubmitEditing() {
 	KeyboardController.setFocusTo("next")
@@ -60,19 +61,27 @@ export const Login = memo(() => {
 		} catch (e) {
 			console.error(e)
 
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+
 			setEmail("")
 			setPassword("")
-
-			if (e instanceof Error) {
-				console.error(e.message)
-			}
 		}
 	}, [email, password, router, disabled, t])
 
-	const forgotPassword = useCallback(() => {
+	const forgotPassword = useCallback(async () => {
 		KeyboardController.dismiss()
 
-		authService.forgotPassword({})
+		try {
+			await authService.forgotPassword({})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
 	}, [])
 
 	const goBack = useCallback(() => {

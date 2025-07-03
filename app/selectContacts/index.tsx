@@ -159,8 +159,16 @@ export default function SelectContacts() {
 		back()
 	}, [id, selectedContacts, canGoBack, back])
 
-	const add = useCallback(() => {
-		contactsService.sendRequest({})
+	const add = useCallback(async () => {
+		try {
+			await contactsService.sendRequest({})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
 	}, [])
 
 	const cancel = useCallback(() => {

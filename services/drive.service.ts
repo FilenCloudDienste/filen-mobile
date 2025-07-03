@@ -94,36 +94,46 @@ export class DriveService {
 	public async renameItem({
 		item,
 		queryParams,
-		disableLoader
+		disableLoader,
+		newName
 	}: {
 		item: DriveCloudItem
 		queryParams?: FetchCloudItemsParams
 		disableLoader?: boolean
+		newName?: string
 	}): Promise<void> {
-		const itemNameParsed = FileSystem.Paths.parse(item.name)
-		const itemName = item.type === "file" && item.name.includes(".") ? itemNameParsed?.name ?? item.name : item.name
-		const itemExt = item.type === "file" && item.name.includes(".") ? itemNameParsed?.ext ?? "" : ""
+		if (!newName) {
+			const itemNameParsed = FileSystem.Paths.parse(item.name)
+			const itemName = item.type === "file" && item.name.includes(".") ? itemNameParsed?.name ?? item.name : item.name
+			const itemExt = item.type === "file" && item.name.includes(".") ? itemNameParsed?.ext ?? "" : ""
 
-		const inputPromptResponse = await inputPrompt({
-			title: t("drive.prompts.renameItem.title"),
-			materialIcon: {
-				name: "pencil"
-			},
-			prompt: {
-				type: "plain-text",
-				keyboardType: "default",
-				defaultValue: itemName,
-				placeholder: t("drive.prompts.renameItem.placeholder")
+			const inputPromptResponse = await inputPrompt({
+				title: t("drive.prompts.renameItem.title"),
+				materialIcon: {
+					name: "pencil"
+				},
+				prompt: {
+					type: "plain-text",
+					keyboardType: "default",
+					defaultValue: itemName,
+					placeholder: t("drive.prompts.renameItem.placeholder")
+				}
+			})
+
+			if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
+				return
 			}
-		})
 
-		if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
-			return
+			const promptName = `${inputPromptResponse.text.trim()}${itemExt}`
+
+			if (!promptName || promptName.length === 0) {
+				return
+			}
+
+			newName = promptName
 		}
 
-		const newName = `${inputPromptResponse.text.trim()}${itemExt}`
-
-		if (!newName || newName.length === 0 || newName === item.name) {
+		if (newName === item.name) {
 			return
 		}
 
@@ -255,7 +265,7 @@ export class DriveService {
 			color = pickedColor
 		}
 
-		if (color === item.color?.toLowerCase()) {
+		if (color.toLowerCase() === item.color?.toLowerCase()) {
 			return
 		}
 
@@ -475,6 +485,10 @@ export class DriveService {
 			contacts = selectContactsResponse.contacts
 		}
 
+		if (contacts.length === 0) {
+			return
+		}
+
 		if (!disableLoader) {
 			fullScreenLoadingModal.show()
 		}
@@ -597,7 +611,7 @@ export class DriveService {
 				const offlineFile = new FileSystem.File(offlineStatus.path)
 
 				if (!offlineFile.exists) {
-					throw new Error("Offline file does not exist.")
+					return
 				}
 
 				offlineFile.copy(tempLocation)
@@ -638,20 +652,24 @@ export class DriveService {
 		item,
 		queryParams,
 		fromPreview,
-		disableLoader
+		disableLoader,
+		disableAlertPrompt
 	}: {
 		item: DriveCloudItem
 		queryParams?: FetchCloudItemsParams
 		fromPreview?: boolean
 		disableLoader?: boolean
+		disableAlertPrompt?: boolean
 	}): Promise<void> {
-		const alertPromptResponse = await alertPrompt({
-			title: t("drive.prompts.trashItem.title"),
-			message: t("drive.prompts.trashItem.message")
-		})
+		if (!disableAlertPrompt) {
+			const alertPromptResponse = await alertPrompt({
+				title: t("drive.prompts.trashItem.title"),
+				message: t("drive.prompts.trashItem.message")
+			})
 
-		if (alertPromptResponse.cancelled) {
-			return
+			if (alertPromptResponse.cancelled) {
+				return
+			}
 		}
 
 		if (!disableLoader) {
@@ -1142,14 +1160,27 @@ export class DriveService {
 	public async removeItemSharedIn({
 		item,
 		queryParams,
-		disableLoader
+		disableLoader,
+		disableAlertPrompt
 	}: {
 		item: DriveCloudItem
 		queryParams?: FetchCloudItemsParams
 		disableLoader?: boolean
+		disableAlertPrompt?: boolean
 	}): Promise<void> {
 		if (!item.isShared) {
 			return
+		}
+
+		if (!disableAlertPrompt) {
+			const alertPromptResponse = await alertPrompt({
+				title: t("drive.prompts.removeSharedInItem.title"),
+				message: t("drive.prompts.removeSharedInItem.message")
+			})
+
+			if (alertPromptResponse.cancelled) {
+				return
+			}
 		}
 
 		if (!disableLoader) {
@@ -1185,14 +1216,27 @@ export class DriveService {
 	public async removeItemSharedOut({
 		item,
 		queryParams,
-		disableLoader
+		disableLoader,
+		disableAlertPrompt
 	}: {
 		item: DriveCloudItem
 		queryParams?: FetchCloudItemsParams
 		disableLoader?: boolean
+		disableAlertPrompt?: boolean
 	}): Promise<void> {
 		if (!item.isShared) {
 			return
+		}
+
+		if (!disableAlertPrompt) {
+			const alertPromptResponse = await alertPrompt({
+				title: t("drive.prompts.removeSharedOutItem.title"),
+				message: t("drive.prompts.removeSharedOutItem.message")
+			})
+
+			if (alertPromptResponse.cancelled) {
+				return
+			}
 		}
 
 		if (!disableLoader) {
@@ -1229,19 +1273,23 @@ export class DriveService {
 	public async deleteItemPermanently({
 		item,
 		queryParams,
-		disableLoader
+		disableLoader,
+		disableAlertPrompt
 	}: {
 		item: DriveCloudItem
 		queryParams?: FetchCloudItemsParams
 		disableLoader?: boolean
+		disableAlertPrompt?: boolean
 	}): Promise<void> {
-		const alertPromptResponse = await alertPrompt({
-			title: t("drive.prompts.deletePermanently.title"),
-			message: t("drive.prompts.deletePermanently.message")
-		})
+		if (!disableAlertPrompt) {
+			const alertPromptResponse = await alertPrompt({
+				title: t("drive.prompts.deletePermanently.title"),
+				message: t("drive.prompts.deletePermanently.message")
+			})
 
-		if (alertPromptResponse.cancelled) {
-			return
+			if (alertPromptResponse.cancelled) {
+				return
+			}
 		}
 
 		if (!disableLoader) {
@@ -1385,507 +1433,5 @@ export class DriveService {
 }
 
 export const driveService = new DriveService()
-
-export class DriveBulkService {
-	public async shareItems({ items, disableLoader }: { items: DriveCloudItem[]; disableLoader?: boolean }): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		const selectContactsResponse = await selectContacts({
-			type: "all",
-			max: 9999
-		})
-
-		if (selectContactsResponse.cancelled || selectContactsResponse.contacts.length === 0) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items.map(item =>
-					driveService.shareItem({
-						item,
-						disableAlert: true,
-						contacts: selectContactsResponse.contacts,
-						disableLoader: true
-					})
-				)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-
-	public async toggleItemsFavorite({
-		items,
-		favorite,
-		queryParams,
-		disableLoader
-	}: {
-		items: DriveCloudItem[]
-		favorite: boolean
-		queryParams?: FetchCloudItemsParams
-		disableLoader?: boolean
-	}): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items.map(item =>
-					driveService.toggleItemFavorite({
-						item,
-						favorite,
-						queryParams,
-						disableLoader: true
-					})
-				)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-
-	public async changeDirectoryColors({
-		items,
-		queryParams,
-		disableLoader
-	}: {
-		items: DriveCloudItem[]
-		queryParams?: FetchCloudItemsParams
-		disableLoader?: boolean
-	}): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		const colorPickerResponse = await colorPicker({
-			currentColor: DEFAULT_DIRECTORY_COLOR
-		})
-
-		if (colorPickerResponse.cancelled) {
-			return
-		}
-
-		const pickedColor = colorPickerResponse.color.trim().toLowerCase()
-
-		if (!pickedColor || pickedColor.length === 0) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items.map(item =>
-					driveService.changeDirectoryColor({
-						item,
-						color: pickedColor,
-						queryParams,
-						disableLoader: true
-					})
-				)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-
-	public async moveItems({
-		items,
-		queryParams,
-		dismissHref,
-		disableLoader
-	}: {
-		items: DriveCloudItem[]
-		queryParams?: FetchCloudItemsParams
-		dismissHref?: string
-		disableLoader?: boolean
-	}): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		const selectDriveItemsResponse = await selectDriveItems({
-			type: "directory",
-			max: 1,
-			dismissHref: dismissHref ?? "/drive",
-			toMove: items.map(item => item.uuid)
-		})
-
-		if (selectDriveItemsResponse.cancelled || selectDriveItemsResponse.items.length !== 1) {
-			return
-		}
-
-		const selectedParent = selectDriveItemsResponse.items.at(0)?.uuid
-
-		if (!selectedParent) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items.map(item =>
-					driveService.moveItem({
-						item,
-						parent: selectedParent,
-						dismissHref,
-						queryParams,
-						disableLoader: true
-					})
-				)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-
-	public async removeSharedOutItems({
-		items,
-		queryParams,
-		disableLoader
-	}: {
-		items: DriveCloudItem[]
-		queryParams?: FetchCloudItemsParams
-		disableLoader?: boolean
-	}): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items.map(item =>
-					driveService.removeItemSharedOut({
-						item,
-						queryParams,
-						disableLoader: true
-					})
-				)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-
-	public async removeSharedInItems({
-		items,
-		queryParams,
-		disableLoader
-	}: {
-		items: DriveCloudItem[]
-		queryParams?: FetchCloudItemsParams
-		disableLoader?: boolean
-	}): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items.map(item =>
-					driveService.removeItemSharedIn({
-						item,
-						queryParams,
-						disableLoader: true
-					})
-				)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-
-	public async disablePublicLinks({
-		items,
-		queryParams,
-		disableLoader
-	}: {
-		items: DriveCloudItem[]
-		queryParams?: FetchCloudItemsParams
-		disableLoader?: boolean
-	}): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items.map(item =>
-					driveService.disableItemPublicLink({
-						item,
-						queryParams,
-						disableLoader: true
-					})
-				)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-
-	public async trashItems({
-		items,
-		queryParams,
-		disableLoader
-	}: {
-		items: DriveCloudItem[]
-		queryParams?: FetchCloudItemsParams
-		disableLoader?: boolean
-	}): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items.map(item =>
-					driveService.trashItem({
-						item,
-						queryParams,
-						disableLoader: true
-					})
-				)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-
-	public async restoreItems({
-		items,
-		queryParams,
-		disableLoader
-	}: {
-		items: DriveCloudItem[]
-		queryParams?: FetchCloudItemsParams
-		disableLoader?: boolean
-	}): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items.map(item =>
-					driveService.restoreItem({
-						item,
-						queryParams,
-						disableLoader: true
-					})
-				)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-
-	public async deleteItemsPermanently({
-		items,
-		queryParams,
-		disableLoader
-	}: {
-		items: DriveCloudItem[]
-		queryParams?: FetchCloudItemsParams
-		disableLoader?: boolean
-	}): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items.map(item =>
-					driveService.deleteItemPermanently({
-						item,
-						queryParams,
-						disableLoader: true
-					})
-				)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-
-	public async toggleItemsOffline({
-		items,
-		offline,
-		disableLoader
-	}: {
-		items: DriveCloudItem[]
-		offline?: boolean
-		disableLoader?: boolean
-	}): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items
-					.filter(item => item.size > 0)
-					.map(item =>
-						driveService.toggleItemOffline({
-							item,
-							offline,
-							disableLoader: true
-						})
-					)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-
-	public async saveItemsToGallery({ items, disableLoader }: { items: DriveCloudItem[]; disableLoader?: boolean }): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items
-					.filter(item => item.size > 0)
-					.map(item =>
-						driveService.saveItemToGallery({
-							item,
-							disableLoader: true
-						})
-					)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-
-	public async downloadItems({ items, disableLoader }: { items: DriveCloudItem[]; disableLoader?: boolean }): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items
-					.filter(item => item.size > 0)
-					.map(item =>
-						driveService.downloadItem({
-							item,
-							disableLoader: true
-						})
-					)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-
-	public async exportItems({ items, disableLoader }: { items: DriveCloudItem[]; disableLoader?: boolean }): Promise<void> {
-		if (items.length === 0) {
-			return
-		}
-
-		if (!disableLoader) {
-			fullScreenLoadingModal.show()
-		}
-
-		try {
-			await promiseAllChunked(
-				items
-					.filter(item => item.size > 0)
-					.map(item =>
-						driveService.exportItem({
-							item,
-							disableLoader: true
-						})
-					)
-			)
-		} finally {
-			if (!disableLoader) {
-				fullScreenLoadingModal.hide()
-			}
-		}
-	}
-}
-
-export const driveBulkService = new DriveBulkService()
 
 export default driveService

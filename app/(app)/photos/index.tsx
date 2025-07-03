@@ -1,8 +1,6 @@
 import { memo, useState, useCallback, useMemo, useRef, Fragment } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
-import { createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator, type ListRenderItemInfo, FlatList } from "react-native"
@@ -19,7 +17,7 @@ import { THUMBNAILS_SUPPORTED_FORMATS } from "@/lib/thumbnails"
 import { Paths } from "expo-file-system/next"
 import useCameraUpload from "@/hooks/useCameraUpload"
 import { useCameraUploadStore } from "@/stores/cameraUpload.store"
-import { useRouter } from "expo-router"
+import { useRouter, useFocusEffect } from "expo-router"
 import { validate as validateUUID } from "uuid"
 import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { useShallow } from "zustand/shallow"
@@ -31,6 +29,10 @@ import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
+import { usePhotosStore } from "@/stores/photos.store"
+import Dropdown from "@/components/photos/header/rightView/dropdown"
+import { Checkbox } from "@/components/nativewindui/Checkbox"
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 
 const contentContainerStyle = {
 	paddingBottom: 100,
@@ -53,6 +55,8 @@ export const Photo = memo(
 		spacing: number
 	}) => {
 		const { colors } = useColorScheme()
+		const isSelected = usePhotosStore(useShallow(state => state.selectedItems.some(i => i.uuid === info.item.uuid)))
+		const selectedItemsCount = usePhotosStore(useShallow(state => state.selectedItems.length))
 
 		const fileOfflineStatus = useFileOfflineStatusQuery({
 			uuid: info.item.uuid
@@ -63,6 +67,18 @@ export const Photo = memo(
 		}, [fileOfflineStatus.status, fileOfflineStatus.data])
 
 		const onPress = useCallback(() => {
+			if (selectedItemsCount > 0) {
+				usePhotosStore
+					.getState()
+					.setSelectedItems(prev =>
+						isSelected
+							? prev.filter(i => i.uuid !== info.item.uuid)
+							: [...prev.filter(i => i.uuid !== info.item.uuid), info.item]
+					)
+
+				return
+			}
+
 			useGalleryStore.getState().setItems(
 				items
 					.map(item => {
@@ -84,7 +100,7 @@ export const Photo = memo(
 
 			useGalleryStore.getState().setInitialUUID(info.item.uuid)
 			useGalleryStore.getState().setVisible(true)
-		}, [items, info.item.uuid, queryParams])
+		}, [items, info.item, queryParams, isSelected, selectedItemsCount])
 
 		const imageStyle = useMemo(() => {
 			return {
@@ -123,6 +139,18 @@ export const Photo = memo(
 								/>
 							</View>
 						)}
+						{selectedItemsCount > 0 && (
+							<Animated.View
+								entering={FadeIn}
+								exiting={FadeOut}
+								className="absolute top-1 left-1 z-50 flex-row items-center justify-center"
+							>
+								<Checkbox
+									checked={isSelected}
+									onPress={onPress}
+								/>
+							</Animated.View>
+						)}
 						<Thumbnail
 							item={info.item}
 							size={itemSize}
@@ -154,6 +182,7 @@ export const Photos = memo(() => {
 	const syncState = useCameraUploadStore(useShallow(state => state.syncState))
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const selectedItemsCount = usePhotosStore(useShallow(state => state.selectedItems.length))
 
 	const queryParams = useMemo(
 		(): FetchCloudItemsParams => ({
@@ -239,7 +268,13 @@ export const Photos = memo(() => {
 
 		return (
 			<View className={cn("flex flex-row items-center pl-2", Platform.OS === "ios" && "pl-0")}>
-				{cameraUpload.enabled ? (
+				{selectedItemsCount > 0 ? (
+					<Text className="text-primary">
+						{t("photos.header.selected", {
+							count: selectedItemsCount
+						})}
+					</Text>
+				) : cameraUpload.enabled ? (
 					<Fragment>
 						{syncState.count === 0 ? (
 							<View className="flex-row items-center gap-2">
@@ -284,7 +319,17 @@ export const Photos = memo(() => {
 				)}
 			</View>
 		)
-	}, [cameraUpload.enabled, colors.primary, t, colors.foreground, router, syncState.count, syncState.done, hasInternet])
+	}, [
+		cameraUpload.enabled,
+		colors.primary,
+		t,
+		colors.foreground,
+		router,
+		syncState.count,
+		syncState.done,
+		hasInternet,
+		selectedItemsCount
+	])
 
 	const headerRightView = useCallback(() => {
 		if (!hasInternet) {
@@ -294,50 +339,13 @@ export const Photos = memo(() => {
 		return (
 			<View className="flex-row items-center">
 				<Transfers />
-				<DropdownMenu
-					items={[
-						createDropdownItem({
-							actionKey: "settings",
-							title: t("photos.menu.settings"),
-							icon:
-								Platform.OS === "ios"
-									? {
-											name: "gearshape",
-											namingScheme: "sfSymbol"
-									  }
-									: {
-											namingScheme: "material",
-											name: "cog-outline"
-									  }
-						})
-					]}
-					onItemPress={item => {
-						switch (item.actionKey) {
-							case "settings": {
-								router.push({
-									pathname: "/photos/settings"
-								})
-
-								break
-							}
-						}
-					}}
-				>
-					<Button
-						variant="plain"
-						size="icon"
-						hitSlop={10}
-					>
-						<Icon
-							size={24}
-							name="dots-horizontal-circle-outline"
-							color={colors.primary}
-						/>
-					</Button>
-				</DropdownMenu>
+				<Dropdown
+					photos={items}
+					queryParams={queryParams}
+				/>
 			</View>
 		)
-	}, [colors.primary, hasInternet, router, t])
+	}, [hasInternet, items, queryParams])
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true)
@@ -419,6 +427,12 @@ export const Photos = memo(() => {
 			itemSize
 		}
 	}, [numColumns, itemSize])
+
+	useFocusEffect(
+		useCallback(() => {
+			usePhotosStore.getState().setSelectedItems([])
+		}, [])
+	)
 
 	return (
 		<Fragment>

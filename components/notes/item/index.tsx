@@ -21,6 +21,10 @@ import queryUtils from "@/queries/utils"
 import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
+import { Checkbox } from "@/components/nativewindui/Checkbox"
+import Animated, { SlideInLeft, SlideOutLeft } from "react-native-reanimated"
+import { useNotesStore } from "@/stores/notes.store"
+import { useShallow } from "zustand/shallow"
 
 const ICON_SIZE = 24
 
@@ -30,6 +34,8 @@ export const Item = memo(({ note }: { note: Note }) => {
 	const { colors } = useColorScheme()
 	const { hasInternet } = useNetInfo()
 	const { t } = useTranslation()
+	const selectedNotesCount = useNotesStore(useShallow(state => state.selectedNotes.length))
+	const isSelected = useNotesStore(useShallow(state => state.selectedNotes.some(n => n.uuid === note.uuid)))
 
 	const hasWriteAccess = useMemo(() => {
 		if (note.isOwner) {
@@ -65,6 +71,14 @@ export const Item = memo(({ note }: { note: Note }) => {
 	}, [note.tags])
 
 	const onPress = useCallback(() => {
+		if (selectedNotesCount > 0) {
+			useNotesStore.getState().setSelectedNotes(prev => {
+				return isSelected ? prev.filter(i => i.uuid !== note.uuid) : [...prev.filter(i => i.uuid !== note.uuid), note]
+			})
+
+			return
+		}
+
 		events.emit("hideSearchBar", {
 			clearText: true
 		})
@@ -87,7 +101,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 				uuid: note.uuid
 			}
 		})
-	}, [routerPush, note.uuid, hasInternet, t])
+	}, [routerPush, hasInternet, t, selectedNotesCount, isSelected, note])
 
 	const noop = useCallback(() => {}, [])
 
@@ -105,6 +119,18 @@ export const Item = memo(({ note }: { note: Note }) => {
 				size="none"
 				onPress={onPress}
 			>
+				{selectedNotesCount > 0 && (
+					<Animated.View
+						entering={SlideInLeft}
+						exiting={SlideOutLeft}
+						className="pl-4"
+					>
+						<Checkbox
+							checked={isSelected}
+							onPress={onPress}
+						/>
+					</Animated.View>
+				)}
 				<View className="flex-1 flex-row gap-4 pt-3">
 					<View className="flex-col gap-2 pt-0.5 pb-2 pl-4">
 						{!note.isOwner ? (

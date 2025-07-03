@@ -16,6 +16,7 @@ import { Icon } from "@roninoss/icons"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
+import alerts from "@/lib/alerts"
 
 function onSubmitEditing() {
 	KeyboardController.setFocusTo("next")
@@ -85,21 +86,29 @@ export const Register = memo(() => {
 		} catch (e) {
 			console.error(e)
 
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+
 			setFocusedTextField("email")
 			setConfirmEmail("")
 			setConfirmPassword("")
 			setPassword("")
-
-			if (e instanceof Error) {
-				console.error(e.message)
-			}
 		}
 	}, [email, password, router, disabled, confirmEmail, confirmPassword, t, passwordStrength.strength])
 
-	const resend = useCallback(() => {
+	const resend = useCallback(async () => {
 		KeyboardController.dismiss()
 
-		authService.resendConfirmation({})
+		try {
+			await authService.resendConfirmation({})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
 	}, [])
 
 	const goBack = useCallback(() => {

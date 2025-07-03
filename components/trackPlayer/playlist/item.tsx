@@ -4,7 +4,7 @@ import { memo, useCallback, useMemo, useRef } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { type TrackMetadata, trackPlayerService } from "@/lib/trackPlayer"
+import { type TrackMetadata, trackPlayerService, TRACK_PLAYER_MMKV_PREFIX } from "@/lib/trackPlayer"
 import alerts from "@/lib/alerts"
 import assets from "@/lib/assets"
 import { useMMKVObject } from "react-native-mmkv"
@@ -41,7 +41,10 @@ export const LIST_ITEM_HEIGHT = Platform.select({
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const { colors } = useColorScheme()
-	const [trackPlayerFileMetadata] = useMMKVObject<TrackMetadata>(`trackPlayerFileMetadata:${info.item.file.uuid}`, mmkvInstance)
+	const [trackPlayerFileMetadata] = useMMKVObject<TrackMetadata>(
+		`${TRACK_PLAYER_MMKV_PREFIX}trackPlayerFileMetadata:${info.item.file.uuid}`,
+		mmkvInstance
+	)
 	const drag = useReorderableDrag()
 	const { showActionSheetWithOptions } = useActionSheet()
 	const {

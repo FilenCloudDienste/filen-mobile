@@ -147,8 +147,16 @@ export const Contacts = memo(() => {
 		return typeof item === "string" ? item : item.id
 	}, [])
 
-	const sendRequest = useCallback(() => {
-		contactsService.sendRequest({})
+	const sendRequest = useCallback(async () => {
+		try {
+			await contactsService.sendRequest({})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
 	}, [])
 
 	const headerSearchBar = useMemo(() => {

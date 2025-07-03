@@ -36,13 +36,13 @@ export type TrackMetadata = {
 	year?: number
 }
 
-export const TRACK_PLAYER_STATE_PREFIX = "trackPlayerState_v1_"
-export const TRACK_PLAYER_QUEUE_KEY = `${TRACK_PLAYER_STATE_PREFIX}Queue`
-export const TRACK_PLAYER_PLAYING_TRACK_KEY = `${TRACK_PLAYER_STATE_PREFIX}PlayingTrack`
-export const TRACK_PLAYER_TIMINGS_KEY = `${TRACK_PLAYER_STATE_PREFIX}Timings`
-export const TRACK_PLAYER_REPEAT_MODE_KEY = `${TRACK_PLAYER_STATE_PREFIX}RepeatMode`
-export const TRACK_PLAYER_PLAYBACK_SPEED_KEY = `${TRACK_PLAYER_STATE_PREFIX}PlaybackSpeed`
-export const TRACK_PLAYER_VOLUME_KEY = `${TRACK_PLAYER_STATE_PREFIX}>Volume`
+export const TRACK_PLAYER_MMKV_PREFIX = "trackPlayerState:v1:"
+export const TRACK_PLAYER_QUEUE_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Queue`
+export const TRACK_PLAYER_PLAYING_TRACK_KEY = `${TRACK_PLAYER_MMKV_PREFIX}PlayingTrack`
+export const TRACK_PLAYER_TIMINGS_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Timings`
+export const TRACK_PLAYER_REPEAT_MODE_KEY = `${TRACK_PLAYER_MMKV_PREFIX}RepeatMode`
+export const TRACK_PLAYER_PLAYBACK_SPEED_KEY = `${TRACK_PLAYER_MMKV_PREFIX}PlaybackSpeed`
+export const TRACK_PLAYER_VOLUME_KEY = `${TRACK_PLAYER_MMKV_PREFIX}>Volume`
 
 export class TrackPlayerService {
 	private readonly loadFileForTrackMutex: Semaphore = new Semaphore(1)
@@ -204,7 +204,7 @@ export class TrackPlayerService {
 	}
 
 	public getTrackMetadataKeyFromUUID(uuid: string): string {
-		return `trackPlayerFileMetadata:${uuid}`
+		return `${TRACK_PLAYER_MMKV_PREFIX}trackPlayerFileMetadata:${uuid}`
 	}
 
 	public async togglePlay(): Promise<void> {

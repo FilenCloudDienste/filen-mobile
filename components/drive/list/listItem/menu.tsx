@@ -17,6 +17,8 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
 import driveService from "@/services/drive.service"
+import { useShallow } from "zustand/shallow"
+import { usePhotosStore } from "@/stores/photos.store"
 
 export const Menu = memo(
 	({
@@ -43,6 +45,8 @@ export const Menu = memo(
 		const pathname = usePathname()
 		const { colors } = useColorScheme()
 		const { hasInternet } = useNetInfo()
+		const isSelectedDrive = useDriveStore(useShallow(state => state.selectedItems.some(i => i.uuid === item.uuid)))
+		const isSelectedPhotos = usePhotosStore(useShallow(state => state.selectedItems.some(i => i.uuid === item.uuid)))
 
 		const fileOfflineStatus = useFileOfflineStatusQuery({
 			uuid: item.uuid,
@@ -56,11 +60,11 @@ export const Menu = memo(
 		const menuItems = useMemo(() => {
 			const items: (ContextItem | ContextSubMenu)[] = []
 
-			if (!fromPreview && !fromPhotos && !fromSearch) {
+			if (!fromPreview && !fromSearch) {
 				items.push(
 					createContextItem({
 						actionKey: "select",
-						title: t("drive.list.item.menu.select"),
+						title: isSelectedDrive || isSelectedPhotos ? t("drive.list.item.menu.deselect") : t("drive.list.item.menu.select"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -552,9 +556,33 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [offlineStatus, item, queryParams, t, isProUser, fromPreview, fromPhotos, fromSearch, colors.destructive, hasInternet])
+		}, [
+			offlineStatus,
+			item,
+			queryParams,
+			t,
+			isProUser,
+			fromPreview,
+			fromSearch,
+			colors.destructive,
+			hasInternet,
+			isSelectedDrive,
+			isSelectedPhotos
+		])
 
 		const select = useCallback(() => {
+			if (fromPhotos) {
+				const isSelected = usePhotosStore.getState().selectedItems.some(i => i.uuid === item.uuid)
+
+				usePhotosStore
+					.getState()
+					.setSelectedItems(prev =>
+						isSelected ? prev.filter(i => i.uuid !== item.uuid) : [...prev.filter(i => i.uuid !== item.uuid), item]
+					)
+
+				return
+			}
+
 			const isSelected = useDriveStore.getState().selectedItems.some(i => i.uuid === item.uuid)
 
 			useDriveStore
@@ -562,7 +590,7 @@ export const Menu = memo(
 				.setSelectedItems(prev =>
 					isSelected ? prev.filter(i => i.uuid !== item.uuid) : [...prev.filter(i => i.uuid !== item.uuid), item]
 				)
-		}, [item])
+		}, [item, fromPhotos])
 
 		const openDirectory = useCallback(() => {
 			if (item.type !== "directory") {

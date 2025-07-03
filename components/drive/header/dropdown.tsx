@@ -15,7 +15,7 @@ import { useShallow } from "zustand/shallow"
 import { Platform } from "react-native"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import useNetInfo from "@/hooks/useNetInfo"
-import { driveBulkService } from "@/services/drive.service"
+import driveBulkService from "@/services/driveBulk.service"
 import alerts from "@/lib/alerts"
 
 export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
@@ -326,17 +326,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 		}
 
 		if (selectedItemsCount > 0) {
-			if (selectedItemsCount >= driveItems.length) {
-				items.push(
-					createDropdownItem({
-						actionKey: "deselectAll",
-						title: t("drive.list.item.menu.deselectAll"),
-						icon: {
-							name: "check-circle-outline"
-						}
-					})
-				)
-			} else {
+			if (selectedItemsCount < driveItems.length) {
 				items.push(
 					createDropdownItem({
 						actionKey: "selectAll",
@@ -347,6 +337,16 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 					})
 				)
 			}
+
+			items.push(
+				createDropdownItem({
+					actionKey: "deselectAll",
+					title: t("drive.list.item.menu.deselectAll"),
+					icon: {
+						name: "check-circle-outline"
+					}
+				})
+			)
 
 			if (Platform.OS === "ios" ? !selectedItemsIncludesDirectory : true) {
 				const subMenuItems: DropdownSubMenu["items"] = []
@@ -727,6 +727,8 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 								return
 							}
 
+							useDriveStore.getState().setSelectedItems([])
+
 							if (item.actionKey === "bulkShare") {
 								await driveBulkService.shareItems({
 									items: selectedItems
@@ -806,8 +808,6 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 									disableLoader: true
 								})
 							}
-
-							useDriveStore.getState().setSelectedItems([])
 
 							return
 						}
