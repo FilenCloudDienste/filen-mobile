@@ -61,7 +61,31 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 					targetSdkVersion: 35,
 					minSdkVersion: 31,
 					enableProguardInReleaseBuilds: true,
-					enableShrinkResourcesInReleaseBuilds: true
+					enableShrinkResourcesInReleaseBuilds: true,
+					extraProguardRules: `
+# Proguard rules for Filen
+# Ignore missing AWT classes
+-dontwarn java.awt.**
+
+# Keep JNA classes
+-keep class com.sun.jna.** { *; }
+-keepnames class com.sun.jna.** { *; }
+
+# Keep ALL UniFFI generated classes completely unobfuscated
+-keep class uniffi.filen_mobile_native_cache.** { *; }
+-keepclassmembers class uniffi.filen_mobile_native_cache.** { *; }
+-keepnames class uniffi.filen_mobile_native_cache.** { *; }
+
+# Keep your other generated classes
+-keep class filen_mobile_native_cache.** { *; }
+-keepclassmembers class filen_mobile_native_cache.** { *; }
+-keepnames class filen_mobile_native_cache.** { *; }
+
+# Keep Structure classes
+-keep class * extends com.sun.jna.Structure { *; }
+-keepclassmembers class * extends com.sun.jna.Structure { *; }
+-keepnames class * extends com.sun.jna.Structure { *; }
+`
 				},
 				ios: {
 					deploymentTarget: "16.0",
