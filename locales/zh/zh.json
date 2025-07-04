@@ -141,11 +141,43 @@
 			},
 			"trashItem": {
 				"title": "移到回收站",
-				"message": "您确定要将此项移到回收站吗？您可以稍后恢复它。"
+				"message": "您确定要将此项目移到回收站吗？您可以稍后恢复它。"
+			},
+			"removeSharedInItem": {
+				"title": "移除",
+				"message": "您确定要从共享项目中移除此项目吗？您将无法再查看或访问它。"
+			},
+			"removeSharedOutItem": {
+				"title": "停止共享",
+				"message": "您确定要停止共享此项目吗？用户将无法再访问它。"
 			},
 			"deletePermanently": {
 				"title": "永久删除",
-				"message": "您确定要永久删除此项吗？此操作无法撤销！"
+				"message": "您确定要永久删除此项目吗？此操作无法撤销！"
+			},
+			"trashItems": {
+				"title": "移到回收站",
+				"message": "您确定要将 {{count}} 个项目移到回收站吗？您可以稍后恢复它们。"
+			},
+			"deleteItemsPermanently": {
+				"title": "永久删除",
+				"message": "您确定要永久删除 {{count}} 个项目吗？此操作无法撤销！"
+			},
+			"removeSharedInItems": {
+				"title": "移除",
+				"message": "您确定要从共享项目中移除 {{count}} 个项目吗？您将无法再查看或访问它们"
+			},
+			"removeSharedOutItems": {
+				"title": "停止共享",
+				"message": "您确定要停止共享 {{count} 个项目吗？其他用户将无法再访问它们。"
+			},
+			"disablePublicLinks": {
+				"title": "禁用公开链接",
+				"message": "您确定要禁用 {{count}} 个项目的公开链接吗？这些链接将不再可访问。"
+			},
+			"removeOfflineFiles": {
+				"title": "移除离线文件",
+				"message": "您确定要移除 {{count}} 个离线文件吗？它们将不再可离线访问。"
 			}
 		},
 		"itemSharedWith": "{{name}}已共享给{{email}}",
