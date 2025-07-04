@@ -337,6 +337,14 @@
 				"title": "Delete chat",
 				"message": "Are you sure you want to delete this chat? This will remove the chat from your list and you will no longer be able to see or send messages in this chat."
 			},
+			"leaveChats": {
+				"title": "Leave chats",
+				"message": "Are you sure you want to leave {{count}} chats? You will no longer be able to see or send messages in these chats."
+			},
+			"deleteChats": {
+				"title": "Delete chats",
+				"message": "Are you sure you want to delete {{count}} chats? This will remove the chats from your list and you will no longer be able to see or send messages in these chats."
+			},
 			"renameChat": {
 				"title": "Rename chat",
 				"placeholder": "New name"
