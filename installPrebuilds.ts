@@ -28,6 +28,15 @@ function argon2() {
 		process.exit(1)
 	}
 
+	fs.rmSync(destinationPath, {
+		recursive: true,
+		force: true
+	})
+
+	fs.mkdirSync(destinationPath, {
+		recursive: true
+	})
+
 	prebuilds.forEach(prebuild => {
 		const source = path.join(argon2PrebuildsPath, prebuild)
 
