@@ -23,7 +23,11 @@ function argon2() {
 	const destinationPath = path.join(__dirname, "nodejs-assets", "nodejs-project", "node_modules", "argon2", "prebuilds")
 
 	if (!fs.existsSync(destinationPath)) {
-		console.error("Destination directory does not exist:", destinationPath, "forgot to run npm install?")
+		console.error(
+			"Destination directory does not exist:",
+			destinationPath,
+			"forgot to run npm install in the nodejs-assets/nodejs-project directory?"
+		)
 
 		process.exit(1)
 	}
