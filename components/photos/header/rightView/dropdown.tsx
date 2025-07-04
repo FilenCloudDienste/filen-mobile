@@ -34,6 +34,23 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 
 		items.push(
 			createDropdownItem({
+				actionKey: "transfers",
+				title: t("drive.header.rightView.dropdown.transfers"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "wifi"
+						  }
+						: {
+								namingScheme: "material",
+								name: "wifi"
+						  }
+			})
+		)
+
+		items.push(
+			createDropdownItem({
 				actionKey: "settings",
 				title: t("photos.menu.settings"),
 				icon:
@@ -227,6 +244,14 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 		async (contextItem: Omit<DropdownItem, "icon">, _?: boolean) => {
 			try {
 				switch (contextItem.actionKey) {
+					case "transfers": {
+						router.push({
+							pathname: "/transfers"
+						})
+
+						break
+					}
+
 					case "settings": {
 						router.push({
 							pathname: "/photos/settings"
