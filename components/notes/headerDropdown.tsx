@@ -374,6 +374,18 @@ export const HeaderDropdown = memo(() => {
 
 	const onItemPress = useCallback(
 		async (item: Omit<DropdownItem, "icon">, _?: boolean) => {
+			if (item.actionKey === "selectAll") {
+				useNotesStore.getState().setSelectedNotes(notes)
+
+				return
+			}
+
+			if (item.actionKey === "deselectAll") {
+				useNotesStore.getState().setSelectedNotes([])
+
+				return
+			}
+
 			const selectedNotes = useNotesStore.getState().selectedNotes
 
 			if (selectedNotes.length === 0) {
@@ -384,18 +396,6 @@ export const HeaderDropdown = memo(() => {
 
 			try {
 				switch (item.actionKey) {
-					case "selectAll": {
-						useNotesStore.getState().setSelectedNotes(notes)
-
-						break
-					}
-
-					case "deselectAll": {
-						useNotesStore.getState().setSelectedNotes([])
-
-						break
-					}
-
 					case "bulkTypeText": {
 						await notesBulkService.changeNoteTypes({
 							notes: selectedNotes,

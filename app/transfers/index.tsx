@@ -1,7 +1,7 @@
 import RequireInternet from "@/components/requireInternet"
-import { memo, useCallback, useState, useMemo } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { View, RefreshControl, Platform } from "react-native"
+import { View, Platform } from "react-native"
 import { useTransfersStore } from "@/stores/transfers.store"
 import { Toolbar, ToolbarIcon } from "@/components/nativewindui/Toolbar"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
@@ -23,7 +23,6 @@ export const Transfers = memo(() => {
 	const finishedTransfers = useTransfersStore(useShallow(state => state.finishedTransfers))
 	const speed = useTransfersStore(useShallow(state => state.speed))
 	const remaining = useTransfersStore(useShallow(state => state.remaining))
-	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { colors } = useColorScheme()
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
@@ -224,7 +223,7 @@ export const Transfers = memo(() => {
 						name: "wifi-alert"
 					},
 					empty: {
-						name: "arrow-up"
+						name: "wifi"
 					},
 					emptySearch: {
 						name: "magnify"
@@ -233,31 +232,6 @@ export const Transfers = memo(() => {
 			/>
 		)
 	}, [transfers.length, t])
-
-	const onRefresh = useCallback(async () => {
-		setRefreshing(true)
-
-		try {
-			await nodeWorker.updateTransfers()
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
-		} finally {
-			setRefreshing(false)
-		}
-	}, [])
-
-	const refreshControl = useMemo(() => {
-		return (
-			<RefreshControl
-				refreshing={refreshing}
-				onRefresh={onRefresh}
-			/>
-		)
-	}, [refreshing, onRefresh])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {
@@ -320,12 +294,10 @@ export const Transfers = memo(() => {
 					data={data}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
-					refreshing={refreshing}
 					contentInsetAdjustmentBehavior="automatic"
 					contentContainerClassName="pb-16"
 					ListHeaderComponent={listHeader}
 					ListEmptyComponent={listEmpty}
-					refreshControl={refreshControl}
 					removeClippedSubviews={true}
 					initialNumToRender={initialNumToRender}
 					maxToRenderPerBatch={maxToRenderPerBatch}
@@ -334,11 +306,13 @@ export const Transfers = memo(() => {
 					getItemLayout={getItemLayout}
 				/>
 			</Container>
-			<Toolbar
-				iosHint={info ?? undefined}
-				leftView={toolbarLeftView}
-				rightView={toolbarRightView}
-			/>
+			{transfers.length > 0 && (
+				<Toolbar
+					iosHint={info ?? undefined}
+					leftView={toolbarLeftView}
+					rightView={toolbarRightView}
+				/>
+			)}
 		</RequireInternet>
 	)
 })
