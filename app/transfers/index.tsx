@@ -31,7 +31,7 @@ export const Transfers = memo(() => {
 	const data = useMemo(() => {
 		return transfers
 			.map(transfer => ({
-				id: transfer.id,
+				id: `${transfer.id}:${transfer.state}:${transfer.type}:${transfer.name}`,
 				title: transfer.name,
 				subTitle: formatBytes(transfer.size),
 				transfer
@@ -44,7 +44,7 @@ export const Transfers = memo(() => {
 			.concat(
 				finishedTransfers
 					.map(transfer => ({
-						id: transfer.id,
+						id: `${transfer.id}:${transfer.state}:${transfer.type}:${transfer.name}`,
 						title: transfer.name,
 						subTitle: formatBytes(transfer.size),
 						transfer
