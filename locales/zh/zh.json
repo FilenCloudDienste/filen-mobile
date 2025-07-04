@@ -421,7 +421,9 @@
 			"favorited": "已收藏",
 			"leave": "离开",
 			"preview": "预览",
-			"rename": "重命名"
+			"rename": "重命名",
+			"select": "选择",
+			"deselect": "取消选择"
 		},
 		"participants": {
 			"title": "参与者",
@@ -477,6 +479,10 @@
 				"title": "移到回收站",
 				"message": "您确定要将此笔记移到回收站吗？您可以稍后恢复它。"
 			},
+			"trashNotes": {
+				"title": "移到回收站",
+				"message": "您确定要将 {{count}} 个笔记移到回收站吗？您可以稍后恢复它们。"
+			},
 			"renameNote": {
 				"title": "重命名笔记",
 				"placeholder": "新名称"
@@ -485,13 +491,25 @@
 				"title": "删除笔记",
 				"message": "您确定要永久删除此笔记吗？此操作无法撤销！"
 			},
+			"deleteNotes": {
+				"title": "删除笔记",
+				"message": "您确定要永久删除 {{count}} 个笔记吗？此操作无法撤销！"
+			},
 			"leaveNote": {
 				"title": "离开笔记",
 				"message": "您确定要离开此笔记吗？您将无法再查看或编辑它。"
 			},
+			"leaveNotes": {
+				"title": "离开笔记",
+				"message": "您确定要离开 {{count}} 个笔记吗？您将无法再查看或编辑它们。"
+			},
 			"removeParticipant": {
 				"title": "移除参与者",
 				"message": "您确定要移除此参与者吗？他们将无法再查看或编辑此笔记。"
+			},
+			"removeParticipants": {
+				"title": "移除参与者",
+				"message": "您确定要移除 {{count}} 个参与者吗？他们将无法再查看或编辑这些笔记。"
 			},
 			"createTag": {
 				"title": "创建标签",
@@ -501,6 +519,10 @@
 				"title": "删除标签",
 				"message": "您确定要删除此标签吗？此操作无法撤销！"
 			},
+			"deleteTags": {
+				"title": "删除标签",
+				"message": "您确定要删除 {{count}} 个标签吗？此操作无法撤销！"
+			},
 			"renameTag": {
 				"title": "重命名标签",
 				"placeholder": "新标签名称"
@@ -508,8 +530,15 @@
 		},
 		"header": {
 			"title": "笔记",
+			"selected": "{{count}} 个已选择",
 			"menu": {
 				"settings": "设置"
+			},
+			"dropdown": {
+				"items": {
+					"selectAll": "全选",
+					"deselectAll": "取消全选"
+				}
 			}
 		},
 		"content": {
@@ -595,20 +624,35 @@
 				}
 			},
 			"prompts": {
-				"remove": {
-					"title": "移除联系人",
-					"message": "您确定要移除此联系人吗？",
-					"success": "{{email}}已移除"
+				"removeContact": {
+					"title": "删除联系人",
+					"message": "您确定要删除此联系人吗？",
+					"success": "{{email}}已删除"
 				},
-				"block": {
+				"removeContacts": {
+					"title": "删除联系人",
+					"message": "您确定要删除 {{count}} 个联系人吗？",
+					"success": "{{count}} 个联系人已删除"
+				},
+				"blockContact": {
 					"title": "拉黑联系人",
 					"message": "您确定要拉黑此联系人吗？",
 					"success": "{{email}}已拉黑"
 				},
-				"unblock": {
+				"blockContacts": {
+					"title": "拉黑联系人",
+					"message": "您确定要拉黑 {{count}} 个联系人吗？",
+					"success": "{{count}} 个联系人已拉黑"
+				},
+				"unblockContact": {
 					"title": "取消拉黑联系人",
 					"message": "您确定要取消拉黑此联系人吗？",
 					"success": "{{email}}已取消拉黑"
+				},
+				"unblockContacts": {
+					"title": "取消拉黑联系人",
+					"message": "您确定要取消拉黑 {{count}} 个联系人吗？",
+					"success": "{{count}} 个联系人已取消拉黑"
 				},
 				"sendRequest": {
 					"title": "发送联系人请求",
@@ -867,6 +911,9 @@
 		},
 		"menu": {
 			"settings": "设置"
+		},
+		"header": {
+			"selected": "{{count}} 个已选择"
 		},
 		"settings": {
 			"albums": {
