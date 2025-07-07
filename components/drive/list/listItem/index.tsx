@@ -79,7 +79,7 @@ export const ListItem = memo(
 		})
 
 		const item = useMemo(() => {
-			if (info.item.item.type !== "directory" || !directorySize.isSuccess) {
+			if (info.item.item.type !== "directory" || directorySize.status !== "success") {
 				return info.item
 			}
 
@@ -87,7 +87,7 @@ export const ListItem = memo(
 				...info.item,
 				subTitle: `${info.item.subTitle}  -  ${formatBytes(directorySize.data.size)}`
 			}
-		}, [info.item, directorySize.isSuccess, directorySize.data])
+		}, [info.item, directorySize.status, directorySize.data])
 
 		const offlineStatus = useMemo(() => {
 			return info.item.item.type === "file" && fileOfflineStatus.status === "success" ? fileOfflineStatus.data : null

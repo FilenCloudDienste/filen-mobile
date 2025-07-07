@@ -264,7 +264,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 	}, [item.type, didChange, t])
 
 	useEffect(() => {
-		if (query.isSuccess && queryDataUpdatedRef.current !== query.dataUpdatedAt) {
+		if (query.status === "success" && queryDataUpdatedRef.current !== query.dataUpdatedAt) {
 			queryDataUpdatedRef.current = query.dataUpdatedAt
 
 			setValue(query.data)

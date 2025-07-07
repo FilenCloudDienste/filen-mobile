@@ -42,7 +42,7 @@ export default function SelectContacts() {
 	}, [max])
 
 	const contacts = useMemo(() => {
-		if (!query.isSuccess) {
+		if (query.status !== "success") {
 			return []
 		}
 
@@ -71,7 +71,7 @@ export default function SelectContacts() {
 		}
 
 		return contacts
-	}, [query.isSuccess, query.data, searchTerm, type])
+	}, [query.status, query.data, searchTerm, type])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
 		return typeof item === "string" ? item : item.id

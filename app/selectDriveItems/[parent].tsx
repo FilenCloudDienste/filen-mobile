@@ -77,7 +77,7 @@ export default function SelectDriveItems() {
 	const query = useCloudItemsQuery(queryParams)
 
 	const items = useMemo((): ListItemInfo[] => {
-		if (!query.isSuccess) {
+		if (query.status !== "success") {
 			return []
 		}
 
@@ -103,7 +103,7 @@ export default function SelectDriveItems() {
 		}
 
 		return queryItems
-	}, [query.isSuccess, query.data, searchTerm])
+	}, [query.status, query.data, searchTerm])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
 		return typeof item === "string" ? item : item.id

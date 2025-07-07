@@ -85,7 +85,7 @@ export const Item = memo(
 		])
 
 		const item = useMemo(() => {
-			if (info.item.item.type !== "directory" || !directorySize.isSuccess) {
+			if (info.item.item.type !== "directory" || directorySize.status !== "success") {
 				return info.item
 			}
 
@@ -93,7 +93,7 @@ export const Item = memo(
 				...info.item,
 				subTitle: `${info.item.subTitle}  -  ${formatBytes(directorySize.data.size)}`
 			}
-		}, [info.item, directorySize.isSuccess, directorySize.data])
+		}, [info.item, directorySize.status, directorySize.data])
 
 		const select = useCallback(() => {
 			if (!canSelect) {
