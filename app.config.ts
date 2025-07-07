@@ -196,6 +196,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			}
 		],
 		[
+			"./plugins/withFileProvider.ts",
+			{
+				repoUrl: "https://github.com/FilenCloudDienste/filen-rs.git",
+				targetPath: "rust",
+				crateName: "filen-mobile-native-cache",
+				libName: "filen_mobile_native_cache",
+				targets: ["aarch64-apple-ios", "aarch64-apple-ios-sim"]
+			}
+		],
+		[
 			"./plugins/withAndroidRustBuild.ts",
 			{
 				repoUrl: "https://github.com/FilenCloudDienste/filen-rs.git",
