@@ -3,7 +3,7 @@ import { Settings as SettingsComponent, IconView } from "@/components/settings"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import useCameraUpload from "@/hooks/useCameraUpload"
 import { useRouter } from "expo-router"
-import { selectDriveItems } from "@/app/selectDriveItems/[parent]"
+import driveService from "@/services/drive.service"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import { validate as validateUUID } from "uuid"
@@ -104,7 +104,7 @@ export const Settings = memo(() => {
 	}, [setCameraUpload])
 
 	const selectRemoteDirectory = useCallback(async () => {
-		const selectDriveItemsResponse = await selectDriveItems({
+		const selectDriveItemsResponse = await driveService.selectDriveItems({
 			type: "directory",
 			max: 1,
 			dismissHref: "/photos/settings"

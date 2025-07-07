@@ -8,7 +8,7 @@ import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { type FileMetadata, type FolderMetadata } from "@filen/sdk"
 import queryUtils from "@/queries/utils"
 import { FETCH_CLOUD_ITEMS_POSSIBLE_OF } from "@/queries/useCloudItemsQuery"
-import { useGalleryStore } from "@/stores/gallery.store"
+import { useGalleryStore, type PreviewType } from "@/stores/gallery.store"
 import { colorPicker } from "@/components/sheets/colorPickerSheet"
 import { DEFAULT_DIRECTORY_COLOR } from "@/assets/fileIcons"
 import { itemInfo } from "@/components/sheets/itemInfoSheet"
@@ -20,7 +20,6 @@ import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
 import sqlite from "@/lib/sqlite"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
-import { selectDriveItems } from "@/app/selectDriveItems/[parent]"
 import { Platform } from "react-native"
 import ReactNativeBlobUtil from "react-native-blob-util"
 import * as MediaLibrary from "expo-media-library"
@@ -28,8 +27,64 @@ import { fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatusQuer
 import { type Contact } from "@filen/sdk/dist/types/api/v3/contacts"
 import { useDriveStore } from "@/stores/drive.store"
 import download from "@/lib/download"
+import events from "@/lib/events"
+
+export type SelectDriveItemsResponse =
+	| {
+			cancelled: false
+			items: DriveCloudItem[]
+	  }
+	| {
+			cancelled: true
+	  }
+
+export type SelectDriveItemsParams = {
+	type: "file" | "directory"
+	max: number
+	dismissHref: string
+	toMove?: string[]
+	extensions?: string[]
+	previewTypes?: PreviewType[]
+	multiScreen?: boolean
+}
+
+export type SelectDriveItemsEvent =
+	| {
+			type: "request"
+			data: {
+				id: string
+			} & SelectDriveItemsParams
+	  }
+	| {
+			type: "response"
+			data: {
+				id: string
+			} & SelectDriveItemsResponse
+	  }
 
 export class DriveService {
+	public async selectDriveItems(params: SelectDriveItemsParams): Promise<SelectDriveItemsResponse> {
+		return new Promise<SelectDriveItemsResponse>(resolve => {
+			const id = randomUUID()
+
+			const sub = events.subscribe("selectDriveItems", e => {
+				if (e.type === "response" && e.data.id === id) {
+					sub.remove()
+
+					resolve(e.data)
+				}
+			})
+
+			events.emit("selectDriveItems", {
+				type: "request",
+				data: {
+					...params,
+					id
+				}
+			})
+		})
+	}
+
 	public async copyItemPath({
 		item,
 		disableAlert,
@@ -732,7 +787,7 @@ export class DriveService {
 		disableLoader?: boolean
 	}): Promise<void> {
 		if (!parent) {
-			const selectDriveItemsResponse = await selectDriveItems({
+			const selectDriveItemsResponse = await this.selectDriveItems({
 				type: "directory",
 				max: 1,
 				dismissHref: dismissHref ?? "/drive",

@@ -5,7 +5,7 @@ import { useMemo, useCallback, memo } from "react"
 import { Text } from "@/components/nativewindui/Text"
 import { Image } from "expo-image"
 import { getPreviewType, formatBytes } from "@/lib/utils"
-import { selectDriveItems } from "@/app/selectDriveItems/[parent]"
+import driveService from "@/services/drive.service"
 import { randomUUID } from "expo-crypto"
 import * as FileSystem from "expo-file-system/next"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
@@ -107,7 +107,7 @@ export default function ShareIntent() {
 			return
 		}
 
-		const selectDriveItemsResponse = await selectDriveItems({
+		const selectDriveItemsResponse = await driveService.selectDriveItems({
 			type: "directory",
 			max: 1,
 			dismissHref: "/shareIntent"

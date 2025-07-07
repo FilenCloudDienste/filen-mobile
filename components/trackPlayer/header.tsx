@@ -13,7 +13,7 @@ import alerts from "@/lib/alerts"
 import { randomUUID } from "expo-crypto"
 import queryUtils from "@/queries/utils"
 import { useLocalSearchParams } from "expo-router"
-import { selectDriveItems } from "@/app/selectDriveItems/[parent]"
+import driveService from "@/services/drive.service"
 import { type TrackMetadata, trackPlayerService } from "@/lib/trackPlayer"
 import assets from "@/lib/assets"
 import mmkvInstance from "@/lib/mmkv"
@@ -114,7 +114,7 @@ export const Header = memo(() => {
 			return
 		}
 
-		const selectDriveItemsResponse = await selectDriveItems({
+		const selectDriveItemsResponse = await driveService.selectDriveItems({
 			type: "file",
 			max: 9999,
 			dismissHref: `/trackPlayer/${playlist.uuid}`,
