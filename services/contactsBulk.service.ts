@@ -5,7 +5,6 @@ import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { t } from "@/lib/i18n"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { promiseAllChunked } from "@/lib/utils"
-import { selectContacts } from "@/app/selectContacts"
 
 export class ContactsBulkService {
 	public async removeContacts({
@@ -18,7 +17,7 @@ export class ContactsBulkService {
 		disableAlertPrompt?: boolean
 	}): Promise<void> {
 		if (!contacts) {
-			const selectContactsResponse = await selectContacts({
+			const selectContactsResponse = await contactsService.selectContacts({
 				type: "all",
 				max: 9999
 			})
@@ -78,7 +77,7 @@ export class ContactsBulkService {
 		disableAlertPrompt?: boolean
 	}): Promise<void> {
 		if (!contacts) {
-			const selectContactsResponse = await selectContacts({
+			const selectContactsResponse = await contactsService.selectContacts({
 				type: "all",
 				max: 9999
 			})
@@ -138,7 +137,7 @@ export class ContactsBulkService {
 		disableAlertPrompt?: boolean
 	}): Promise<void> {
 		if (!contacts) {
-			const selectContactsResponse = await selectContacts({
+			const selectContactsResponse = await contactsService.selectContacts({
 				type: "blocked",
 				max: 9999
 			})

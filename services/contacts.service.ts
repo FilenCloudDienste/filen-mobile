@@ -6,9 +6,60 @@ import queryClient from "@/queries/client"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { t } from "@/lib/i18n"
-import { selectContacts } from "@/app/selectContacts"
+import { Contact } from "@filen/sdk/dist/types/api/v3/contacts"
+import { randomUUID } from "expo-crypto"
+import events from "@/lib/events"
+
+export type SelectContactsResponse =
+	| {
+			cancelled: false
+			contacts: Contact[]
+	  }
+	| {
+			cancelled: true
+	  }
+
+export type SelectContactsParams = { type: "all" | "blocked" } & {
+	max: number
+}
+
+export type SelectContactsEvent =
+	| {
+			type: "request"
+			data: {
+				id: string
+			} & SelectContactsParams
+	  }
+	| {
+			type: "response"
+			data: {
+				id: string
+			} & SelectContactsResponse
+	  }
 
 export class ContactsService {
+	public async selectContacts(params: SelectContactsParams): Promise<SelectContactsResponse> {
+		return new Promise<SelectContactsResponse>(resolve => {
+			const id = randomUUID()
+
+			const sub = events.subscribe("selectContacts", e => {
+				if (e.type === "response" && e.data.id === id) {
+					sub.remove()
+
+					resolve(e.data)
+				}
+			})
+
+			events.emit("selectContacts", {
+				type: "request",
+				data: {
+					...params,
+					id
+				}
+			})
+		})
+	}
+
 	public async removeContact({
 		uuid,
 		disableLoader,
@@ -19,7 +70,7 @@ export class ContactsService {
 		disableAlertPrompt?: boolean
 	}) {
 		if (!uuid) {
-			const selectContactsResponse = await selectContacts({
+			const selectContactsResponse = await this.selectContacts({
 				type: "all",
 				max: 1
 			})
@@ -78,7 +129,7 @@ export class ContactsService {
 		disableAlertPrompt?: boolean
 	}) {
 		if (!email) {
-			const selectContactsResponse = await selectContacts({
+			const selectContactsResponse = await this.selectContacts({
 				type: "all",
 				max: 1
 			})
@@ -141,7 +192,7 @@ export class ContactsService {
 		disableAlertPrompt?: boolean
 	}) {
 		if (!uuid) {
-			const selectContactsResponse = await selectContacts({
+			const selectContactsResponse = await this.selectContacts({
 				type: "blocked",
 				max: 1
 			})

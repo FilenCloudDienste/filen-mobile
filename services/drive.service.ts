@@ -12,7 +12,7 @@ import { useGalleryStore } from "@/stores/gallery.store"
 import { colorPicker } from "@/components/sheets/colorPickerSheet"
 import { DEFAULT_DIRECTORY_COLOR } from "@/assets/fileIcons"
 import { itemInfo } from "@/components/sheets/itemInfoSheet"
-import { selectContacts } from "@/app/selectContacts"
+import contactsService from "./contacts.service"
 import { promiseAllChunked, sanitizeFileName, normalizeFilePathForExpo } from "@/lib/utils"
 import * as FileSystemLegacy from "expo-file-system"
 import * as Sharing from "expo-sharing"
@@ -473,7 +473,7 @@ export class DriveService {
 		disableLoader?: boolean
 	}): Promise<void> {
 		if (!contacts) {
-			const selectContactsResponse = await selectContacts({
+			const selectContactsResponse = await contactsService.selectContacts({
 				type: "all",
 				max: 9999
 			})

@@ -8,7 +8,7 @@ import fullScreenLoadingModal from "../modals/fullScreenLoadingModal"
 import { randomUUID } from "expo-crypto"
 import useChatsQuery from "@/queries/useChatsQuery"
 import alerts from "@/lib/alerts"
-import { selectContacts } from "@/app/selectContacts"
+import contactsService from "@/services/contacts.service"
 import useNetInfo from "@/hooks/useNetInfo"
 
 export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<React.SetStateAction<string>> }) => {
@@ -20,7 +20,7 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 	})
 
 	const createChat = useCallback(async () => {
-		const selectContactsResponse = await selectContacts({
+		const selectContactsResponse = await contactsService.selectContacts({
 			type: "all",
 			max: 9999
 		})

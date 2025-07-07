@@ -11,7 +11,7 @@ import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { selectContacts } from "@/app/selectContacts"
+import contactsService from "@/services/contacts.service"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import Menu from "@/components/chats/chat/participants/menu"
 import useChatsQuery from "@/queries/useChatsQuery"
@@ -184,7 +184,7 @@ export default function Participants() {
 			return
 		}
 
-		const selectContactsResponse = await selectContacts({
+		const selectContactsResponse = await contactsService.selectContacts({
 			type: "all",
 			max: 9999
 		})

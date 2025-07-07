@@ -2,7 +2,7 @@ import driveService from "./drive.service"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { colorPicker } from "@/components/sheets/colorPickerSheet"
 import { DEFAULT_DIRECTORY_COLOR } from "@/assets/fileIcons"
-import { selectContacts } from "@/app/selectContacts"
+import contactsService from "./contacts.service"
 import { promiseAllChunked } from "@/lib/utils"
 import { selectDriveItems } from "@/app/selectDriveItems/[parent]"
 import { type Contact } from "@filen/sdk/dist/types/api/v3/contacts"
@@ -24,7 +24,7 @@ export class DriveBulkService {
 		}
 
 		if (!contacts) {
-			const selectContactsResponse = await selectContacts({
+			const selectContactsResponse = await contactsService.selectContacts({
 				type: "all",
 				max: 9999
 			})

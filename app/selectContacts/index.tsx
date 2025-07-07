@@ -1,5 +1,4 @@
 import events from "@/lib/events"
-import { randomUUID } from "expo-crypto"
 import { useCallback, useState, useMemo, useEffect } from "react"
 import useContactsQuery from "@/queries/useContactsQuery"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
@@ -20,58 +19,8 @@ import contactsService from "@/services/contacts.service"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
-import { Contact as ContactType } from "@filen/sdk/dist/types/api/v3/contacts"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
-
-export type SelectContactsResponse =
-	| {
-			cancelled: false
-			contacts: ContactType[]
-	  }
-	| {
-			cancelled: true
-	  }
-
-export type SelectContactsParams = { type: "all" | "blocked" } & {
-	max: number
-}
-
-export type SelectContactsEvent =
-	| {
-			type: "request"
-			data: {
-				id: string
-			} & SelectContactsParams
-	  }
-	| {
-			type: "response"
-			data: {
-				id: string
-			} & SelectContactsResponse
-	  }
-
-export function selectContacts(params: SelectContactsParams): Promise<SelectContactsResponse> {
-	return new Promise<SelectContactsResponse>(resolve => {
-		const id = randomUUID()
-
-		const sub = events.subscribe("selectContacts", e => {
-			if (e.type === "response" && e.data.id === id) {
-				sub.remove()
-
-				resolve(e.data)
-			}
-		})
-
-		events.emit("selectContacts", {
-			type: "request",
-			data: {
-				...params,
-				id
-			}
-		})
-	})
-}
 
 export default function SelectContacts() {
 	const { colors } = useColorScheme()
