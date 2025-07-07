@@ -5,7 +5,7 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useRouter } from "expo-router"
 import { Button } from "@/components/nativewindui/Button"
-import { type TrackMetadata, trackPlayerService, TRACK_PLAYER_MMKV_PREFIX } from "@/lib/trackPlayer"
+import { type TrackMetadata, trackPlayer, TRACK_PLAYER_MMKV_PREFIX } from "@/lib/trackPlayer"
 import mmkvInstance from "@/lib/mmkv"
 import { Image } from "expo-image"
 import { cn } from "@/lib/cn"
@@ -22,7 +22,7 @@ import events from "@/lib/events"
 import { useSelectTrackPlayerPlaylistsStore } from "@/stores/selectTrackPlayerPlaylists.store"
 import { useShallow } from "zustand/shallow"
 import { Checkbox } from "../nativewindui/Checkbox"
-import { type SelectTrackPlayerPlaylistsParams } from "@/app/selectTrackPlayerPlaylists"
+import { type SelectTrackPlayerPlaylistsParams } from "@/services/trackPlayer.service"
 import { ListItem, type ListRenderItemInfo } from "../nativewindui/List"
 import { Paths } from "expo-file-system/next"
 import { normalizeFilePathForExpo } from "@/lib/utils"
@@ -135,7 +135,7 @@ export const Item = memo(
 				await trackPlayerControls.clear()
 				await trackPlayerControls.setQueue({
 					queue: info.item.playlist.files.map(file => {
-						const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
+						const metadata = mmkvInstance.getString(trackPlayer.getTrackMetadataKeyFromUUID(file.uuid))
 						const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 						return {
@@ -180,7 +180,7 @@ export const Item = memo(
 					queue: [
 						...(await trackPlayerControls.getQueue()),
 						...info.item.playlist.files.map(file => {
-							const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
+							const metadata = mmkvInstance.getString(trackPlayer.getTrackMetadataKeyFromUUID(file.uuid))
 							const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 							return {

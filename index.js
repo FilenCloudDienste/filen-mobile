@@ -8,9 +8,9 @@ import "expo-router/entry"
 
 import "@/lib/backgroundTask"
 
-import trackPlayerService from "@/lib/trackPlayer"
+import trackPlayer from "@/lib/trackPlayer"
 
-trackPlayerService.init()
+trackPlayer.init()
 
 cssInterop(NativeText, {
 	className: "style"

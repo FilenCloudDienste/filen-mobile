@@ -4,7 +4,7 @@ import { memo, useCallback, useMemo, useRef } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { type TrackMetadata, trackPlayerService, TRACK_PLAYER_MMKV_PREFIX } from "@/lib/trackPlayer"
+import { type TrackMetadata, trackPlayer, TRACK_PLAYER_MMKV_PREFIX } from "@/lib/trackPlayer"
 import alerts from "@/lib/alerts"
 import assets from "@/lib/assets"
 import { useMMKVObject } from "react-native-mmkv"
@@ -19,7 +19,7 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { cn } from "@/lib/cn"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
-import { selectTrackPlayerPlaylists } from "@/app/selectTrackPlayerPlaylists"
+import trackPlayerService from "@/services/trackPlayer.service"
 import { ListItem, type ListRenderItemInfo } from "../../nativewindui/List"
 import { Paths } from "expo-file-system/next"
 import { normalizeFilePathForExpo } from "@/lib/utils"
@@ -67,7 +67,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 			await trackPlayerControls.clear()
 			await trackPlayerControls.setQueue({
 				queue: info.item.playlist.files.map(file => {
-					const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
+					const metadata = mmkvInstance.getString(trackPlayer.getTrackMetadataKeyFromUUID(file.uuid))
 					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 					return {
@@ -155,7 +155,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 			return
 		}
 
-		const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(info.item.file.uuid))
+		const metadata = mmkvInstance.getString(trackPlayer.getTrackMetadataKeyFromUUID(info.item.file.uuid))
 		const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 		await trackPlayerControls.setQueue({
@@ -179,7 +179,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 	}, [info.item.file, trackPlayerControls])
 
 	const addToPlaylist = useCallback(async () => {
-		const selectTrackPlayerPlaylistsResponse = await selectTrackPlayerPlaylists({
+		const selectTrackPlayerPlaylistsResponse = await trackPlayerService.selectTrackPlayerPlaylists({
 			max: 9999,
 			dismissHref: `/trackPlayer/${info.item.playlist.uuid}`
 		})

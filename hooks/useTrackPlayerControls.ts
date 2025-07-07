@@ -1,11 +1,11 @@
 import { useCallback } from "react"
-import { type AudioProTrackExtended, trackPlayerService } from "@/lib/trackPlayer"
+import { type AudioProTrackExtended, trackPlayer } from "@/lib/trackPlayer"
 import alerts from "@/lib/alerts"
 
 export function useTrackPlayerControls() {
 	const seek = useCallback(async (seconds: number) => {
 		try {
-			await trackPlayerService.seek(seconds)
+			await trackPlayer.seek(seconds)
 		} catch (e) {
 			console.error(e)
 
@@ -17,7 +17,7 @@ export function useTrackPlayerControls() {
 
 	const skipToPrevious = useCallback(async () => {
 		try {
-			await trackPlayerService.skipToPrevious()
+			await trackPlayer.skipToPrevious()
 		} catch (e) {
 			console.error(e)
 
@@ -29,7 +29,7 @@ export function useTrackPlayerControls() {
 
 	const skipToNext = useCallback(async () => {
 		try {
-			await trackPlayerService.skipToNext()
+			await trackPlayer.skipToNext()
 		} catch (e) {
 			console.error(e)
 
@@ -41,7 +41,7 @@ export function useTrackPlayerControls() {
 
 	const togglePlay = useCallback(async () => {
 		try {
-			await trackPlayerService.togglePlay()
+			await trackPlayer.togglePlay()
 		} catch (e) {
 			console.error(e)
 
@@ -53,7 +53,7 @@ export function useTrackPlayerControls() {
 
 	const play = useCallback(async () => {
 		try {
-			await trackPlayerService.play()
+			await trackPlayer.play()
 		} catch (e) {
 			console.error(e)
 
@@ -65,7 +65,7 @@ export function useTrackPlayerControls() {
 
 	const pause = useCallback(async () => {
 		try {
-			await trackPlayerService.pause()
+			await trackPlayer.pause()
 		} catch (e) {
 			console.error(e)
 
@@ -77,7 +77,7 @@ export function useTrackPlayerControls() {
 
 	const stop = useCallback(async () => {
 		try {
-			await trackPlayerService.stop()
+			await trackPlayer.stop()
 		} catch (e) {
 			console.error(e)
 
@@ -89,7 +89,7 @@ export function useTrackPlayerControls() {
 
 	const clear = useCallback(async () => {
 		try {
-			await trackPlayerService.clear()
+			await trackPlayer.clear()
 		} catch (e) {
 			console.error(e)
 
@@ -101,7 +101,7 @@ export function useTrackPlayerControls() {
 
 	const setPlaybackSpeed = useCallback(async (speed: number) => {
 		try {
-			await trackPlayerService.setPlaybackSpeed(speed)
+			await trackPlayer.setPlaybackSpeed(speed)
 		} catch (e) {
 			console.error(e)
 
@@ -113,7 +113,7 @@ export function useTrackPlayerControls() {
 
 	const setVolume = useCallback(async (volume: number) => {
 		try {
-			await trackPlayerService.setVolume(volume)
+			await trackPlayer.setVolume(volume)
 		} catch (e) {
 			console.error(e)
 
@@ -125,7 +125,7 @@ export function useTrackPlayerControls() {
 
 	const shuffle = useCallback(async () => {
 		try {
-			await trackPlayerService.shuffle()
+			await trackPlayer.shuffle()
 		} catch (e) {
 			console.error(e)
 
@@ -148,7 +148,7 @@ export function useTrackPlayerControls() {
 			startingTrackStartTimeMs?: number
 		}) => {
 			try {
-				await trackPlayerService.setQueue({
+				await trackPlayer.setQueue({
 					queue,
 					startingTrackIndex,
 					autoPlay,
@@ -167,7 +167,7 @@ export function useTrackPlayerControls() {
 
 	const getQueue = useCallback(async () => {
 		try {
-			return trackPlayerService.getQueue()
+			return trackPlayer.getQueue()
 		} catch {
 			return []
 		}

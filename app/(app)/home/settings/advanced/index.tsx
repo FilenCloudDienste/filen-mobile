@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query"
 import paths from "@/lib/paths"
 import * as FileSystem from "expo-file-system/next"
 import sqlite from "@/lib/sqlite"
-import trackPlayerService from "@/lib/trackPlayer"
+import trackPlayer from "@/lib/trackPlayer"
 import { useTranslation } from "react-i18next"
 
 export const Advanced = memo(() => {
@@ -149,7 +149,7 @@ export const Advanced = memo(() => {
 
 		try {
 			paths.clearTrackPlayer()
-			trackPlayerService.clearState()
+			trackPlayer.clearState()
 
 			await refetch()
 		} catch (e) {

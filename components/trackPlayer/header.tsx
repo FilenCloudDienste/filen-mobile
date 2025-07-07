@@ -14,7 +14,7 @@ import { randomUUID } from "expo-crypto"
 import queryUtils from "@/queries/utils"
 import { useLocalSearchParams } from "expo-router"
 import driveService from "@/services/drive.service"
-import { type TrackMetadata, trackPlayerService } from "@/lib/trackPlayer"
+import { type TrackMetadata, trackPlayer } from "@/lib/trackPlayer"
 import assets from "@/lib/assets"
 import mmkvInstance from "@/lib/mmkv"
 import { useShallow } from "zustand/shallow"
@@ -181,7 +181,7 @@ export const Header = memo(() => {
 			await trackPlayerControls.clear()
 			await trackPlayerControls.setQueue({
 				queue: playlist.files.map(file => {
-					const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
+					const metadata = mmkvInstance.getString(trackPlayer.getTrackMetadataKeyFromUUID(file.uuid))
 					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 					return {
