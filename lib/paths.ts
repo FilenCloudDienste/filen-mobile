@@ -1,9 +1,10 @@
 import * as FileSystem from "expo-file-system/next"
 import cache from "./cache"
+import { Platform } from "react-native"
 
 export const PREFIX: string = "filenv3_"
 export const THUMBNAILS_VERSION: number = 1
-export const BASE_DIR: string = FileSystem.Paths.document.uri // TODO: FileSystem.Paths.appleSharedContainers["group.io.filen.app"]?.uri
+export const BASE_DIR: string = FileSystem.Paths.document.uri
 export const TEMPORARY_DOWNLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}temporaryDownloads`)
 export const TEMPORARY_UPLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}temporaryUploads`)
 export const THUMBNAILS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}thumbnails_v${THUMBNAILS_VERSION}`)
@@ -246,6 +247,14 @@ export class Paths {
 		this.created.trackPlayerPictures = true
 
 		return TRACK_PLAYER_PICTURES_BASE_PATH
+	}
+
+	public fileProviderAuthFile(): string {
+		if (Platform.OS === "ios") {
+			return FileSystem.Paths.join(FileSystem.Paths.appleSharedContainers["group.io.filen.app"]?.uri ?? BASE_DIR, "auth.json")
+		}
+
+		return FileSystem.Paths.join(BASE_DIR, "auth.json")
 	}
 }
 

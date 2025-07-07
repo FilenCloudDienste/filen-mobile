@@ -7,12 +7,24 @@ import { useRouter } from "expo-router"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import { useTranslation } from "react-i18next"
 import { Platform } from "react-native"
+import { useQuery } from "@tanstack/react-query"
+import fileProvider from "@/lib/fileProvider"
+import { getSDKConfig } from "@/lib/auth"
+import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
+import alerts from "@/lib/alerts"
+import { getBiometricAuth, clearBiometricAuth } from "@/app/(app)/home/settings/security"
+import { alertPrompt } from "@/components/prompts/alertPrompt"
 
 export const Settings = memo(() => {
 	const router = useRouter()
 	const { t } = useTranslation()
 
 	const account = useAccountQuery({})
+
+	const { refetch: fileProviderEnabledQueryRefetch, data: fileProviderEnabledQueryData } = useQuery({
+		queryKey: ["fileProviderEnabledQuery"],
+		queryFn: () => fileProvider.enabled()
+	})
 
 	const avatarSource = useMemo(() => {
 		if (account.status !== "success" || !account.data.account.avatarURL || !account.data.account.avatarURL.startsWith("https://")) {
@@ -67,6 +79,50 @@ export const Settings = memo(() => {
 			})
 		}, 1)
 	}, [router])
+
+	const onChangeFileProvider = useCallback(
+		async (value: boolean) => {
+			fullScreenLoadingModal.show()
+
+			try {
+				if (value) {
+					if (getBiometricAuth()?.enabled) {
+						const fileProviderPrompt = await alertPrompt({
+							title: Platform.select({
+								ios: t("settings.index.prompts.fileProvider.title"),
+								default: t("settings.index.prompts.fileProvider.title")
+							}),
+							message: Platform.select({
+								ios: t("settings.index.prompts.documentsProvider.message"),
+								default: t("settings.index.prompts.documentsProvider.message")
+							})
+						})
+
+						if (fileProviderPrompt.cancelled) {
+							return
+						}
+					}
+
+					clearBiometricAuth()
+
+					fileProvider.enable(getSDKConfig())
+				} else {
+					fileProvider.disable()
+				}
+
+				await fileProviderEnabledQueryRefetch()
+			} catch (e) {
+				console.error(e)
+
+				if (e instanceof Error) {
+					alerts.error(e.message)
+				}
+			} finally {
+				fullScreenLoadingModal.hide()
+			}
+		},
+		[fileProviderEnabledQueryRefetch, t]
+	)
 
 	const items = useMemo(() => {
 		return [
@@ -140,7 +196,12 @@ export const Settings = memo(() => {
 						className="bg-purple-500"
 					/>
 				),
-				rightView: <Toggle value={false} />
+				rightView: (
+					<Toggle
+						value={fileProviderEnabledQueryData ?? false}
+						onValueChange={onChangeFileProvider}
+					/>
+				)
 			},
 			"gap-2",
 			{
@@ -178,7 +239,9 @@ export const Settings = memo(() => {
 		onPressEvents,
 		onPressContacts,
 		onPressAdvanced,
-		onPressCameraUpload
+		onPressCameraUpload,
+		fileProviderEnabledQueryData,
+		onChangeFileProvider
 	])
 
 	return (

@@ -66,9 +66,7 @@ export default function RootLayout() {
 			.then(() => {
 				setSetupDone(true)
 
-				setTimeout(() => {
-					SplashScreen.hideAsync().catch(console.error)
-				}, 1000)
+				SplashScreen.hideAsync().catch(console.error)
 			})
 			.catch(console.error)
 	}, [])

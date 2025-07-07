@@ -10,6 +10,7 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { ratePasswordStrength } from "@/lib/utils"
 import { logout } from "@/lib/auth"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
+import mmkvInstance from "@/lib/mmkv"
 
 export type BiometricAuth = {
 	enabled: boolean
@@ -24,6 +25,44 @@ export type BiometricAuth = {
 
 export const BIOMETRIC_AUTH_KEY = "biometricAuth"
 export const BIOMETRIC_MAX_TRIES = 10
+
+export function getBiometricAuth(): BiometricAuth | null {
+	try {
+		const biometricAuth = JSON.parse(mmkvInstance.getString(BIOMETRIC_AUTH_KEY) ?? "{}") as BiometricAuth
+
+		if (biometricAuth) {
+			return biometricAuth
+		}
+
+		return null
+	} catch {
+		return null
+	}
+}
+
+export function setBiometricAuth(biometricAuth: BiometricAuth): void {
+	try {
+		mmkvInstance.set(BIOMETRIC_AUTH_KEY, JSON.stringify(biometricAuth))
+	} catch (e) {
+		console.error(e)
+
+		if (e instanceof Error) {
+			alerts.error(e.message)
+		}
+	}
+}
+
+export function clearBiometricAuth(): void {
+	try {
+		mmkvInstance.delete(BIOMETRIC_AUTH_KEY)
+	} catch (e) {
+		console.error(e)
+
+		if (e instanceof Error) {
+			alerts.error(e.message)
+		}
+	}
+}
 
 export const Security = memo(() => {
 	const router = useRouter()

@@ -744,16 +744,34 @@
 					"title": "Setup fallback PIN",
 					"placeholder": "Fallback PIN"
 				},
+				"enableConfirm": {
+					"title": "Confirm fallback PIN",
+					"placeholder": "Confirm PIN"
+				},
 				"disable": {
 					"title": "Disable biometric authentication",
 					"message": "Are you sure you want to disable biometric authentication?"
+				},
+				"fileProvider": {
+					"title": "File provider enabled",
+					"message": "Enabling biometric authentication will disable the file provider. This means you will not be able to access your files in other apps using the Filen file provider. Do you want to continue?"
+				},
+				"documentsProvider": {
+					"title": "Documents provider enabled",
+					"message": "Enabling biometric authentication will disable the documents provider. This means you will not be able to access your files in other apps using the Filen documents provider. Do you want to continue?"
 				}
+			},
+			"errors": {
+				"pinTooShort": "The fallback PIN must be at least 4 digits long.",
+				"pinTooLong": "The fallback PIN must not be longer than 128 digits.",
+				"pinNotMatching": "The fallback PINs do not match.",
+				"biometricAuthNotAvailable": "Biometric authentication is not available on this device. Please enable PIN only authentication or use a device with biometric authentication support."
 			}
 		},
 		"security": {
 			"title": "Security",
 			"items": {
-				"changePassword": "Chnage password",
+				"changePassword": "Change password",
 				"2fa": "Two Factor Authentication",
 				"biometricAuth": "Biometric authentication"
 			},
@@ -883,6 +901,16 @@
 				"documentsProviderInfo": "Enable the Android Files integration to access your files outside of the app.",
 				"contacts": "Contacts",
 				"advanced": "Advanced"
+			},
+			"prompts": {
+				"fileProvider": {
+					"title": "Biometric authentication enabled",
+					"message": "Enabling the file provider will disable biometric authentication. This means you will not be able to use biometric authentication to unlock the app. Do you want to continue?"
+				},
+				"documentsProvider": {
+					"title": "Biometric authentication enabled",
+					"message": "Enabling the documents provider will disable biometric authentication. This means you will not be able to use biometric authentication to unlock the app. Do you want to continue?"
+				}
 			}
 		},
 		"personal": {
