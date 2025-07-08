@@ -31,6 +31,7 @@ import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 import { Text } from "@/components/nativewindui/Text"
+import { cn } from "@/lib/cn"
 
 export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConversation; isPreview: boolean; inputHeight: number }) => {
 	const headerHeight = useHeaderHeight()
@@ -234,7 +235,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const listEmpty = useMemo(() => {
 		return (
 			<View
-				className="flex-1 flex-col gap-2 px-4"
+				className={cn("flex-1 flex-col gap-2 px-4", isPreview && "py-4")}
 				style={{
 					transform: [
 						{
@@ -245,7 +246,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 			>
 				<Text variant="heading">End-to-end encrypted chat</Text>
 				<Text variant="subhead">Filen secures every chat with zero-knowledge end-to-end encryption by default.</Text>
-				{chatMessagesQuery.status === "pending" && (
+				{chatMessagesQuery.status === "pending" && !isPreview && (
 					<ActivityIndicator
 						size="small"
 						color={colors.foreground}
@@ -253,7 +254,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 				)}
 			</View>
 		)
-	}, [chatMessagesQuery.status, colors.foreground])
+	}, [chatMessagesQuery.status, colors.foreground, isPreview])
 
 	return (
 		<Fragment>

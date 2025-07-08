@@ -18,6 +18,7 @@ import { type TextEditorItem } from "@/components/textEditor/editor"
 import { type PDFPreviewItem } from "@/app/pdfPreview"
 import { type DOCXPreviewItem } from "@/app/docxPreview"
 import { useTranslation } from "react-i18next"
+import queryUtils from "@/queries/utils"
 
 export const ICON_HEIGHT: number = 44
 
@@ -71,6 +72,46 @@ export const Item = memo(
 
 		const onPress = useCallback(() => {
 			if (item.type === "directory") {
+				if (!hasInternet) {
+					const cachedContent = queryUtils.useCloudItemsQueryGet(
+						type === "links"
+							? {
+									of: "links",
+									parent: item.uuid,
+									receiverId: item.isShared ? item.receiverId : 0
+							  }
+							: type === "sharedOut"
+							? {
+									of: "sharedOut",
+									parent: item.uuid,
+									receiverId: item.isShared ? item.receiverId : 0
+							  }
+							: type === "sharedIn"
+							? {
+									of: "sharedIn",
+									parent: item.uuid,
+									receiverId: item.isShared ? item.receiverId : 0
+							  }
+							: type === "offline"
+							? {
+									of: "offline",
+									parent: item.uuid,
+									receiverId: item.isShared ? item.receiverId : 0
+							  }
+							: {
+									of: "drive",
+									parent: item.uuid,
+									receiverId: item.isShared ? item.receiverId : 0
+							  }
+					)
+
+					if (!cachedContent) {
+						alerts.error(t("errors.youAreOffline"))
+
+						return
+					}
+				}
+
 				if (type === "links") {
 					routerPush({
 						pathname: "/(app)/home/links/[uuid]",

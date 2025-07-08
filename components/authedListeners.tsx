@@ -29,7 +29,7 @@ export const AuthedListeners = memo(() => {
 			const now = Date.now()
 
 			if (nextAppState === "active" && now > nextCameraUploadRunRef.current) {
-				nextCameraUploadRunRef.current = now + 60000
+				nextCameraUploadRunRef.current = now + 5000
 
 				foregroundCameraUpload.run().catch(console.error)
 			}

@@ -25,6 +25,7 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import cache from "@/lib/cache"
 import { useTranslation } from "react-i18next"
+import queryUtils from "@/queries/utils"
 
 export type ListItemInfo = {
 	title: string
@@ -190,6 +191,46 @@ export const ListItem = memo(
 			if (info.item.item.type === "directory") {
 				if (pathname.startsWith("/home/trash")) {
 					return
+				}
+
+				if (!hasInternet) {
+					const cachedContent = queryUtils.useCloudItemsQueryGet(
+						pathname.startsWith("/home/links")
+							? {
+									of: "links",
+									parent: info.item.item.uuid,
+									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
+							  }
+							: pathname.startsWith("/home/sharedOut")
+							? {
+									of: "sharedOut",
+									parent: info.item.item.uuid,
+									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
+							  }
+							: pathname.startsWith("/home/sharedIn")
+							? {
+									of: "sharedIn",
+									parent: info.item.item.uuid,
+									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
+							  }
+							: pathname.startsWith("/home/offline")
+							? {
+									of: "offline",
+									parent: info.item.item.uuid,
+									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
+							  }
+							: {
+									of: "drive",
+									parent: info.item.item.uuid,
+									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
+							  }
+					)
+
+					if (!cachedContent) {
+						alerts.error(t("errors.youAreOffline"))
+
+						return
+					}
 				}
 
 				events.emit("hideSearchBar", {
