@@ -9,11 +9,11 @@ import { useTranslation } from "react-i18next"
 import { Platform } from "react-native"
 import { useQuery } from "@tanstack/react-query"
 import fileProvider from "@/lib/fileProvider"
-import { getSDKConfig } from "@/lib/auth"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import { getBiometricAuth, clearBiometricAuth } from "@/app/(app)/home/settings/security"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
+import authService from "@/services/auth.service"
 
 export const Settings = memo(() => {
 	const router = useRouter()
@@ -105,7 +105,7 @@ export const Settings = memo(() => {
 
 					clearBiometricAuth()
 
-					fileProvider.enable(getSDKConfig())
+					fileProvider.enable(authService.getSDKConfig())
 				} else {
 					fileProvider.disable()
 				}

@@ -2,7 +2,7 @@ import { type Note, type NoteType, type NoteTag } from "@filen/sdk/dist/types/ap
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import queryUtils from "@/queries/utils"
-import { getSDKConfig } from "@/lib/auth"
+import authService from "./auth.service"
 import alerts from "@/lib/alerts"
 import * as FileSystem from "expo-file-system/next"
 import * as Sharing from "expo-sharing"
@@ -56,7 +56,7 @@ export class NotesService {
 					...prev,
 					type: newType,
 					editedTimestamp: Date.now(),
-					editorId: getSDKConfig().userId
+					editorId: authService.getSDKConfig().userId
 				})
 			})
 		} finally {
@@ -163,7 +163,7 @@ export class NotesService {
 						archive: false,
 						participants: [],
 						tags: [],
-						ownerId: getSDKConfig().userId,
+						ownerId: authService.getSDKConfig().userId,
 						isOwner: true,
 						createdTimestamp: Date.now(),
 						uuid: newUUID
@@ -542,7 +542,7 @@ export class NotesService {
 		try {
 			await nodeWorker.proxy("removeNoteParticipant", {
 				uuid: note.uuid,
-				userId: userId ?? getSDKConfig().userId
+				userId: userId ?? authService.getSDKConfig().userId
 			})
 
 			queryUtils.useNotesQuerySet({

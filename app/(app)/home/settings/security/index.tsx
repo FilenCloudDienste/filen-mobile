@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next"
 import alerts from "@/lib/alerts"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { ratePasswordStrength } from "@/lib/utils"
-import { logout } from "@/lib/auth"
+import authService from "@/services/auth.service"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import mmkvInstance from "@/lib/mmkv"
 
@@ -179,9 +179,10 @@ export const Security = memo(() => {
 				newPassword: request.newPassword
 			})
 
-			await account.refetch()
-
-			logout()
+			await authService.logout({
+				disableAlertPrompt: true,
+				disableLoader: true
+			})
 
 			router.replace({
 				pathname: "/(auth)"
@@ -195,7 +196,7 @@ export const Security = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [account, t, router])
+	}, [t, router])
 
 	const openTwoFactorAuthentication = useCallback(() => {
 		router.push({

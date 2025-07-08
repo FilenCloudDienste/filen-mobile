@@ -2,7 +2,7 @@ import * as ExpoBackgroundTask from "expo-background-task"
 import * as ExpoTaskManager from "expo-task-manager"
 import { backgroundCameraUpload } from "./cameraUpload"
 import { BACKGROUND_TASK_IDENTIFIER } from "./constants"
-import setup from "./setup"
+import authService from "@/services/auth.service"
 
 export async function registerBackgroundTask() {
 	const status = await ExpoBackgroundTask.getStatusAsync()
@@ -33,7 +33,7 @@ ExpoTaskManager.defineTask(BACKGROUND_TASK_IDENTIFIER, async () => {
 		}, 1000 * 25)
 
 		try {
-			const { isAuthed } = await setup({
+			const { isAuthed } = await authService.setup({
 				background: true
 			})
 

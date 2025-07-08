@@ -4,7 +4,7 @@ import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { t } from "@/lib/i18n"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
-import { getSDKConfig } from "@/lib/auth"
+import authService from "./auth.service"
 import queryUtils from "@/queries/utils"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 
@@ -40,7 +40,7 @@ export class ChatsService {
 		try {
 			await nodeWorker.proxy("removeChatParticipant", {
 				conversation: chat.uuid,
-				userId: userId ?? getSDKConfig().userId
+				userId: userId ?? authService.getSDKConfig().userId
 			})
 
 			queryUtils.useChatsQuerySet({

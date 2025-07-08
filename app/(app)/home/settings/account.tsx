@@ -19,7 +19,7 @@ import * as FileSystem from "expo-file-system/next"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import * as Sharing from "expo-sharing"
-import { logout as logoutFn } from "@/lib/auth"
+import authService from "@/services/auth.service"
 
 export const Account = memo(() => {
 	const router = useRouter()
@@ -504,21 +504,20 @@ export const Account = memo(() => {
 	}, [account, t])
 
 	const logout = useCallback(async () => {
-		const alertPromptResponse = await alertPrompt({
-			title: t("settings.account.prompts.logout.title"),
-			message: t("settings.account.prompts.logout.message")
-		})
+		try {
+			await authService.logout({})
 
-		if (alertPromptResponse.cancelled) {
-			return
+			router.replace({
+				pathname: "/(auth)"
+			})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
 		}
-
-		logoutFn()
-
-		router.replace({
-			pathname: "/(auth)"
-		})
-	}, [router, t])
+	}, [router])
 
 	const items = useMemo(() => {
 		return [

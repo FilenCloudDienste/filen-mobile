@@ -7,7 +7,7 @@ import { ThemeProvider as NavThemeProvider } from "@react-navigation/native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { NAV_THEME } from "@/theme"
 import useIsAuthed from "@/hooks/useIsAuthed"
-import setup from "@/lib/setup"
+import authService from "@/services/auth.service"
 import { PortalHost } from "@rn-primitives/portal"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { KeyboardProvider } from "react-native-keyboard-controller"
@@ -62,7 +62,7 @@ export default function RootLayout() {
 	}, [isAuthed])
 
 	useEffect(() => {
-		Promise.all([setup(), restoreQueries()])
+		Promise.all([authService.setup(), restoreQueries()])
 			.then(() => {
 				setSetupDone(true)
 

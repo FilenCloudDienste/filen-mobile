@@ -8,7 +8,7 @@ import { orderItemsByType, promiseAllChunked } from "@/lib/utils"
 import { validate as validateUUID } from "uuid"
 import { Type, type Static } from "@sinclair/typebox"
 import { Value } from "@sinclair/typebox/value"
-import { getSDKConfig } from "@/lib/auth"
+import authService from "@/services/auth.service"
 import * as FileSystem from "expo-file-system/next"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
@@ -41,7 +41,7 @@ export type Playlist = Static<typeof PlaylistSchema>
 export type PlaylistFile = Static<typeof PlaylistFileSchema>
 
 export async function findPlaylistDirectoryUUID(): Promise<string> {
-	const { baseFolderUUID } = getSDKConfig()
+	const { baseFolderUUID } = authService.getSDKConfig()
 
 	if (!baseFolderUUID) {
 		throw new Error("Base folder UUID is not set.")

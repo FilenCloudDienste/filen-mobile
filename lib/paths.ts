@@ -45,6 +45,16 @@ export class Paths {
 		trackPlayerPictures: false
 	}
 
+	public clearDb(): void {
+		const dbDir = new FileSystem.Directory(DB_BASE_PATH)
+
+		this.created.db = false
+
+		if (dbDir.exists) {
+			dbDir.delete()
+		}
+	}
+
 	public clearTempDirectories(): void {
 		const tempDownloads = new FileSystem.Directory(TEMPORARY_DOWNLOADS_BASE_PATH)
 		const tempUploads = new FileSystem.Directory(TEMPORARY_UPLOADS_BASE_PATH)
