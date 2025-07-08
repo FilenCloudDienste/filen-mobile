@@ -287,7 +287,7 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 
 									assetFile.copy(tmpFile)
 
-									if (!tmpFile.size) {
+									if (!tmpFile.size || !tmpFile.exists) {
 										throw new Error(`Could not get size of file at "${tmpFile.uri}".`)
 									}
 
