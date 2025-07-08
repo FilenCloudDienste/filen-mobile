@@ -82,7 +82,10 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 					className="flex-1 absolute top-0 left-0 right-0 bottom-0 z-50 bg-background items-center justify-center"
 					style={style}
 				>
-					<ActivityIndicator color={colors.foreground} />
+					<ActivityIndicator
+						color={colors.foreground}
+						size="small"
+					/>
 				</Animated.View>
 			) : (
 				<Fragment>
@@ -92,7 +95,10 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 							className="flex-1 absolute top-0 left-0 right-0 bottom-0 z-50 bg-background items-center justify-center"
 							style={style}
 						>
-							<ActivityIndicator color={colors.foreground} />
+							<ActivityIndicator
+								color={colors.foreground}
+								size="small"
+							/>
 						</Animated.View>
 					)}
 					{error && (
@@ -101,7 +107,10 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 							className="flex-1 absolute top-0 left-0 right-0 bottom-0 z-50 bg-background items-center justify-center"
 							style={style}
 						>
-							<ActivityIndicator color={colors.foreground} />
+							<ActivityIndicator
+								color={colors.foreground}
+								size="small"
+							/>
 						</Animated.View>
 					)}
 					{!error && (

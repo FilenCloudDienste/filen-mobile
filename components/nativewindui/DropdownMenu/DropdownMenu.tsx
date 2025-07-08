@@ -188,7 +188,7 @@ export const DropdownMenuInnerContent = memo(({ items }: { items: (DropdownItem 
 								androidRootClassName="rounded-none "
 							>
 								<Text className="font-normal opacity-60">{materialLoadingText}</Text>
-								<ActivityIndicator />
+								<ActivityIndicator size="small" />
 							</Button>
 						</DropdownMenuPrimitive.Item>
 					)

@@ -389,7 +389,10 @@ export const Item = memo(
 								className="flex-1 bg-background flex-row items-center justify-center"
 								style={fullScreenStyle}
 							>
-								<ActivityIndicator color={colors.foreground} />
+								<ActivityIndicator
+									color={colors.foreground}
+									size="small"
+								/>
 							</View>
 						)}
 					</GestureDetector>

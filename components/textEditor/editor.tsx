@@ -280,7 +280,10 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				>
 					{query.status !== "success" ? (
 						<View className="flex-1 items-center justify-center">
-							<ActivityIndicator color={colors.foreground} />
+							<ActivityIndicator
+								color={colors.foreground}
+								size="small"
+							/>
 						</View>
 					) : (
 						<KeyboardAvoidingView

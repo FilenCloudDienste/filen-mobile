@@ -340,40 +340,33 @@ export const Home = memo(() => {
 	}, [refreshing, onRefresh])
 
 	const items = useMemo(() => {
-		return [
-			"recents",
-			...(hasInternet ? ["favorites"] : []),
-			...(hasInternet ? ["links"] : []),
-			"sharedIn",
-			...(hasInternet ? ["sharedOut"] : []),
-			"offline",
-			...(hasInternet ? ["trash"] : []),
-			"bottom"
-		].map(type => {
-			return (
-				<Item
-					key={type}
-					type={type as unknown as ItemType}
-					items={
-						type === "recents"
-							? recentsItems
-							: type === "favorites"
-							? favoritesItems
-							: type === "links"
-							? linksItems
-							: type === "sharedIn"
-							? sharedInItems
-							: type === "sharedOut"
-							? sharedOutItems
-							: type === "offline"
-							? offlineItems
-							: type === "trash"
-							? trashItems
-							: []
-					}
-				/>
-			)
-		})
+		return ["recents", "favorites", "links", "sharedIn", "sharedOut", "offline", ...(hasInternet ? ["trash"] : []), "bottom"].map(
+			type => {
+				return (
+					<Item
+						key={type}
+						type={type as unknown as ItemType}
+						items={
+							type === "recents"
+								? recentsItems
+								: type === "favorites"
+								? favoritesItems
+								: type === "links"
+								? linksItems
+								: type === "sharedIn"
+								? sharedInItems
+								: type === "sharedOut"
+								? sharedOutItems
+								: type === "offline"
+								? offlineItems
+								: type === "trash"
+								? trashItems
+								: []
+						}
+					/>
+				)
+			}
+		)
 	}, [hasInternet, recentsItems, favoritesItems, linksItems, sharedInItems, sharedOutItems, offlineItems, trashItems])
 
 	return (
@@ -388,7 +381,10 @@ export const Home = memo(() => {
 			<Container>
 				{!loadDone ? (
 					<View className="flex-1 flex-row items-center justify-center">
-						<ActivityIndicator color={colors.foreground} />
+						<ActivityIndicator
+							color={colors.foreground}
+							size="small"
+						/>
 					</View>
 				) : (
 					<ScrollView

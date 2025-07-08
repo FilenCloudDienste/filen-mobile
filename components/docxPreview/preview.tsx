@@ -68,7 +68,10 @@ export const Preview = memo(({ item }: { item: DOCXPreviewItem }) => {
 					</View>
 				) : (
 					<View className="flex-1 items-center justify-center bg-white">
-						<ActivityIndicator color="black" />
+						<ActivityIndicator
+							color="black"
+							size="small"
+						/>
 					</View>
 				)}
 			</Container>
