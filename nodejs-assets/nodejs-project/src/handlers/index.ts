@@ -128,8 +128,10 @@ import {
 	unblockContact,
 	fetchContacts
 } from "./contacts"
+import { restartHTTPServer } from "./http"
 
 export {
+	restartHTTPServer,
 	ping,
 	login,
 	reinitSDK,

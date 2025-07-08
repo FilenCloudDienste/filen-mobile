@@ -293,6 +293,7 @@ export class NodeWorker {
 	}
 
 	public handlers = {
+		restartHTTPServer: handlers.restartHTTPServer.bind(this),
 		ping: handlers.ping.bind(this),
 		login: handlers.login.bind(this),
 		reinitSDK: handlers.reinitSDK.bind(this),
