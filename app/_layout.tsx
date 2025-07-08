@@ -119,6 +119,10 @@ export default function RootLayout() {
 														options={SCREEN_OPTIONS.modal}
 													/>
 													<Stack.Screen
+														name="noteParticipants"
+														options={SCREEN_OPTIONS.modal}
+													/>
+													<Stack.Screen
 														name="textEditor"
 														options={SCREEN_OPTIONS.base}
 													/>

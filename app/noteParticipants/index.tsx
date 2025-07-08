@@ -24,6 +24,7 @@ import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import ListEmpty from "@/components/listEmpty"
 import { useTranslation } from "react-i18next"
+import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 
 export type ListItemInfo = {
 	title: string
@@ -276,6 +277,10 @@ export default function Participants() {
 	}, [addParticipant, colors.primary])
 
 	const listFooter = useMemo(() => {
+		if (participants.length === 0) {
+			return undefined
+		}
+
 		return (
 			<View className="h-16 flex-row items-center justify-center">
 				<Text className="text-sm">
@@ -352,17 +357,37 @@ export default function Participants() {
 		}
 	}, [])
 
+	const header = useMemo(() => {
+		return Platform.OS === "ios" ? (
+			<AdaptiveSearchHeader
+				iosTitle={t("notes.participants.title")}
+				iosIsLargeTitle={false}
+				iosBackButtonMenuEnabled={true}
+				backgroundColor={colors.card}
+				backVisible={true}
+				iosBackVisible={true}
+				iosBackButtonTitleVisible={true}
+				iosBlurEffect="systemChromeMaterial"
+				rightView={headerRightView}
+			/>
+		) : (
+			<LargeTitleHeader
+				title={t("notes.participants.title")}
+				materialPreset="inline"
+				backVisible={true}
+				backgroundColor={colors.card}
+				rightView={headerRightView}
+			/>
+		)
+	}, [colors.card, t, headerRightView])
+
 	if (!note) {
 		return <Redirect href="/notes" />
 	}
 
 	return (
 		<RequireInternet>
-			<LargeTitleHeader
-				title={t("notes.participants.title")}
-				iosBlurEffect="systemChromeMaterial"
-				rightView={headerRightView}
-			/>
+			{header}
 			<Container>
 				<List
 					contentContainerClassName="pb-20"
