@@ -11,7 +11,7 @@ import { AudioPro } from "./audioPro"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import assets from "./assets"
 import download from "@/lib/download"
-import { getAudioMetadata } from "@missingcore/audio-metadata"
+import { parseWebStream, selectCover } from "music-metadata"
 
 export type AudioProTrackExtended = AudioProTrack & {
 	file: {
@@ -472,6 +472,60 @@ export class TrackPlayer {
 		}
 	}
 
+	public async parseAudioMetadata({ uri, uuid }: { uri: string; uuid: string }): Promise<TrackMetadata | null> {
+		try {
+			const existingMetadata = mmkvInstance.getString(this.getTrackMetadataKeyFromUUID(uuid))
+
+			if (existingMetadata) {
+				return JSON.parse(existingMetadata) as TrackMetadata
+			}
+
+			const file = new FileSystem.File(normalizeFilePathForExpo(uri))
+
+			if (!file.exists) {
+				return null
+			}
+
+			const { common } = await parseWebStream(file.readableStream(), {
+				size: file.size ?? undefined,
+				mimeType: file.type ?? undefined
+			})
+
+			const cover = selectCover(common?.picture)
+			let coverURI: string | undefined = undefined
+
+			if (cover) {
+				const fileExtension = mimeTypes.extension(cover.format) ?? "jpg"
+				const destination = new FileSystem.File(FileSystem.Paths.join(paths.trackPlayerPictures(), `${uuid}.${fileExtension}`))
+
+				if (!destination.exists) {
+					destination.create()
+					destination.write(cover.data)
+				} else {
+					destination.delete()
+				}
+
+				coverURI = destination.uri
+			}
+
+			const metadata: TrackMetadata = {
+				artist: common?.artist,
+				album: common?.album,
+				title: common?.title,
+				year: common?.year,
+				picture: coverURI
+			} satisfies TrackMetadata
+
+			mmkvInstance.set(this.getTrackMetadataKeyFromUUID(uuid), JSON.stringify(metadata))
+
+			return metadata
+		} catch (e) {
+			console.error(e)
+
+			return null
+		}
+	}
+
 	public async playTrack({
 		track,
 		autoPlay,
@@ -519,99 +573,29 @@ export class TrackPlayer {
 				})
 			}
 
-			const meta = mmkvInstance.getString(this.getTrackMetadataKeyFromUUID(track.file.uuid))
-			const metadata = meta
-				? (JSON.parse(meta) as TrackMetadata)
-				: await new Promise<TrackMetadata>(resolve => {
-						getAudioMetadata(normalizeFilePathForExpo(destination.uri), ["album", "artist", "name", "track", "year", "artwork"])
-							.then(result => {
-								if (result.metadata.album || result.metadata.artist || result.metadata.name || result.metadata.year) {
-									const meta: TrackMetadata = {
-										artist: result.metadata.artist,
-										album: result.metadata.album,
-										title: result.metadata.name,
-										year: result.metadata.year,
-										picture: undefined
-									} satisfies TrackMetadata
-
-									if (result.metadata.artwork) {
-										const [header, base64String] = result.metadata.artwork.split(",")
-
-										if (header && base64String) {
-											const mimeTypeMatch = header.match(/data:([^;]+)/)
-											const mimeType = mimeTypeMatch && mimeTypeMatch[1] ? mimeTypeMatch[1] : ""
-
-											if (mimeType.length > 0) {
-												const fileExtension = mimeTypes.extension(mimeType)
-
-												if (fileExtension) {
-													const destination = new FileSystem.File(
-														FileSystem.Paths.join(
-															paths.trackPlayerPictures(),
-															`${track.file.uuid}.${fileExtension}`
-														)
-													)
-
-													if (!destination.exists) {
-														destination.write(new Uint8Array(Buffer.from(base64String, "base64")))
-													}
-
-													meta.picture = destination.uri
-												}
-											}
-										}
-									}
-
-									mmkvInstance.set(this.getTrackMetadataKeyFromUUID(track.file.uuid), JSON.stringify(meta))
-
-									resolve(meta)
-
-									return
-								}
-
-								resolve({
-									artist: undefined,
-									album: undefined,
-									title: undefined,
-									year: undefined,
-									picture: undefined
-								} satisfies TrackMetadata)
-							})
-							.catch(err => {
-								console.error(err)
-
-								resolve({
-									artist: undefined,
-									album: undefined,
-									title: undefined,
-									year: undefined,
-									picture: undefined
-								} satisfies TrackMetadata)
-							})
-				  })
+			const metadata = await this.parseAudioMetadata({
+				uri: destination.uri,
+				uuid: track.file.uuid
+			})
 
 			await this.clearActiveStorage()
 
-			const artwork =
-				metadata.picture && new FileSystem.File(metadata.picture).exists ? metadata.picture : assets.uri.images.audio_fallback()
+			const fallbackPicture = assets.uri.images.audio_fallback()
 
-			if (artwork && metadata.picture && artwork !== metadata.picture) {
-				mmkvInstance.set(
-					this.getTrackMetadataKeyFromUUID(track.file.uuid),
-					JSON.stringify({
-						...metadata,
-						picture: artwork
-					})
-				)
+			if (!fallbackPicture) {
+				throw new Error("Fallback picture URI is not available")
 			}
 
 			return {
 				...track,
 				url: normalizeFilePathForExpo(destination.uri),
-				title: metadata.title ?? track.title,
-				artist: metadata.artist ?? track.artist,
-				album: metadata.album ?? track.album,
-				artwork: artwork ? normalizeFilePathForExpo(artwork) : track.artwork
+				title: metadata?.title ?? track.title,
+				artist: metadata?.artist ?? track.artist,
+				album: metadata?.album ?? track.album,
+				artwork:
+					metadata?.picture && new FileSystem.File(normalizeFilePathForExpo(metadata.picture)).exists
+						? normalizeFilePathForExpo(metadata.picture)
+						: normalizeFilePathForExpo(fallbackPicture)
 			} satisfies AudioProTrackExtended
 		} finally {
 			this.loadFileForTrackMutex.release()

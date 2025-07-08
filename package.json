@@ -138,6 +138,7 @@
 		"lodash": "^4.17.21",
 		"lucide-react-native": "^0.525.0",
 		"mime-types": "^3.0.1",
+		"music-metadata": "^11.6.0",
 		"nativewind": "^4.1.23",
 		"node-html-parser": "^7.0.1",
 		"node-libs-expo": "^0.0.3",
