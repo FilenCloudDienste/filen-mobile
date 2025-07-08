@@ -11,7 +11,7 @@ export type IconProps = ROIconProps<"material">
 export type MaterialSchemeOnlyIconProps = Omit<ROIconProps<"material">, "namingScheme">
 
 const containerBaseClassName = "flex-col gap-4 items-center justify-center py-[100px] px-16"
-const textBaseClassName = "text-sm text-center"
+const textBaseClassName = "text-sm text-center text-muted-foreground"
 
 export const ListEmpty = memo(
 	({
