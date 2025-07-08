@@ -50,7 +50,7 @@ export const ListHeader = memo(() => {
 								: tab === "offline"
 								? t("settings.contacts.tabs.offline")
 								: tab === "online"
-								? t("settings.contacts.tabs.offline")
+								? t("settings.contacts.tabs.online")
 								: tab === "pending"
 								? t("settings.contacts.tabs.pending")
 								: tab === "requests"
