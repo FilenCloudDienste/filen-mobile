@@ -47,7 +47,7 @@ export const TrackPlayer = memo(() => {
 				title: playlist.name,
 				subTitle: t("trackPlayer.item.subTitle", {
 					count: playlist.files.length,
-					updated: formatMessageDate(playlist.updated)
+					date: formatMessageDate(playlist.updated)
 				}),
 				playlist
 			})) satisfies ListItemInfo[]
