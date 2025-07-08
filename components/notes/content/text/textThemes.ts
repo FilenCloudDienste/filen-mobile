@@ -12,7 +12,7 @@ export function createTextThemes({ backgroundColor, textForegroundColor }: { bac
 			caret: "#007AFF", // iOS system blue
 			selection: "#007AFF40", // iOS blue with alpha
 			selectionMatch: "#007AFF40",
-			lineHighlight: "#F2F2F7", // iOS system gray 6
+			lineHighlight: "transparent", // iOS system gray 6
 			gutterBorder: "1px solid #C7C7CC", // iOS system gray 3
 			gutterBackground: "#FFFFFF",
 			gutterForeground: "#8E8E93", // iOS system gray
@@ -86,7 +86,7 @@ export function createTextThemes({ backgroundColor, textForegroundColor }: { bac
 			caret: "#0A84FF", // iOS dark mode blue
 			selection: "#0A84FF40", // iOS dark mode blue with alpha
 			selectionMatch: "#0A84FF40",
-			lineHighlight: "#2C2C2E", // iOS dark mode gray 6
+			lineHighlight: "transparent", // iOS dark mode gray 6
 			gutterBorder: "1px solid #3A3A3C", // iOS dark mode gray 5
 			gutterBackground: "transparent",
 			gutterForeground: "#8E8E93", // iOS system gray (unchanged in dark)
@@ -160,7 +160,7 @@ export function createTextThemes({ backgroundColor, textForegroundColor }: { bac
 			caret: "#6750A4", // Material Design 3 primary
 			selection: "#6750A433", // MD3 primary with alpha
 			selectionMatch: "#6750A433",
-			lineHighlight: "#F7F2FA", // MD3 surface variant
+			lineHighlight: "transparent", // MD3 surface variant
 			gutterBorder: "1px solid #CAC4D0", // MD3 outline
 			gutterBackground: "#FFFBFE", // MD3 surface
 			gutterForeground: "#49454F", // MD3 on surface variant
@@ -234,7 +234,7 @@ export function createTextThemes({ backgroundColor, textForegroundColor }: { bac
 			caret: "#D0BCFF", // Material Design 3 primary (dark)
 			selection: "#D0BCFF33", // MD3 primary (dark) with alpha
 			selectionMatch: "#D0BCFF33",
-			lineHighlight: "#322F37", // MD3 surface variant (dark)
+			lineHighlight: "transparent", // MD3 surface variant (dark)
 			gutterBorder: "1px solid #49454F", // MD3 outline (dark)
 			gutterBackground: "#1C1B1F", // MD3 surface (dark)
 			gutterForeground: "#CAC4D0", // MD3 on surface variant (dark)
