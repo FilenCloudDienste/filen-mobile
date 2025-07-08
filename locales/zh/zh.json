@@ -744,10 +744,28 @@
 					"title": "设置备用PIN",
 					"placeholder": "备用PIN"
 				},
+				"enableConfirm": {
+					"title": "确认备用PIN",
+					"placeholder": "确认PIN"
+				},
 				"disable": {
 					"title": "禁用生物识别验证",
 					"message": "您确定要禁用生物识别验证吗？"
-				}
+				},
+				"fileProvider": {
+					"title": "文件提供程序已启用",
+					"message": "启用生物识别认证将禁用文件提供程序。这意味着您将无法通过Filen文件提供程序在其他应用中访问您的文件。是否继续？"
+				},
+				"documentsProvider": {
+					"title": "文档提供程序已启用",
+					"message": "启用生物识别认证将禁用文档提供程序。这意味着您将无法通过Filen文档提供程序在其他应用中访问您的文件。是否继续？"
+			        }
+			},
+			"errors": {
+				"pinTooShort": "备用PIN必须至少为4位数字。",
+				"pinTooLong": "备用PIN不得超过128位数字。",
+				"pinNotMatching": "备用PIN不匹配。",
+				"biometricAuthNotAvailable": "此设备不支持生物识别认证。请启用仅PIN认证，或使用支持生物识别认证的设备。"
 			}
 		},
 		"security": {
@@ -883,6 +901,16 @@
 				"documentsProviderInfo": "启用Android文件集成以在应用外访问您的文件。",
 				"contacts": "联系人",
 				"advanced": "高级"
+			},
+			"prompts": {
+				"fileProvider": {
+					"title": "生物识别认证已启用",
+					"message": "启用文件提供程序将禁用生物识别认证。这意味着您将无法使用生物识别认证来解锁应用。是否继续？"
+				},
+				"documentsProvider": {
+					"title": "生物识别认证已启用",
+					"message": "启用文档提供程序将禁用生物识别认证。这意味着您将无法使用生物识别认证来解锁应用。是否继续？"
+				}
 			}
 		},
 		"personal": {
