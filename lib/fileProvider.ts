@@ -38,18 +38,12 @@ export class FileProvider {
 	public enable(sdkConfig: Required<FilenSDKConfig>): void {
 		this.write({
 			providerEnabled: true,
-			sdkConfig: sdkConfig
+			sdkConfig
 		} satisfies AuthFileSchema)
 	}
 
 	public write(data: AuthFileSchema): void {
 		const file = new FileSystem.File(paths.fileProviderAuthFile())
-
-		if (file.exists) {
-			file.delete()
-		} else {
-			file.create()
-		}
 
 		file.write(JSON.stringify(data))
 	}
