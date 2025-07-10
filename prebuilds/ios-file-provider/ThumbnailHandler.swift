@@ -3,13 +3,15 @@ import Foundation
 
 final class FetchThumbnailHandler: ThumbnailCallback {
 
-	private let perThumbnailCompletionHandler: (NSFileProviderItemIdentifier, Data?, Error?) -> Void
-	private let completionHandler: (Error?) -> Void
+	private let perThumbnailCompletionHandler:
+		@Sendable (NSFileProviderItemIdentifier, Data?, Error?) -> Void
+	private let completionHandler: @Sendable (Error?) -> Void
 	private let progress: Progress
 
 	init(
-		perThumbnailCompletionHandler: @escaping (NSFileProviderItemIdentifier, Data?, Error?) ->
-			Void, completionHandler: @escaping (Error?) -> Void, progress: Progress
+		perThumbnailCompletionHandler: @Sendable @escaping (
+			NSFileProviderItemIdentifier, Data?, Error?
+		) -> Void, completionHandler: @Sendable @escaping (Error?) -> Void, progress: Progress
 	) {
 		self.perThumbnailCompletionHandler = perThumbnailCompletionHandler
 		self.completionHandler = completionHandler
@@ -23,6 +25,7 @@ final class FetchThumbnailHandler: ThumbnailCallback {
 		case .ok(let path):
 			let data = try? Data(contentsOf: URL(fileURLWithPath: path))
 			self.perThumbnailCompletionHandler(NSFileProviderItemIdentifier(id), data, nil)
+		// todo
 		case .notFound:
 			self.perThumbnailCompletionHandler(
 				NSFileProviderItemIdentifier(id), nil, NSFileProviderError(.noSuchItem))
@@ -30,7 +33,8 @@ final class FetchThumbnailHandler: ThumbnailCallback {
 			self.perThumbnailCompletionHandler(NSFileProviderItemIdentifier(id), nil, nil)
 		case .err(let error):
 			print("Error fetching thumbnail for \(id): \(error)")
-			self.perThumbnailCompletionHandler(NSFileProviderItemIdentifier(id), nil, error)
+			self.perThumbnailCompletionHandler(
+				NSFileProviderItemIdentifier(id), nil, cacheErrorToError(error: error))
 		}
 	}
 

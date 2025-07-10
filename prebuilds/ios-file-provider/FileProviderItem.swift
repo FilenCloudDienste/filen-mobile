@@ -130,4 +130,31 @@ class FileProviderItem: NSObject, NSFileProviderItem {
 		}
 	}
 
+	var tagData: Data? {
+		switch self.object {
+		case .file(let ffiFile):
+			if let tagData = ffiFile.localData?["TagData"] as? String {
+				return Data(base64Encoded: tagData)
+			} else {
+				return nil
+			}
+		case .dir(let ffiDir):
+			if let tagData = ffiDir.localData?["TagData"] as? String {
+				return Data(base64Encoded: tagData)
+			} else {
+				return nil
+			}
+		case .root(_): return nil
+		}
+	}
+
+	var isUploading: Bool {
+		let uuid = objectToUuid(object: self.object)
+		return FileProviderExtension.uploadingSet.withLock { set in return set.contains(uuid) }
+	}
+
+	var isDownloading: Bool {
+		let uuid = objectToUuid(object: self.object)
+		return FileProviderExtension.downloadingSet.withLock { set in return set.contains(uuid) }
+	}
 }

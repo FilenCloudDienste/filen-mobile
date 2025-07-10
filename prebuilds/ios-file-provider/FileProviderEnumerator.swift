@@ -4,10 +4,13 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
 	private let enumeratedItemIdentifier: NSFileProviderItemIdentifier
 	private let ext: FileProviderExtension
 
-	init(enumeratedItemIdentifier: NSFileProviderItemIdentifier, ext: FileProviderExtension) {
+	init(
+		enumeratedItemIdentifier: NSFileProviderItemIdentifier, ext: FileProviderExtension,
+		rootUuid: String
+	) {
 		self.enumeratedItemIdentifier =
 			if enumeratedItemIdentifier == NSFileProviderItemIdentifier.rootContainer {
-				NSFileProviderItemIdentifier(ext.rootUuid)
+				NSFileProviderItemIdentifier(rootUuid)
 			} else if enumeratedItemIdentifier == NSFileProviderItemIdentifier.trashContainer {
 				NSFileProviderItemIdentifier("trash")
 			} else { enumeratedItemIdentifier }
@@ -41,8 +44,13 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
 					}
 				default: break
 				}
-			} catch {
-				observer.finishEnumeratingWithError(NSFileProviderError(.noSuchItem))
+			} catch let error as CacheError {
+				let error = cacheErrorToError(error: error)
+				guard let nsError = error as? NSFileProviderError else {
+					observer.finishEnumeratingWithError(NSFileProviderError(.noSuchItem))
+					return
+				}
+				observer.finishEnumeratingWithError(nsError)
 				return
 			}
 
@@ -51,7 +59,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
 				response = try await self.ext.state.updateAndQueryDirChildren(
 					path: self.enumeratedItemIdentifier.rawValue, orderBy: nil)
 			} catch let error as CacheError {
-				observer.finishEnumeratingWithError(error)
+				observer.finishEnumeratingWithError(cacheErrorToError(error: error))
 				return
 			}
 			guard let response = response else {
