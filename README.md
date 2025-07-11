@@ -23,6 +23,15 @@
 cargo install cargo-ndk
 ```
 
+3. Install targets
+
+```
+rustup target add aarch64-linux-android
+rustup target add aarch64-apple-ios
+rustup target add aarch64-apple-ios-sim
+rustup target add x86_64-linux-android
+```
+
 #### Android
 
 1. Install OpenJDK 17

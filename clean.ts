@@ -4,7 +4,7 @@ import path from "path"
 function main() {
 	const xcodeDerivedDataPath = path.join(process.env.HOME || "", "Library", "Developer", "Xcode", "DerivedData")
 	const expoDataPath = path.join(__dirname, ".expo")
-	const gradleCachePath = path.join(process.env.HOME || "", ".gradle")
+	// const gradleCachePath = path.join(process.env.HOME || "", ".gradle")
 
 	if (fs.existsSync(xcodeDerivedDataPath)) {
 		console.log("Cleaning Xcode Derived Data at:", xcodeDerivedDataPath)
@@ -28,7 +28,7 @@ function main() {
 		console.log("Expo data cleaned successfully.")
 	}
 
-	if (fs.existsSync(gradleCachePath)) {
+	/*if (fs.existsSync(gradleCachePath)) {
 		console.log("Cleaning Gradle cache at:", gradleCachePath)
 
 		fs.rmSync(gradleCachePath, {
@@ -37,7 +37,7 @@ function main() {
 		})
 
 		console.log("Gradle cache cleaned successfully.")
-	}
+	}*/
 }
 
 main()
