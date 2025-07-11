@@ -13,6 +13,44 @@
 
 ### Installation and building
 
+#### Rust
+
+1. [Install Rust](https://www.rust-lang.org/tools/install)
+
+2. Install Cargo NDK
+
+```
+cargo install cargo-ndk
+```
+
+#### Android
+
+1. Install OpenJDK 17
+
+eg on MacOS using Homebrew
+
+```bash
+brew install openjdk@17
+```
+
+2. Set `JAVA_HOME` to new java home
+
+eg on MacOS using homebrew
+
+```bash
+export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
+```
+
+verify with
+
+```bash
+java -version
+javac -version
+echo $JAVA_HOME
+```
+
+#### Expo Project
+
 1. Clone repository
 
 ```sh
