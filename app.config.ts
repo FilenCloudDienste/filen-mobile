@@ -62,6 +62,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 					minSdkVersion: 31,
 					enableProguardInReleaseBuilds: true,
 					enableShrinkResourcesInReleaseBuilds: true,
+					enableBundleCompression: false,
 					extraProguardRules: `
 # Proguard rules for Filen
 # Ignore missing AWT classes
