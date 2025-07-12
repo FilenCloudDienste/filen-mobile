@@ -31,3 +31,4 @@ yalc.lock
 .yalc/
 
 rust/
+credentials.json

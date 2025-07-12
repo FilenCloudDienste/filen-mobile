@@ -1,11 +1,11 @@
-import { ExpoConfig, ConfigContext } from "expo/config"
 import "ts-node/register"
+import { type ExpoConfig, type ConfigContext } from "expo/config"
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
 	...config,
 	name: "Filen",
 	slug: "filen-mobile",
-	version: "3.0.0",
+	version: "3.0.1",
 	orientation: "portrait",
 	icon: "./assets/images/icon.png",
 	scheme: "iofilenapp",
@@ -18,6 +18,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		bundleIdentifier: "io.filen.app",
 		requireFullScreen: true,
 		usesIcloudStorage: true,
+		newArchEnabled: true,
+		jsEngine: "hermes",
 		entitlements: {
 			"com.apple.security.application-groups": ["group.io.filen.app"]
 		},
@@ -39,6 +41,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 	android: {
 		versionCode: 3001,
 		edgeToEdgeEnabled: true,
+		newArchEnabled: true,
+		jsEngine: "hermes",
 		adaptiveIcon: {
 			foregroundImage: "./assets/images/adaptive-icon.png",
 			backgroundColor: "#ffffff"
@@ -60,33 +64,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 					compileSdkVersion: 35,
 					targetSdkVersion: 35,
 					minSdkVersion: 31,
-					enableProguardInReleaseBuilds: true,
-					enableShrinkResourcesInReleaseBuilds: true,
+					enableProguardInReleaseBuilds: false,
+					enableShrinkResourcesInReleaseBuilds: false,
 					enableBundleCompression: false,
-					extraProguardRules: `
-# Proguard rules for Filen
-# Ignore missing AWT classes
--dontwarn java.awt.**
-
-# Keep JNA classes
--keep class com.sun.jna.** { *; }
--keepnames class com.sun.jna.** { *; }
-
-# Keep ALL UniFFI generated classes completely unobfuscated
--keep class uniffi.filen_mobile_native_cache.** { *; }
--keepclassmembers class uniffi.filen_mobile_native_cache.** { *; }
--keepnames class uniffi.filen_mobile_native_cache.** { *; }
-
-# Keep your other generated classes
--keep class filen_mobile_native_cache.** { *; }
--keepclassmembers class filen_mobile_native_cache.** { *; }
--keepnames class filen_mobile_native_cache.** { *; }
-
-# Keep Structure classes
--keep class * extends com.sun.jna.Structure { *; }
--keepclassmembers class * extends com.sun.jna.Structure { *; }
--keepnames class * extends com.sun.jna.Structure { *; }
-`
+					useLegacyPackaging: false,
+					enablePngCrunchInReleaseBuilds: false
 				},
 				ios: {
 					deploymentTarget: "16.0",
@@ -157,7 +139,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		[
 			"./plugins/withAndroidArchitectures",
 			{
-				architectures: "armeabi-v7a,arm64-v8a,x86_64"
+				architectures: "arm64-v8a,x86_64"
 			}
 		],
 		[
@@ -215,7 +197,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 				libName: "filen_mobile_native_cache",
 				targets: ["x86_64", "arm64-v8a"]
 			}
-		]
+		],
+		"./plugins/withAndroidSigning",
+		"./plugins/withGradleMemory"
 	],
 	experiments: {
 		typedRoutes: true,

@@ -12,6 +12,7 @@
 		"esbuild": "^0.25.4",
 		"esbuild-plugin-typescript": "^2.0.0-next.1",
 		"patch-package": "^8.0.0",
+		"react": "^19.1.0",
 		"rimraf": "^6.0.1",
 		"typescript": "^5.8.3"
 	},

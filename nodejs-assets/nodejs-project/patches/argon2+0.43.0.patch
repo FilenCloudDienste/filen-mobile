@@ -1,0 +1,40 @@
+diff --git a/node_modules/argon2/prebuilds/darwin-arm64/argon2.armv8.glibc.node b/node_modules/argon2/prebuilds/darwin-arm64/argon2.armv8.glibc.node
+deleted file mode 100644
+index 394d311..0000000
+Binary files a/node_modules/argon2/prebuilds/darwin-arm64/argon2.armv8.glibc.node and /dev/null differ
+diff --git a/node_modules/argon2/prebuilds/darwin-x64/argon2.glibc.node b/node_modules/argon2/prebuilds/darwin-x64/argon2.glibc.node
+deleted file mode 100644
+index dbe941a..0000000
+Binary files a/node_modules/argon2/prebuilds/darwin-x64/argon2.glibc.node and /dev/null differ
+diff --git a/node_modules/argon2/prebuilds/freebsd-x64/argon2.glibc.node b/node_modules/argon2/prebuilds/freebsd-x64/argon2.glibc.node
+deleted file mode 100644
+index 4e745ab..0000000
+Binary files a/node_modules/argon2/prebuilds/freebsd-x64/argon2.glibc.node and /dev/null differ
+diff --git a/node_modules/argon2/prebuilds/linux-arm/argon2.armv7.glibc.node b/node_modules/argon2/prebuilds/linux-arm/argon2.armv7.glibc.node
+deleted file mode 100644
+index 552a5f9..0000000
+Binary files a/node_modules/argon2/prebuilds/linux-arm/argon2.armv7.glibc.node and /dev/null differ
+diff --git a/node_modules/argon2/prebuilds/linux-arm/argon2.armv7.musl.node b/node_modules/argon2/prebuilds/linux-arm/argon2.armv7.musl.node
+deleted file mode 100644
+index cc9210a..0000000
+Binary files a/node_modules/argon2/prebuilds/linux-arm/argon2.armv7.musl.node and /dev/null differ
+diff --git a/node_modules/argon2/prebuilds/linux-arm64/argon2.armv8.glibc.node b/node_modules/argon2/prebuilds/linux-arm64/argon2.armv8.glibc.node
+deleted file mode 100644
+index 9dd25a1..0000000
+Binary files a/node_modules/argon2/prebuilds/linux-arm64/argon2.armv8.glibc.node and /dev/null differ
+diff --git a/node_modules/argon2/prebuilds/linux-arm64/argon2.armv8.musl.node b/node_modules/argon2/prebuilds/linux-arm64/argon2.armv8.musl.node
+deleted file mode 100644
+index 2f1ee15..0000000
+Binary files a/node_modules/argon2/prebuilds/linux-arm64/argon2.armv8.musl.node and /dev/null differ
+diff --git a/node_modules/argon2/prebuilds/linux-x64/argon2.glibc.node b/node_modules/argon2/prebuilds/linux-x64/argon2.glibc.node
+deleted file mode 100644
+index cff560c..0000000
+Binary files a/node_modules/argon2/prebuilds/linux-x64/argon2.glibc.node and /dev/null differ
+diff --git a/node_modules/argon2/prebuilds/linux-x64/argon2.musl.node b/node_modules/argon2/prebuilds/linux-x64/argon2.musl.node
+deleted file mode 100644
+index ac7abf2..0000000
+Binary files a/node_modules/argon2/prebuilds/linux-x64/argon2.musl.node and /dev/null differ
+diff --git a/node_modules/argon2/prebuilds/win32-x64/argon2.glibc.node b/node_modules/argon2/prebuilds/win32-x64/argon2.glibc.node
+deleted file mode 100644
+index 2c9ac64..0000000
+Binary files a/node_modules/argon2/prebuilds/win32-x64/argon2.glibc.node and /dev/null differ

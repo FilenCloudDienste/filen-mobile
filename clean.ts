@@ -2,11 +2,12 @@ import fs from "fs"
 import path from "path"
 
 function main() {
-	const xcodeDerivedDataPath = path.join(process.env.HOME || "", "Library", "Developer", "Xcode", "DerivedData")
+	// const xcodeDerivedDataPath = path.join(process.env.HOME || "", "Library", "Developer", "Xcode", "DerivedData")
 	const expoDataPath = path.join(__dirname, ".expo")
 	// const gradleCachePath = path.join(process.env.HOME || "", ".gradle")
+	// const rustPath = path.join(__dirname, "rust")
 
-	if (fs.existsSync(xcodeDerivedDataPath)) {
+	/*if (fs.existsSync(xcodeDerivedDataPath)) {
 		console.log("Cleaning Xcode Derived Data at:", xcodeDerivedDataPath)
 
 		fs.rmSync(xcodeDerivedDataPath, {
@@ -15,7 +16,7 @@ function main() {
 		})
 
 		console.log("Xcode Derived Data cleaned successfully.")
-	}
+	}*/
 
 	if (fs.existsSync(expoDataPath)) {
 		console.log("Cleaning Expo data at:", expoDataPath)
@@ -37,6 +38,17 @@ function main() {
 		})
 
 		console.log("Gradle cache cleaned successfully.")
+	}
+
+	if (fs.existsSync(rustPath)) {
+		console.log("Cleaning Rust build artifacts at:", rustPath)
+
+		fs.rmSync(rustPath, {
+			recursive: true,
+			force: true
+		})
+
+		console.log("Rust build artifacts cleaned successfully.")
 	}*/
 }
 
