@@ -45,15 +45,18 @@ jobs:
                   rustup target add aarch64-apple-ios-sim
                   rustup target add x86_64-linux-android
 
+            - name: 🔧 Install Expo CLI
+              run: npm install -g @expo/cli@latest
+
+            - name: 🔧 Install patch-package
+              run: npm install -g patch-package@latest
+
             - name: 📦 Install nodeThread dependencies
               working-directory: ./nodejs-assets/nodejs-project
               run: npm install --package-lock-only --force && npm ci --force
 
             - name: 📦 Install main dependencies
               run: npm install --package-lock-only --force && npm ci --force
-
-            - name: 🔧 Install Expo CLI
-              run: npm install -g @expo/cli@latest
 
             - name: 🔐 Setup Expo Credentials
               run: |
