@@ -17,7 +17,6 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: 24
-                  cache: "npm"
 
             - name: 🏗 Setup Java
               uses: actions/setup-java@v4
@@ -52,10 +51,10 @@ jobs:
               run: npm install -g patch-package@latest
 
             - name: 📦 Install nodeThread dependencies
-              run: cd nodejs-assets/nodejs-project && npm ci --force && cd .. && cd ..
+              run: cd nodejs-assets/nodejs-project && npm install --package-lock-only --force && npm ci --force && cd .. && cd ..
 
             - name: 📦 Install main dependencies
-              run: npm ci --force
+              run: npm install --package-lock-only --force && npm ci --force
 
             - name: 🔐 Setup Expo Credentials
               run: |
