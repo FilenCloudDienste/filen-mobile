@@ -18,14 +18,9 @@ export const withAndroidSigning: ConfigPlugin = config => {
 
 			const keystoreDestination = path.join(config.modRequest.platformProjectRoot, "app", "release.keystore")
 
-			if (fs.existsSync(keystoreDestination)) {
-				fs.rmSync(keystoreDestination, {
-					recursive: true,
-					force: true
-				})
+			if (!fs.existsSync(keystoreDestination)) {
+				fs.copyFileSync(keystorePath, keystoreDestination)
 			}
-
-			fs.copyFileSync(keystorePath, keystoreDestination)
 
 			const releaseSigningConfig = `
 			release {

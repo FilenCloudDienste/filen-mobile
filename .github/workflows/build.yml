@@ -1,0 +1,119 @@
+name: Build Android App (With Signing)
+
+on:
+    release:
+        types: [published]
+    workflow_dispatch:
+
+jobs:
+    build-android:
+        runs-on: macos-latest
+
+        steps:
+            - name: 🏗 Setup repo
+              uses: actions/checkout@v4
+
+            - name: 🏗 Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: "npm"
+
+            - name: 🏗 Setup Java
+              uses: actions/setup-java@v4
+              with:
+                  distribution: "temurin"
+                  java-version: 17
+
+            - name: 🏗 Setup Android SDK
+              uses: android-actions/setup-android@v3
+
+            - name: 🦀 Setup Rust
+              uses: actions-rs/toolchain@v1
+              with:
+                  toolchain: stable
+                  profile: minimal
+                  override: true
+
+            - name: 🦀 Install Cargo NDK
+              run: cargo install cargo-ndk
+
+            - name: 🦀 Install Rust targets
+              run: |
+                  rustup target add aarch64-linux-android
+                  rustup target add aarch64-apple-ios
+                  rustup target add aarch64-apple-ios-sim
+                  rustup target add x86_64-linux-android
+
+            - name: 📦 Install nodeThread dependencies
+              working-directory: ./nodejs-assets/nodejs-project
+              run: npm install --package-lock-only --force && npm ci --force
+
+            - name: 📦 Install main dependencies
+              run: npm install --package-lock-only --force && npm ci --force
+
+            - name: 🔧 Install Expo CLI
+              run: npm install -g @expo/cli@latest
+
+            - name: 🔐 Setup Expo Credentials
+              run: |
+                  echo "${{ secrets.EXPO_CREDENTIALS }}" | base64 --decode > credentials.json
+
+            - name: 🔐 Setup Android Keystore
+              run: |
+                  echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 --decode > android/app/release.keystore
+
+            - name: 📦 Build nodeThread
+              working-directory: ./nodejs-assets/nodejs-project
+              run: npm run build
+
+            - name: 🛠 Prebuild
+              run: |
+                  npm run prebuild:ci
+
+            - name: 📱 Build Android Release APK & AAB
+              working-directory: ./android
+              run: |
+                  chmod +x ./gradlew
+                  ./gradlew app:assembleRelease
+                  ./gradlew app:bundleRelease
+
+            - name: 🧹 Cleanup
+              if: always()
+              run: |
+                  rm -f android/app/release.keystore
+                  rm -f credentials.json
+
+            - name: 📤 Upload Release APK
+              uses: actions/upload-artifact@v4
+              with:
+                  name: android-release-apk-${{ github.run_number }}
+                  path: android/app/build/outputs/apk/release/*.apk
+                  retention-days: 30
+
+            - name: 📤 Upload Release AAB
+              uses: actions/upload-artifact@v4
+              with:
+                  name: android-release-aab-${{ github.run_number }}
+                  path: android/app/build/outputs/bundle/release/*.aab
+                  retention-days: 30
+
+            - name: 📊 Build Summary
+              run: |
+                  echo "## 🚀 Build Complete!" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### 📱 Built artifacts:" >> $GITHUB_STEP_SUMMARY
+
+                  if [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
+                    APK_SIZE=$(du -h "android/app/build/outputs/apk/release/app-release.apk" | cut -f1)
+                    echo "- ✅ Release APK (${APK_SIZE})" >> $GITHUB_STEP_SUMMARY
+                  fi
+
+                  if [ -f "android/app/build/outputs/bundle/release/app-release.aab" ]; then
+                    AAB_SIZE=$(du -h "android/app/build/outputs/bundle/release/app-release.aab" | cut -f1)
+                    echo "- ✅ Release AAB (${AAB_SIZE})" >> $GITHUB_STEP_SUMMARY
+                  fi
+
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### 📦 Download artifacts from the Actions tab above" >> $GITHUB_STEP_SUMMARY
+                  echo "### 🔗 Build #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
