@@ -64,9 +64,7 @@ export class SQLite {
 
 			await this.db.execAsync(INIT)
 
-			if (__DEV__) {
-				console.log("sqlite path", Paths.join(paths.db(), this.dbName))
-			}
+			console.log("sqlite path", Paths.join(paths.db(), this.dbName))
 
 			return this.db
 		} finally {
@@ -90,9 +88,7 @@ export class SQLite {
 
 		this.db.execSync(INIT)
 
-		if (__DEV__) {
-			console.log("sqlite path", Paths.join(paths.db(), this.dbName))
-		}
+		console.log("sqlite path", Paths.join(paths.db(), this.dbName))
 
 		return this.db
 	}

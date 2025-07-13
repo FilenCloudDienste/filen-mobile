@@ -16,9 +16,7 @@ export class FSKV {
 	public constructor(prefix: string = "default") {
 		this.basePath = FileSystem.Paths.join(FileSystem.Paths.document.uri, "fsKv", `v${VERSION}`, prefix)
 
-		if (__DEV__) {
-			console.log("fsKv path", this.basePath)
-		}
+		console.log("fsKv path", this.basePath)
 	}
 
 	private keyToFilePath(key: string): string {

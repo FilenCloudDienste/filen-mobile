@@ -438,7 +438,7 @@ export class TrackPlayer {
 		await this.controlsMutex.acquire()
 
 		try {
-			const silentSoundURI = assets.uri.audio.silent_1h()
+			const silentSoundURI = assets.uri.audio.silent()
 			const audioImageFallbackURI = assets.uri.images.audio_fallback()
 
 			if (!silentSoundURI || !audioImageFallbackURI) {

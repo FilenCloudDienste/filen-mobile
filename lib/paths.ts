@@ -15,23 +15,6 @@ export const ASSETS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFI
 export const TRACK_PLAYER_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}trackPlayer`)
 export const TRACK_PLAYER_PICTURES_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}trackPlayerPictures`)
 
-if (__DEV__) {
-	console.log({
-		PREFIX,
-		THUMBNAILS_VERSION,
-		BASE_DIR,
-		TEMPORARY_DOWNLOADS_BASE_PATH,
-		TEMPORARY_UPLOADS_BASE_PATH,
-		THUMBNAILS_BASE_PATH,
-		DB_BASE_PATH,
-		EXPORTS_BASE_PATH,
-		OFFLINE_FILES_BASE_PATH,
-		ASSETS_BASE_PATH,
-		TRACK_PLAYER_BASE_PATH,
-		TRACK_PLAYER_PICTURES_BASE_PATH
-	})
-}
-
 export class Paths {
 	private readonly created = {
 		temporaryDownloads: false,
@@ -43,6 +26,23 @@ export class Paths {
 		assets: false,
 		trackPlayer: false,
 		trackPlayerPictures: false
+	}
+
+	public constructor() {
+		console.log({
+			PREFIX,
+			THUMBNAILS_VERSION,
+			BASE_DIR,
+			TEMPORARY_DOWNLOADS_BASE_PATH,
+			TEMPORARY_UPLOADS_BASE_PATH,
+			THUMBNAILS_BASE_PATH,
+			DB_BASE_PATH,
+			EXPORTS_BASE_PATH,
+			OFFLINE_FILES_BASE_PATH,
+			ASSETS_BASE_PATH,
+			TRACK_PLAYER_BASE_PATH,
+			TRACK_PLAYER_PICTURES_BASE_PATH
+		})
 	}
 
 	public clearDb(): void {

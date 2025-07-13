@@ -47,7 +47,32 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			foregroundImage: "./assets/images/adaptive-icon.png",
 			backgroundColor: "#ffffff"
 		},
-		package: "io.filen.app"
+		package: "io.filen.app",
+		permissions: [
+			"INTERNET",
+			"ACCESS_NETWORK_STATE",
+			"ACCESS_WIFI_STATE",
+			"READ_EXTERNAL_STORAGE",
+			"WRITE_EXTERNAL_STORAGE",
+			"CAMERA",
+			"RECORD_AUDIO",
+			"READ_MEDIA_IMAGES",
+			"READ_MEDIA_VIDEO",
+			"READ_MEDIA_AUDIO",
+			"ACCESS_MEDIA_LOCATION",
+			"WAKE_LOCK",
+			"RECEIVE_BOOT_COMPLETED",
+			"VIBRATE",
+			"POST_NOTIFICATIONS",
+			"FOREGROUND_SERVICE",
+			"USE_FINGERPRINT",
+			"USE_BIOMETRIC",
+			"SYSTEM_ALERT_WINDOW",
+			"ACTION_OPEN_DOCUMENT",
+			"ACTION_OPEN_DOCUMENT_TREE",
+			"READ_PHONE_STATE",
+			"QUERY_ALL_PACKAGES"
+		]
 	},
 	web: {
 		bundler: "metro",
@@ -162,7 +187,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		[
 			"expo-asset",
 			{
-				assets: ["./assets/images/avatar_fallback.png", "./assets/audio/silent_1h.mp3", "./assets/images/audio_fallback.png"]
+				assets: ["./assets/images/avatar_fallback.png"]
 			}
 		],
 		"expo-font",

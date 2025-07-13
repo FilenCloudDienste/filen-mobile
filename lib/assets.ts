@@ -1,59 +1,35 @@
-import paths from "./paths"
 import * as FileSystem from "expo-file-system/next"
-import { Asset } from "expo-asset"
+import paths from "./paths"
+import { SILENT_AUDIO_BASE64 } from "@/assets/base64/silentAudio"
+import { AUDIO_FALLBACK_IMAGE_BASE64 } from "@/assets/base64/audioFallbackImage"
 
 export class Assets {
-	public async copy(): Promise<void> {
-		const assets = [require("../assets/audio/silent_1h.mp3"), require("../assets/images/audio_fallback.png")]
+	private readonly silentAudioFile: FileSystem.File
+	private readonly audioFallbackImageFile: FileSystem.File
 
-		await Promise.all(
-			assets.map(async asset => {
-				const assetPath = Asset.fromModule(asset)
-				const destination = new FileSystem.File(FileSystem.Paths.join(paths.assets(), `${assetPath.name}.${assetPath.type}`))
+	public constructor() {
+		this.silentAudioFile = new FileSystem.File(FileSystem.Paths.join(paths.assets(), "silentAudio.mp3"))
+		this.audioFallbackImageFile = new FileSystem.File(FileSystem.Paths.join(paths.assets(), "audioFallbackImage.png"))
+	}
 
-				if (destination.exists) {
-					return
-				}
+	public async initialize(): Promise<void> {
+		if (!this.silentAudioFile.exists) {
+			this.silentAudioFile.write(new Uint8Array(Buffer.from(SILENT_AUDIO_BASE64, "base64")))
+		}
 
-				if (!assetPath.localUri) {
-					await assetPath.downloadAsync()
-				}
+		if (!this.audioFallbackImageFile.exists) {
+			this.audioFallbackImageFile.write(new Uint8Array(Buffer.from(AUDIO_FALLBACK_IMAGE_BASE64, "base64")))
+		}
 
-				if (!assetPath.localUri) {
-					throw new Error("Asset local URI is not available.")
-				}
-
-				const source = new FileSystem.File(assetPath.localUri)
-
-				if (!source.exists) {
-					throw new Error("Asset source does not exist.")
-				}
-
-				source.copy(destination)
-
-				if (!destination.exists) {
-					throw new Error("Asset destination does not exist.")
-				}
-			})
-		)
-
-		console.log("Assets copied.")
+		console.log("Assets initialized.")
 	}
 
 	public uri = {
 		audio: {
-			silent_1h: () => {
-				const file = new FileSystem.File(FileSystem.Paths.join(paths.assets(), "silent_1h.mp3"))
-
-				return file.exists ? file.uri : null
-			}
+			silent: () => (this.silentAudioFile.exists ? this.silentAudioFile.uri : null)
 		},
 		images: {
-			audio_fallback: () => {
-				const file = new FileSystem.File(FileSystem.Paths.join(paths.assets(), "audio_fallback.png"))
-
-				return file.exists ? file.uri : null
-			}
+			audio_fallback: () => (this.audioFallbackImageFile.exists ? this.audioFallbackImageFile.uri : null)
 		}
 	}
 }

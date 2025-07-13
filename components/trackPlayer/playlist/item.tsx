@@ -57,7 +57,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 
 	const onPress = useCallback(async () => {
 		try {
-			const silentSoundURI = assets.uri.audio.silent_1h()
+			const silentSoundURI = assets.uri.audio.silent()
 			const audioImageFallbackURI = assets.uri.images.audio_fallback()
 
 			if (!silentSoundURI || !audioImageFallbackURI) {
@@ -148,7 +148,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 	}, [info.item.playlist, info.item.file.uuid])
 
 	const addToQueue = useCallback(async () => {
-		const silentSoundURI = assets.uri.audio.silent_1h()
+		const silentSoundURI = assets.uri.audio.silent()
 		const audioImageFallbackURI = assets.uri.images.audio_fallback()
 
 		if (!silentSoundURI || !audioImageFallbackURI) {

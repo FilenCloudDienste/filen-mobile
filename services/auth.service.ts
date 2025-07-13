@@ -51,7 +51,7 @@ export class AuthService {
 			const verifyOfflineFiles = params?.background ? Promise.resolve() : sqlite.offlineFiles.verify()
 			const i18n = params?.background ? Promise.resolve() : waitForI18n()
 			const isAuthed = params && typeof params.isAuthed === "boolean" ? params.isAuthed : authService.getIsAuthed()
-			const assetsCopy = params?.background ? Promise.resolve() : assets.copy()
+			const assetsCopy = params?.background ? Promise.resolve() : assets.initialize()
 
 			if (!isAuthed) {
 				await Promise.all([thumbnailWarmup, verifyOfflineFiles, i18n, assetsCopy])
