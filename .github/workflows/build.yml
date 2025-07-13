@@ -52,11 +52,10 @@ jobs:
               run: npm install -g patch-package@latest
 
             - name: 📦 Install nodeThread dependencies
-              working-directory: ./nodejs-assets/nodejs-project
-              run: npm install --package-lock-only --force && npm ci --force
+              run: cd nodejs-assets/nodejs-project && npm ci --force && cd .. && cd ..
 
             - name: 📦 Install main dependencies
-              run: npm install --package-lock-only --force && npm ci --force
+              run: npm ci --force
 
             - name: 🔐 Setup Expo Credentials
               run: |
@@ -67,8 +66,7 @@ jobs:
                   echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 --decode > android/app/release.keystore
 
             - name: 📦 Build nodeThread
-              working-directory: ./nodejs-assets/nodejs-project
-              run: npm run build
+              run: cd nodejs-assets/nodejs-project && npm run build && cd .. && cd ..
 
             - name: 🛠 Prebuild
               run: |
@@ -77,9 +75,7 @@ jobs:
             - name: 📱 Build Android Release APK & AAB
               working-directory: ./android
               run: |
-                  chmod +x ./gradlew
-                  ./gradlew app:assembleRelease
-                  ./gradlew app:bundleRelease
+                  cd android && chmod +x ./gradlew && ./gradlew app:assembleRelease && ./gradlew app:bundleRelease && cd ..
 
             - name: 🧹 Cleanup
               if: always()
