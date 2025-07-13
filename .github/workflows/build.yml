@@ -40,8 +40,6 @@ jobs:
             - name: 🦀 Install Rust targets
               run: |
                   rustup target add aarch64-linux-android
-                  rustup target add aarch64-apple-ios
-                  rustup target add aarch64-apple-ios-sim
                   rustup target add x86_64-linux-android
 
             - name: 🔧 Install Expo CLI
@@ -65,11 +63,11 @@ jobs:
 
             - name: 🛠 Prebuild
               run: |
-                  npm run prebuild:ci
+                  npm run prebuild:ci:android
 
             - name: 📱 Build Android Release APK & AAB
               run: |
-                  cd android && chmod +x ./gradlew && ./gradlew app:assembleRelease && ./gradlew app:bundleRelease && cd ..
+                  cd android && chmod +x ./gradlew && ./gradlew app:bundleRelease && ./gradlew app:assembleRelease && cd ..
 
             - name: 🧹 Cleanup
               if: always()
