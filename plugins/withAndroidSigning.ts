@@ -21,7 +21,7 @@ export const withAndroidSigning: ConfigPlugin = config => {
 			const keystoreDestination = path.join(config.modRequest.platformProjectRoot, "app", "release.keystore")
 
 			if (!fs.existsSync(keystoreDestination)) {
-				fs.writeFileSync(Buffer.from(keystoreBase64, "base64"), keystoreDestination)
+				fs.writeFileSync(keystoreDestination, Buffer.from(keystoreBase64, "base64"))
 			}
 
 			const releaseSigningConfig = `
