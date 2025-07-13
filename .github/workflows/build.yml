@@ -73,7 +73,6 @@ jobs:
                   npm run prebuild:ci
 
             - name: 📱 Build Android Release APK & AAB
-              working-directory: ./android
               run: |
                   cd android && chmod +x ./gradlew && ./gradlew app:assembleRelease && ./gradlew app:bundleRelease && cd ..
 
