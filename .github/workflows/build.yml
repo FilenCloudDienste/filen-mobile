@@ -51,10 +51,10 @@ jobs:
               run: npm install -g patch-package@latest
 
             - name: 📦 Install nodeThread dependencies
-              run: cd nodejs-assets/nodejs-project && npm install --package-lock-only --force && npm ci --force && cd .. && cd ..
+              run: cd nodejs-assets/nodejs-project && npm install --force && cd .. && cd ..
 
             - name: 📦 Install main dependencies
-              run: npm install --package-lock-only --force && npm ci --force
+              run: npm install --force
 
             - name: 🔐 Setup Expo Credentials
               run: |
