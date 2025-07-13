@@ -10,16 +10,18 @@ export const withAndroidSigning: ConfigPlugin = config => {
 
 		if (fs.existsSync(credentialsFile)) {
 			const credentials = JSON.parse(fs.readFileSync(credentialsFile, "utf-8"))
-			const { keystorePath, keystorePassword, keyAlias, keyPassword } = credentials.android.keystore || {}
+			const { keystoreBase64, keystorePassword, keyAlias, keyPassword } = credentials.android.keystore || {}
 
-			if (!keystorePath || !keystorePassword || !keyAlias || !keyPassword) {
+			if (!keystoreBase64 || !keystorePassword || !keyAlias || !keyPassword) {
 				throw new Error("Incomplete Android keystore credentials. Please check your credentials.json file.")
 			}
+
+			console.log("Adding Android signing configuration...")
 
 			const keystoreDestination = path.join(config.modRequest.platformProjectRoot, "app", "release.keystore")
 
 			if (!fs.existsSync(keystoreDestination)) {
-				fs.copyFileSync(keystorePath, keystoreDestination)
+				fs.writeFileSync(Buffer.from(keystoreBase64, "base64"), keystoreDestination)
 			}
 
 			const releaseSigningConfig = `
@@ -44,6 +46,8 @@ export const withAndroidSigning: ConfigPlugin = config => {
 				.split("signingConfig signingConfigs.debug")
 				.join("signingConfig signingConfigs.release")
 		} else {
+			console.log("No Android signing configuration found. Using debug signing config.")
+
 			// Replace signingConfig in buildTypes.release
 			modResults.contents = modResults.contents
 				.split("signingConfig signingConfigs.release")
