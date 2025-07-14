@@ -11,10 +11,11 @@ export const ANDROID_MIN_SDK_VERSION: number = 31
 export const ANDROID_TARGET_SDK_VERSION: number = 35
 export const ANDROID_COMPILE_SDK_VERSION: number = 35
 export const IOS_DEPLOYMENT_TARGET: string = "16.0"
+export const NAME: string = "Filen"
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
 	...config,
-	name: "Filen",
+	name: NAME,
 	slug: "filen-mobile",
 	version: VERSION,
 	orientation: "default",
@@ -48,7 +49,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 				NSAllowsArbitraryLoads: false
 			},
 			LSApplicationCategoryType: "public.app-category.productivity",
-			CFBundleDisplayName: "Filen",
+			CFBundleDisplayName: NAME,
 			UIRequiredDeviceCapabilities: ["arm64"]
 		},
 		icon: {

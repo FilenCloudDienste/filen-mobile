@@ -30,13 +30,12 @@ export type FileProviderPluginProps = IOSRustBuildPluginProps & {
 }
 
 // Constants
-export const fileProviderName = "FilenFileProviderExtension"
+export const fileProviderName = "FilenFileProvider"
 export const fileProviderInfoFileName = `${fileProviderName}-Info.plist`
 export const fileProviderEntitlementsFileName = `${fileProviderName}.entitlements`
 
 // Helper functions
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getFileProviderName = (parameters?: any) => {
+export const getFileProviderName = (parameters?: FileProviderPluginProps) => {
 	if (!parameters?.iosFileProviderName) {
 		return fileProviderName
 	}
@@ -44,52 +43,43 @@ export const getFileProviderName = (parameters?: any) => {
 	return parameters.iosFileProviderName.replace(/[^a-zA-Z0-9]/g, "")
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getAppGroup = (identifier: string, parameters: any) => {
+export const getAppGroup = (identifier: string, parameters: FileProviderPluginProps) => {
 	return parameters.iosAppGroupIdentifier || `group.${identifier}`
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getFileProviderBundledIdentifier = (appIdentifier: string, parameters: any) => {
-	return parameters.iosFileProviderBundleIdentifier || `${appIdentifier}.FilenFileProviderExtension`
+export const getFileProviderBundledIdentifier = (appIdentifier: string, parameters: FileProviderPluginProps) => {
+	return parameters.iosFileProviderBundleIdentifier || `${appIdentifier}.FileProvider`
 }
 
 // File path helpers
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getFileProviderEntitlementsFilePath = (platformProjectRoot: string, parameters: any) => {
+export const getFileProviderEntitlementsFilePath = (platformProjectRoot: string, parameters: FileProviderPluginProps) => {
 	return path.join(platformProjectRoot, getFileProviderName(parameters), fileProviderEntitlementsFileName)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getFileProviderInfoFilePath = (platformProjectRoot: string, parameters: any) => {
+export const getFileProviderInfoFilePath = (platformProjectRoot: string, parameters: FileProviderPluginProps) => {
 	return path.join(platformProjectRoot, getFileProviderName(parameters), fileProviderInfoFileName)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getFileProviderSwiftFilePath = (platformProjectRoot: string, parameters: any, swiftFileName: string) => {
+export const getFileProviderSwiftFilePath = (platformProjectRoot: string, parameters: FileProviderPluginProps, swiftFileName: string) => {
 	return path.join(platformProjectRoot, getFileProviderName(parameters), swiftFileName)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getPrivacyInfoFilePath = (platformProjectRoot: string, parameters: any) => {
+export const getPrivacyInfoFilePath = (platformProjectRoot: string, parameters: FileProviderPluginProps) => {
 	return path.join(platformProjectRoot, getFileProviderName(parameters), "PrivacyInfo.xcprivacy")
 }
 
 // Content generators
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getFileProviderEntitlements = (appIdentifier: string, parameters: any) => {
+export const getFileProviderEntitlements = (appIdentifier: string, parameters: FileProviderPluginProps) => {
 	return {
 		"com.apple.security.application-groups": [getAppGroup(appIdentifier, parameters)]
 	}
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getFileProviderEntitlementsContent = (appIdentifier: string, parameters: any) => {
+export const getFileProviderEntitlementsContent = (appIdentifier: string, parameters: FileProviderPluginProps) => {
 	return build(getFileProviderEntitlements(appIdentifier, parameters))
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getFileProviderInfoContent = (appName: string, appIdentifier: string, parameters: any) => {
+export const getFileProviderInfoContent = (appName: string, appIdentifier: string, parameters: FileProviderPluginProps) => {
 	return build({
 		AppGroup: getAppGroup(appIdentifier, parameters),
 		NSExtensionFileProviderDocumentGroup: getAppGroup(appIdentifier, parameters),
@@ -104,9 +94,8 @@ export const getFileProviderInfoContent = (appName: string, appIdentifier: strin
 			NSExtensionFileProviderSupportsEnumeration: true,
 			NSExtensionFileProviderDocumentGroup: getAppGroup(appIdentifier, parameters),
 			NSExtensionPointIdentifier: "com.apple.fileprovider-nonui",
-			NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).FilenFileProviderExtension"
+			NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).FileProviderExtension"
 		}
-		// use in your FileProvider Swift files
 	})
 }
 
@@ -229,7 +218,6 @@ async function buildRustForIOS(props: IOSRustBuildPluginProps) {
 	await cloneRepo(props)
 
 	const { targetPath, release = false, libName, targets } = props
-
 	const fullRustPath = path.resolve(targetPath)
 	const releaseFlag = release ? " --release" : ""
 
@@ -245,6 +233,7 @@ async function buildRustForIOS(props: IOSRustBuildPluginProps) {
 			stdio: "inherit"
 		}
 	)
+
 	const iosTargetPath = path.join(fullRustPath, "target", "ios")
 
 	if (fs.existsSync(iosTargetPath)) {
@@ -269,6 +258,7 @@ export const withFileProviderXcodeTarget: ConfigPlugin<FileProviderPluginProps> 
 	const { targets } = props
 	const hasX86Target = targets.some(t => t === "x86_64-apple-ios-sim")
 	const hasArmTarget = targets.some(t => t === "aarch64-apple-ios-sim" || t === "aarch64-apple-ios")
+
 	if (hasArmTarget && hasX86Target) {
 		throw new Error(
 			"[file-provider] The iOS FileProvider plugin does not support both x86_64 and arm64 targets at the same time (due to limitations in the xcode node module used by expo). Please choose one of them."
@@ -340,8 +330,6 @@ export const withFileProviderXcodeTarget: ConfigPlugin<FileProviderPluginProps> 
 			target: target.uuid
 		})
 
-		// pbxProject.addToPbxCopyfilesBuildPhase(frameworkFile)
-
 		// Add files which are not part of any build phase (FileProvider-Info.plist)
 		pbxProject.addFile(infoPlistFilePath, pbxGroupKey)
 
@@ -376,15 +364,16 @@ export const withFileProviderXcodeTarget: ConfigPlugin<FileProviderPluginProps> 
 				},
 				pbxGroupKey
 			)
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		} catch (e: any) {
-			if (e.message.includes("reading 'path'")) {
+		} catch (e) {
+			if (e instanceof Error && e.message.includes("reading 'path'")) {
 				console.error(e)
+
 				throw new Error(
 					// eslint-disable-next-line quotes
 					'[expo-file-provider] Could not add resource files to the FileProvider, please check your "patch-package" installation for xcode'
 				)
 			}
+
 			throw e
 		}
 
@@ -408,18 +397,18 @@ export const withFileProviderXcodeTarget: ConfigPlugin<FileProviderPluginProps> 
 					// eslint-disable-next-line quotes
 					buildSettingsObj["TARGETED_DEVICE_FAMILY"] = '"1,2"'
 					buildSettingsObj["IPHONEOS_DEPLOYMENT_TARGET"] = "16.0"
+				}
 
-					if (props.developmentTeamId) {
-						buildSettingsObj["DEVELOPMENT_TEAM"] = `"${props.developmentTeamId}"`
-					}
+				if (props.developmentTeamId) {
+					buildSettingsObj["DEVELOPMENT_TEAM"] = `"${props.developmentTeamId}"`
+				}
 
-					if (hasX86Target) {
-						// there's a bug in the xcode node module that prevents us from correctly specifying EXCLUDED_ARCHS[sdk=iphonesimulator*]
-						// so instead we have to exclude it completely
-						buildSettingsObj["EXCLUDED_ARCHS"] = "arm64"
-					} else {
-						buildSettingsObj["EXCLUDED_ARCHS"] = "x86_64"
-					}
+				if (hasX86Target) {
+					// there's a bug in the xcode node module that prevents us from correctly specifying EXCLUDED_ARCHS[sdk=iphonesimulator*]
+					// so instead we have to exclude it completely
+					buildSettingsObj["EXCLUDED_ARCHS"] = "arm64"
+				} else {
+					buildSettingsObj["EXCLUDED_ARCHS"] = "x86_64"
 				}
 			}
 		}

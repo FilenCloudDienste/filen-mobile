@@ -5,6 +5,10 @@ on:
         types: [published]
     workflow_dispatch:
 
+env:
+    NODE_ENV: production
+    APP_ENV: production
+
 jobs:
     build-android:
         runs-on: macos-15

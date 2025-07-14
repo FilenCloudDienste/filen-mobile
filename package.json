@@ -66,13 +66,14 @@
 		"postinstall": "patch-package",
 		"prebuild": "npm run install:prebuilds && expo prebuild",
 		"prebuild:clean": "npm run clean && npm run install:prebuilds && expo prebuild --clean",
-		"prebuild:ci:android": "npm run install:prebuilds && expo prebuild --clean --platform android",
-		"prebuild:ci:ios": "npm run install:prebuilds && expo prebuild --clean --platform ios",
+		"prebuild:ci:android": "npm run superclean && npm run install:prebuilds && expo prebuild --clean --platform android",
+		"prebuild:ci:ios": "npm run superclean && npm run install:prebuilds && expo prebuild --clean --platform ios",
 		"tsc:check": "tsc -p ./tsconfig.json",
 		"install:filen": "npm install @filen/sdk@latest",
 		"ncu": "ncu --interactive --format group",
 		"install:prebuilds": "tsx ./installPrebuilds.ts",
-		"clean": "tsx ./clean.ts"
+		"clean": "tsx ./clean.ts",
+		"superclean": "tsx ./superclean.ts"
 	},
 	"jest": {
 		"preset": "jest-expo"
