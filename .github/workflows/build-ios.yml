@@ -40,16 +40,16 @@ jobs:
                   rustup target add aarch64-apple-ios-sim
 
             - name: 🔧 Install Expo CLI
-              run: npm install -g @expo/cli@latest
+              run: npm install -g --include=dev @expo/cli@latest
 
             - name: 🔧 Install patch-package
-              run: npm install -g patch-package@latest
+              run: npm install -g --include=dev patch-package@latest
 
             - name: 📦 Install nodeThread dependencies
-              run: cd nodejs-assets/nodejs-project && npm install --force && cd .. && cd ..
+              run: cd nodejs-assets/nodejs-project && npm install --force --include=dev && cd .. && cd ..
 
             - name: 📦 Install main dependencies
-              run: npm install --force
+              run: npm install --force --include=dev
 
             - name: 📦 Build nodeThread
               run: cd nodejs-assets/nodejs-project && npm run build && cd .. && cd ..
