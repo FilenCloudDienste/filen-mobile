@@ -5,10 +5,6 @@ on:
         types: [published]
     workflow_dispatch:
 
-env:
-    NODE_ENV: production
-    APP_ENV: production
-
 jobs:
     build-android:
         runs-on: macos-15
@@ -66,6 +62,9 @@ jobs:
               run: cd nodejs-assets/nodejs-project && npm run build && cd .. && cd ..
 
             - name: 🛠 Prebuild
+              env:
+                  NODE_ENV: production
+                  APP_ENV: production
               run: |
                   npm run prebuild:ci:android
 
@@ -84,14 +83,14 @@ jobs:
               with:
                   name: android-release-apk-${{ github.run_number }}
                   path: android/app/build/outputs/apk/release/*.apk
-                  retention-days: 30
+                  retention-days: 90
 
             - name: 📤 Upload Release AAB
               uses: actions/upload-artifact@v4
               with:
                   name: android-release-aab-${{ github.run_number }}
                   path: android/app/build/outputs/bundle/release/*.aab
-                  retention-days: 30
+                  retention-days: 90
 
             - name: 📊 Build Summary
               run: |
