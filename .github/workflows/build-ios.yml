@@ -72,6 +72,13 @@ jobs:
             - name: 📱 Build and Archive iOS App
               run: |
                   cd ios
+                  echo "🏗️ Starting iOS build and archive..."
+
+                  # Create a temporary log file
+                  XCODE_LOG=$(mktemp)
+
+                  # Run xcodebuild with quiet flag and capture output
+                  set +e  # Don't exit on error immediately
                   xcodebuild \
                     -workspace Filen.xcworkspace \
                     -scheme Filen \
@@ -83,12 +90,33 @@ jobs:
                     -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }} \
                     -allowProvisioningUpdates \
                     -allowProvisioningDeviceRegistration \
+                    -quiet \
                     CODE_SIGN_STYLE=Automatic \
                     DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
-                    archive
+                    archive > "$XCODE_LOG" 2>&1
+
+                  BUILD_EXIT_CODE=$?
+                  set -e  # Re-enable exit on error
+
+                  # Filter and display only warnings and errors
+                  echo "🔍 Build completed. Showing warnings and errors:"
+                  grep -E "(warning:|error:|fatal error:|❌|⚠️)" "$XCODE_LOG" || echo "✅ No warnings or errors found"
+
+                  # If build failed, show the last 50 lines for context
+                  if [ $BUILD_EXIT_CODE -ne 0 ]; then
+                    echo ""
+                    echo "❌ Build failed. Last 50 lines of output:"
+                    tail -50 "$XCODE_LOG"
+                    exit $BUILD_EXIT_CODE
+                  fi
+
+                  echo "✅ Archive created successfully"
+                  rm -f "$XCODE_LOG"
 
             - name: 📱 Export IPA
               run: |
+                  echo "📦 Starting IPA export..."
+
                   # Create export options plist for automatic signing
                   cat > $RUNNER_TEMP/ExportOptions.plist << EOF
                   <?xml version="1.0" encoding="UTF-8"?>
@@ -113,7 +141,11 @@ jobs:
                   </plist>
                   EOF
 
-                  # Export IPA with automatic signing
+                  # Create a temporary log file for export
+                  EXPORT_LOG=$(mktemp)
+
+                  # Export IPA with automatic signing and quiet output
+                  set +e  # Don't exit on error immediately
                   xcodebuild \
                     -exportArchive \
                     -archivePath $RUNNER_TEMP/Filen.xcarchive \
@@ -122,7 +154,26 @@ jobs:
                     -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8 \
                     -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }} \
                     -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }} \
-                    -allowProvisioningUpdates
+                    -allowProvisioningUpdates \
+                    -quiet > "$EXPORT_LOG" 2>&1
+
+                  EXPORT_EXIT_CODE=$?
+                  set -e  # Re-enable exit on error
+
+                  # Filter and display only warnings and errors
+                  echo "🔍 Export completed. Showing warnings and errors:"
+                  grep -E "(warning:|error:|fatal error:|❌|⚠️)" "$EXPORT_LOG" || echo "✅ No warnings or errors found"
+
+                  # If export failed, show the last 50 lines for context
+                  if [ $EXPORT_EXIT_CODE -ne 0 ]; then
+                    echo ""
+                    echo "❌ Export failed. Last 50 lines of output:"
+                    tail -50 "$EXPORT_LOG"
+                    exit $EXPORT_EXIT_CODE
+                  fi
+
+                  echo "✅ IPA exported successfully"
+                  rm -f "$EXPORT_LOG"
 
             - name: 🧹 Cleanup
               if: always()

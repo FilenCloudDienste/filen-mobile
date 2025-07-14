@@ -26,6 +26,7 @@ export type FileProviderPluginProps = IOSRustBuildPluginProps & {
 	iosFileProviderName?: string
 	iosFileProviderBundleIdentifier?: string
 	iosAppGroupIdentifier?: string
+	developmentTeamId?: string
 }
 
 // Constants
@@ -407,14 +408,18 @@ export const withFileProviderXcodeTarget: ConfigPlugin<FileProviderPluginProps> 
 					// eslint-disable-next-line quotes
 					buildSettingsObj["TARGETED_DEVICE_FAMILY"] = '"1,2"'
 					buildSettingsObj["IPHONEOS_DEPLOYMENT_TARGET"] = "16.0"
-				}
 
-				if (hasX86Target) {
-					// there's a bug in the xcode node module that prevents us from correctly specifying EXCLUDED_ARCHS[sdk=iphonesimulator*]
-					// so instead we have to exclude it completely
-					buildSettingsObj["EXCLUDED_ARCHS"] = "arm64"
-				} else {
-					buildSettingsObj["EXCLUDED_ARCHS"] = "x86_64"
+					if (props.developmentTeamId) {
+						buildSettingsObj["DEVELOPMENT_TEAM"] = `"${props.developmentTeamId}"`
+					}
+
+					if (hasX86Target) {
+						// there's a bug in the xcode node module that prevents us from correctly specifying EXCLUDED_ARCHS[sdk=iphonesimulator*]
+						// so instead we have to exclude it completely
+						buildSettingsObj["EXCLUDED_ARCHS"] = "arm64"
+					} else {
+						buildSettingsObj["EXCLUDED_ARCHS"] = "x86_64"
+					}
 				}
 			}
 		}

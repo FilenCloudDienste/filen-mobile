@@ -1,6 +1,9 @@
 import "ts-node/register"
 import { type ExpoConfig, type ConfigContext } from "expo/config"
 
+export const APPLE_TEAM_ID: string = "7YTW5D2K7P"
+export const IOS_APP_GROUP_ID: string = "group.io.filen.app"
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
 	...config,
 	name: "Filen",
@@ -12,6 +15,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 	userInterfaceStyle: "automatic",
 	newArchEnabled: true,
 	jsEngine: "hermes",
+	platforms: ["ios", "android"],
+	githubUrl: "https://github.com/FilenCloudDienste/filen-mobile",
 	ios: {
 		buildNumber: "3001",
 		version: "3.0.1",
@@ -21,9 +26,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		usesIcloudStorage: true,
 		newArchEnabled: true,
 		jsEngine: "hermes",
-		appleTeamId: "7YTW5D2K7P",
+		appleTeamId: APPLE_TEAM_ID,
 		entitlements: {
-			"com.apple.security.application-groups": ["group.io.filen.app"]
+			"com.apple.security.application-groups": [IOS_APP_GROUP_ID]
 		},
 		config: {
 			usesNonExemptEncryption: false
@@ -38,6 +43,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			dark: "./assets/images/ios-dark.png",
 			light: "./assets/images/ios-light.png",
 			tinted: "./assets/images/ios-tinted.png"
+		},
+		privacyManifests: {
+			NSPrivacyTracking: false
 		}
 	},
 	android: {
@@ -76,11 +84,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			"READ_PHONE_STATE",
 			"QUERY_ALL_PACKAGES"
 		]
-	},
-	web: {
-		bundler: "metro",
-		output: "static",
-		favicon: "./assets/images/favicon.png"
 	},
 	plugins: [
 		"expo-router",
@@ -184,7 +187,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 				androidIntentFilters: ["*/*"],
 				androidMultiIntentFilters: ["*/*"],
 				iosShareExtensionName: "FilenShareIntentExtension",
-				iosAppGroupIdentifier: "group.io.filen.app"
+				iosAppGroupIdentifier: IOS_APP_GROUP_ID,
+				developmentTeamId: APPLE_TEAM_ID
 			}
 		],
 		[
@@ -213,7 +217,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 				targetPath: "rust",
 				crateName: "filen-mobile-native-cache",
 				libName: "filen_mobile_native_cache",
-				targets: ["aarch64-apple-ios", "aarch64-apple-ios-sim"]
+				targets: ["aarch64-apple-ios", "aarch64-apple-ios-sim"],
+				developmentTeamId: APPLE_TEAM_ID,
+				iosAppGroupIdentifier: IOS_APP_GROUP_ID
 			}
 		],
 		[
