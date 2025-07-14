@@ -3,29 +3,37 @@ import { type ExpoConfig, type ConfigContext } from "expo/config"
 
 export const APPLE_TEAM_ID: string = "7YTW5D2K7P"
 export const IOS_APP_GROUP_ID: string = "group.io.filen.app"
+export const VERSION: string = "3.0.1"
+export const BUILD_NUMBER: number = 3001
+export const JS_ENGINE: "hermes" | "jsc" = "hermes"
+export const NEW_ARCH_ENABLED: boolean = true
+export const ANDROID_MIN_SDK_VERSION: number = 31
+export const ANDROID_TARGET_SDK_VERSION: number = 35
+export const ANDROID_COMPILE_SDK_VERSION: number = 35
+export const IOS_DEPLOYMENT_TARGET: string = "16.0"
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
 	...config,
 	name: "Filen",
 	slug: "filen-mobile",
-	version: "3.0.1",
-	orientation: "portrait",
+	version: VERSION,
+	orientation: "default",
 	icon: "./assets/images/icon.png",
 	scheme: "iofilenapp",
 	userInterfaceStyle: "automatic",
-	newArchEnabled: true,
-	jsEngine: "hermes",
+	newArchEnabled: NEW_ARCH_ENABLED,
+	jsEngine: JS_ENGINE,
 	platforms: ["ios", "android"],
 	githubUrl: "https://github.com/FilenCloudDienste/filen-mobile",
 	ios: {
-		buildNumber: "3001",
-		version: "3.0.1",
+		buildNumber: BUILD_NUMBER.toString(),
+		version: VERSION,
 		supportsTablet: true,
 		bundleIdentifier: "io.filen.app",
 		requireFullScreen: true,
 		usesIcloudStorage: true,
-		newArchEnabled: true,
-		jsEngine: "hermes",
+		newArchEnabled: NEW_ARCH_ENABLED,
+		jsEngine: JS_ENGINE,
 		appleTeamId: APPLE_TEAM_ID,
 		entitlements: {
 			"com.apple.security.application-groups": [IOS_APP_GROUP_ID]
@@ -36,8 +44,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		infoPlist: {
 			UIBackgroundModes: ["audio", "fetch", "processing"],
 			NSAppTransportSecurity: {
-				NSAllowsLocalNetworking: true
-			}
+				NSAllowsLocalNetworking: true,
+				NSAllowsArbitraryLoads: false
+			},
+			LSApplicationCategoryType: "public.app-category.productivity",
+			CFBundleDisplayName: "Filen",
+			UIRequiredDeviceCapabilities: ["arm64"]
 		},
 		icon: {
 			dark: "./assets/images/ios-dark.png",
@@ -49,11 +61,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		}
 	},
 	android: {
-		version: "3.0.1",
-		versionCode: 3001,
+		version: VERSION,
+		versionCode: BUILD_NUMBER,
 		edgeToEdgeEnabled: true,
-		newArchEnabled: true,
-		jsEngine: "hermes",
+		newArchEnabled: NEW_ARCH_ENABLED,
+		jsEngine: JS_ENGINE,
+		allowBackup: false,
 		adaptiveIcon: {
 			foregroundImage: "./assets/images/adaptive-icon.png",
 			backgroundColor: "#ffffff"
@@ -80,9 +93,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			"USE_BIOMETRIC",
 			"SYSTEM_ALERT_WINDOW",
 			"ACTION_OPEN_DOCUMENT",
-			"ACTION_OPEN_DOCUMENT_TREE",
-			"READ_PHONE_STATE",
-			"QUERY_ALL_PACKAGES"
+			"ACTION_OPEN_DOCUMENT_TREE"
 		]
 	},
 	plugins: [
@@ -92,9 +103,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			"expo-build-properties",
 			{
 				android: {
-					compileSdkVersion: 35,
-					targetSdkVersion: 35,
-					minSdkVersion: 31,
+					compileSdkVersion: ANDROID_COMPILE_SDK_VERSION,
+					targetSdkVersion: ANDROID_TARGET_SDK_VERSION,
+					minSdkVersion: ANDROID_MIN_SDK_VERSION,
 					enableProguardInReleaseBuilds: false,
 					enableShrinkResourcesInReleaseBuilds: false,
 					enableBundleCompression: false,
@@ -102,7 +113,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 					enablePngCrunchInReleaseBuilds: false
 				},
 				ios: {
-					deploymentTarget: "16.0",
+					deploymentTarget: IOS_DEPLOYMENT_TARGET,
 					useFrameworks: "static"
 				}
 			}
@@ -117,14 +128,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		[
 			"expo-audio",
 			{
-				microphonePermission: "Allow $(PRODUCT_NAME) to access your microphone."
+				microphonePermission: "Please allow access to your microphone so that Filen can capture audio when recording videos."
 			}
 		],
 		[
 			"expo-media-library",
 			{
-				photosPermission: "Allow $(PRODUCT_NAME) to access your photos.",
-				savePhotosPermission: "Allow $(PRODUCT_NAME) to save photos.",
+				photosPermission: "Please allow access to your camera so that Filen can upload photos you take inside the app.",
+				savePhotosPermission: "Please allow access to your photo library so that Filen can save photos on your device.",
 				isAccessMediaLocationEnabled: true
 			}
 		],
@@ -144,15 +155,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		[
 			"expo-image-picker",
 			{
-				photosPermission: "Allow $(PRODUCT_NAME) to access your photos.",
-				cameraPermission: "Allow $(PRODUCT_NAME) to access your camera.",
-				microphonePermission: "Allow $(PRODUCT_NAME) to access your microphone."
+				photosPermission: "Please allow access to your photos so that Filen can back them up automatically.",
+				cameraPermission: "Please allow access to your camera so that Filen can take photos.",
+				microphonePermission: "Please allow access to your microphone so that Filen can capture audio when recording videos."
 			}
 		],
 		[
 			"expo-local-authentication",
 			{
-				faceIDPermission: "Allow $(PRODUCT_NAME) to use Face ID."
+				faceIDPermission: "Please allow Filen to use FaceID or TouchID to lock itself."
 			}
 		],
 		[
