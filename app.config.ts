@@ -14,12 +14,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 	jsEngine: "hermes",
 	ios: {
 		buildNumber: "3001",
+		version: "3.0.1",
 		supportsTablet: true,
 		bundleIdentifier: "io.filen.app",
 		requireFullScreen: true,
 		usesIcloudStorage: true,
 		newArchEnabled: true,
 		jsEngine: "hermes",
+		appleTeamId: "7YTW5D2K7P",
 		entitlements: {
 			"com.apple.security.application-groups": ["group.io.filen.app"]
 		},
@@ -39,6 +41,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		}
 	},
 	android: {
+		version: "3.0.1",
 		versionCode: 3001,
 		edgeToEdgeEnabled: true,
 		newArchEnabled: true,

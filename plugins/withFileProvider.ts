@@ -29,14 +29,17 @@ export type FileProviderPluginProps = IOSRustBuildPluginProps & {
 }
 
 // Constants
-export const fileProviderName = "FilenFileProvider"
+export const fileProviderName = "FilenFileProviderExtension"
 export const fileProviderInfoFileName = `${fileProviderName}-Info.plist`
 export const fileProviderEntitlementsFileName = `${fileProviderName}.entitlements`
 
 // Helper functions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getFileProviderName = (parameters?: any) => {
-	if (!parameters?.iosFileProviderName) return fileProviderName
+	if (!parameters?.iosFileProviderName) {
+		return fileProviderName
+	}
+
 	return parameters.iosFileProviderName.replace(/[^a-zA-Z0-9]/g, "")
 }
 
@@ -47,7 +50,7 @@ export const getAppGroup = (identifier: string, parameters: any) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getFileProviderBundledIdentifier = (appIdentifier: string, parameters: any) => {
-	return parameters.iosFileProviderBundleIdentifier || `${appIdentifier}.FileProvider`
+	return parameters.iosFileProviderBundleIdentifier || `${appIdentifier}.FilenFileProviderExtension`
 }
 
 // File path helpers
@@ -100,7 +103,7 @@ export const getFileProviderInfoContent = (appName: string, appIdentifier: strin
 			NSExtensionFileProviderSupportsEnumeration: true,
 			NSExtensionFileProviderDocumentGroup: getAppGroup(appIdentifier, parameters),
 			NSExtensionPointIdentifier: "com.apple.fileprovider-nonui",
-			NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).FileProviderExtension"
+			NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).FilenFileProviderExtension"
 		}
 		// use in your FileProvider Swift files
 	})
