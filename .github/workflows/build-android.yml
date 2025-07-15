@@ -98,7 +98,7 @@ jobs:
               with:
                   serviceAccountJsonPlainText: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
                   packageName: io.filen.app
-                  releaseFiles: app/build/outputs/bundle/release/app-release.aab
+                  releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
                   track: qa
 
             - name: 📊 Build Summary

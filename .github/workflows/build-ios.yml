@@ -183,7 +183,7 @@ jobs:
                   app-path: ${{ runner.temp }}/Filen.ipa
                   issuer-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
                   api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-                  api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+                  api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
 
             - name: 📊 Build Summary
               run: |
