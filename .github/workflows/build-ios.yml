@@ -177,6 +177,14 @@ jobs:
                   path: ${{ runner.temp }}/*.ipa
                   retention-days: 90
 
+            - name: 🚀 Upload to TestFlight
+              uses: apple-actions/upload-testflight-build@v3
+              with:
+                  app-path: ${{ runner.temp }}/Filen.ipa
+                  issuer-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+                  api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+                  api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+
             - name: 📊 Build Summary
               run: |
                   echo "## 🚀 iOS Build Complete!" >> $GITHUB_STEP_SUMMARY
@@ -194,6 +202,9 @@ jobs:
                     echo "- ✅ iOS IPA: $IPA_NAME (${IPA_SIZE})" >> $GITHUB_STEP_SUMMARY
                   fi
 
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### 🚀 TestFlight Upload Complete!" >> $GITHUB_STEP_SUMMARY
+                  echo "- ✅ Build uploaded to App Store Connect internal beta track" >> $GITHUB_STEP_SUMMARY
                   echo "" >> $GITHUB_STEP_SUMMARY
                   echo "### 📦 Download artifacts from the Actions tab above" >> $GITHUB_STEP_SUMMARY
                   echo "### 🔗 Build #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY

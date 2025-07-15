@@ -93,6 +93,14 @@ jobs:
                   path: android/app/build/outputs/bundle/release/*.aab
                   retention-days: 90
 
+            - name: 📤 Upload to Google Play
+              uses: r0adkll/upload-google-play@v1
+              with:
+                  serviceAccountJsonPlainText: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+                  packageName: io.filen.app
+                  releaseFiles: app/build/outputs/bundle/release/app-release.aab
+                  track: qa
+
             - name: 📊 Build Summary
               run: |
                   echo "## 🚀 Build Complete!" >> $GITHUB_STEP_SUMMARY
@@ -112,11 +120,3 @@ jobs:
                   echo "" >> $GITHUB_STEP_SUMMARY
                   echo "### 📦 Download artifacts from the Actions tab above" >> $GITHUB_STEP_SUMMARY
                   echo "### 🔗 Build #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-
-            - name: 📤 Upload to Google Play
-              uses: r0adkll/upload-google-play@v1
-              with:
-                  serviceAccountJsonPlainText: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
-                  packageName: io.filen.app
-                  releaseFiles: app/build/outputs/bundle/release/app-release.aab
-                  track: qa
