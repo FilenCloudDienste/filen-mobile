@@ -55,26 +55,51 @@ jobs:
               run: cd nodejs-assets/nodejs-project && npm run build && cd .. && cd ..
 
             - name: 🛠 Prebuild
-              env:
-                  NODE_ENV: production
-                  APP_ENV: production
               run: |
                   npm run prebuild:ci:ios
 
-            - name: 🔐 Setup App Store Connect API Key
-              env:
-                  APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-                  APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-                  APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
-              run: |
-                  # Create API key directory
-                  mkdir -p ~/.appstoreconnect/private_keys
+            - name: 🔐 Setup distribution certificate
+              uses: apple-actions/import-codesign-certs@v2
+              with:
+                  create-keychain: true
+                  keychain-password: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+                  p12-file-base64: ${{ secrets.APPLE_DISTRIBUTION_CERT_BASE64 }}
+                  p12-password: ${{ secrets.APPLE_DISTRIBUTION_CERT_PASS }}
 
-                  # Decode base64 and create API key file
-                  echo "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_$APP_STORE_CONNECT_API_KEY_ID.p8
+            - name: 🔐 Setup development certificate
+              uses: apple-actions/import-codesign-certs@v2
+              with:
+                  create-keychain: false
+                  keychain-password: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+                  p12-file-base64: ${{ secrets.APPLE_DEVELOPMENT_CERT_BASE64 }}
+                  p12-password: ${{ secrets.APPLE_DEVELOPMENT_CERT_PASS }}
 
-                  # Set permissions
-                  chmod 600 ~/.appstoreconnect/private_keys/AuthKey_$APP_STORE_CONNECT_API_KEY_ID.p8
+            - name: 🔐 Setup main provisioning profile
+              uses: apple-actions/download-provisioning-profiles@v2
+              with:
+                  bundle-id: "io.filen.app"
+                  profile-type: "IOS_APP_STORE"
+                  issuer-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+                  api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+                  api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+
+            - name: 🔐 Setup FileProvider provisioning profile
+              uses: apple-actions/download-provisioning-profiles@v2
+              with:
+                  bundle-id: "io.filen.app.FileProvider"
+                  profile-type: "IOS_APP_STORE"
+                  issuer-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+                  api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+                  api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+
+            - name: 🔐 Setup ShareIntent provisioning profile
+              uses: apple-actions/download-provisioning-profiles@v2
+              with:
+                  bundle-id: "io.filen.app.share-extension"
+                  profile-type: "IOS_APP_STORE"
+                  issuer-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+                  api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+                  api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
 
             - name: 📱 Build and Archive iOS App
               run: |
@@ -85,18 +110,12 @@ jobs:
                     -configuration Release \
                     -destination generic/platform=iOS \
                     -archivePath $RUNNER_TEMP/Filen.xcarchive \
-                    -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8 \
-                    -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }} \
-                    -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }} \
-                    -allowProvisioningUpdates \
-                    -allowProvisioningDeviceRegistration \
-                    CODE_SIGN_STYLE=Automatic \
+                    CODE_SIGN_STYLE=Manual \
                     DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
                     archive
 
             - name: 📱 Export IPA
               run: |
-                  # Create export options plist for automatic signing
                   cat > $RUNNER_TEMP/ExportOptions.plist << EOF
                   <?xml version="1.0" encoding="UTF-8"?>
                   <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -115,34 +134,33 @@ jobs:
                     <key>manageAppVersionAndBuildNumber</key>
                     <false/>
                     <key>signingStyle</key>
-                    <string>automatic</string>
+                    <string>manual</string>
                   </dict>
                   </plist>
                   EOF
 
-                  # Export IPA with automatic signing
                   xcodebuild \
                     -exportArchive \
                     -archivePath $RUNNER_TEMP/Filen.xcarchive \
                     -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist \
-                    -exportPath $RUNNER_TEMP/ \
-                    -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8 \
-                    -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }} \
-                    -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }} \
-                    -allowProvisioningUpdates
+                    -exportPath $RUNNER_TEMP/
 
             - name: 🧹 Cleanup
               if: always()
               run: |
-                  # Remove API key
-                  rm -rf ~/.appstoreconnect
-
-                  # Clear Xcode derived data and caches (in case they contain sensitive info)
+                  # Clear Xcode derived data and caches
                   rm -rf ~/Library/Developer/Xcode/DerivedData
                   rm -rf ~/Library/Caches/com.apple.dt.Xcode
 
+                  # Clear provisioning profiles downloaded by the action
+                  rm -rf ~/Library/MobileDevice/Provisioning\ Profiles
+
                   # Clear any temporary keychains that might have been created
-                  security list-keychains | grep -E "(temp|build|ci)" | xargs -I {} security delete-keychain {} 2>/dev/null || true
+                  # (apple-actions should handle its own keychain cleanup, but this is extra safety)
+                  security list-keychains | grep -E "(temp|build|ci|apple-actions)" | xargs -I {} security delete-keychain {} 2>/dev/null || true
+
+                  # Reset keychain list to default
+                  security list-keychains -d user -s login.keychain
 
             - name: 📤 Upload iOS Archive
               uses: actions/upload-artifact@v4
