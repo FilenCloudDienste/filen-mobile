@@ -34,11 +34,14 @@ jobs:
                   p12-password: ${{ secrets.APPLE_DEVELOPMENT_CERT_PASS }}
 
             - name: 🔓 Decode Appstore Connect API private key
+              id: decode-key
               run: |
                   echo "${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}" | base64 --decode > private_key.p8
-                  echo "PRIVATE_KEY<<EOF" >> $GITHUB_ENV
-                  cat private_key.p8 >> $GITHUB_ENV
-                  echo "EOF" >> $GITHUB_ENV
+                  {
+                    echo 'PRIVATE_KEY<<EOF'
+                    cat private_key.p8
+                    echo 'EOF'
+                  } >> "$GITHUB_ENV"
 
             - name: 🔐 Setup main provisioning profile
               uses: apple-actions/download-provisioning-profiles@v2
@@ -162,8 +165,10 @@ jobs:
                   # Clear provisioning profiles downloaded by the action
                   rm -rf ~/Library/MobileDevice/Provisioning\ Profiles
 
+                  # Remove temporary Apple private key file
+                  rm -f private_key.p8
+
                   # Clear any temporary keychains that might have been created
-                  # (apple-actions should handle its own keychain cleanup, but this is extra safety)
                   security list-keychains | grep -E "(temp|build|ci|apple-actions)" | xargs -I {} security delete-keychain {} 2>/dev/null || true
 
                   # Reset keychain list to default
