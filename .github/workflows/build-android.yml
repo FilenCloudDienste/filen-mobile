@@ -99,7 +99,7 @@ jobs:
                   serviceAccountJsonPlainText: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
                   packageName: io.filen.app
                   releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
-                  track: qa
+                  track: internal
 
             - name: 📊 Build Summary
               run: |
