@@ -33,16 +33,6 @@ jobs:
                   p12-file-base64: ${{ secrets.APPLE_DEVELOPMENT_CERT_BASE64 }}
                   p12-password: ${{ secrets.APPLE_DEVELOPMENT_CERT_PASS }}
 
-            - name: 🔓 Decode Appstore Connect API private key
-              id: decode-key
-              run: |
-                  echo "${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}" | base64 --decode > private_key.p8
-                  {
-                    echo 'PRIVATE_KEY<<EOF'
-                    cat private_key.p8
-                    echo 'EOF'
-                  } >> "$GITHUB_ENV"
-
             - name: 🔐 Setup main provisioning profile
               uses: apple-actions/download-provisioning-profiles@v2
               with:
@@ -50,7 +40,7 @@ jobs:
                   profile-type: "IOS_APP_STORE"
                   issuer-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
                   api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-                  api-private-key: ${{ env.PRIVATE_KEY }}
+                  api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
 
             - name: 🔐 Setup FileProvider provisioning profile
               uses: apple-actions/download-provisioning-profiles@v2
@@ -59,7 +49,7 @@ jobs:
                   profile-type: "IOS_APP_STORE"
                   issuer-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
                   api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-                  api-private-key: ${{ env.PRIVATE_KEY }}
+                  api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
 
             - name: 🔐 Setup ShareIntent provisioning profile
               uses: apple-actions/download-provisioning-profiles@v2
@@ -68,7 +58,7 @@ jobs:
                   profile-type: "IOS_APP_STORE"
                   issuer-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
                   api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-                  api-private-key: ${{ env.PRIVATE_KEY }}
+                  api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
 
             - name: 🔧 Setup Xcode
               uses: maxim-lobanov/setup-xcode@v1
