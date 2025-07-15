@@ -17,47 +17,6 @@ jobs:
             - name: 🏗 Setup repo
               uses: actions/checkout@v4
 
-            - name: 🔧 Setup Xcode
-              uses: maxim-lobanov/setup-xcode@v1
-              with:
-                  xcode-version: "16.4"
-
-            - name: 🏗 Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 24
-
-            - name: 🦀 Setup Rust
-              uses: actions-rs/toolchain@v1
-              with:
-                  toolchain: stable
-                  profile: minimal
-                  override: true
-
-            - name: 🦀 Install Rust targets
-              run: |
-                  rustup target add aarch64-apple-ios
-                  rustup target add aarch64-apple-ios-sim
-
-            - name: 🔧 Install Expo CLI
-              run: npm install -g --include=dev @expo/cli@latest
-
-            - name: 🔧 Install patch-package
-              run: npm install -g --include=dev patch-package@latest
-
-            - name: 📦 Install nodeThread dependencies
-              run: cd nodejs-assets/nodejs-project && npm install --force --include=dev && cd .. && cd ..
-
-            - name: 📦 Install main dependencies
-              run: npm install --force --include=dev
-
-            - name: 📦 Build nodeThread
-              run: cd nodejs-assets/nodejs-project && npm run build && cd .. && cd ..
-
-            - name: 🛠 Prebuild
-              run: |
-                  npm run prebuild:ci:ios
-
             - name: 🔐 Setup distribution certificate
               uses: apple-actions/import-codesign-certs@v2
               with:
@@ -100,6 +59,47 @@ jobs:
                   issuer-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
                   api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
                   api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+
+            - name: 🔧 Setup Xcode
+              uses: maxim-lobanov/setup-xcode@v1
+              with:
+                  xcode-version: "16.4"
+
+            - name: 🏗 Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+
+            - name: 🦀 Setup Rust
+              uses: actions-rs/toolchain@v1
+              with:
+                  toolchain: stable
+                  profile: minimal
+                  override: true
+
+            - name: 🦀 Install Rust targets
+              run: |
+                  rustup target add aarch64-apple-ios
+                  rustup target add aarch64-apple-ios-sim
+
+            - name: 🔧 Install Expo CLI
+              run: npm install -g --include=dev @expo/cli@latest
+
+            - name: 🔧 Install patch-package
+              run: npm install -g --include=dev patch-package@latest
+
+            - name: 📦 Install nodeThread dependencies
+              run: cd nodejs-assets/nodejs-project && npm install --force --include=dev && cd .. && cd ..
+
+            - name: 📦 Install main dependencies
+              run: npm install --force --include=dev
+
+            - name: 📦 Build nodeThread
+              run: cd nodejs-assets/nodejs-project && npm run build && cd .. && cd ..
+
+            - name: 🛠 Prebuild
+              run: |
+                  npm run prebuild:ci:ios
 
             - name: 📱 Build and Archive iOS App
               run: |
