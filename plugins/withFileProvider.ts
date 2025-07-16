@@ -307,9 +307,6 @@ export const withFileProviderXcodeTarget: ConfigPlugin<FileProviderPluginProps> 
 		// Add a new PBXFrameworksBuildPhase for the FileProvider target
 		pbxProject.addBuildPhase([], "PBXFrameworksBuildPhase", "Frameworks", target.uuid)
 
-		// Add Embed Frameworks build phase for the FileProvider target
-		pbxProject.addBuildPhase([], "PBXCopyFilesBuildPhase", "Embed Frameworks", target.uuid, "frameworks")
-
 		// Create a separate PBXGroup for the FileProvider's files
 		const pbxGroupKey = pbxProject.pbxCreateGroup(extensionName, extensionName)
 
@@ -324,9 +321,8 @@ export const withFileProviderXcodeTarget: ConfigPlugin<FileProviderPluginProps> 
 
 		pbxProject.addFramework(xcframeworkPath, {
 			customFramework: true,
-			embed: true,
+			embed: false,
 			link: true,
-			sign: true,
 			target: target.uuid
 		})
 
