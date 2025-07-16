@@ -8,7 +8,7 @@ import { Readable, type Duplex } from "stream"
 import { type ReadableStream as ReadableStreamWebType } from "stream/web"
 import http, { type IncomingMessage, ServerResponse } from "http"
 import { type Socket } from "net"
-import { v4 as uuidv4 } from "uuid"
+import { randomUUID } from "crypto"
 import { POSSIBLE_PORTS } from "./ports"
 import crypto from "crypto"
 
@@ -203,7 +203,7 @@ export class HTTP {
 						resolve()
 					})
 					.on("connection", socket => {
-						const socketId = uuidv4()
+						const socketId = randomUUID()
 
 						this.connections[socketId] = socket
 

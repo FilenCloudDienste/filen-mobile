@@ -83,7 +83,7 @@ jobs:
               run: npm install --force --include=dev
 
             - name: 📦 Build nodeThread
-              run: cd nodejs-assets/nodejs-project && npm run build && cd .. && cd ..
+              run: npm run buildNodeThread
 
             - name: 🛠 Prebuild
               run: |
