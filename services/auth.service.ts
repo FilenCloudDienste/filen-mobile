@@ -15,6 +15,7 @@ import thumbnails from "@/lib/thumbnails"
 import assets from "@/lib/assets"
 import { normalizeFilePathForNode } from "@/lib/utils"
 import * as FileSystem from "expo-file-system/next"
+import fileProvider from "@/lib/fileProvider"
 
 export type SetupResult =
 	| {
@@ -56,6 +57,8 @@ export class AuthService {
 			if (!isAuthed) {
 				await Promise.all([thumbnailWarmup, verifyOfflineFiles, i18n, assetsCopy])
 
+				fileProvider.disable()
+
 				console.log("setup done, not authed")
 
 				return {
@@ -79,7 +82,7 @@ export class AuthService {
 					: nodeWorker.proxy("reinitSDK", {
 							sdkConfig,
 							tmpPath
-					  }),
+						}),
 				thumbnailWarmup,
 				verifyOfflineFiles,
 				i18n,
