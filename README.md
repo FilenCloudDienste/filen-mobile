@@ -82,4 +82,4 @@ npm run (android:device || ios:device)
 
 ## License
 
-Distributed under the AGPL-3.0 License. See [LICENSE](https://github.com/FilenCloudDienste/filen-mobile/blob/main/LICENSE.md) for more information.
+Distributed under the AGPL-3.0 License. See [LICENSE](https://github.com/FilenCloudDienste/filen-mobile/blob/master/LICENSE) for more information.
