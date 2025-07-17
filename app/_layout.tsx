@@ -169,9 +169,9 @@ export default function RootLayout() {
 												<ColorPickerSheet />
 												<GalleryModal />
 												<PortalHost />
-												<FullScreenLoadingModal />
 											</ShareIntentProvider>
 										)}
+										<FullScreenLoadingModal />
 									</NotifierWrapper>
 								</NavThemeProvider>
 							</BottomSheetModalProvider>

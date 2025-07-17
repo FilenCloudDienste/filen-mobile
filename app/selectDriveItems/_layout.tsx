@@ -2,8 +2,6 @@ import { Stack, Redirect } from "expo-router"
 import useIsAuthed from "@/hooks/useIsAuthed"
 import Toolbar from "@/components/selectDriveItems/toolbar"
 import { Fragment } from "react"
-import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
-import { Platform } from "react-native"
 import { SCREEN_OPTIONS } from "@/lib/constants"
 
 export default function SelectDriveItemsLayout() {
@@ -17,7 +15,6 @@ export default function SelectDriveItemsLayout() {
 		<Fragment>
 			<Stack screenOptions={SCREEN_OPTIONS.base} />
 			<Toolbar />
-			{Platform.OS === "ios" && <FullScreenLoadingModal />}
 		</Fragment>
 	)
 }

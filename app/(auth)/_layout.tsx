@@ -2,7 +2,6 @@ import { Stack, Redirect } from "expo-router"
 import useIsAuthed from "@/hooks/useIsAuthed"
 import { Platform } from "react-native"
 import { Fragment } from "react"
-import { FullScreenLoadingModal } from "@/components/modals/fullScreenLoadingModal"
 import useLockOrientation from "@/hooks/useLockOrientation"
 import { SCREEN_OPTIONS } from "@/lib/constants"
 
@@ -38,7 +37,6 @@ export default function AuthLayout() {
 					options={screenOptions}
 				/>
 			</Stack>
-			{Platform.OS === "ios" && <FullScreenLoadingModal />}
 		</Fragment>
 	)
 }
