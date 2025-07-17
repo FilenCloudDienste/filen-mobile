@@ -12,6 +12,7 @@ export type MaterialSchemeOnlyIconProps = Omit<ROIconProps<"material">, "namingS
 
 const containerBaseClassName = "flex-col gap-4 items-center justify-center py-[100px] px-16"
 const textBaseClassName = "text-sm text-center text-muted-foreground"
+const iconSize = 96
 
 export const ListEmpty = memo(
 	({
@@ -65,7 +66,7 @@ export const ListEmpty = memo(
 					{icons?.error && (
 						<Icon
 							color={colors.grey}
-							size={64}
+							size={iconSize}
 							{...(icons.error as IconProps)}
 						/>
 					)}
@@ -87,7 +88,7 @@ export const ListEmpty = memo(
 						{icons?.emptySearch && (
 							<Icon
 								color={colors.grey}
-								size={64}
+								size={iconSize}
 								{...(icons.emptySearch as IconProps)}
 							/>
 						)}
@@ -107,7 +108,7 @@ export const ListEmpty = memo(
 					{icons?.empty && (
 						<Icon
 							color={colors.grey}
-							size={64}
+							size={iconSize}
 							{...(icons.empty as IconProps)}
 						/>
 					)}
@@ -127,7 +128,7 @@ export const ListEmpty = memo(
 				{icons?.empty && (
 					<Icon
 						color={colors.grey}
-						size={64}
+						size={iconSize}
 						{...(icons.empty as IconProps)}
 					/>
 				)}
