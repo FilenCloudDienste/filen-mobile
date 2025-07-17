@@ -6,6 +6,10 @@ import { execSync } from "child_process"
 import * as fs from "fs"
 import * as path from "path"
 
+function getDocumentsProviderFilePath(platformProjectRoot: string, fileName: string): string {
+	return path.join(platformProjectRoot, "filen-android-documents-provider", "app", "src", "main", "java", "io", "filen", "app", fileName)
+}
+
 export type ManifestProvider = {
 	$: {
 		"android:name": string
@@ -17,14 +21,7 @@ export type ManifestProvider = {
 	"intent-filter": ManifestIntentFilter[]
 }
 
-export type CloneRepoPluginProps = {
-	repoUrl: string
-	targetPath: string
-	clean?: boolean
-	branch?: string
-}
-
-export type AndroidRustBuildPluginProps = CloneRepoPluginProps & {
+export type AndroidRustBuildPluginProps = {
 	crateName: string
 	libName: string
 	targets: string[]
@@ -108,14 +105,13 @@ android {
 
 export async function buildRustForAndroid(props: AndroidRustBuildPluginProps, config: ExportedConfigWithProps<unknown>) {
 	// first we set up the rust repository
-	await cloneRepo(props)
 
-	const { targetPath, libName, crateName, targets } = props
+	const { libName, crateName, targets } = props
 	const platformRoot = config.modRequest.platformProjectRoot
 	const androidBuildDir = path.join(platformRoot, "app", "build")
 	const androidSrcDir = path.join(platformRoot, "app", "src", "main")
 	const jniLibsDir = path.join(androidSrcDir, "jniLibs")
-	const fullRustPath = path.resolve(targetPath)
+	const fullRustPath = path.join(config.modRequest.projectRoot, "filen-rs")
 	const androidProjectDir = path.join(androidSrcDir, "java", ...config.android!.package!.split("."))
 
 	// build rust library for android targets
@@ -150,42 +146,10 @@ export async function buildRustForAndroid(props: AndroidRustBuildPluginProps, co
 		recursive: true
 	})
 
-	fs.copyFileSync(
-		path.join(config.modRequest.projectRoot, "prebuilds", "android-documents-provider", "FilenDocumentsProvider.kt"),
+	await fs.promises.copyFile(
+		getDocumentsProviderFilePath(config.modRequest.projectRoot, "FilenDocumentsProvider.kt"),
 		path.join(androidProjectDir, "FilenDocumentsProvider.kt")
 	)
-}
-
-export async function cloneRepo(props: CloneRepoPluginProps) {
-	const { repoUrl, targetPath, clean = false, branch = "main" } = props
-	const fullTargetPath = path.resolve(targetPath)
-
-	if (!fs.existsSync(fullTargetPath)) {
-		fs.mkdirSync(fullTargetPath, {
-			recursive: true
-		})
-
-		execSync(`git clone --single-branch --branch ${branch} --depth 1 ${repoUrl} ${fullTargetPath}`, {
-			stdio: "inherit"
-		})
-	} else {
-		execSync("git stash", {
-			cwd: fullTargetPath,
-			stdio: "inherit"
-		})
-
-		execSync("git pull", {
-			cwd: fullTargetPath,
-			stdio: "inherit"
-		})
-	}
-
-	if (clean) {
-		execSync("cargo clean", {
-			cwd: fullTargetPath,
-			stdio: "inherit"
-		})
-	}
 }
 
 export default withAndroidRustBuild

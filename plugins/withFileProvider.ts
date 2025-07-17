@@ -7,15 +7,8 @@ import fs from "node:fs"
 import path from "node:path"
 
 // Rust build functions
-export type CloneRepoPluginProps = {
-	repoUrl: string
-	targetPath: string
-	clean?: boolean
-	branch?: string
-}
 
-export type IOSRustBuildPluginProps = CloneRepoPluginProps & {
-	release?: boolean
+export type IOSRustBuildPluginProps = {
 	libName: string
 	crateName: string
 	targets: string[]
@@ -140,88 +133,31 @@ export const writeFileProviderFiles = async (
 		})
 	)
 
-	// Copy Swift files from prebuilds
-	const swiftFiles = [
-		"FileProviderEnumerator.swift",
-		"FileProviderItem.swift",
-		"FileProviderExtension.swift",
-		"ProgressNotifier.swift",
-		"ThumbnailHandler.swift",
-		"Utils.swift"
-	]
-
 	await fs.promises.mkdir(path.join(platformProjectRoot, getFileProviderName(props)), {
 		recursive: true
 	})
 
-	for (const swiftFile of swiftFiles) {
-		const sourceFilePath = path.join(config.modRequest.projectRoot, "prebuilds", "ios-file-provider", swiftFile)
-		const targetFilePath = getFileProviderSwiftFilePath(config.modRequest.platformProjectRoot, props, swiftFile)
-
+	const fileProviderSwiftSrcPath = path.join(config.modRequest.projectRoot, "filen-ios-file-provider", "FilenFileProviderExtension")
+	for (const file of await fs.promises.readdir(fileProviderSwiftSrcPath)) {
+		if (!file.endsWith(".swift")) {
+			continue
+		}
+		const sourceFilePath = path.join(fileProviderSwiftSrcPath, file)
+		const targetFilePath = getFileProviderSwiftFilePath(config.modRequest.platformProjectRoot, props, file)
 		await fs.promises.copyFile(sourceFilePath, targetFilePath)
 	}
 
-	const { targetPath } = props
-
 	await fs.promises.copyFile(
-		path.join(config.modRequest.projectRoot, targetPath, "target", "uniffi-xcframework-staging", `${props.libName}.swift`),
+		path.join(config.modRequest.projectRoot, "filen-rs", "target", "uniffi-xcframework-staging", `${props.libName}.swift`),
 		getFileProviderSwiftFilePath(config.modRequest.platformProjectRoot, props, `${props.libName}.swift`)
 	)
 }
 
-export async function cloneRepo(props: CloneRepoPluginProps) {
-	const { repoUrl, targetPath, clean = false, branch = "main" } = props
+async function buildRustForIOS(projectRoot: string, props: IOSRustBuildPluginProps) {
+	const { libName, targets } = props
+	const fullRustPath = path.join(projectRoot, "filen-rs")
 
-	try {
-		const fullTargetPath = path.resolve(targetPath)
-
-		if (!fs.existsSync(fullTargetPath)) {
-			fs.mkdirSync(fullTargetPath, {
-				recursive: true
-			})
-
-			console.log(`Cloning ${repoUrl} to ${fullTargetPath}...`)
-
-			execSync(`git clone --single-branch --branch ${branch} --depth 1 ${repoUrl} ${fullTargetPath}`, {
-				stdio: "inherit"
-			})
-		} else {
-			console.log(`Directory ${fullTargetPath} already exists. Updating...`)
-
-			execSync("git stash", {
-				cwd: fullTargetPath,
-				stdio: "inherit"
-			})
-
-			execSync("git pull", {
-				cwd: fullTargetPath,
-				stdio: "inherit"
-			})
-		}
-
-		if (clean) {
-			execSync("cargo clean", {
-				cwd: fullTargetPath,
-				stdio: "inherit"
-			})
-		}
-
-		console.log(`Repository ${repoUrl} cloned successfully!`)
-	} catch (error) {
-		console.error("Error during Rust repository setup:", error)
-
-		throw error
-	}
-}
-
-async function buildRustForIOS(props: IOSRustBuildPluginProps) {
-	await cloneRepo(props)
-
-	const { targetPath, release = false, libName, targets } = props
-	const fullRustPath = path.resolve(targetPath)
-	const releaseFlag = release ? " --release" : ""
-
-	execSync(`cargo build --lib --release ${targets.map(t => `--target ${t}`).join(" ")}${releaseFlag} -p ${props.crateName}`, {
+	execSync(`cargo build --lib --release ${targets.map(t => `--target ${t}`).join(" ")} -p ${props.crateName}`, {
 		cwd: fullRustPath,
 		stdio: "inherit"
 	})
@@ -317,7 +253,7 @@ export const withFileProviderXcodeTarget: ConfigPlugin<FileProviderPluginProps> 
 		})
 
 		// Add the xcframework to the FileProvider target
-		const xcframeworkPath = path.resolve(props.targetPath, "target", "ios", `lib${props.libName}.xcframework`)
+		const xcframeworkPath = path.join(config.modRequest.projectRoot, "filen-rs", "target", "ios", `lib${props.libName}.xcframework`)
 
 		pbxProject.addFramework(xcframeworkPath, {
 			customFramework: true,
@@ -330,25 +266,25 @@ export const withFileProviderXcodeTarget: ConfigPlugin<FileProviderPluginProps> 
 		pbxProject.addFile(infoPlistFilePath, pbxGroupKey)
 
 		// Add all Swift source files to our PbxGroup and PBXSourcesBuildPhase
-		const swiftFiles = [
-			"FileProviderEnumerator.swift",
-			"FileProviderItem.swift",
-			"FileProviderExtension.swift",
-			"ProgressNotifier.swift",
-			"ThumbnailHandler.swift",
-			"Utils.swift",
-			`${props.libName}.swift`
-		]
-
-		for (const swiftFile of swiftFiles) {
-			pbxProject.addSourceFile(
-				getFileProviderSwiftFilePath(platformProjectRoot, props, swiftFile),
-				{
-					target: target.uuid
-				},
-				pbxGroupKey
-			)
+		const fileProviderSwiftSrcPath = path.join(config.modRequest.projectRoot, "filen-ios-file-provider", "FilenFileProviderExtension")
+		for (const file of await fs.promises.readdir(fileProviderSwiftSrcPath)) {
+			if (file.endsWith(".swift")) {
+				pbxProject.addSourceFile(
+					getFileProviderSwiftFilePath(platformProjectRoot, props, file),
+					{
+						target: target.uuid
+					},
+					pbxGroupKey
+				)
+			}
 		}
+		pbxProject.addSourceFile(
+			getFileProviderSwiftFilePath(platformProjectRoot, props, `${props.libName}.swift`),
+			{
+				target: target.uuid
+			},
+			pbxGroupKey
+		)
 
 		// Add the resource files
 		try {
@@ -418,7 +354,7 @@ export const withFileProvider: ConfigPlugin<FileProviderPluginProps> = (config, 
 	config = withDangerousMod(config, [
 		"ios",
 		async config => {
-			await buildRustForIOS(props)
+			await buildRustForIOS(config.modRequest.projectRoot, props)
 
 			return config
 		}
