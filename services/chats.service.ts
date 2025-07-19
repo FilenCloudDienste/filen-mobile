@@ -136,7 +136,7 @@ export class ChatsService {
 				contacts
 			})
 
-			queryClient.invalidateQueries({
+			await queryClient.invalidateQueries({
 				queryKey: ["useChatsQuery"]
 			})
 		} finally {

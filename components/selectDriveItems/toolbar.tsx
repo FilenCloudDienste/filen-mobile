@@ -1,21 +1,20 @@
-import { memo, useCallback, useMemo } from "react"
+import { memo, useCallback, useMemo, Fragment } from "react"
 import { useSelectDriveItemsStore } from "@/stores/selectDriveItems.store"
 import { Toolbar as ToolbarComponent, ToolbarCTA, ToolbarIcon } from "@/components/nativewindui/Toolbar"
 import events from "@/lib/events"
-import { inputPrompt } from "@/components/prompts/inputPrompt"
-import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
-import { useRouter, useLocalSearchParams } from "expo-router"
+import { useRouter, useGlobalSearchParams } from "expo-router"
 import { useShallow } from "zustand/shallow"
 import { useTranslation } from "react-i18next"
 import useSDKConfig from "@/hooks/useSDKConfig"
-import nodeWorker from "@/lib/nodeWorker"
-import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
+import driveService from "@/services/drive.service"
+import { Button } from "../nativewindui/Button"
+import { Text } from "../nativewindui/Text"
 
 export const Toolbar = memo(() => {
 	const { canGoBack, dismissTo } = useRouter()
 	const selectedItems = useSelectDriveItemsStore(useShallow(state => state.selectedItems))
-	const { id, max, type, dismissHref, parent } = useLocalSearchParams()
+	const { id, max, type, dismissHref, parent } = useGlobalSearchParams()
 	const { t } = useTranslation()
 	const [{ baseFolderUUID }] = useSDKConfig()
 
@@ -35,11 +34,6 @@ export const Toolbar = memo(() => {
 		}),
 		[parent, baseFolderUUID]
 	)
-
-	const query = useCloudItemsQuery({
-		...queryParams,
-		enabled: false
-	})
 
 	const canSubmit = useMemo(() => {
 		return (
@@ -69,6 +63,18 @@ export const Toolbar = memo(() => {
 			  })
 	}, [selectedItems, t])
 
+	const canSubmitRoot = useMemo(() => {
+		return (
+			canGoBack() &&
+			typeParsed === "directory" &&
+			selectedItems.length === 0 &&
+			maxParsed === 1 &&
+			typeof id === "string" &&
+			baseFolderUUID === parent &&
+			!iosHint
+		)
+	}, [canGoBack, selectedItems, id, maxParsed, typeParsed, baseFolderUUID, parent, iosHint])
+
 	const submit = useCallback(() => {
 		if (!canSubmit) {
 			return
@@ -87,69 +93,83 @@ export const Toolbar = memo(() => {
 	}, [id, canSubmit, dismissTo, selectedItems, dismissHref])
 
 	const createDirectory = useCallback(async () => {
-		const inputPromptResponse = await inputPrompt({
-			title: t("selectDriveItems.prompts.createDirectory.title"),
-			materialIcon: {
-				name: "folder-plus-outline"
-			},
-			prompt: {
-				type: "plain-text",
-				keyboardType: "default",
-				defaultValue: "",
-				placeholder: t("selectDriveItems.prompts.createDirectory.placeholder")
-			}
-		})
-
-		if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
-			return
-		}
-
-		const name = inputPromptResponse.text.trim()
-
-		if (name.length === 0) {
-			return
-		}
-
-		fullScreenLoadingModal.show()
-
 		try {
-			await nodeWorker.proxy("createDirectory", {
-				name,
-				parent: queryParams.parent
+			await driveService.createDirectory({
+				parent: queryParams.parent,
+				queryParams
 			})
-
-			await query.refetch()
 		} catch (e) {
 			console.error(e)
 
 			if (e instanceof Error) {
 				alerts.error(e.message)
 			}
-		} finally {
-			fullScreenLoadingModal.hide()
 		}
-	}, [t, queryParams, query])
+	}, [queryParams])
+
+	const selectRoot = useCallback(() => {
+		if (!canGoBack()) {
+			return
+		}
+
+		events.emit("selectDriveItems", {
+			type: "response",
+			data: {
+				id: typeof id === "string" ? id : "none",
+				cancelled: false,
+				items: [
+					{
+						uuid: baseFolderUUID,
+						name: "Cloud Drive",
+						type: "directory",
+						timestamp: Date.now(),
+						lastModified: Date.now(),
+						size: 0,
+						isShared: false,
+						selected: false,
+						favorited: false,
+						parent: baseFolderUUID,
+						color: null
+					}
+				]
+			}
+		})
+
+		dismissTo(typeof dismissHref === "string" ? dismissHref : "/drive")
+	}, [id, canGoBack, dismissTo, dismissHref, baseFolderUUID])
 
 	const leftView = useMemo(() => {
 		return (
-			<ToolbarIcon
-				icon={{
-					name: "plus"
-				}}
-				onPress={createDirectory}
-			/>
+			<Fragment>
+				<ToolbarIcon
+					icon={{
+						name: "plus"
+					}}
+					onPress={createDirectory}
+				/>
+				{canSubmitRoot && (
+					<Button
+						variant="plain"
+						onPress={selectRoot}
+					>
+						<Text className="text-blue-500">{t("selectDriveItems.header.selectRoot")}</Text>
+					</Button>
+				)}
+			</Fragment>
 		)
-	}, [createDirectory])
+	}, [createDirectory, selectRoot, t, canSubmitRoot])
 
 	const rightView = useMemo(() => {
 		return (
-			<ToolbarCTA
-				disabled={!canSubmit}
-				icon={{
-					name: "check"
-				}}
-				onPress={submit}
-			/>
+			<Fragment>
+				<ToolbarCTA
+					disabled={!canSubmit}
+					icon={{
+						name: "check"
+					}}
+					onPress={submit}
+				/>
+			</Fragment>
 		)
 	}, [canSubmit, submit])
 

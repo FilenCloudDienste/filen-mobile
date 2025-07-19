@@ -28,6 +28,13 @@ import { type Contact } from "@filen/sdk/dist/types/api/v3/contacts"
 import { useDriveStore } from "@/stores/drive.store"
 import download from "@/lib/download"
 import events from "@/lib/events"
+import * as DocumentPicker from "expo-document-picker"
+import upload from "@/lib/upload"
+import queryClient from "@/queries/client"
+import * as ImagePicker from "expo-image-picker"
+import { router } from "expo-router"
+import { type TextEditorItem } from "@/components/textEditor/editor"
+import SAF, { type DocumentFileDetail } from "react-native-saf-x"
 
 export type SelectDriveItemsResponse =
 	| {
@@ -1480,6 +1487,599 @@ export class DriveService {
 			// Update selectedItems aswell
 			useDriveStore.getState().setSelectedItems(prev => prev.filter(prevItem => prevItem.uuid !== item.uuid))
 		} finally {
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+		}
+	}
+
+	public async uploadFiles({
+		parent,
+		queryParams,
+		disableQueryRefetch,
+		documentPickerAssets,
+		disableAlert,
+		disableLoader
+	}: {
+		parent: string
+		queryParams?: FetchCloudItemsParams
+		disableQueryRefetch?: boolean
+		documentPickerAssets?: DocumentPicker.DocumentPickerAsset[]
+		disableAlert?: boolean
+		disableLoader?: boolean
+	}): Promise<void> {
+		if (!documentPickerAssets) {
+			const documentPickerResult = await DocumentPicker.getDocumentAsync({
+				copyToCacheDirectory: true,
+				multiple: true
+			})
+
+			if (documentPickerResult.canceled) {
+				return
+			}
+
+			documentPickerAssets = documentPickerResult.assets
+		}
+
+		if (documentPickerAssets.length === 0) {
+			return
+		}
+
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		try {
+			const uploadedItems = await promiseAllChunked(
+				documentPickerAssets.map(async asset => {
+					return await upload.file.foreground({
+						parent,
+						localPath: asset.uri,
+						name: asset.name,
+						id: randomUUID(),
+						size: asset.size ?? 0,
+						isShared: false,
+						deleteAfterUpload: true
+					})
+				})
+			)
+
+			if (!disableAlert && uploadedItems.length > 0) {
+				alerts.normal(
+					t("drive.header.rightView.actionSheet.itemsUploaded", {
+						count: uploadedItems.length
+					})
+				)
+			}
+
+			if (!disableQueryRefetch && queryParams && uploadedItems.length > 0) {
+				await queryClient.invalidateQueries({
+					queryKey: ["useCloudItemsQuery", queryParams.parent, queryParams.of, queryParams.receiverId]
+				})
+			}
+		} finally {
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+		}
+	}
+
+	public async createDirectory({
+		queryParams,
+		parent,
+		name,
+		disableLoader,
+		disableAlert,
+		disableQueryRefetch
+	}: {
+		queryParams?: FetchCloudItemsParams
+		parent: string
+		name?: string
+		disableLoader?: boolean
+		disableAlert?: boolean
+		disableQueryRefetch?: boolean
+	}): Promise<void> {
+		if (!name) {
+			const inputPromptResponse = await inputPrompt({
+				title: t("drive.header.rightView.actionSheet.create.directory"),
+				materialIcon: {
+					name: "folder-plus-outline"
+				},
+				prompt: {
+					type: "plain-text",
+					keyboardType: "default",
+					defaultValue: "",
+					placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+				}
+			})
+
+			if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
+				return
+			}
+
+			name = inputPromptResponse.text.trim()
+		}
+
+		if (name.length === 0) {
+			return
+		}
+
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		try {
+			await nodeWorker.proxy("createDirectory", {
+				parent,
+				name
+			})
+
+			if (!disableAlert) {
+				alerts.normal(
+					t("drive.header.rightView.actionSheet.create.created", {
+						name
+					})
+				)
+			}
+
+			if (!disableQueryRefetch && queryParams) {
+				await queryClient.invalidateQueries({
+					queryKey: ["useCloudItemsQuery", queryParams.parent, queryParams.of, queryParams.receiverId]
+				})
+			}
+		} finally {
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+		}
+	}
+
+	public async uploadMedia({
+		queryParams,
+		parent,
+		disableLoader,
+		disableAlert,
+		disableQueryRefetch,
+		imagePickerAssets
+	}: {
+		queryParams?: FetchCloudItemsParams
+		parent: string
+		disableLoader?: boolean
+		disableAlert?: boolean
+		disableQueryRefetch?: boolean
+		imagePickerAssets?: ImagePicker.ImagePickerAsset[]
+	}): Promise<void> {
+		const permissions = await ImagePicker.requestMediaLibraryPermissionsAsync(false)
+
+		if (!permissions.granted) {
+			return
+		}
+
+		if (!imagePickerAssets) {
+			const imagePickerResult = await ImagePicker.launchImageLibraryAsync({
+				mediaTypes: ["images", "livePhotos", "videos"],
+				allowsEditing: false,
+				allowsMultipleSelection: true,
+				selectionLimit: 0,
+				base64: false,
+				exif: true
+			})
+
+			if (imagePickerResult.canceled) {
+				return
+			}
+
+			imagePickerAssets = imagePickerResult.assets
+		}
+
+		if (imagePickerAssets.length === 0) {
+			return
+		}
+
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		try {
+			const uploadedItems = (
+				await promiseAllChunked(
+					imagePickerAssets.map(async asset => {
+						if (!asset.fileName) {
+							return null
+						}
+
+						const assetFile = new FileSystem.File(asset.uri)
+
+						if (!assetFile.exists) {
+							throw new Error(`Could not find file at "${asset.uri}".`)
+						}
+
+						const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+
+						if (tmpFile.exists) {
+							tmpFile.delete()
+						}
+
+						assetFile.copy(tmpFile)
+
+						if (!tmpFile.size) {
+							throw new Error(`Could not get size of file at "${tmpFile.uri}".`)
+						}
+
+						return await upload.file.foreground({
+							parent,
+							localPath: tmpFile.uri,
+							name: asset.fileName,
+							id: randomUUID(),
+							size: tmpFile.size,
+							isShared: false,
+							deleteAfterUpload: true
+						})
+					})
+				)
+			).filter(item => item !== null)
+
+			if (!disableAlert && uploadedItems.length > 0) {
+				alerts.normal(
+					t("drive.header.rightView.actionSheet.itemsUploaded", {
+						count: uploadedItems.length
+					})
+				)
+			}
+
+			if (!disableQueryRefetch && queryParams && uploadedItems.length > 0) {
+				await queryClient.invalidateQueries({
+					queryKey: ["useCloudItemsQuery", queryParams.parent, queryParams.of, queryParams.receiverId]
+				})
+			}
+		} finally {
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+		}
+	}
+
+	public async createPhotos({
+		queryParams,
+		parent,
+		disableLoader,
+		disableAlert,
+		disableQueryRefetch,
+		imagePickerAssets
+	}: {
+		queryParams?: FetchCloudItemsParams
+		parent: string
+		disableLoader?: boolean
+		disableAlert?: boolean
+		disableQueryRefetch?: boolean
+		imagePickerAssets?: ImagePicker.ImagePickerAsset[]
+	}): Promise<void> {
+		const permissions = await ImagePicker.requestCameraPermissionsAsync()
+
+		if (!permissions.granted) {
+			return
+		}
+
+		if (!imagePickerAssets) {
+			const imagePickerResult = await ImagePicker.launchCameraAsync({
+				mediaTypes: ["images", "livePhotos", "videos"],
+				base64: false,
+				exif: true
+			})
+
+			if (imagePickerResult.canceled) {
+				return
+			}
+
+			imagePickerAssets = imagePickerResult.assets
+		}
+
+		if (imagePickerAssets.length === 0) {
+			return
+		}
+
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		try {
+			const uploadedItems = (
+				await promiseAllChunked(
+					imagePickerAssets.map(async asset => {
+						if (!asset.fileName) {
+							return null
+						}
+
+						const assetFile = new FileSystem.File(asset.uri)
+
+						if (!assetFile.exists) {
+							throw new Error(`Could not find file at "${asset.uri}".`)
+						}
+
+						const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+
+						if (tmpFile.exists) {
+							tmpFile.delete()
+						}
+
+						assetFile.copy(tmpFile)
+
+						if (!tmpFile.size || !tmpFile.exists) {
+							throw new Error(`Could not get size of file at "${tmpFile.uri}".`)
+						}
+
+						return await upload.file.foreground({
+							parent,
+							localPath: tmpFile.uri,
+							name: asset.fileName,
+							id: randomUUID(),
+							size: tmpFile.size,
+							isShared: false,
+							deleteAfterUpload: true
+						})
+					})
+				)
+			).filter(item => item !== null)
+
+			if (!disableAlert && uploadedItems.length > 0) {
+				alerts.normal(
+					t("drive.header.rightView.actionSheet.itemsUploaded", {
+						count: uploadedItems.length
+					})
+				)
+			}
+
+			if (!disableQueryRefetch && queryParams && uploadedItems.length > 0) {
+				await queryClient.invalidateQueries({
+					queryKey: ["useCloudItemsQuery", queryParams.parent, queryParams.of, queryParams.receiverId]
+				})
+			}
+		} finally {
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+		}
+	}
+
+	public async createTextFile({
+		queryParams,
+		parent,
+		name,
+		disableLoader,
+		disableQueryRefetch,
+		disableNavigation
+	}: {
+		queryParams?: FetchCloudItemsParams
+		parent: string
+		name?: string
+		disableLoader?: boolean
+		disableQueryRefetch?: boolean
+		disableNavigation?: boolean
+	}): Promise<void> {
+		if (!name) {
+			const inputPromptResponse = await inputPrompt({
+				title: t("drive.header.rightView.actionSheet.create.textFile"),
+				materialIcon: {
+					name: "file-plus-outline"
+				},
+				prompt: {
+					type: "plain-text",
+					keyboardType: "default",
+					defaultValue: "",
+					placeholder: t("drive.header.rightView.actionSheet.textFileNamePlaceholder")
+				}
+			})
+
+			if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
+				return
+			}
+
+			name = inputPromptResponse.text.trim()
+		}
+
+		if (name.length === 0) {
+			return
+		}
+
+		fullScreenLoadingModal.show()
+
+		const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+
+		try {
+			const fileNameParsed = FileSystem.Paths.parse(name)
+			const fileNameWithExtension =
+				fileNameParsed.ext && fileNameParsed.ext.length > 0 && fileNameParsed.ext.includes(".")
+					? name
+					: `${fileNameParsed.name}.txt`
+
+			if (tmpFile.exists) {
+				tmpFile.delete()
+			}
+
+			tmpFile.create()
+
+			const item = await upload.file.foreground({
+				parent,
+				localPath: tmpFile.uri,
+				name: fileNameWithExtension,
+				id: randomUUID(),
+				size: 0,
+				isShared: false,
+				deleteAfterUpload: true
+			})
+
+			if (!disableQueryRefetch && queryParams) {
+				await queryClient.invalidateQueries({
+					queryKey: ["useCloudItemsQuery", queryParams.parent, queryParams.of, queryParams.receiverId]
+				})
+			}
+
+			if (!disableNavigation) {
+				router.push({
+					pathname: "/textEditor",
+					params: {
+						item: JSON.stringify({
+							type: "cloud",
+							driveItem: item
+						} satisfies TextEditorItem)
+					}
+				})
+			}
+		} finally {
+			if (tmpFile.exists) {
+				tmpFile.delete()
+			}
+
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+		}
+	}
+
+	public async uploadDirectory({
+		parent,
+		queryParams,
+		disableQueryRefetch,
+		disableAlert,
+		disableLoader
+	}: {
+		parent: string
+		queryParams?: FetchCloudItemsParams
+		disableQueryRefetch?: boolean
+		disableAlert?: boolean
+		disableLoader?: boolean
+	}): Promise<void> {
+		if (Platform.OS !== "android") {
+			throw new Error("Feature only supported on Android.")
+		}
+
+		const selectedDirectory = await SAF.openDocumentTree(true)
+
+		if (!selectedDirectory) {
+			return
+		}
+
+		const tmpDir = new FileSystem.Directory(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		try {
+			if (!tmpDir.exists) {
+				tmpDir.create()
+			}
+
+			const items: (DocumentFileDetail & { path: string })[] = []
+			const safParent = await SAF.stat(selectedDirectory.uri)
+
+			if (!safParent.name || safParent.name.length === 0) {
+				throw new Error("Could not get name of parent directory.")
+			}
+
+			const parentPath = `/${safParent.name}`
+
+			items.push({
+				...safParent,
+				path: parentPath
+			})
+
+			const readDir = async (uri: string, currentPath: string): Promise<void> => {
+				const dir = await SAF.listFiles(uri)
+
+				await promiseAllChunked(
+					dir.map(async item => {
+						if (item.type === "directory") {
+							await readDir(item.uri, FileSystem.Paths.join(currentPath, item.name))
+
+							return
+						}
+
+						items.push({
+							...item,
+							path: FileSystem.Paths.join(currentPath, item.name)
+						})
+					})
+				)
+			}
+
+			await readDir(selectedDirectory.uri, parentPath)
+
+			const totalSize = items.reduce((acc, item) => acc + (item.type === "directory" ? 0 : item.size), 0)
+			const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
+
+			if (freeDiskSpace <= totalSize + 1024 * 1024) {
+				throw new Error("Not enough local disk space available.")
+			}
+
+			await promiseAllChunked(
+				items
+					.sort((a, b) => a.path.split("/").length - b.path.split("/").length)
+					.map(async item => {
+						if (item.type === "directory") {
+							return
+						}
+
+						const tmpFile = new FileSystem.File(FileSystem.Paths.join(tmpDir.uri, item.path))
+
+						if (!tmpFile.parentDirectory.exists) {
+							tmpFile.parentDirectory.create()
+						}
+
+						if (tmpFile.exists) {
+							tmpFile.delete()
+						}
+
+						await SAF.copyFile(item.uri, tmpFile.uri, {
+							replaceIfDestinationExists: true
+						})
+					})
+			)
+
+			const tmpDirItems = tmpDir.list()
+			const dirToUpload = tmpDirItems.at(0)
+
+			if (
+				!dirToUpload ||
+				!(dirToUpload instanceof FileSystem.Directory) ||
+				!dirToUpload.exists ||
+				dirToUpload.name !== safParent.name
+			) {
+				throw new Error("Could not copy directory.")
+			}
+
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+
+			await upload.directory.foreground({
+				parent,
+				localPath: dirToUpload.uri,
+				name: dirToUpload.name,
+				id: randomUUID(),
+				size: totalSize,
+				isShared: false,
+				deleteAfterUpload: true
+			})
+
+			if (!disableAlert) {
+				alerts.normal(
+					t("drive.header.rightView.actionSheet.upload.uploaded", {
+						name: safParent.name
+					})
+				)
+			}
+
+			if (!disableQueryRefetch && queryParams) {
+				await queryClient.invalidateQueries({
+					queryKey: ["useCloudItemsQuery", queryParams.parent, queryParams.of, queryParams.receiverId]
+				})
+			}
+		} finally {
+			if (tmpDir.exists) {
+				tmpDir.delete()
+			}
+
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
 			}
