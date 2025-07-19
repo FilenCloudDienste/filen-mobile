@@ -12,6 +12,12 @@ export const SCREEN_OPTIONS = {
 		headerBlurEffect: "systemChromeMaterial",
 		presentation: "modal",
 		animation: "slide_from_bottom"
+	},
+	fullscreenModal: {
+		headerShown: false,
+		headerBlurEffect: "systemChromeMaterial",
+		presentation: "fullScreenModal",
+		animation: "slide_from_bottom"
 	}
 } satisfies Record<string, NonNullable<React.ComponentPropsWithoutRef<typeof Stack.Screen>["options"]>>
 

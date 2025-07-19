@@ -125,6 +125,8 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 	const exportFile = useCallback(async () => {
 		const valueCopied = `${value}`
 
+		fullScreenLoadingModal.show()
+
 		try {
 			if (!(await Sharing.isAvailableAsync())) {
 				throw new Error(t("errors.sharingNotAvailable"))
@@ -143,6 +145,8 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 
 				tmpFile.write(valueCopied)
 
+				fullScreenLoadingModal.hide()
+
 				await Sharing.shareAsync(tmpFile.uri, {
 					mimeType: itemMime,
 					dialogTitle: itemName
@@ -158,6 +162,8 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 			if (e instanceof Error) {
 				alerts.error(e.message)
 			}
+		} finally {
+			fullScreenLoadingModal.hide()
 		}
 	}, [value, itemMime, itemName, t])
 
@@ -241,7 +247,10 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				disabled={query.status !== "success"}
 				onPress={exportFile}
 				icon={{
-					name: "send-circle-outline"
+					name: "send-outline",
+					ios: {
+						name: "square.and.arrow.up"
+					}
 				}}
 			/>
 		)
