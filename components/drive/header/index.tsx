@@ -39,6 +39,10 @@ export const Header = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 			return t("drive.header.title.trash")
 		}
 
+		if (queryParams.of === "offline" || queryParams.parent === "offline") {
+			return t("drive.header.title.offline")
+		}
+
 		if ((queryParams.of === "links" || queryParams.parent === "links") && !validateUUID(uuid)) {
 			return t("drive.header.title.links")
 		}
