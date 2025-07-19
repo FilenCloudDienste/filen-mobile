@@ -46,8 +46,9 @@ export const ListItem = memo(
 		items,
 		itemSize,
 		spacing,
-		fromSearch = false,
-		highlight = false
+		fromSearch,
+		highlight,
+		fromHome
 	}: {
 		info: ListRenderItemInfo<ListItemInfo>
 		queryParams: FetchCloudItemsParams
@@ -56,6 +57,7 @@ export const ListItem = memo(
 		spacing: number
 		fromSearch?: boolean
 		highlight?: boolean
+		fromHome?: boolean
 	}) => {
 		const { push: routerPush } = useRouter()
 		const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
@@ -419,6 +421,10 @@ export const ListItem = memo(
 				type="context"
 				item={info.item.item}
 				queryParams={queryParams}
+				fromHome={fromHome}
+				fromPreview={false}
+				fromPhotos={false}
+				fromSearch={fromSearch}
 			>
 				<ListItemComponent
 					{...info}

@@ -28,7 +28,8 @@ export const Menu = memo(
 		fromPreview,
 		queryParams,
 		fromPhotos,
-		fromSearch
+		fromSearch,
+		fromHome
 	}: {
 		item: DriveCloudItem
 		type: "context" | "dropdown"
@@ -37,6 +38,7 @@ export const Menu = memo(
 		queryParams: FetchCloudItemsParams
 		fromPhotos?: boolean
 		fromSearch?: boolean
+		fromHome?: boolean
 	}) => {
 		const { t } = useTranslation()
 		const router = useRouter()
@@ -60,7 +62,7 @@ export const Menu = memo(
 		const menuItems = useMemo(() => {
 			const items: (ContextItem | ContextSubMenu)[] = []
 
-			if (!fromPreview && !fromSearch) {
+			if (!fromPreview && !fromSearch && !fromHome) {
 				items.push(
 					createContextItem({
 						actionKey: "select",
@@ -567,7 +569,8 @@ export const Menu = memo(
 			colors.destructive,
 			hasInternet,
 			isSelectedDrive,
-			isSelectedPhotos
+			isSelectedPhotos,
+			fromHome
 		])
 
 		const select = useCallback(() => {
