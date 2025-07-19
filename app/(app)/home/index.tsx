@@ -17,6 +17,7 @@ import useNetInfo from "@/hooks/useNetInfo"
 import OfflineListHeader from "@/components/offlineListHeader"
 import ContainerComponent from "@/components/home/container"
 import { useTranslation } from "react-i18next"
+import Dropdown from "@/components/home/header/dropdown"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -301,6 +302,7 @@ export const Home = memo(() => {
 						color={colors.primary}
 					/>
 				</Button>
+				<Dropdown />
 			</View>
 		)
 	}, [hasInternet, router, colors.primary])

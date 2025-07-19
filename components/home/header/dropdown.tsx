@@ -1,0 +1,114 @@
+import { Icon } from "@roninoss/icons"
+import { Button } from "@/components/nativewindui/Button"
+import { useColorScheme } from "@/lib/useColorScheme"
+import { memo, useCallback, useMemo } from "react"
+import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
+import { createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils"
+import { type DropdownItem, type DropdownSubMenu } from "@/components/nativewindui/DropdownMenu/types"
+import { useTranslation } from "react-i18next"
+import { useRouter } from "expo-router"
+import { Platform } from "react-native"
+import alerts from "@/lib/alerts"
+
+export const Dropdown = memo(() => {
+	const { colors } = useColorScheme()
+	const { t } = useTranslation()
+	const { push: routerPush } = useRouter()
+
+	const dropdownItems = useMemo(() => {
+		const items: (DropdownItem | DropdownSubMenu)[] = []
+
+		items.push(
+			createDropdownItem({
+				actionKey: "transfers",
+				title: t("drive.header.rightView.dropdown.transfers"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "wifi"
+						  }
+						: {
+								namingScheme: "material",
+								name: "wifi"
+						  }
+			})
+		)
+
+		items.push(
+			createDropdownItem({
+				actionKey: "settings",
+				title: t("photos.menu.settings"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								name: "gearshape",
+								namingScheme: "sfSymbol"
+						  }
+						: {
+								namingScheme: "material",
+								name: "cog-outline"
+						  }
+			})
+		)
+
+		return items
+	}, [t])
+
+	const onItemPress = useCallback(
+		async (item: Omit<DropdownItem, "icon">, _?: boolean) => {
+			try {
+				switch (item.actionKey) {
+					case "transfers": {
+						routerPush({
+							pathname: "/transfers"
+						})
+
+						return
+					}
+
+					case "settings": {
+						routerPush({
+							pathname: "/home/settings"
+						})
+
+						return
+					}
+				}
+			} catch (e) {
+				console.error(e)
+
+				if (e instanceof Error) {
+					alerts.error(e.message)
+				}
+			}
+		},
+		[routerPush]
+	)
+
+	return (
+		<DropdownMenu
+			items={dropdownItems}
+			onItemPress={onItemPress}
+		>
+			<Button
+				variant="plain"
+				size="icon"
+			>
+				<Icon
+					size={24}
+					namingScheme="sfSymbol"
+					name="ellipsis"
+					ios={{
+						name: "ellipsis.circle"
+					}}
+					color={colors.primary}
+				/>
+			</Button>
+		</DropdownMenu>
+	)
+})
+
+Dropdown.displayName = "Dropdown"
+
+export default Dropdown

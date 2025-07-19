@@ -571,7 +571,10 @@ export const HeaderDropdown = memo(() => {
 				<Icon
 					size={24}
 					namingScheme="sfSymbol"
-					name="ellipsis.circle"
+					name="ellipsis"
+					ios={{
+						name: "ellipsis.circle"
+					}}
 					color={colors.primary}
 				/>
 			</Button>
