@@ -18,6 +18,7 @@ import OfflineListHeader from "@/components/offlineListHeader"
 import { useKeyboardState } from "react-native-keyboard-controller"
 import ListEmpty from "@/components/listEmpty"
 import { useTranslation } from "react-i18next"
+import alerts from "@/lib/alerts"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -105,9 +106,17 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 				onRefresh={async () => {
 					setRefreshing(true)
 
-					await cloudItemsQuery.refetch().catch(() => {})
+					try {
+						await cloudItemsQuery.refetch()
+					} catch (e) {
+						console.error(e)
 
-					setRefreshing(false)
+						if (e instanceof Error) {
+							alerts.error(e.message)
+						}
+					} finally {
+						setRefreshing(false)
+					}
 				}}
 			/>
 		)

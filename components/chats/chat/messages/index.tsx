@@ -204,7 +204,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const scrollToBottom = useCallback(() => {
 		listRef.current?.scrollToOffset({
 			offset: 0,
-			animated: true
+			animated: false
 		})
 
 		setShowScrollToBottom(false)
