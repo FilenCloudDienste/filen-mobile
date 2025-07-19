@@ -60,7 +60,7 @@ export const WithAudioPlayer = memo(({ source, name }: { source: string; name: s
 
 	return (
 		<View
-			className="flex-1 bg-background border border-border rounded-md flex-col basis-full w-full"
+			className="flex-1 bg-card rounded-md flex-col basis-full w-full"
 			style={chatEmbedContainerStyle}
 		>
 			<View className="flex-row items-center px-2 pt-2">
@@ -151,7 +151,7 @@ export const Audio = memo(({ source, name, link }: { source: string; name: strin
 
 	return (
 		<View
-			className="flex-1 bg-background border border-border rounded-md flex-row items-center px-2 gap-2 py-1 basis-full w-full"
+			className="flex-1 bg-card rounded-md flex-row items-center px-2 gap-2 py-1.5 basis-full w-full"
 			style={chatEmbedContainerStyle}
 		>
 			<Button
