@@ -244,7 +244,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 	const toolbarLeftView = useMemo(() => {
 		return (
 			<ToolbarIcon
-				disabled={query.status !== "success"}
+				disabled={query.status !== "success" || value.length === 0}
 				onPress={exportFile}
 				icon={{
 					name: "send-outline",
@@ -254,7 +254,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				}}
 			/>
 		)
-	}, [query.status, exportFile])
+	}, [query.status, exportFile, value.length])
 
 	const toolbarRightView = useMemo(() => {
 		return (
