@@ -6,10 +6,7 @@ import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { type ChatConversation, type ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { useTranslation } from "react-i18next"
 import alerts from "@/lib/alerts"
-import nodeWorker from "@/lib/nodeWorker"
-import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
-import { alertPrompt } from "@/components/prompts/alertPrompt"
-import queryUtils from "@/queries/utils"
+import chatsService from "@/services/chats.service"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import { Platform } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -58,52 +55,15 @@ export const Menu = memo(
 			return items
 		}, [t, chat.ownerId, userId, participant.userId, colors.destructive])
 
-		const remove = useCallback(async () => {
-			const alertPromptResponse = await alertPrompt({
-				title: t("chats.participants.prompts.remove.title"),
-				message: t("chats.participants.prompts.remove.message")
-			})
-
-			if (alertPromptResponse.cancelled) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("removeChatParticipant", {
-					conversation: chat.uuid,
-					userId: participant.userId
-				})
-
-				queryUtils.useChatsQuerySet({
-					updater: prev =>
-						prev.map(c =>
-							c.uuid === chat.uuid
-								? {
-										...c,
-										participants: c.participants.filter(p => p.userId !== participant.userId)
-								  }
-								: c
-						)
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-		}, [chat.uuid, participant.userId, t])
-
 		const onItemPress = useCallback(
 			async (item: Omit<ContextItem, "icon">, _?: boolean) => {
 				try {
 					switch (item.actionKey) {
 						case "remove": {
-							await remove()
+							await chatsService.removeChatParticipant({
+								chat,
+								participant
+							})
 
 							break
 						}
@@ -116,7 +76,7 @@ export const Menu = memo(
 					}
 				}
 			},
-			[remove]
+			[chat, participant]
 		)
 
 		if (menuItems.length === 0) {

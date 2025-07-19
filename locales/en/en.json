@@ -385,7 +385,9 @@
 			}
 		},
 		"header": {
-			"newMessages": "{{count}} new messages"
+			"newMessages": "{{count}} new messages",
+			"search": "Search chats...",
+			"title": "Chats"
 		},
 		"item": {
 			"draft": "Draft",

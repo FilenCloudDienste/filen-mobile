@@ -11,7 +11,6 @@ import { useRouter } from "expo-router"
 import Menu from "./menu"
 import Unread from "./unread"
 import queryUtils from "@/queries/utils"
-import nodeWorker from "@/lib/nodeWorker"
 import LastMessage from "./lastMessage"
 import Date from "../chat/messages/date"
 import events from "@/lib/events"
@@ -62,27 +61,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 		return getChatName(info.item, userId)
 	}, [info.item, userId])
 
-	const markAsRead = useCallback(async () => {
-		queryUtils.useChatUnreadCountQuerySet({
-			uuid: info.item.uuid,
-			updater: count => {
-				queryUtils.useChatUnreadQuerySet({
-					updater: prev => (prev - count >= 0 ? prev - count : 0)
-				})
-
-				return 0
-			}
-		})
-
-		try {
-			await nodeWorker.proxy("chatMarkAsRead", {
-				conversation: info.item.uuid
-			})
-		} catch (e) {
-			console.error(e)
-		}
-	}, [info.item.uuid])
-
 	const onPress = useCallback(() => {
 		events.emit("hideSearchBar", {
 			clearText: true
@@ -100,15 +78,13 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 			}
 		}
 
-		markAsRead().catch(console.error)
-
 		routerPush({
 			pathname: "/chat",
 			params: {
 				uuid: info.item.uuid
 			}
 		})
-	}, [info.item.uuid, routerPush, markAsRead, hasInternet, t])
+	}, [info.item.uuid, routerPush, hasInternet, t])
 
 	return (
 		<Menu

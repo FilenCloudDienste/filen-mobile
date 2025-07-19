@@ -1,5 +1,5 @@
-import { useLocalSearchParams, Redirect, Stack, useFocusEffect } from "expo-router"
-import { useMemo, memo, useCallback, useState, useRef, useEffect } from "react"
+import { useLocalSearchParams, Redirect, Stack } from "expo-router"
+import { useMemo, memo, useCallback, useState } from "react"
 import { View, Platform } from "react-native"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { Icon } from "@roninoss/icons"
@@ -12,20 +12,21 @@ import Messages from "@/components/chats/chat/messages"
 import Input from "@/components/chats/chat/input"
 import { KeyboardAvoidingView } from "react-native-keyboard-controller"
 import Menu from "@/components/chats/item/menu"
-import nodeWorker from "@/lib/nodeWorker"
-import queryUtils from "@/queries/utils"
 import Container from "@/components/Container"
 import * as ScreenOrientation from "expo-screen-orientation"
 import useNetInfo from "@/hooks/useNetInfo"
+import { useTranslation } from "react-i18next"
+import useLockOrientation from "@/hooks/useLockOrientation"
 
 export const Chat = memo(() => {
+	useLockOrientation(ScreenOrientation.OrientationLock.PORTRAIT_UP)
+
 	const { uuid } = useLocalSearchParams()
 	const { colors } = useColorScheme()
 	const [{ userId }] = useSDKConfig()
 	const [inputHeight, setInputHeight] = useState<number>(0)
-	const isScreenFocusedRef = useRef<boolean>(true)
-	const didRunOnFocusOrExitEnteringRef = useRef<boolean>(false)
 	const { hasInternet } = useNetInfo()
+	const { t } = useTranslation()
 
 	const chatsQuery = useChatsQuery({
 		enabled: false
@@ -72,70 +73,6 @@ export const Chat = memo(() => {
 		)
 	}, [colors.primary, chatParsed, hasInternet])
 
-	const onFocusOrExit = useCallback(
-		async (type: "entering" | "exiting") => {
-			if (!chatParsed) {
-				return
-			}
-
-			try {
-				queryUtils.useChatUnreadCountQuerySet({
-					uuid: chatParsed.uuid,
-					updater: count => {
-						queryUtils.useChatUnreadQuerySet({
-							updater: prev => (prev - count >= 0 ? prev - count : 0)
-						})
-
-						return 0
-					}
-				})
-
-				const lastFocusTimestamp = Date.now()
-
-				if (type === "exiting") {
-					queryUtils.useChatsLastFocusQuerySet({
-						updater: prev =>
-							prev.map(v =>
-								v.uuid === chatParsed.uuid
-									? {
-											...v,
-											lastFocus: lastFocusTimestamp
-										}
-									: v
-							)
-					})
-				}
-
-				await Promise.all([
-					nodeWorker.proxy("sendChatTyping", {
-						conversation: chatParsed.uuid,
-						type: "up"
-					}),
-					nodeWorker.proxy("chatMarkAsRead", {
-						conversation: chatParsed.uuid
-					}),
-					(async () => {
-						const lastFocusValues = await nodeWorker.proxy("fetchChatsLastFocus", undefined)
-
-						await nodeWorker.proxy("updateChatsLastFocus", {
-							values: lastFocusValues.map(v =>
-								v.uuid === chatParsed.uuid
-									? {
-											...v,
-											lastFocus: lastFocusTimestamp
-										}
-									: v
-							)
-						})
-					})()
-				])
-			} catch (e) {
-				console.error(e)
-			}
-		},
-		[chatParsed]
-	)
-
 	const name = useMemo(() => {
 		if (!chatParsed) {
 			return "Chat"
@@ -151,7 +88,7 @@ export const Chat = memo(() => {
 					options={{
 						headerShown: true,
 						headerTitle: name,
-						headerBackTitle: "Back",
+						headerBackTitle: t("transfers.header.back"),
 						headerRight: headerRightView,
 						headerTransparent: true,
 						headerBlurEffect: "systemChromeMaterial"
@@ -168,37 +105,7 @@ export const Chat = memo(() => {
 				/>
 			)
 		})
-	}, [name, headerRightView, colors.card])
-
-	useFocusEffect(
-		useCallback(() => {
-			isScreenFocusedRef.current = true
-
-			ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(console.error)
-
-			return () => {
-				isScreenFocusedRef.current = false
-
-				ScreenOrientation.unlockAsync().catch(console.error)
-			}
-		}, [])
-	)
-
-	useEffect(() => {
-		if (isScreenFocusedRef.current && !didRunOnFocusOrExitEnteringRef.current) {
-			didRunOnFocusOrExitEnteringRef.current = true
-
-			onFocusOrExit("entering")
-		}
-
-		return () => {
-			if (!isScreenFocusedRef.current && !didRunOnFocusOrExitEnteringRef.current) {
-				didRunOnFocusOrExitEnteringRef.current = true
-
-				onFocusOrExit("exiting")
-			}
-		}
-	}, [onFocusOrExit])
+	}, [name, headerRightView, colors.card, t])
 
 	if (!chatParsed) {
 		return <Redirect href="/chats" />

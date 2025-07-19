@@ -26,10 +26,6 @@ import useDimensions from "@/hooks/useDimensions"
 import { useColorScheme } from "@/lib/useColorScheme"
 import * as Clipboard from "expo-clipboard"
 import alerts from "@/lib/alerts"
-import { alertPrompt } from "@/components/prompts/alertPrompt"
-import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
-import nodeWorker from "@/lib/nodeWorker"
-import queryUtils from "@/queries/utils"
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
 import { useShallow } from "zustand/shallow"
 import ReplyTo from "./replyTo"
@@ -40,6 +36,7 @@ import mmkvInstance from "@/lib/mmkv"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
 import useNetInfo from "@/hooks/useNetInfo"
 import { useTranslation } from "react-i18next"
+import chatsService from "@/services/chats.service"
 
 const avatarStyle = {
 	width: 36,
@@ -123,78 +120,6 @@ export const Message = memo(
 			}
 		}, [info.item.senderId, userId, t])
 
-		const deleteMessage = useCallback(async () => {
-			const alertPromptResponse = await alertPrompt({
-				title: t("chats.prompts.deleteMessage.title"),
-				message: t("chats.prompts.deleteMessage.message")
-			})
-
-			if (alertPromptResponse.cancelled) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("deleteChatMessage", {
-					uuid: info.item.uuid
-				})
-
-				queryUtils.useChatMessagesQuerySet({
-					uuid: chat.uuid,
-					updater: prev => prev.filter(m => m.uuid !== info.item.uuid)
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-		}, [chat.uuid, info.item.uuid, t])
-
-		const disableEmbeds = useCallback(async () => {
-			const alertPromptResponse = await alertPrompt({
-				title: t("chats.prompts.disableEmbeds.title"),
-				message: t("chats.prompts.disableEmbeds.message")
-			})
-
-			if (alertPromptResponse.cancelled) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("disableChatMessageEmbeds", {
-					uuid: info.item.uuid
-				})
-
-				queryUtils.useChatMessagesQuerySet({
-					uuid: chat.uuid,
-					updater: prev =>
-						prev.map(m =>
-							m.uuid === info.item.uuid
-								? ({
-										...m,
-										embedDisabled: true
-								  } satisfies ChatMessage)
-								: m
-						)
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-		}, [chat.uuid, info.item.uuid, t])
-
 		const reply = useCallback(() => {
 			setReplyToMessage(prev => ({
 				...prev,
@@ -277,13 +202,19 @@ export const Message = memo(
 							}
 
 							case "delete": {
-								await deleteMessage()
+								await chatsService.deleteMessage({
+									chat,
+									message: info.item
+								})
 
 								break
 							}
 
 							case "disableEmbeds": {
-								await disableEmbeds()
+								await chatsService.disableEmbeds({
+									chat,
+									message: info.item
+								})
 
 								break
 							}
@@ -304,11 +235,10 @@ export const Message = memo(
 			showActionSheetWithOptions,
 			actionSheetOptions,
 			info.item,
-			deleteMessage,
-			disableEmbeds,
 			reply,
 			edit,
-			hasInternet
+			hasInternet,
+			chat
 		])
 
 		const animateOnEnter = useMemo(() => {

@@ -2,11 +2,16 @@ import nodeWorker from "@/lib/nodeWorker"
 import { router } from "expo-router"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { t } from "@/lib/i18n"
-import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import { type ChatConversation, type ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import authService from "./auth.service"
 import queryUtils from "@/queries/utils"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
+import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
+import contactsService from "./contacts.service"
+import { randomUUID } from "expo-crypto"
+import { type Contact } from "@filen/sdk/dist/types/api/v3/contacts"
+import queryClient from "@/queries/client"
 
 export class ChatsService {
 	public async leaveChat({
@@ -53,6 +58,90 @@ export class ChatsService {
 
 			if (insideChat && router.canGoBack()) {
 				router.back()
+			}
+		}
+	}
+
+	public async removeChatParticipant({
+		disableAlertPrompt,
+		disableLoader,
+		chat,
+		participant
+	}: {
+		disableAlertPrompt?: boolean
+		disableLoader?: boolean
+		chat: ChatConversation
+		participant: ChatConversationParticipant
+	}): Promise<void> {
+		if (!disableAlertPrompt) {
+			const alertPromptResponse = await alertPrompt({
+				title: t("chats.participants.prompts.remove.title"),
+				message: t("chats.participants.prompts.remove.message")
+			})
+
+			if (alertPromptResponse.cancelled) {
+				return
+			}
+		}
+
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		try {
+			await nodeWorker.proxy("removeChatParticipant", {
+				conversation: chat.uuid,
+				userId: participant.userId
+			})
+
+			queryUtils.useChatsQuerySet({
+				updater: prev =>
+					prev.map(c =>
+						c.uuid === chat.uuid
+							? {
+									...c,
+									participants: c.participants.filter(p => p.userId !== participant.userId)
+							  }
+							: c
+					)
+			})
+		} finally {
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+		}
+	}
+
+	public async createChat({ disableLoader, contacts }: { disableLoader?: boolean; contacts?: Contact[] }): Promise<void> {
+		if (!contacts) {
+			const selectContactsResponse = await contactsService.selectContacts({
+				type: "all",
+				max: 9999
+			})
+
+			if (selectContactsResponse.cancelled || selectContactsResponse.contacts.length === 0) {
+				return
+			}
+
+			contacts = selectContactsResponse.contacts
+		}
+
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		try {
+			await nodeWorker.proxy("createChat", {
+				uuid: randomUUID(),
+				contacts
+			})
+
+			queryClient.invalidateQueries({
+				queryKey: ["useChatsQuery"]
+			})
+		} finally {
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
 			}
 		}
 	}
@@ -258,6 +347,98 @@ export class ChatsService {
 							  }
 							: c
 					)
+			})
+		} finally {
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+		}
+	}
+
+	public async disableEmbeds({
+		chat,
+		message,
+		disableAlertPrompt,
+		disableLoader
+	}: {
+		chat: ChatConversation
+		message: ChatMessage
+		disableAlertPrompt?: boolean
+		disableLoader?: boolean
+	}): Promise<void> {
+		if (!disableAlertPrompt) {
+			const alertPromptResponse = await alertPrompt({
+				title: t("chats.prompts.disableEmbeds.title"),
+				message: t("chats.prompts.disableEmbeds.message")
+			})
+
+			if (alertPromptResponse.cancelled) {
+				return
+			}
+		}
+
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		try {
+			await nodeWorker.proxy("disableChatMessageEmbeds", {
+				uuid: message.uuid
+			})
+
+			queryUtils.useChatMessagesQuerySet({
+				uuid: chat.uuid,
+				updater: prev =>
+					prev.map(m =>
+						m.uuid === message.uuid
+							? ({
+									...m,
+									embedDisabled: true
+							  } satisfies ChatMessage)
+							: m
+					)
+			})
+		} finally {
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+		}
+	}
+
+	public async deleteMessage({
+		chat,
+		message,
+		disableAlertPrompt,
+		disableLoader
+	}: {
+		chat: ChatConversation
+		message: ChatMessage
+		disableAlertPrompt?: boolean
+		disableLoader?: boolean
+	}): Promise<void> {
+		if (!disableAlertPrompt) {
+			const alertPromptResponse = await alertPrompt({
+				title: t("chats.prompts.deleteMessage.title"),
+				message: t("chats.prompts.deleteMessage.message")
+			})
+
+			if (alertPromptResponse.cancelled) {
+				return
+			}
+		}
+
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		try {
+			await nodeWorker.proxy("deleteChatMessage", {
+				uuid: message.uuid
+			})
+
+			queryUtils.useChatMessagesQuerySet({
+				uuid: chat.uuid,
+				updater: prev => prev.filter(m => m.uuid !== message.uuid)
 			})
 		} finally {
 			if (!disableLoader) {
