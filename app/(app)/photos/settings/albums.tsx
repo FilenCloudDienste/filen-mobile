@@ -85,7 +85,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		<ListItem
 			className={cn("ios:pl-0 pl-2", info.index === 0 && "ios:border-t-0 border-border/25 dark:border-border/80 border-t")}
 			titleClassName="text-lg"
-			innerClassName="py-1.5 ios:py-1.5 android:py-1.5"
+			innerClassName="py-2 ios:py-2 android:py-2"
 			textNumberOfLines={1}
 			subTitleNumberOfLines={1}
 			leftView={leftView}

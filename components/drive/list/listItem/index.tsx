@@ -409,7 +409,7 @@ export const ListItem = memo(
 					isLastInSection={false}
 					onPress={onPress}
 					removeSeparator={Platform.OS === "android"}
-					innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+					innerClassName="ios:py-3 py-3 android:py-3"
 				/>
 			)
 		}
@@ -433,7 +433,7 @@ export const ListItem = memo(
 					isLastInSection={false}
 					onPress={onPress}
 					removeSeparator={Platform.OS === "android"}
-					innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+					innerClassName="ios:py-3 py-3 android:py-3"
 					className={highlight ? "border-l-4 border-primary/80" : ""}
 				/>
 			</Menu>
