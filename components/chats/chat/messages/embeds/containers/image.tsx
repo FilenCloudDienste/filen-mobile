@@ -116,6 +116,28 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 		}
 	}, [dimensions, screen.height, layout.width])
 
+	const imageSource = useMemo(() => {
+		return {
+			uri: source
+		}
+	}, [source])
+
+	const imageStyle = useMemo(() => {
+		return {
+			width,
+			height,
+			borderRadius: 6
+		}
+	}, [width, height])
+
+	const viewStyle = useMemo(() => {
+		return {
+			width,
+			height,
+			flex: 1
+		}
+	}, [width, height])
+
 	if (error) {
 		return <Fallback link={link} />
 	}
@@ -132,27 +154,17 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 			<View
 				ref={viewRef}
 				onLayout={onLayout}
-				style={{
-					width,
-					height,
-					flex: 1
-				}}
+				style={viewStyle}
 			>
 				<ExpoImage
-					source={{
-						uri: source
-					}}
+					source={imageSource}
 					priority="low"
 					cachePolicy="disk"
 					contentPosition="left"
 					contentFit="contain"
 					onLoad={onLoad}
 					onError={onError}
-					style={{
-						width,
-						height,
-						borderRadius: 6
-					}}
+					style={imageStyle}
 				/>
 			</View>
 		</Button>
