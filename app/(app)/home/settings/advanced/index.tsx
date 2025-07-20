@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo } from "react"
-import { Settings as SettingsComponent } from "@/components/settings"
+import { Settings as SettingsComponent, IconView } from "@/components/settings"
 import alerts from "@/lib/alerts"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { formatBytes } from "@/lib/utils"
@@ -199,28 +199,52 @@ export const Advanced = memo(() => {
 				title: t("settings.advanced.items.clearCache"),
 				rightText: formatBytes(cacheSize),
 				subTitle: Platform.OS === "android" ? formatBytes(cacheSize) : undefined,
-				onPress: clearCache
+				onPress: clearCache,
+				leftView: (
+					<IconView
+						name="cog-outline"
+						className="bg-gray-500"
+					/>
+				)
 			},
 			{
 				id: "1",
 				title: t("settings.advanced.items.clearThumbnails"),
 				rightText: formatBytes(thumbnailsSize),
 				subTitle: Platform.OS === "android" ? formatBytes(thumbnailsSize) : undefined,
-				onPress: clearThumbnails
+				onPress: clearThumbnails,
+				leftView: (
+					<IconView
+						name="image-outline"
+						className="bg-gray-500"
+					/>
+				)
 			},
 			{
 				id: "2",
 				title: t("settings.advanced.items.clearTrackPlayer"),
 				rightText: formatBytes(trackPlayerSize),
 				subTitle: Platform.OS === "android" ? formatBytes(trackPlayerSize) : undefined,
-				onPress: clearTrackPlayer
+				onPress: clearTrackPlayer,
+				leftView: (
+					<IconView
+						name="music-note"
+						className="bg-gray-500"
+					/>
+				)
 			},
 			{
 				id: "3",
 				title: t("settings.advanced.items.clearOfflineFiles"),
 				rightText: formatBytes(offlineFilesSize),
 				subTitle: Platform.OS === "android" ? formatBytes(offlineFilesSize) : undefined,
-				onPress: clearOfflineFiles
+				onPress: clearOfflineFiles,
+				leftView: (
+					<IconView
+						name="folder-open"
+						className="bg-gray-500"
+					/>
+				)
 			}
 		]
 	}, [cacheSize, t, thumbnailsSize, trackPlayerSize, offlineFilesSize, clearCache, clearThumbnails, clearTrackPlayer, clearOfflineFiles])

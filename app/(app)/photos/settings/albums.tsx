@@ -56,7 +56,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 						}}
 					/>
 				) : (
-					<View className="bg-background rounded-md w-[38px] h-[38px]" />
+					<View className="bg-background/80 rounded-md w-[38px] h-[38px]" />
 				)}
 			</View>
 		)
@@ -85,7 +85,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		<ListItem
 			className={cn("ios:pl-0 pl-2", info.index === 0 && "ios:border-t-0 border-border/25 dark:border-border/80 border-t")}
 			titleClassName="text-lg"
-			innerClassName="py-2 ios:py-2 android:py-2"
+			innerClassName="py-3 ios:py-3 android:py-3"
 			textNumberOfLines={1}
 			subTitleNumberOfLines={1}
 			leftView={leftView}

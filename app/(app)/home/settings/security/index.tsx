@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo } from "react"
-import { Settings as SettingsComponent } from "@/components/settings"
+import { Settings as SettingsComponent, IconView } from "@/components/settings"
 import useAccountQuery from "@/queries/useAccountQuery"
 import { useRouter } from "expo-router"
 import nodeWorker from "@/lib/nodeWorker"
@@ -215,17 +215,35 @@ export const Security = memo(() => {
 			{
 				id: "0",
 				title: t("settings.security.items.changePassword"),
-				onPress: changePassword
+				onPress: changePassword,
+				leftView: (
+					<IconView
+						name="lock-outline"
+						className="bg-gray-500"
+					/>
+				)
 			},
 			{
 				id: "1",
 				title: t("settings.security.items.2fa"),
-				onPress: openTwoFactorAuthentication
+				onPress: openTwoFactorAuthentication,
+				leftView: (
+					<IconView
+						name="shield-outline"
+						className="bg-gray-500"
+					/>
+				)
 			},
 			{
 				id: "2",
 				title: t("settings.security.items.biometricAuth"),
-				onPress: openBiometric
+				onPress: openBiometric,
+				leftView: (
+					<IconView
+						name="lock-open-alert-outline"
+						className="bg-gray-500"
+					/>
+				)
 			}
 		]
 	}, [changePassword, openBiometric, openTwoFactorAuthentication, t])

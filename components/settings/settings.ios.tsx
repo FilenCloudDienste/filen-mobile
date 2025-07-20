@@ -76,7 +76,11 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<SettingsItem> }) 
 			return undefined
 		}
 
-		return info.item.leftView ? <View className="flex-1 flex-row items-center px-4">{info.item.leftView}</View> : undefined
+		return info.item.leftView ? (
+			<View className={cn("flex-1 flex-row px-4 justify-start", info.item.subTitle ? "pt-4" : "items-center")}>
+				{info.item.leftView}
+			</View>
+		) : undefined
 	}, [info.item])
 
 	if (typeof info.item === "string") {

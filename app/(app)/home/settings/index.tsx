@@ -175,7 +175,7 @@ export const Settings = memo(() => {
 				onPress: onPressCameraUpload,
 				leftView: (
 					<IconView
-						name="account-multiple-outline"
+						name="image-outline"
 						className="bg-green-500"
 					/>
 				)

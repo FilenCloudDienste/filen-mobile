@@ -171,7 +171,13 @@ export const Settings = memo(() => {
 					try {
 						const permissions = await MediaLibrary.getPermissionsAsync(false, ["video", "photo"])
 
-						if (permissions.status !== MediaLibrary.PermissionStatus.GRANTED && permissions.canAskAgain) {
+						if (permissions.status !== MediaLibrary.PermissionStatus.GRANTED) {
+							if (!permissions.canAskAgain) {
+								alerts.error(t("photos.settings.index.errors.noPermissions"))
+
+								return
+							}
+
 							const ask = await MediaLibrary.requestPermissionsAsync(false, ["video", "photo"])
 
 							if (ask.status !== MediaLibrary.PermissionStatus.GRANTED) {
@@ -219,7 +225,7 @@ export const Settings = memo(() => {
 				subTitle: t("photos.settings.index.items.videosInfo"),
 				leftView: (
 					<IconView
-						name="signal-cellular-3"
+						name="video-outline"
 						className="bg-purple-500"
 					/>
 				),
@@ -253,8 +259,8 @@ export const Settings = memo(() => {
 				subTitle: t("photos.settings.index.items.backgroundInfo"),
 				leftView: (
 					<IconView
-						name="signal-cellular-3"
-						className="bg-blue-500"
+						name="backpack"
+						className="bg-gray-500"
 					/>
 				),
 				rightView: (
@@ -287,8 +293,8 @@ export const Settings = memo(() => {
 				subTitle: t("photos.settings.index.items.compressInfo"),
 				leftView: (
 					<IconView
-						name="power-plug-outline"
-						className="bg-green-500"
+						name="file-document-outline"
+						className="bg-orange-500"
 					/>
 				),
 				rightView: (
