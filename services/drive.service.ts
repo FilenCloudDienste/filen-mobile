@@ -34,7 +34,6 @@ import queryClient from "@/queries/client"
 import * as ImagePicker from "expo-image-picker"
 import { router } from "expo-router"
 import { type TextEditorItem } from "@/components/textEditor/editor"
-import SAF, { type DocumentFileDetail } from "react-native-saf-x"
 
 export type SelectDriveItemsResponse =
 	| {
@@ -1941,22 +1940,28 @@ export class DriveService {
 		queryParams,
 		disableQueryRefetch,
 		disableAlert,
-		disableLoader
+		disableLoader,
+		selectedSafDirectoryUri
 	}: {
 		parent: string
 		queryParams?: FetchCloudItemsParams
 		disableQueryRefetch?: boolean
 		disableAlert?: boolean
 		disableLoader?: boolean
+		selectedSafDirectoryUri?: string
 	}): Promise<void> {
 		if (Platform.OS !== "android") {
 			throw new Error("Feature only supported on Android.")
 		}
 
-		const selectedDirectory = await SAF.openDocumentTree(true)
+		if (!selectedSafDirectoryUri) {
+			const selectedDirectory = await FileSystemLegacy.StorageAccessFramework.requestDirectoryPermissionsAsync()
 
-		if (!selectedDirectory) {
-			return
+			if (!selectedDirectory.granted) {
+				return
+			}
+
+			selectedSafDirectoryUri = selectedDirectory.directoryUri
 		}
 
 		const tmpDir = new FileSystem.Directory(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
@@ -1966,86 +1971,37 @@ export class DriveService {
 		}
 
 		try {
-			if (!tmpDir.exists) {
-				tmpDir.create()
+			if (tmpDir.exists) {
+				tmpDir.delete()
 			}
 
-			const items: (DocumentFileDetail & { path: string })[] = []
-			const safParent = await SAF.stat(selectedDirectory.uri)
+			const directoryName = FileSystem.Paths.parse(selectedSafDirectoryUri).name
 
-			if (!safParent.name || safParent.name.length === 0) {
-				throw new Error("Could not get name of parent directory.")
-			}
-
-			const parentPath = `/${safParent.name}`
-
-			items.push({
-				...safParent,
-				path: parentPath
+			await FileSystemLegacy.StorageAccessFramework.copyAsync({
+				from: selectedSafDirectoryUri,
+				to: tmpDir.uri
 			})
 
-			const readDir = async (uri: string, currentPath: string): Promise<void> => {
-				const dir = await SAF.listFiles(uri)
+			const { totalFiles, totalDirectories, totalSize } = tmpDir.list().reduce(
+				(acc, item) => {
+					if (item instanceof FileSystem.File) {
+						acc.totalFiles += 1
+						acc.totalSize += item.size ?? 0
+					} else if (item instanceof FileSystem.Directory) {
+						acc.totalDirectories += 1
+					}
 
-				await promiseAllChunked(
-					dir.map(async item => {
-						if (item.type === "directory") {
-							await readDir(item.uri, FileSystem.Paths.join(currentPath, item.name))
-
-							return
-						}
-
-						items.push({
-							...item,
-							path: FileSystem.Paths.join(currentPath, item.name)
-						})
-					})
-				)
-			}
-
-			await readDir(selectedDirectory.uri, parentPath)
-
-			const totalSize = items.reduce((acc, item) => acc + (item.type === "directory" ? 0 : item.size), 0)
-			const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
-
-			if (freeDiskSpace <= totalSize + 1024 * 1024) {
-				throw new Error("Not enough local disk space available.")
-			}
-
-			await promiseAllChunked(
-				items
-					.sort((a, b) => a.path.split("/").length - b.path.split("/").length)
-					.map(async item => {
-						if (item.type === "directory") {
-							return
-						}
-
-						const tmpFile = new FileSystem.File(FileSystem.Paths.join(tmpDir.uri, item.path))
-
-						if (!tmpFile.parentDirectory.exists) {
-							tmpFile.parentDirectory.create()
-						}
-
-						if (tmpFile.exists) {
-							tmpFile.delete()
-						}
-
-						await SAF.copyFile(item.uri, tmpFile.uri, {
-							replaceIfDestinationExists: true
-						})
-					})
+					return acc
+				},
+				{
+					totalFiles: 0,
+					totalDirectories: 0,
+					totalSize: 0
+				}
 			)
 
-			const tmpDirItems = tmpDir.list()
-			const dirToUpload = tmpDirItems.at(0)
-
-			if (
-				!dirToUpload ||
-				!(dirToUpload instanceof FileSystem.Directory) ||
-				!dirToUpload.exists ||
-				dirToUpload.name !== safParent.name
-			) {
-				throw new Error("Could not copy directory.")
+			if (totalFiles === 0 && totalDirectories === 0) {
+				throw new Error("Selected directory is empty.")
 			}
 
 			if (!disableLoader) {
@@ -2054,8 +2010,8 @@ export class DriveService {
 
 			await upload.directory.foreground({
 				parent,
-				localPath: dirToUpload.uri,
-				name: dirToUpload.name,
+				localPath: tmpDir.uri,
+				name: directoryName,
 				id: randomUUID(),
 				size: totalSize,
 				isShared: false,
@@ -2065,7 +2021,7 @@ export class DriveService {
 			if (!disableAlert) {
 				alerts.normal(
 					t("drive.header.rightView.actionSheet.upload.uploaded", {
-						name: safParent.name
+						name: directoryName
 					})
 				)
 			}
