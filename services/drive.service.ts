@@ -13,7 +13,7 @@ import { colorPicker } from "@/components/sheets/colorPickerSheet"
 import { DEFAULT_DIRECTORY_COLOR } from "@/assets/fileIcons"
 import { itemInfo } from "@/components/sheets/itemInfoSheet"
 import contactsService from "./contacts.service"
-import { promiseAllChunked, sanitizeFileName, normalizeFilePathForExpo } from "@/lib/utils"
+import { promiseAllChunked, sanitizeFileName, normalizeFilePathForExpo, simpleDate } from "@/lib/utils"
 import * as FileSystemLegacy from "expo-file-system"
 import * as Sharing from "expo-sharing"
 import paths from "@/lib/paths"
@@ -1171,10 +1171,18 @@ export class DriveService {
 				throw new Error(t("errors.notEnoughDiskSpace"))
 			}
 
-			const permissions = await MediaLibrary.requestPermissionsAsync(false)
+			const permissions = await ImagePicker.getMediaLibraryPermissionsAsync(false)
 
 			if (!permissions.granted) {
-				return
+				if (!permissions.canAskAgain) {
+					return
+				}
+
+				const ask = await ImagePicker.requestMediaLibraryPermissionsAsync(false)
+
+				if (!ask.granted) {
+					return
+				}
 			}
 
 			if (!tmpFile.parentDirectory.exists) {
@@ -1648,10 +1656,18 @@ export class DriveService {
 		disableQueryRefetch?: boolean
 		imagePickerAssets?: ImagePicker.ImagePickerAsset[]
 	}): Promise<void> {
-		const permissions = await ImagePicker.requestMediaLibraryPermissionsAsync(false)
+		const permissions = await ImagePicker.getMediaLibraryPermissionsAsync(false)
 
 		if (!permissions.granted) {
-			return
+			if (!permissions.canAskAgain) {
+				return
+			}
+
+			const ask = await ImagePicker.requestMediaLibraryPermissionsAsync(false)
+
+			if (!ask.granted) {
+				return
+			}
 		}
 
 		if (!imagePickerAssets) {
@@ -1695,25 +1711,31 @@ export class DriveService {
 
 						const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
 
-						if (tmpFile.exists) {
-							tmpFile.delete()
+						try {
+							if (tmpFile.exists) {
+								tmpFile.delete()
+							}
+
+							assetFile.copy(tmpFile)
+
+							if (!tmpFile.size) {
+								throw new Error(`Could not get size of file at "${tmpFile.uri}".`)
+							}
+
+							return await upload.file.foreground({
+								parent,
+								localPath: tmpFile.uri,
+								name: asset.fileName,
+								id: randomUUID(),
+								size: tmpFile.size,
+								isShared: false,
+								deleteAfterUpload: true
+							})
+						} finally {
+							if (tmpFile.exists) {
+								tmpFile.delete()
+							}
 						}
-
-						assetFile.copy(tmpFile)
-
-						if (!tmpFile.size) {
-							throw new Error(`Could not get size of file at "${tmpFile.uri}".`)
-						}
-
-						return await upload.file.foreground({
-							parent,
-							localPath: tmpFile.uri,
-							name: asset.fileName,
-							id: randomUUID(),
-							size: tmpFile.size,
-							isShared: false,
-							deleteAfterUpload: true
-						})
 					})
 				)
 			).filter(item => item !== null)
@@ -1753,10 +1775,18 @@ export class DriveService {
 		disableQueryRefetch?: boolean
 		imagePickerAssets?: ImagePicker.ImagePickerAsset[]
 	}): Promise<void> {
-		const permissions = await ImagePicker.requestCameraPermissionsAsync()
+		const permissions = await ImagePicker.getCameraPermissionsAsync()
 
 		if (!permissions.granted) {
-			return
+			if (!permissions.canAskAgain) {
+				return
+			}
+
+			const ask = await ImagePicker.requestCameraPermissionsAsync()
+
+			if (!ask.granted) {
+				return
+			}
 		}
 
 		if (!imagePickerAssets) {
@@ -1786,36 +1816,42 @@ export class DriveService {
 				await promiseAllChunked(
 					imagePickerAssets.map(async asset => {
 						if (!asset.fileName) {
-							return null
+							asset.fileName = sanitizeFileName(`Photo-${simpleDate(Date.now())}.jpg`)
 						}
 
 						const assetFile = new FileSystem.File(asset.uri)
 
 						if (!assetFile.exists) {
-							throw new Error(`Could not find file at "${asset.uri}".`)
+							return null
 						}
 
 						const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
 
-						if (tmpFile.exists) {
-							tmpFile.delete()
+						try {
+							if (tmpFile.exists) {
+								tmpFile.delete()
+							}
+
+							assetFile.copy(tmpFile)
+
+							if (!tmpFile.exists || !tmpFile.size) {
+								return null
+							}
+
+							return await upload.file.foreground({
+								parent,
+								localPath: tmpFile.uri,
+								name: asset.fileName,
+								id: randomUUID(),
+								size: tmpFile.size,
+								isShared: false,
+								deleteAfterUpload: true
+							})
+						} finally {
+							if (tmpFile.exists) {
+								tmpFile.delete()
+							}
 						}
-
-						assetFile.copy(tmpFile)
-
-						if (!tmpFile.size || !tmpFile.exists) {
-							throw new Error(`Could not get size of file at "${tmpFile.uri}".`)
-						}
-
-						return await upload.file.foreground({
-							parent,
-							localPath: tmpFile.uri,
-							name: asset.fileName,
-							id: randomUUID(),
-							size: tmpFile.size,
-							isShared: false,
-							deleteAfterUpload: true
-						})
 					})
 				)
 			).filter(item => item !== null)
@@ -1886,10 +1922,12 @@ export class DriveService {
 
 		try {
 			const fileNameParsed = FileSystem.Paths.parse(name)
-			const fileNameWithExtension =
+
+			const fileNameWithExtension = sanitizeFileName(
 				fileNameParsed.ext && fileNameParsed.ext.length > 0 && fileNameParsed.ext.includes(".")
 					? name
 					: `${fileNameParsed.name}.txt`
+			)
 
 			if (tmpFile.exists) {
 				tmpFile.delete()
