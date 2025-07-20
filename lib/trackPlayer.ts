@@ -11,7 +11,7 @@ import { AudioPro } from "./audioPro"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import assets from "./assets"
 import download from "@/lib/download"
-import { parseWebStream, selectCover } from "music-metadata"
+import { getAudioMetadata } from "@missingcore/audio-metadata"
 
 export type AudioProTrackExtended = AudioProTrack & {
 	file: {
@@ -35,6 +35,8 @@ export type TrackMetadata = {
 	picture?: string
 	year?: number
 }
+
+export type RepeatMode = "off" | "track" | "queue"
 
 export const TRACK_PLAYER_MMKV_PREFIX = "trackPlayerState:v1:"
 export const TRACK_PLAYER_QUEUE_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Queue`
@@ -246,6 +248,26 @@ export class TrackPlayer {
 		}
 	}
 
+	public async setRepeatMode(mode: RepeatMode): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			mmkvInstance.set(TRACK_PLAYER_REPEAT_MODE_KEY, mode)
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public getRepeatMode(): RepeatMode {
+		const repeatMode = mmkvInstance.getString(TRACK_PLAYER_REPEAT_MODE_KEY)
+
+		if (!repeatMode || !["off", "track", "queue"].includes(repeatMode)) {
+			return "off" as RepeatMode
+		}
+
+		return repeatMode as RepeatMode
+	}
+
 	public async skipToNext(): Promise<void> {
 		await this.controlsMutex.acquire()
 
@@ -277,6 +299,25 @@ export class TrackPlayer {
 
 			await this.playTrack({
 				track: previousTrack,
+				autoPlay: true
+			})
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public async repeatCurrentTrack(): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			const currentTrack = this.getCurrentTrackInQueue()
+
+			if (!currentTrack) {
+				return
+			}
+
+			await this.playTrack({
+				track: currentTrack,
 				autoPlay: true
 			})
 		} finally {
@@ -482,41 +523,87 @@ export class TrackPlayer {
 
 			const file = new FileSystem.File(normalizeFilePathForExpo(uri))
 
-			if (!file.exists) {
+			if (!file.exists || !file.size) {
 				return null
 			}
 
-			const { common } = await parseWebStream(file.readableStream(), {
-				size: file.size ?? undefined,
-				mimeType: file.type ?? undefined
-			})
-
-			const cover = selectCover(common?.picture)
+			const data = await getAudioMetadata(uri, ["album", "albumArtist", "artist", "name", "track", "year", "artwork"])
 			let coverURI: string | undefined = undefined
 
-			if (cover) {
-				const fileExtension = mimeTypes.extension(cover.format) ?? "jpg"
-				const destination = new FileSystem.File(FileSystem.Paths.join(paths.trackPlayerPictures(), `${uuid}.${fileExtension}`))
+			if (data?.metadata?.artwork) {
+				const [header, base64String] = data.metadata.artwork.split(",")
 
-				if (!destination.exists) {
-					destination.create()
-					destination.write(cover.data)
-				} else {
-					destination.delete()
+				if (header && base64String) {
+					const mimeTypeMatch = header.match(/data:([^;]+)/)
+					const mimeType = mimeTypeMatch && mimeTypeMatch[1] ? mimeTypeMatch[1] : ""
+
+					if (mimeType.length > 0) {
+						const fileExtension = mimeTypes.extension(mimeType)
+
+						if (fileExtension) {
+							const destination = new FileSystem.File(
+								FileSystem.Paths.join(paths.trackPlayerPictures(), `${uuid}.${fileExtension}`)
+							)
+
+							if (destination.exists) {
+								destination.delete()
+							}
+
+							destination.write(new Uint8Array(Buffer.from(base64String, "base64")))
+
+							coverURI = destination.uri
+						}
+					}
 				}
-
-				coverURI = destination.uri
 			}
 
 			const metadata: TrackMetadata = {
-				artist: common?.artist,
-				album: common?.album,
-				title: common?.title,
-				year: common?.year,
+				artist: data?.metadata?.artist,
+				album: data?.metadata?.album,
+				title: data?.metadata?.name,
+				year: data?.metadata?.year,
 				picture: coverURI
 			} satisfies TrackMetadata
 
 			mmkvInstance.set(this.getTrackMetadataKeyFromUUID(uuid), JSON.stringify(metadata))
+
+			const queue = this.getQueue()
+
+			mmkvInstance.set(
+				TRACK_PLAYER_QUEUE_KEY,
+				JSON.stringify(
+					queue.map(track => {
+						if (track.file.uuid === uuid) {
+							return {
+								...track,
+								artist: metadata.artist ?? track.artist,
+								album: metadata.album ?? track.album,
+								title: metadata.title ?? track.title,
+								artwork: metadata.picture ?? track.artwork
+							} satisfies AudioProTrackExtended
+						}
+
+						return track satisfies AudioProTrackExtended
+					})
+				)
+			)
+
+			const playingTrack = AudioPro.getPlayingTrack() as AudioProTrackExtended
+
+			if (playingTrack) {
+				if (playingTrack.file.uuid === uuid) {
+					mmkvInstance.set(
+						TRACK_PLAYER_PLAYING_TRACK_KEY,
+						JSON.stringify({
+							...playingTrack,
+							artist: metadata.artist ?? playingTrack.artist,
+							album: metadata.album ?? playingTrack.album,
+							title: metadata.title ?? playingTrack.title,
+							artwork: metadata.picture ?? playingTrack.artwork
+						} satisfies AudioProTrackExtended)
+					)
+				}
+			}
 
 			return metadata
 		} catch (e) {
@@ -536,9 +623,9 @@ export class TrackPlayer {
 		startTimeMs?: number
 	}): Promise<void> {
 		const loadedTrack = await this.loadFileForTrack(track)
-		const newQueue = this.getQueue().map(t => (t.file.uuid === loadedTrack.file.uuid ? loadedTrack : t))
+		const queueWithLoadedTrack = this.getQueue().map(t => (t.file.uuid === loadedTrack.file.uuid ? loadedTrack : t))
 
-		mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify(newQueue))
+		mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify(queueWithLoadedTrack))
 		mmkvInstance.set(TRACK_PLAYER_PLAYING_TRACK_KEY, JSON.stringify(track))
 
 		AudioPro.play(loadedTrack, {
@@ -637,6 +724,41 @@ export class TrackPlayer {
 
 				case AudioProEventType.TRACK_ENDED: {
 					try {
+						const repeatMode = this.getRepeatMode()
+
+						if (repeatMode === "track") {
+							await this.repeatCurrentTrack()
+
+							return
+						}
+
+						if (repeatMode === "queue") {
+							await this.controlsMutex.acquire()
+
+							try {
+								const queue = this.getQueue()
+
+								if (queue.length > 0) {
+									const nextTrack = this.getNextTrackInQueue()
+
+									if (!nextTrack) {
+										const firstTrack = queue.at(0)
+
+										if (firstTrack) {
+											await this.playTrack({
+												track: firstTrack,
+												autoPlay: true
+											})
+
+											return
+										}
+									}
+								}
+							} finally {
+								this.controlsMutex.release()
+							}
+						}
+
 						await this.skipToNext()
 					} catch (e) {
 						console.error(e)

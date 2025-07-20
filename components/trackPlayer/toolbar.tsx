@@ -105,8 +105,10 @@ export const Toolbar = memo(() => {
 			return
 		}
 
-		// TODO: Implement repeat functionality
-	}, [buttonsDisabled])
+		trackPlayerControls
+			.setRepeatMode(trackPlayerState.repeatMode === "off" ? "track" : trackPlayerState.repeatMode === "track" ? "queue" : "off")
+			.catch(console.error)
+	}, [buttonsDisabled, trackPlayerControls, trackPlayerState.repeatMode])
 
 	const skipToPrevious = useCallback(() => {
 		if (buttonsDisabled) {
@@ -312,9 +314,15 @@ export const Toolbar = memo(() => {
 							onPress={repeat}
 						>
 							<Icon
-								name="repeat"
+								name={
+									trackPlayerState.repeatMode === "off"
+										? "repeat"
+										: trackPlayerState.repeatMode === "track"
+										? "repeat-once"
+										: "repeat"
+								}
 								size={32}
-								color={colors.foreground}
+								color={trackPlayerState.repeatMode === "off" ? colors.foreground : colors.primary}
 							/>
 						</Button>
 					</View>

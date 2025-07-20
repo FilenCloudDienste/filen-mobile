@@ -1,5 +1,5 @@
 import { useCallback } from "react"
-import { type AudioProTrackExtended, trackPlayer } from "@/lib/trackPlayer"
+import { type AudioProTrackExtended, trackPlayer, type RepeatMode } from "@/lib/trackPlayer"
 import alerts from "@/lib/alerts"
 
 export function useTrackPlayerControls() {
@@ -173,6 +173,18 @@ export function useTrackPlayerControls() {
 		}
 	}, [])
 
+	const setRepeatMode = useCallback(async (mode: RepeatMode) => {
+		try {
+			await trackPlayer.setRepeatMode(mode)
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
+	}, [])
+
 	return {
 		seek,
 		skipToPrevious,
@@ -186,6 +198,7 @@ export function useTrackPlayerControls() {
 		setPlaybackSpeed,
 		clear,
 		setQueue,
-		getQueue
+		getQueue,
+		setRepeatMode
 	}
 }

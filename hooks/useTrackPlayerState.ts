@@ -1,7 +1,13 @@
 import { useMemo } from "react"
-import { type AudioProTrackExtended, TRACK_PLAYER_QUEUE_KEY, TRACK_PLAYER_PLAYING_TRACK_KEY } from "@/lib/trackPlayer"
+import {
+	type AudioProTrackExtended,
+	TRACK_PLAYER_QUEUE_KEY,
+	TRACK_PLAYER_PLAYING_TRACK_KEY,
+	TRACK_PLAYER_REPEAT_MODE_KEY,
+	type RepeatMode
+} from "@/lib/trackPlayer"
 import mmkvInstance from "@/lib/mmkv"
-import { useMMKVObject } from "react-native-mmkv"
+import { useMMKVObject, useMMKVString } from "react-native-mmkv"
 import { useAudioPro } from "@/lib/audioPro"
 import { AudioProState } from "react-native-audio-pro"
 import { useShallow } from "zustand/shallow"
@@ -12,6 +18,10 @@ export function useTrackPlayerState() {
 	const [trackPlayerQueueMMKV] = useMMKVObject<AudioProTrackExtended[]>(TRACK_PLAYER_QUEUE_KEY, mmkvInstance)
 	const [playingTrackMMKV] = useMMKVObject<AudioProTrackExtended>(TRACK_PLAYER_PLAYING_TRACK_KEY, mmkvInstance)
 	const loadingTrack = useTrackPlayerStore(useShallow(state => state.loadingTrack))
+	const [repeatModeMMKV] = useMMKVString(TRACK_PLAYER_REPEAT_MODE_KEY, mmkvInstance) as [
+		RepeatMode | undefined,
+		(value: string | undefined) => void
+	]
 
 	const isPlaying = useMemo(() => {
 		return trackPlayerState.state === AudioProState.PLAYING
@@ -97,6 +107,14 @@ export function useTrackPlayerState() {
 		return normalized
 	}, [durationSeconds, positionSeconds, isLoading])
 
+	const repeatMode = useMemo(() => {
+		if (!repeatModeMMKV) {
+			return "off" as RepeatMode
+		}
+
+		return repeatModeMMKV
+	}, [repeatModeMMKV])
+
 	return {
 		isError,
 		isIdle,
@@ -113,6 +131,7 @@ export function useTrackPlayerState() {
 		duration: trackPlayerState.duration,
 		position: trackPlayerState.position,
 		durationSeconds,
-		positionSeconds
+		positionSeconds,
+		repeatMode
 	}
 }
