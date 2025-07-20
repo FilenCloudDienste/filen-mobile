@@ -385,7 +385,9 @@
 			}
 		},
 		"header": {
-			"newMessages": "{{count}}条新消息"
+			"newMessages": "{{count}}条新消息",
+			"search": "搜索聊天...",
+			"title": "聊天"
 		},
 		"item": {
 			"draft": "草稿",
@@ -1154,7 +1156,8 @@
 			"selectDirectory": "选择文件夹",
 			"selectFiles": "选择文件",
 			"selectDirectories": "选择文件夹",
-			"drive": "云盘"
+			"drive": "云盘",
+			"selectRoot": "选择云盘"
 		},
 		"toolbar": {
 			"selected": "已选择{{countOrName}}"
