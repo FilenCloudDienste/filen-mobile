@@ -44,7 +44,7 @@ brew install openjdk@17
 
 2. Set `JAVA_HOME` to new java home
 
-eg on MacOS using homebrew
+e.g. on MacOS using homebrew
 
 ```bash
 export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
@@ -62,22 +62,23 @@ echo $JAVA_HOME
 
 1. Clone repository
 
-```sh
+```bash
 git clone https://github.com/FilenCloudDienste/filen-mobile filen-mobile
 ```
 
 2. Update dependencies
 
-```sh
-cd filen-mobile && npm install && cd nodejs-assets/nodejs-project && npm install
+```bash
+cd filen-mobile && npm install --force && cd nodejs-assets/nodejs-project && npm install --force && cd .. && cd ..
 ```
 
 3. Running a development build
 
-```sh
-cd nodejs-assets/nodejs-project/ && npm install && npm run build
+```bash
+npm run buildNodeThread
 npm run prebuild:clean
-npm run (android:device || ios:device)
+npm run ios:device
+npm run android:device
 ```
 
 ## License
