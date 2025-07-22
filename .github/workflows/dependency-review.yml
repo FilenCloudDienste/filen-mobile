@@ -29,6 +29,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: true
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
         # Commonly enabled options, see https://github.com/actions/dependency-review-action#configuration-options for all available options.
