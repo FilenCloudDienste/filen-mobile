@@ -1,4 +1,4 @@
-import { Image as ExpoImage } from "expo-image"
+import { Image as ExpoImage, type ImageErrorEventData } from "expo-image"
 import { memo, useMemo, useState, useCallback, Fragment } from "react"
 import { type GalleryItem } from "@/stores/gallery.store"
 import { View, ActivityIndicator } from "react-native"
@@ -6,10 +6,12 @@ import { type WH } from "."
 import { useColorScheme } from "@/lib/useColorScheme"
 import Animated, { FadeOut } from "react-native-reanimated"
 import useHTTPServer from "@/hooks/useHTTPServer"
+import { Icon } from "@roninoss/icons"
+import { Text } from "@/components/nativewindui/Text"
 
 export const Image = memo(({ item, layout }: { item: GalleryItem; layout: WH }) => {
 	const [loading, setLoading] = useState<boolean>(true)
-	const [error, setError] = useState<boolean>(false)
+	const [error, setError] = useState<string | null>(null)
 	const { colors } = useColorScheme()
 	const httpServer = useHTTPServer()
 
@@ -57,9 +59,9 @@ export const Image = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 		setLoading(false)
 	}, [])
 
-	const onError = useCallback(() => {
+	const onError = useCallback((e: ImageErrorEventData) => {
 		setLoading(false)
-		setError(true)
+		setError(e.error)
 	}, [])
 
 	return (
@@ -98,10 +100,12 @@ export const Image = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 							className="flex-1 absolute top-0 left-0 right-0 bottom-0 z-50 bg-background items-center justify-center"
 							style={style}
 						>
-							<ActivityIndicator
-								color={colors.foreground}
-								size="small"
+							<Icon
+								name="image-outline"
+								size={64}
+								color={colors.destructive}
 							/>
+							<Text className="text-muted-foreground text-sm text-center px-8 pt-2">{error}</Text>
 						</Animated.View>
 					)}
 					{!error && (

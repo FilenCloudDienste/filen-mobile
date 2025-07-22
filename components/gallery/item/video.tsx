@@ -9,10 +9,12 @@ import Animated, { FadeOut } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import useHTTPServer from "@/hooks/useHTTPServer"
+import { Icon } from "@roninoss/icons"
+import { Text } from "@/components/nativewindui/Text"
 
 export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; layout: WH; headerHeight: number }) => {
 	const [loading, setLoading] = useState<boolean>(true)
-	const [error, setError] = useState<boolean>(false)
+	const [error, setError] = useState<string | null>(null)
 	const { colors } = useColorScheme()
 	const insets = useSafeAreaInsets()
 	const trackPlayerControls = useTrackPlayerControls()
@@ -59,7 +61,7 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 	})
 
 	useEventListener(player, "statusChange", e => {
-		setError(e.error ? true : false)
+		setError(e.error ? e.error.message : null)
 		setLoading(e.status === "loading")
 	})
 
@@ -107,10 +109,12 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 							className="flex-1 absolute top-0 left-0 right-0 bottom-0 z-50 bg-background items-center justify-center"
 							style={style}
 						>
-							<ActivityIndicator
-								color={colors.foreground}
-								size="small"
+							<Icon
+								name="video-outline"
+								size={64}
+								color={colors.destructive}
 							/>
+							<Text className="text-muted-foreground text-sm text-center px-8 pt-2">{error}</Text>
 						</Animated.View>
 					)}
 					{!error && (
@@ -129,7 +133,7 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 								allowsFullscreen={true}
 								allowsPictureInPicture={true}
 								nativeControls={true}
-								startsPictureInPictureAutomatically={true}
+								startsPictureInPictureAutomatically={false}
 								contentFit="contain"
 								allowsVideoFrameAnalysis={false}
 								useExoShutter={false}
