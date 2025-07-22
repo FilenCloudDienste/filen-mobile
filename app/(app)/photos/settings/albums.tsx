@@ -83,9 +83,19 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 
 	return (
 		<ListItem
-			className={cn("ios:pl-0 pl-2", info.index === 0 && "ios:border-t-0 border-border/25 dark:border-border/80 border-t")}
+			className={cn(
+				"ios:pl-0 pl-2",
+				info.index === 0 && "ios:border-t-0 border-border/25 dark:border-border/80 border-t",
+				Platform.OS === "android" && "bg-transparent border-none border-0"
+			)}
+			style={Platform.select({
+				android: {
+					backgroundColor: "transparent"
+				},
+				default: undefined
+			})}
 			titleClassName="text-lg"
-			innerClassName="py-3 ios:py-3 android:py-3"
+			innerClassName={cn("py-3 ios:py-3 android:py-3", Platform.OS === "android" && "bg-transparent")}
 			textNumberOfLines={1}
 			subTitleNumberOfLines={1}
 			leftView={leftView}
