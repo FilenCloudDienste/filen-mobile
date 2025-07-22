@@ -1,10 +1,10 @@
 import "ts-node/register"
 import { type ExpoConfig, type ConfigContext } from "expo/config"
 
+export const VERSION: string = "3.0.2"
+
 export const APPLE_TEAM_ID: string = "7YTW5D2K7P"
 export const IOS_APP_GROUP_ID: string = "group.io.filen.app"
-export const VERSION: string = "3.0.1"
-export const BUILD_NUMBER: number = 3001
 export const JS_ENGINE: "hermes" | "jsc" = "hermes"
 export const NEW_ARCH_ENABLED: boolean = true
 export const ANDROID_MIN_SDK_VERSION: number = 31
@@ -12,6 +12,30 @@ export const ANDROID_TARGET_SDK_VERSION: number = 35
 export const ANDROID_COMPILE_SDK_VERSION: number = 35
 export const IOS_DEPLOYMENT_TARGET: string = "16.0"
 export const NAME: string = "Filen"
+export const IDENTIFIER: string = "io.filen.app"
+
+export function semverToNumber(version: string): number {
+	const parts = version.replace(/^v/, "").split(".").map(Number)
+
+	while (parts.length < 3) {
+		parts.push(0)
+	}
+
+	const [major, minor, patch] = parts
+
+	if (
+		typeof major !== "number" ||
+		typeof minor !== "number" ||
+		typeof patch !== "number" ||
+		parts.some(part => isNaN(part) || part < 0 || part > 999)
+	) {
+		throw new Error(`Invalid semver format: ${version}`)
+	}
+
+	return major * 1000000 + minor * 1000 + patch
+}
+
+export const BUILD_NUMBER: number = semverToNumber(VERSION)
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
 	...config,
@@ -30,7 +54,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		buildNumber: BUILD_NUMBER.toString(),
 		version: VERSION,
 		supportsTablet: true,
-		bundleIdentifier: "io.filen.app",
+		bundleIdentifier: IDENTIFIER,
 		requireFullScreen: true,
 		usesIcloudStorage: true,
 		newArchEnabled: NEW_ARCH_ENABLED,
@@ -72,7 +96,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			foregroundImage: "./assets/images/adaptive-icon.png",
 			backgroundColor: "#ffffff"
 		},
-		package: "io.filen.app",
+		package: IDENTIFIER,
 		permissions: [
 			"INTERNET",
 			"ACCESS_NETWORK_STATE",
