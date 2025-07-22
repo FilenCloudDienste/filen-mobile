@@ -50,6 +50,14 @@ export const Header = memo(() => {
 		return playlistsQuery.data.find(p => p.uuid === passedPlaylist) ?? null
 	}, [playlistsQuery.data, playlistsQuery.status, passedPlaylist])
 
+	const files = useMemo(() => {
+		if (!playlist) {
+			return []
+		}
+
+		return playlist.files
+	}, [playlist])
+
 	const createPlaylist = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
 			title: t("trackPlayer.prompts.createPlaylist.title"),
@@ -213,17 +221,19 @@ export const Header = memo(() => {
 		if (playlist) {
 			return (
 				<View className="flex-row items-center">
-					<Button
-						variant="plain"
-						size="icon"
-						onPress={playPlaylist}
-					>
-						<Icon
-							name="play-circle-outline"
-							size={24}
-							color={colors.primary}
-						/>
-					</Button>
+					{files.length > 0 && (
+						<Button
+							variant="plain"
+							size="icon"
+							onPress={playPlaylist}
+						>
+							<Icon
+								name="play-circle-outline"
+								size={24}
+								color={colors.primary}
+							/>
+						</Button>
+					)}
 					<Button
 						variant="plain"
 						size="icon"
@@ -252,7 +262,7 @@ export const Header = memo(() => {
 				/>
 			</Button>
 		)
-	}, [playlist, playPlaylist, addTrackToPlaylist, createPlaylist, colors.primary])
+	}, [playlist, playPlaylist, addTrackToPlaylist, createPlaylist, colors.primary, files.length])
 
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
