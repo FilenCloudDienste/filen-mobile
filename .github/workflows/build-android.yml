@@ -1,123 +1,123 @@
 name: Build Android
 
 on:
-    release:
-        types: [published]
-    workflow_dispatch:
+  release:
+    types: [published]
+  workflow_dispatch:
 
 env:
-    NODE_ENV: production
-    APP_ENV: production
+  NODE_ENV: production
+  APP_ENV: production
 
 jobs:
-    build-android:
-        runs-on: macos-15
+  build-android:
+    runs-on: macos-15
 
-        steps:
-            - name: 🏗 Setup repo
-              uses: actions/checkout@v4
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v4
 
-            - name: 🏗 Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 24
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
 
-            - name: 🏗 Setup Java
-              uses: actions/setup-java@v4
-              with:
-                  distribution: "temurin"
-                  java-version: 17
+      - name: 🏗 Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: 17
 
-            - name: 🏗 Setup Android SDK
-              uses: android-actions/setup-android@v3
+      - name: 🏗 Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-            - name: 🦀 Setup Rust
-              uses: actions-rs/toolchain@v1
-              with:
-                  toolchain: stable
-                  profile: minimal
-                  override: true
+      - name: 🦀 Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
 
-            - name: 🦀 Install Cargo NDK
-              run: cargo install cargo-ndk
+      - name: 🦀 Install Cargo NDK
+        run: cargo install cargo-ndk
 
-            - name: 🦀 Install Rust targets
-              run: |
-                  rustup target add aarch64-linux-android
-                  rustup target add x86_64-linux-android
+      - name: 🦀 Install Rust targets
+        run: |
+          rustup target add aarch64-linux-android
+          rustup target add x86_64-linux-android
 
-            - name: 🔧 Install Expo CLI
-              run: npm install -g --include=dev @expo/cli@latest
+      - name: 🔧 Install Expo CLI
+        run: npm install -g --include=dev @expo/cli@latest
 
-            - name: 🔧 Install patch-package
-              run: npm install -g --include=dev patch-package@latest
+      - name: 🔧 Install patch-package
+        run: npm install -g --include=dev patch-package@latest
 
-            - name: 📦 Install nodeThread dependencies
-              run: cd nodejs-assets/nodejs-project && npm install --force --include=dev && cd .. && cd ..
+      - name: 📦 Install nodeThread dependencies
+        run: cd nodejs-assets/nodejs-project && npm install --force --include=dev && cd .. && cd ..
 
-            - name: 📦 Install main dependencies
-              run: npm install --force --include=dev
+      - name: 📦 Install main dependencies
+        run: npm install --force --include=dev
 
-            - name: 🔐 Setup Expo Credentials
-              run: |
-                  echo "${{ secrets.EXPO_CREDENTIALS }}" | base64 --decode > credentials.json
+      - name: 🔐 Setup Expo Credentials
+        run: |
+          echo "${{ secrets.EXPO_CREDENTIALS }}" | base64 --decode > credentials.json
 
-            - name: 📦 Build nodeThread
-              run: npm run buildNodeThread
+      - name: 📦 Build nodeThread
+        run: npm run buildNodeThread
 
-            - name: 🛠 Prebuild
-              run: |
-                  npm run prebuild:ci:android
+      - name: 🛠 Prebuild
+        run: |
+          npm run prebuild:ci:android
 
-            - name: 📱 Build Android Release APK & AAB
-              run: |
-                  cd android && chmod +x ./gradlew && ./gradlew app:bundleRelease && ./gradlew app:assembleRelease && cd ..
+      - name: 📱 Build Android Release APK & AAB
+        run: |
+          cd android && chmod +x ./gradlew && ./gradlew app:bundleRelease && ./gradlew app:assembleRelease && cd ..
 
-            - name: 🧹 Cleanup
-              if: always()
-              run: |
-                  rm -f android/app/release.keystore
-                  rm -f credentials.json
+      - name: 🧹 Cleanup
+        if: always()
+        run: |
+          rm -f android/app/release.keystore
+          rm -f credentials.json
 
-            - name: 📤 Upload Release APK
-              uses: actions/upload-artifact@v4
-              with:
-                  name: android-release-apk-${{ github.run_number }}
-                  path: android/app/build/outputs/apk/release/*.apk
-                  retention-days: 90
+      - name: 📤 Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-apk-${{ github.run_number }}
+          path: android/app/build/outputs/apk/release/*.apk
+          retention-days: 90
 
-            - name: 📤 Upload Release AAB
-              uses: actions/upload-artifact@v4
-              with:
-                  name: android-release-aab-${{ github.run_number }}
-                  path: android/app/build/outputs/bundle/release/*.aab
-                  retention-days: 90
+      - name: 📤 Upload Release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-aab-${{ github.run_number }}
+          path: android/app/build/outputs/bundle/release/*.aab
+          retention-days: 90
 
-            - name: 📤 Upload to Google Play
-              uses: r0adkll/upload-google-play@v1
-              with:
-                  serviceAccountJsonPlainText: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
-                  packageName: io.filen.app
-                  releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
-                  track: internal
-                  changesNotSentForReview: true
+      - name: 📤 Upload to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          packageName: io.filen.app
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          changesNotSentForReview: true
 
-            - name: 📊 Build Summary
-              run: |
-                  echo "## 🚀 Build Complete!" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "### 📱 Built artifacts:" >> $GITHUB_STEP_SUMMARY
+      - name: 📊 Build Summary
+        run: |
+          echo "## 🚀 Build Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📱 Built artifacts:" >> $GITHUB_STEP_SUMMARY
 
-                  if [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
-                    APK_SIZE=$(du -h "android/app/build/outputs/apk/release/app-release.apk" | cut -f1)
-                    echo "- ✅ Release APK (${APK_SIZE})" >> $GITHUB_STEP_SUMMARY
-                  fi
+          if [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
+            APK_SIZE=$(du -h "android/app/build/outputs/apk/release/app-release.apk" | cut -f1)
+            echo "- ✅ Release APK (${APK_SIZE})" >> $GITHUB_STEP_SUMMARY
+          fi
 
-                  if [ -f "android/app/build/outputs/bundle/release/app-release.aab" ]; then
-                    AAB_SIZE=$(du -h "android/app/build/outputs/bundle/release/app-release.aab" | cut -f1)
-                    echo "- ✅ Release AAB (${AAB_SIZE})" >> $GITHUB_STEP_SUMMARY
-                  fi
+          if [ -f "android/app/build/outputs/bundle/release/app-release.aab" ]; then
+            AAB_SIZE=$(du -h "android/app/build/outputs/bundle/release/app-release.aab" | cut -f1)
+            echo "- ✅ Release AAB (${AAB_SIZE})" >> $GITHUB_STEP_SUMMARY
+          fi
 
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "### 📦 Download artifacts from the Actions tab above" >> $GITHUB_STEP_SUMMARY
-                  echo "### 🔗 Build #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Download artifacts from the Actions tab above" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Build #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
