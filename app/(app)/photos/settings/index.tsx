@@ -12,6 +12,7 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import useCameraUploadParentQuery from "@/queries/useCameraUploadParentQuery"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
+import { foregroundCameraUpload } from "@/lib/cameraUpload"
 
 export const Settings = memo(() => {
 	const [cameraUpload, setCameraUpload] = useCameraUpload()
@@ -64,6 +65,12 @@ export const Settings = memo(() => {
 				...prev,
 				enabled: enable
 			}))
+
+			if (enable) {
+				setTimeout(() => {
+					foregroundCameraUpload.run().catch(console.error)
+				}, 1000)
+			}
 		},
 		[setCameraUpload, t]
 	)
