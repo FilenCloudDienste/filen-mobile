@@ -33,10 +33,10 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import * as Haptics from "expo-haptics"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
 import useNetInfo from "@/hooks/useNetInfo"
 import { useTranslation } from "react-i18next"
 import chatsService from "@/services/chats.service"
+import { type ListRenderItemInfo } from "@shopify/flash-list"
 
 const avatarStyle = {
 	width: 36,
@@ -545,20 +545,20 @@ export const Message = memo(
 									)}
 									<View className="flex-col flex-1">
 										{!groupWithPreviousMessage && (
-											<View className="flex-row items-center gap-2">
+											<View className="flex-row items-center gap-2 flex-1">
 												<Text
+													variant="heading"
 													numberOfLines={1}
 													ellipsizeMode="middle"
-													className="items-center"
+													className="flex-shrink"
 												>
-													<Text variant="heading">{name}</Text>
-													<Text>{"  "}</Text>
-													<Text
-														variant="caption1"
-														className="text-muted-foreground"
-													>
-														<Date timestamp={info.item.sentTimestamp} />
-													</Text>
+													{name}
+												</Text>
+												<Text
+													variant="caption1"
+													className="text-muted-foreground shrink-0 pt-1"
+												>
+													<Date timestamp={info.item.sentTimestamp} />
 												</Text>
 											</View>
 										)}
