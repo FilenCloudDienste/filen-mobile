@@ -3,7 +3,7 @@ import { getCameraUploadState } from "@/hooks/useCameraUpload"
 import { validate as validateUUID } from "uuid"
 import Semaphore from "./semaphore"
 import nodeWorker from "./nodeWorker"
-import { convertTimestampToMs, normalizeFilePathForExpo } from "./utils"
+import { convertTimestampToMs, normalizeFilePathForExpo, promiseAllChunked } from "./utils"
 import { useAppStateStore } from "@/stores/appState.store"
 import { randomUUID } from "expo-crypto"
 import * as FileSystem from "expo-file-system/next"
@@ -637,22 +637,24 @@ export class CameraUpload {
 				let added = 0
 				let done = 0
 
-				for (const delta of deltas) {
-					if (added >= this.maxUploads) {
-						break
-					}
+				await promiseAllChunked(
+					deltas.map(async delta => {
+						if (added >= this.maxUploads) {
+							return
+						}
 
-					added++
+						added++
 
-					await this.processDelta(delta, params?.abortSignal)
+						await this.processDelta(delta, params?.abortSignal)
 
-					done++
+						done++
 
-					this.useCameraUploadStore.setSyncState({
-						done,
-						count: deltas.length
+						this.useCameraUploadStore.setSyncState({
+							done,
+							count: deltas.length
+						})
 					})
-				}
+				)
 			} finally {
 				this.useCameraUploadStore.setSyncState({
 					done: 0,
