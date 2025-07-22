@@ -82,7 +82,7 @@ export class AuthService {
 					: nodeWorker.proxy("reinitSDK", {
 							sdkConfig,
 							tmpPath
-						}),
+					  }),
 				thumbnailWarmup,
 				verifyOfflineFiles,
 				i18n,
@@ -195,6 +195,10 @@ export class AuthService {
 
 			if (e instanceof Error) {
 				if (e.message.toLowerCase().includes("please enter your two factor authentication code")) {
+					if (!disableLoader) {
+						fullScreenLoadingModal.hide()
+					}
+
 					const twoFactorCodePrompt = await inputPrompt({
 						title: t("auth.prompts.2fa.title"),
 						materialIcon: {

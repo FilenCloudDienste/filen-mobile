@@ -6,5 +6,27 @@
 	"bracketSpacing": true,
 	"bracketSameLine": false,
 	"arrowParens": "avoid",
-	"singleAttributePerLine": true
+	"singleAttributePerLine": true,
+	"useTabs": true,
+	"tabWidth": 4,
+	"printWidth": 140,
+	"endOfLine": "lf",
+	"overrides": [
+		{
+			"files": "*.yaml",
+			"options": {
+				"tabWidth": 2,
+				"useTabs": false,
+				"singleQuote": true
+			}
+		},
+		{
+			"files": "*.yml",
+			"options": {
+				"tabWidth": 2,
+				"useTabs": false,
+				"singleQuote": true
+			}
+		}
+	]
 }
