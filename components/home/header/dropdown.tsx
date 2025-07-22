@@ -9,31 +9,35 @@ import { useTranslation } from "react-i18next"
 import { useRouter } from "expo-router"
 import { Platform } from "react-native"
 import alerts from "@/lib/alerts"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const Dropdown = memo(() => {
 	const { colors } = useColorScheme()
 	const { t } = useTranslation()
 	const { push: routerPush } = useRouter()
+	const { hasInternet } = useNetInfo()
 
 	const dropdownItems = useMemo(() => {
 		const items: (DropdownItem | DropdownSubMenu)[] = []
 
-		items.push(
-			createDropdownItem({
-				actionKey: "transfers",
-				title: t("drive.header.rightView.dropdown.transfers"),
-				icon:
-					Platform.OS === "ios"
-						? {
-								namingScheme: "sfSymbol",
-								name: "wifi"
-						  }
-						: {
-								namingScheme: "material",
-								name: "wifi"
-						  }
-			})
-		)
+		if (hasInternet) {
+			items.push(
+				createDropdownItem({
+					actionKey: "transfers",
+					title: t("drive.header.rightView.dropdown.transfers"),
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "wifi"
+							  }
+							: {
+									namingScheme: "material",
+									name: "wifi"
+							  }
+				})
+			)
+		}
 
 		items.push(
 			createDropdownItem({
@@ -53,7 +57,7 @@ export const Dropdown = memo(() => {
 		)
 
 		return items
-	}, [t])
+	}, [t, hasInternet])
 
 	const onItemPress = useCallback(
 		async (item: Omit<DropdownItem, "icon">, _?: boolean) => {
@@ -85,6 +89,10 @@ export const Dropdown = memo(() => {
 		},
 		[routerPush]
 	)
+
+	if (dropdownItems.length === 0) {
+		return null
+	}
 
 	return (
 		<DropdownMenu

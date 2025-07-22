@@ -1235,6 +1235,12 @@
 					"removeFromPlaylist": "Remove from playlist",
 					"cancel": "Cancel"
 				}
+			},
+			"list": {
+				"footer": "{{count}} tracks",
+				"empty": "No tracks yet",
+				"emptySearch": "No tracks found for this search",
+				"error": "There was an error loading your tracks, please try again later"
 			}
 		},
 		"bottom": {

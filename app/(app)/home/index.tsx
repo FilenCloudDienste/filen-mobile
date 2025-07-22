@@ -280,28 +280,28 @@ export const Home = memo(() => {
 	}, [account.status, hasInternet, avatarSource, openSettings])
 
 	const headerRightView = useCallback(() => {
-		if (!hasInternet) {
-			return undefined
-		}
-
 		return (
 			<View className="flex-row items-center">
-				<Transfers />
-				<Button
-					variant="plain"
-					size="icon"
-					onPress={() => {
-						router.push({
-							pathname: "/trackPlayer"
-						})
-					}}
-				>
-					<Icon
-						name="music-note"
-						size={24}
-						color={colors.primary}
-					/>
-				</Button>
+				{hasInternet && (
+					<Fragment>
+						<Transfers />
+						<Button
+							variant="plain"
+							size="icon"
+							onPress={() => {
+								router.push({
+									pathname: "/trackPlayer"
+								})
+							}}
+						>
+							<Icon
+								name="music-note"
+								size={24}
+								color={colors.primary}
+							/>
+						</Button>
+					</Fragment>
+				)}
 				<Dropdown />
 			</View>
 		)

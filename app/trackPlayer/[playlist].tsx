@@ -17,6 +17,8 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/trackPlayer/playlist/item"
 import { type ListDataItem } from "@/components/nativewindui/List"
 import useDimensions from "@/hooks/useDimensions"
+import { useTranslation } from "react-i18next"
+import ListEmpty from "@/components/listEmpty"
 
 const contentContainerStyle = {
 	paddingTop: 8
@@ -29,6 +31,7 @@ export const Playlist = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const playlistSearchTerm = useTrackPlayerStore(useShallow(state => state.playlistSearchTerm))
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
 
 	const playlistsQuery = usePlaylistsQuery({
 		enabled: false
@@ -169,6 +172,31 @@ export const Playlist = memo(() => {
 		}
 	}, [])
 
+	const listEmpty = useMemo(() => {
+		return (
+			<ListEmpty
+				queryStatus={playlistsQuery.status}
+				itemCount={files.length}
+				texts={{
+					error: t("trackPlayer.playlist.list.error"),
+					empty: t("trackPlayer.playlist.list.empty"),
+					emptySearch: t("trackPlayer.playlist.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "music-note"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
+		)
+	}, [playlistsQuery.status, files.length, t])
+
 	return (
 		<RequireInternet>
 			<Header />
@@ -180,6 +208,7 @@ export const Playlist = memo(() => {
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
 						contentContainerStyle={contentContainerStyle}
+						ListEmptyComponent={listEmpty}
 						showsVerticalScrollIndicator={true}
 						showsHorizontalScrollIndicator={false}
 						contentInsetAdjustmentBehavior="automatic"
