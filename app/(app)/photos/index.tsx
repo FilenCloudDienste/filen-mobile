@@ -193,13 +193,13 @@ export const Photos = memo(() => {
 		[cameraUpload.remote]
 	)
 
-	const queryEnabled = useMemo(() => {
+	const cameraUploadRemoteSetup = useMemo(() => {
 		return cameraUpload.remote && validateUUID(cameraUpload.remote.uuid) ? true : false
 	}, [cameraUpload.remote])
 
 	const query = useCloudItemsQuery({
 		...queryParams,
-		enabled: queryEnabled
+		enabled: cameraUploadRemoteSetup
 	})
 
 	const items = useMemo((): DriveCloudItem[] => {
@@ -377,7 +377,7 @@ export const Photos = memo(() => {
 	const listEmpty = useMemo(() => {
 		return (
 			<ListEmpty
-				queryStatus={query.status}
+				queryStatus={cameraUploadRemoteSetup ? query.status : "success"}
 				itemCount={items.length}
 				texts={{
 					error: t("photos.list.error"),
@@ -397,7 +397,7 @@ export const Photos = memo(() => {
 				}}
 			/>
 		)
-	}, [query.status, items.length, t])
+	}, [query.status, items.length, t, cameraUploadRemoteSetup])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {

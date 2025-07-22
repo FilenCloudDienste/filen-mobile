@@ -20,7 +20,7 @@ export async function registerBackgroundTask() {
 	console.log("BackgroundTask registered!")
 }
 
-registerBackgroundTask()
+registerBackgroundTask().catch(console.error)
 
 ExpoTaskManager.defineTask(BACKGROUND_TASK_IDENTIFIER, async () => {
 	try {
