@@ -9,6 +9,14 @@ export async function registerBackgroundTask() {
 
 	console.log("BackgroundTask status:", status)
 
+	if (status === ExpoBackgroundTask.BackgroundTaskStatus.Restricted) {
+		await ExpoBackgroundTask.unregisterTaskAsync(BACKGROUND_TASK_IDENTIFIER)
+
+		console.log("BackgroundTask is restricted, unregistered!")
+
+		return
+	}
+
 	if (status !== ExpoBackgroundTask.BackgroundTaskStatus.Available) {
 		return
 	}
