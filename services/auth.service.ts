@@ -42,8 +42,6 @@ export class AuthService {
 			if (!params?.background) {
 				await nodeWorker.start()
 
-				paths.clearTempDirectories()
-
 				mmkvInstance.delete("notesSearchTerm")
 				mmkvInstance.delete("notesSelectedTag")
 			}
@@ -51,7 +49,7 @@ export class AuthService {
 			const thumbnailWarmup = params?.background ? Promise.resolve() : thumbnails.warmupCache()
 			const verifyOfflineFiles = params?.background ? Promise.resolve() : sqlite.offlineFiles.verify()
 			const i18n = params?.background ? Promise.resolve() : waitForI18n()
-			const isAuthed = params && typeof params.isAuthed === "boolean" ? params.isAuthed : authService.getIsAuthed()
+			const isAuthed = params && typeof params.isAuthed === "boolean" ? params.isAuthed : this.getIsAuthed()
 			const assetsCopy = params?.background ? Promise.resolve() : assets.initialize()
 
 			if (!isAuthed) {
@@ -67,7 +65,7 @@ export class AuthService {
 			}
 
 			const tmpPath = normalizeFilePathForNode(FileSystem.Paths.cache.uri)
-			const sdkConfig = params && params.sdkConfig ? params.sdkConfig : authService.getSDKConfig()
+			const sdkConfig = params && params.sdkConfig ? params.sdkConfig : this.getSDKConfig()
 
 			reinitSDK({
 				...sdkConfig,

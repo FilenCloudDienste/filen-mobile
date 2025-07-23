@@ -182,11 +182,15 @@ export class SQLite {
 				return
 			}
 
-			for (const uuid of list) {
-				if (!existingOfflineFiles.includes(uuid)) {
+			await Promise.all(
+				list.map(async uuid => {
+					if (existingOfflineFiles.includes(uuid)) {
+						return
+					}
+
 					await db.runAsync("DELETE FROM offline_files WHERE uuid = ?", [uuid])
-				}
-			}
+				})
+			)
 		}
 	}
 
