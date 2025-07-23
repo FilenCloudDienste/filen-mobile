@@ -85,7 +85,8 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 					if (type === "uploadFiles") {
 						await driveService.uploadFiles({
 							parent: queryParams.parent,
-							queryParams
+							queryParams,
+							disableLoader: true
 						})
 					} else if (type === "createDirectory") {
 						await driveService.createDirectory({
@@ -95,17 +96,20 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 					} else if (type === "uploadMedia") {
 						await driveService.uploadMedia({
 							parent: queryParams.parent,
-							queryParams
+							queryParams,
+							disableLoader: true
 						})
 					} else if (type === "createPhoto") {
 						await driveService.createPhotos({
 							parent: queryParams.parent,
-							queryParams
+							queryParams,
+							disableLoader: true
 						})
 					} else if (type === "uploadDirectory") {
 						await driveService.uploadDirectory({
 							parent: queryParams.parent,
-							queryParams
+							queryParams,
+							disableLoader: true
 						})
 					} else if (type === "createTextFile") {
 						await driveService.createTextFile({

@@ -183,7 +183,9 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 		fullScreenLoadingModal.show()
 
 		try {
-			tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+			tmpFile = new FileSystem.File(
+				FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(itemName)}`)
+			)
 
 			if (tmpFile.exists) {
 				tmpFile.delete()

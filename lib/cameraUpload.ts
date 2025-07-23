@@ -432,7 +432,9 @@ export class CameraUpload {
 						return
 					}
 
-					const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+					const tmpFile = new FileSystem.File(
+						FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(delta.item.name)}`)
+					)
 
 					if (abortSignal?.aborted) {
 						throw new Error("Aborted")

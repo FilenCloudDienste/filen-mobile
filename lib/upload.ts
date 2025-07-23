@@ -4,6 +4,8 @@ import { getSDK } from "@/lib/sdk"
 import { Readable } from "stream"
 import { type ReadableStream } from "stream/web"
 import { type NodeWorkerHandlers } from "nodeWorker"
+import thumbnails from "./thumbnails"
+import { normalizeFilePathForExpo } from "./utils"
 
 export class Upload {
 	private isAuthed(): boolean {
@@ -32,22 +34,9 @@ export class Upload {
 	}
 
 	public file = {
-		foreground: async (params: Parameters<NodeWorkerHandlers["uploadFile"]>[0]): Promise<DriveCloudItem> => {
-			if (!this.isAuthed()) {
-				throw new Error("You must be authenticated to upload files.")
-			}
-
-			const sourceEntry = new FileSystem.File(params.localPath)
-
-			if (!sourceEntry.exists) {
-				throw new Error(`Source ${params.localPath} does not exist.`)
-			}
-
-			return await nodeWorker.proxy("uploadFile", params)
-		},
-		background: async (
+		foreground: async (
 			params: Parameters<NodeWorkerHandlers["uploadFile"]>[0] & {
-				abortSignal?: AbortSignal
+				disableThumbnailGeneration?: boolean
 			}
 		): Promise<DriveCloudItem> => {
 			if (!this.isAuthed()) {
@@ -60,7 +49,54 @@ export class Upload {
 				throw new Error(`Source ${params.localPath} does not exist.`)
 			}
 
-			const sourceStream = Readable.fromWeb(sourceEntry.readableStream() as ReadableStream<Uint8Array<ArrayBufferLike>>)
+			const wantsToDeleteAfterUpload = params.deleteAfterUpload ?? false
+			const item = await nodeWorker.proxy("uploadFile", {
+				...params,
+				deleteAfterUpload: false
+			})
+
+			if (!params.disableThumbnailGeneration) {
+				await thumbnails
+					.generate({
+						item,
+						originalFilePath: normalizeFilePathForExpo(params.localPath)
+					})
+					.then(() => {
+						console.log("Thumbnail generated successfully for", item.uuid)
+					})
+					.catch(e => {
+						console.error("Failed to generate thumbnail for", item.uuid, e)
+						// We don't want to throw an error if thumbnail generation fails
+					})
+			}
+
+			if (wantsToDeleteAfterUpload) {
+				const file = new FileSystem.File(normalizeFilePathForExpo(params.localPath))
+
+				if (file.exists) {
+					file.delete()
+				}
+			}
+
+			return item
+		},
+		background: async (
+			params: Parameters<NodeWorkerHandlers["uploadFile"]>[0] & {
+				abortSignal?: AbortSignal
+				disableThumbnailGeneration?: boolean
+			}
+		): Promise<DriveCloudItem> => {
+			if (!this.isAuthed()) {
+				throw new Error("You must be authenticated to upload files.")
+			}
+
+			const sourceFile = new FileSystem.File(params.localPath)
+
+			if (!sourceFile.exists) {
+				throw new Error(`Source ${params.localPath} does not exist.`)
+			}
+
+			const sourceStream = Readable.fromWeb(sourceFile.readableStream() as ReadableStream<Uint8Array<ArrayBufferLike>>)
 
 			try {
 				const item = await getSDK()
@@ -68,12 +104,46 @@ export class Upload {
 					.uploadLocalFileStream({
 						source: sourceStream,
 						parent: params.parent,
-						name: params.name ?? sourceEntry.name,
+						name: params.name ?? sourceFile.name,
 						abortSignal: params.abortSignal
 					})
 
 				if (item.type === "directory") {
 					throw new Error("Unknown SDK error.")
+				}
+
+				if (!params.disableThumbnailGeneration) {
+					await thumbnails
+						.generate({
+							item: (params.isShared
+								? {
+										...item,
+										isShared: true,
+										type: "file",
+										selected: false,
+										receiverEmail: params.receiverEmail,
+										receiverId: params.receiverId,
+										sharerEmail: params.sharerEmail,
+										sharerId: params.sharerId,
+										receivers: params.receivers
+								  }
+								: {
+										...item,
+										isShared: false,
+										type: "file",
+										selected: false
+								  }) satisfies DriveCloudItem,
+							originalFilePath: normalizeFilePathForExpo(params.localPath)
+						})
+						.catch(() => {
+							// We don't want to throw an error if thumbnail generation fails
+						})
+				}
+
+				if (params.deleteAfterUpload) {
+					if (sourceFile.exists) {
+						sourceFile.delete()
+					}
 				}
 
 				if (params.isShared) {

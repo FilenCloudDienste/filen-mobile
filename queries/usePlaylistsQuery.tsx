@@ -121,7 +121,7 @@ export async function updatePlaylist(playlist: Playlist): Promise<void> {
 	let tmpFile: FileSystem.File | null = null
 
 	try {
-		tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+		tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}.json`))
 
 		if (tmpFile.exists) {
 			tmpFile.delete()

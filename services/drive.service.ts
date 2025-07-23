@@ -1709,7 +1709,9 @@ export class DriveService {
 							throw new Error(`Could not find file at "${asset.uri}".`)
 						}
 
-						const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+						const tmpFile = new FileSystem.File(
+							FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(asset.fileName)}`)
+						)
 
 						try {
 							if (tmpFile.exists) {
@@ -1825,7 +1827,9 @@ export class DriveService {
 							return null
 						}
 
-						const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+						const tmpFile = new FileSystem.File(
+							FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(asset.fileName)}`)
+						)
 
 						try {
 							if (tmpFile.exists) {
@@ -1918,17 +1922,15 @@ export class DriveService {
 
 		fullScreenLoadingModal.show()
 
-		const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+		const fileNameParsed = FileSystem.Paths.parse(name)
+		const fileNameWithExtension = sanitizeFileName(
+			fileNameParsed.ext && fileNameParsed.ext.length > 0 && fileNameParsed.ext.includes(".") ? name : `${fileNameParsed.name}.txt`
+		)
+		const tmpFile = new FileSystem.File(
+			FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(fileNameWithExtension)}`)
+		)
 
 		try {
-			const fileNameParsed = FileSystem.Paths.parse(name)
-
-			const fileNameWithExtension = sanitizeFileName(
-				fileNameParsed.ext && fileNameParsed.ext.length > 0 && fileNameParsed.ext.includes(".")
-					? name
-					: `${fileNameParsed.name}.txt`
-			)
-
 			if (tmpFile.exists) {
 				tmpFile.delete()
 			}

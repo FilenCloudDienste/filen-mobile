@@ -134,30 +134,35 @@ export default function ShareIntent() {
 						return
 					}
 
-					let source: FileSystem.File = fsFile
+					const tmpFile = new FileSystem.File(
+						FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(file.fileName)}`)
+					)
 
-					// Android requires a temporary copy of the file to be uploaded, on iOS the Share Intent provides a temporary file
-					if (Platform.OS === "android") {
-						const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
-
+					try {
 						fsFile.copy(tmpFile)
 
 						if (!tmpFile.exists) {
 							throw new Error("Failed to copy file to temporary location.")
 						}
 
-						source = tmpFile
-					}
+						await upload.file.foreground({
+							parent,
+							localPath: tmpFile.uri,
+							name: file.fileName,
+							id: randomUUID(),
+							size: tmpFile.size ?? 0,
+							isShared: false,
+							deleteAfterUpload: true
+						})
+					} finally {
+						if (tmpFile.exists) {
+							tmpFile.delete()
+						}
 
-					await upload.file.foreground({
-						parent,
-						localPath: source.uri,
-						name: file.fileName,
-						id: randomUUID(),
-						size: source.size ?? 0,
-						isShared: false,
-						deleteAfterUpload: true
-					})
+						if (Platform.OS === "ios" && fsFile.exists) {
+							fsFile.delete()
+						}
+					}
 				})
 			)
 		} catch (e) {

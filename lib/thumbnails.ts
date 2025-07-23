@@ -86,7 +86,15 @@ export class Thumbnails {
 		}
 	}
 
-	public async generate({ item, queryParams }: { item: DriveCloudItem; queryParams?: FetchCloudItemsParams }): Promise<string> {
+	public async generate({
+		item,
+		queryParams,
+		originalFilePath
+	}: {
+		item: DriveCloudItem
+		queryParams?: FetchCloudItemsParams
+		originalFilePath?: string
+	}): Promise<string> {
 		if (item.type !== "file") {
 			throw new Error("Item is not of type file.")
 		}
@@ -160,19 +168,29 @@ export class Thumbnails {
 
 			try {
 				if (EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS.includes(extname)) {
-					await download.file.foreground({
-						id,
-						uuid: item.uuid,
-						bucket: item.bucket,
-						region: item.region,
-						chunks: item.chunks,
-						version: item.version,
-						key: item.key,
-						destination: tempDestinationFile.uri,
-						size: item.size,
-						name: item.name,
-						dontEmitProgress: true
-					})
+					if (originalFilePath) {
+						const originalFile = new FileSystem.File(normalizeFilePathForExpo(originalFilePath))
+
+						if (!originalFile.exists || !originalFile.size) {
+							throw new Error(`Original file at ${originalFilePath} does not exist.`)
+						}
+
+						originalFile.copy(tempDestinationFile)
+					} else {
+						await download.file.foreground({
+							id,
+							uuid: item.uuid,
+							bucket: item.bucket,
+							region: item.region,
+							chunks: item.chunks,
+							version: item.version,
+							key: item.key,
+							destination: tempDestinationFile.uri,
+							size: item.size,
+							name: item.name,
+							dontEmitProgress: true
+						})
+					}
 
 					const manipulated = await ImageManipulator.manipulate(normalizeFilePathForExpo(tempDestinationFile.uri))
 						.resize({
@@ -194,26 +212,67 @@ export class Thumbnails {
 
 					manipulatedFile.move(destinationFile)
 				} else if (EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS.includes(extname)) {
+					if (!originalFilePath) {
+						const [nodeWorkerPingResponse, nodeHTTPServerAlive] = await Promise.all([
+							nodeWorker.proxy("ping", undefined),
+							nodeWorker.httpServerAlive()
+						])
+
+						if (nodeWorkerPingResponse !== "pong") {
+							throw new Error("Node worker is not responding.")
+						}
+
+						if (!nodeHTTPServerAlive) {
+							throw new Error("HTTP server is not alive.")
+						}
+					}
+
+					console.log(
+						originalFilePath
+							? normalizeFilePathForExpo(originalFilePath)
+							: `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?file=${encodeURIComponent(
+									btoa(
+										JSON.stringify({
+											name: item.name,
+											mime: item.mime,
+											size: item.size,
+											uuid: item.uuid,
+											bucket: item.bucket,
+											key: item.key,
+											version: item.version,
+											chunks: item.chunks,
+											region: item.region
+										})
+									)
+							  )}`
+					)
+
 					const videoThumbnail = await VideoThumbnails.getThumbnailAsync(
-						`http://127.0.0.1:${nodeWorker.httpServerPort}/stream?file=${encodeURIComponent(
-							btoa(
-								JSON.stringify({
-									name: item.name,
-									mime: item.mime,
-									size: item.size,
-									uuid: item.uuid,
-									bucket: item.bucket,
-									key: item.key,
-									version: item.version,
-									chunks: item.chunks,
-									region: item.region
-								})
-							)
-						)}`,
+						originalFilePath
+							? normalizeFilePathForExpo(originalFilePath)
+							: `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?file=${encodeURIComponent(
+									btoa(
+										JSON.stringify({
+											name: item.name,
+											mime: item.mime,
+											size: item.size,
+											uuid: item.uuid,
+											bucket: item.bucket,
+											key: item.key,
+											version: item.version,
+											chunks: item.chunks,
+											region: item.region
+										})
+									)
+							  )}`,
 						{
-							headers: {
-								Authorization: `Bearer ${nodeWorker.httpAuthToken}`
-							},
+							...(originalFilePath
+								? {}
+								: {
+										headers: {
+											Authorization: `Bearer ${nodeWorker.httpAuthToken}`
+										}
+								  }),
 							quality: THUMBNAILS_COMPRESSION,
 							time: 500
 						}

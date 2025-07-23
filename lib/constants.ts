@@ -89,7 +89,7 @@ export const EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS = Platform.select({
 
 export const EXPO_IMAGE_SUPPORTED_EXTENSIONS = Platform.select({
 	ios: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".heic", ".heif", ".webp", ".svg"],
-	android: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg"],
+	android: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg", ".heic", ".heif"],
 	default: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg"]
 }) as string[]
 
