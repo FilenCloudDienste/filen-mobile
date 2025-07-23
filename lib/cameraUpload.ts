@@ -16,6 +16,7 @@ import { ImageManipulator, SaveFormat } from "expo-image-manipulator"
 import { type FileMetadata } from "@filen/sdk"
 import { getSDK } from "./sdk"
 import upload from "@/lib/upload"
+import queryUtils from "@/queries/utils"
 
 export type TreeItem = (
 	| {
@@ -500,34 +501,41 @@ export class CameraUpload {
 							throw new Error("Invalid response from uploadFile.")
 						}
 
+						const newFileMetadata: FileMetadata = {
+							name: item.name,
+							creation: delta.item.creation,
+							lastModified: delta.item.lastModified,
+							mime: item.mime,
+							size: item.size,
+							hash: item.hash,
+							key: item.key
+						} satisfies FileMetadata
+
 						if (this.type === "foreground") {
 							await nodeWorker.proxy("editFileMetadata", {
 								uuid: item.uuid,
-								metadata: {
-									name: item.name,
-									creation: delta.item.creation,
-									lastModified: delta.item.lastModified,
-									mime: item.mime,
-									size: item.size,
-									hash: item.hash,
-									key: item.key
-								} satisfies FileMetadata
+								metadata: newFileMetadata
 							})
 						} else {
-							await getSDK()
-								.cloud()
-								.editFileMetadata({
-									uuid: item.uuid,
-									metadata: {
-										name: item.name,
-										creation: delta.item.creation,
-										lastModified: delta.item.lastModified,
-										mime: item.mime,
-										size: item.size,
-										hash: item.hash,
-										key: item.key
-									} satisfies FileMetadata
-								})
+							await getSDK().cloud().editFileMetadata({
+								uuid: item.uuid,
+								metadata: newFileMetadata
+							})
+						}
+
+						if (this.type === "foreground") {
+							queryUtils.useCloudItemsQuerySet({
+								receiverId: 0,
+								of: "photos",
+								parent: state.remote.uuid,
+								updater: prev => [
+									...prev.filter(i => i.uuid !== item.uuid),
+									{
+										...item,
+										...newFileMetadata
+									}
+								]
+							})
 						}
 					} finally {
 						if (tmpFile.exists) {

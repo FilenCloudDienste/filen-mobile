@@ -1503,14 +1503,12 @@ export class DriveService {
 	public async uploadFiles({
 		parent,
 		queryParams,
-		disableQueryRefetch,
 		documentPickerAssets,
 		disableAlert,
 		disableLoader
 	}: {
 		parent: string
 		queryParams?: FetchCloudItemsParams
-		disableQueryRefetch?: boolean
 		documentPickerAssets?: DocumentPicker.DocumentPickerAsset[]
 		disableAlert?: boolean
 		disableLoader?: boolean
@@ -1559,9 +1557,13 @@ export class DriveService {
 				)
 			}
 
-			if (!disableQueryRefetch && queryParams && uploadedItems.length > 0) {
-				await queryClient.invalidateQueries({
-					queryKey: ["useCloudItemsQuery", queryParams.parent, queryParams.of, queryParams.receiverId]
+			if (queryParams && uploadedItems.length > 0) {
+				queryUtils.useCloudItemsQuerySet({
+					...queryParams,
+					updater: prev => [
+						...prev.filter(item => !uploadedItems.some(uploadedItem => uploadedItem.uuid === item.uuid)),
+						...uploadedItems
+					]
 				})
 			}
 		} finally {
@@ -1576,15 +1578,13 @@ export class DriveService {
 		parent,
 		name,
 		disableLoader,
-		disableAlert,
-		disableQueryRefetch
+		disableAlert
 	}: {
 		queryParams?: FetchCloudItemsParams
 		parent: string
 		name?: string
 		disableLoader?: boolean
 		disableAlert?: boolean
-		disableQueryRefetch?: boolean
 	}): Promise<void> {
 		if (!name) {
 			const inputPromptResponse = await inputPrompt({
@@ -1616,7 +1616,7 @@ export class DriveService {
 		}
 
 		try {
-			await nodeWorker.proxy("createDirectory", {
+			const directoryUUID = await nodeWorker.proxy("createDirectory", {
 				parent,
 				name
 			})
@@ -1629,9 +1629,27 @@ export class DriveService {
 				)
 			}
 
-			if (!disableQueryRefetch && queryParams) {
-				await queryClient.invalidateQueries({
-					queryKey: ["useCloudItemsQuery", queryParams.parent, queryParams.of, queryParams.receiverId]
+			if (queryParams) {
+				queryUtils.useCloudItemsQuerySet({
+					...queryParams,
+					updater: prev => [
+						...prev.filter(item => item.uuid !== directoryUUID),
+						...[
+							{
+								uuid: directoryUUID,
+								name,
+								type: "directory",
+								parent,
+								lastModified: Date.now(),
+								isShared: false,
+								color: null,
+								selected: false,
+								size: 0,
+								favorited: false,
+								timestamp: Date.now()
+							} satisfies DriveCloudItem
+						]
+					]
 				})
 			}
 		} finally {
@@ -1646,14 +1664,12 @@ export class DriveService {
 		parent,
 		disableLoader,
 		disableAlert,
-		disableQueryRefetch,
 		imagePickerAssets
 	}: {
 		queryParams?: FetchCloudItemsParams
 		parent: string
 		disableLoader?: boolean
 		disableAlert?: boolean
-		disableQueryRefetch?: boolean
 		imagePickerAssets?: ImagePicker.ImagePickerAsset[]
 	}): Promise<void> {
 		const permissions = await ImagePicker.getMediaLibraryPermissionsAsync(false)
@@ -1750,9 +1766,13 @@ export class DriveService {
 				)
 			}
 
-			if (!disableQueryRefetch && queryParams && uploadedItems.length > 0) {
-				await queryClient.invalidateQueries({
-					queryKey: ["useCloudItemsQuery", queryParams.parent, queryParams.of, queryParams.receiverId]
+			if (queryParams && uploadedItems.length > 0) {
+				queryUtils.useCloudItemsQuerySet({
+					...queryParams,
+					updater: prev => [
+						...prev.filter(item => !uploadedItems.some(uploadedItem => uploadedItem.uuid === item.uuid)),
+						...uploadedItems
+					]
 				})
 			}
 		} finally {
@@ -1767,14 +1787,12 @@ export class DriveService {
 		parent,
 		disableLoader,
 		disableAlert,
-		disableQueryRefetch,
 		imagePickerAssets
 	}: {
 		queryParams?: FetchCloudItemsParams
 		parent: string
 		disableLoader?: boolean
 		disableAlert?: boolean
-		disableQueryRefetch?: boolean
 		imagePickerAssets?: ImagePicker.ImagePickerAsset[]
 	}): Promise<void> {
 		const permissions = await ImagePicker.getCameraPermissionsAsync()
@@ -1868,9 +1886,13 @@ export class DriveService {
 				)
 			}
 
-			if (!disableQueryRefetch && queryParams && uploadedItems.length > 0) {
-				await queryClient.invalidateQueries({
-					queryKey: ["useCloudItemsQuery", queryParams.parent, queryParams.of, queryParams.receiverId]
+			if (queryParams && uploadedItems.length > 0) {
+				queryUtils.useCloudItemsQuerySet({
+					...queryParams,
+					updater: prev => [
+						...prev.filter(item => !uploadedItems.some(uploadedItem => uploadedItem.uuid === item.uuid)),
+						...uploadedItems
+					]
 				})
 			}
 		} finally {
@@ -1885,14 +1907,12 @@ export class DriveService {
 		parent,
 		name,
 		disableLoader,
-		disableQueryRefetch,
 		disableNavigation
 	}: {
 		queryParams?: FetchCloudItemsParams
 		parent: string
 		name?: string
 		disableLoader?: boolean
-		disableQueryRefetch?: boolean
 		disableNavigation?: boolean
 	}): Promise<void> {
 		if (!name) {
@@ -1937,7 +1957,7 @@ export class DriveService {
 
 			tmpFile.create()
 
-			const item = await upload.file.foreground({
+			const uploadedItem = await upload.file.foreground({
 				parent,
 				localPath: tmpFile.uri,
 				name: fileNameWithExtension,
@@ -1947,9 +1967,10 @@ export class DriveService {
 				deleteAfterUpload: true
 			})
 
-			if (!disableQueryRefetch && queryParams) {
-				await queryClient.invalidateQueries({
-					queryKey: ["useCloudItemsQuery", queryParams.parent, queryParams.of, queryParams.receiverId]
+			if (queryParams) {
+				queryUtils.useCloudItemsQuerySet({
+					...queryParams,
+					updater: prev => [...prev.filter(item => item.uuid !== uploadedItem.uuid), uploadedItem]
 				})
 			}
 
@@ -1959,7 +1980,7 @@ export class DriveService {
 					params: {
 						item: JSON.stringify({
 							type: "cloud",
-							driveItem: item
+							driveItem: uploadedItem
 						} satisfies TextEditorItem)
 					}
 				})
