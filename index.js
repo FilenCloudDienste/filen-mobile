@@ -7,14 +7,12 @@ import { NativeText, NativeView } from "react-native-boost/runtime"
 import "expo-router/entry"
 
 import "@/lib/backgroundTask"
-
-import trackPlayer from "@/lib/trackPlayer"
-
-trackPlayer.init()
+import "@/lib/trackPlayer"
 
 cssInterop(NativeText, {
 	className: "style"
 })
+
 cssInterop(NativeView, {
 	className: "style"
 })

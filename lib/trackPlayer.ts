@@ -50,6 +50,85 @@ export class TrackPlayer {
 	private readonly loadFileForTrackMutex: Semaphore = new Semaphore(1)
 	private readonly controlsMutex: Semaphore = new Semaphore(1)
 
+	public constructor() {
+		AudioPro.configure({
+			contentType: AudioProContentType.MUSIC,
+			debug: false,
+			debugIncludesProgress: false,
+			progressIntervalMs: 1000,
+			showNextPrevControls: true
+		})
+
+		AudioPro.addEventListener(async event => {
+			switch (event.type) {
+				case AudioProEventType.REMOTE_NEXT: {
+					try {
+						await this.skipToNext()
+					} catch (e) {
+						console.error(e)
+					}
+
+					break
+				}
+
+				case AudioProEventType.REMOTE_PREV: {
+					try {
+						await this.skipToPrevious()
+					} catch (e) {
+						console.error(e)
+					}
+
+					break
+				}
+
+				case AudioProEventType.TRACK_ENDED: {
+					try {
+						const repeatMode = this.getRepeatMode()
+
+						if (repeatMode === "track") {
+							await this.repeatCurrentTrack()
+
+							return
+						}
+
+						if (repeatMode === "queue") {
+							await this.controlsMutex.acquire()
+
+							try {
+								const queue = this.getQueue()
+
+								if (queue.length > 0) {
+									const nextTrack = this.getNextTrackInQueue()
+
+									if (!nextTrack) {
+										const firstTrack = queue.at(0)
+
+										if (firstTrack) {
+											await this.playTrack({
+												track: firstTrack,
+												autoPlay: true
+											})
+
+											return
+										}
+									}
+								}
+							} finally {
+								this.controlsMutex.release()
+							}
+						}
+
+						await this.skipToNext()
+					} catch (e) {
+						console.error(e)
+					}
+
+					break
+				}
+			}
+		})
+	}
+
 	public clearState(): void {
 		mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify([]))
 		mmkvInstance.delete(TRACK_PLAYER_PLAYING_TRACK_KEY)
@@ -551,7 +630,7 @@ export class TrackPlayer {
 
 							destination.write(new Uint8Array(Buffer.from(base64String, "base64")))
 
-							coverURI = destination.uri
+							coverURI = normalizeFilePathForExpo(destination.uri)
 						}
 					}
 				}
@@ -590,19 +669,17 @@ export class TrackPlayer {
 
 			const playingTrack = AudioPro.getPlayingTrack() as AudioProTrackExtended
 
-			if (playingTrack) {
-				if (playingTrack.file.uuid === uuid) {
-					mmkvInstance.set(
-						TRACK_PLAYER_PLAYING_TRACK_KEY,
-						JSON.stringify({
-							...playingTrack,
-							artist: metadata.artist ?? playingTrack.artist,
-							album: metadata.album ?? playingTrack.album,
-							title: metadata.title ?? playingTrack.title,
-							artwork: metadata.picture ?? playingTrack.artwork
-						} satisfies AudioProTrackExtended)
-					)
-				}
+			if (playingTrack && playingTrack.file.uuid === uuid) {
+				mmkvInstance.set(
+					TRACK_PLAYER_PLAYING_TRACK_KEY,
+					JSON.stringify({
+						...playingTrack,
+						artist: metadata.artist ?? playingTrack.artist,
+						album: metadata.album ?? playingTrack.album,
+						title: metadata.title ?? playingTrack.title,
+						artwork: metadata.picture ?? playingTrack.artwork
+					} satisfies AudioProTrackExtended)
+				)
 			}
 
 			return metadata
@@ -689,85 +766,6 @@ export class TrackPlayer {
 
 			useTrackPlayerStore.getState().setLoadingTrack(false)
 		}
-	}
-
-	public init(): void {
-		AudioPro.configure({
-			contentType: AudioProContentType.MUSIC,
-			debug: false,
-			debugIncludesProgress: false,
-			progressIntervalMs: 1000,
-			showNextPrevControls: true
-		})
-
-		AudioPro.addEventListener(async event => {
-			switch (event.type) {
-				case AudioProEventType.REMOTE_NEXT: {
-					try {
-						await this.skipToNext()
-					} catch (e) {
-						console.error(e)
-					}
-
-					break
-				}
-
-				case AudioProEventType.REMOTE_PREV: {
-					try {
-						await this.skipToPrevious()
-					} catch (e) {
-						console.error(e)
-					}
-
-					break
-				}
-
-				case AudioProEventType.TRACK_ENDED: {
-					try {
-						const repeatMode = this.getRepeatMode()
-
-						if (repeatMode === "track") {
-							await this.repeatCurrentTrack()
-
-							return
-						}
-
-						if (repeatMode === "queue") {
-							await this.controlsMutex.acquire()
-
-							try {
-								const queue = this.getQueue()
-
-								if (queue.length > 0) {
-									const nextTrack = this.getNextTrackInQueue()
-
-									if (!nextTrack) {
-										const firstTrack = queue.at(0)
-
-										if (firstTrack) {
-											await this.playTrack({
-												track: firstTrack,
-												autoPlay: true
-											})
-
-											return
-										}
-									}
-								}
-							} finally {
-								this.controlsMutex.release()
-							}
-						}
-
-						await this.skipToNext()
-					} catch (e) {
-						console.error(e)
-					}
-
-					break
-				}
-			}
-		})
 	}
 }
 
