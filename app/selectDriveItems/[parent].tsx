@@ -229,6 +229,10 @@ export default function SelectDriveItems() {
 	}, [query.status, items.length, t])
 
 	const listFooter = useMemo(() => {
+		if (items.length === 0) {
+			return undefined
+		}
+
 		return (
 			<View className="flex flex-row items-center justify-center h-16 p-4">
 				<Text className="text-sm">
