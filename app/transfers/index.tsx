@@ -306,13 +306,11 @@ export const Transfers = memo(() => {
 					getItemLayout={getItemLayout}
 				/>
 			</Container>
-			{transfers.length > 0 && (
-				<Toolbar
-					iosHint={info ?? undefined}
-					leftView={toolbarLeftView}
-					rightView={toolbarRightView}
-				/>
-			)}
+			<Toolbar
+				iosHint={info ?? undefined}
+				leftView={toolbarLeftView}
+				rightView={toolbarRightView}
+			/>
 		</RequireInternet>
 	)
 })
