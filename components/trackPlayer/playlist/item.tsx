@@ -337,7 +337,8 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 					onPress={onDotsPress}
 				>
 					<Icon
-						name="dots-horizontal"
+						namingScheme="sfSymbol"
+						name="ellipsis"
 						size={24}
 						color={colors.foreground}
 					/>

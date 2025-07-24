@@ -249,7 +249,9 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				disabled={query.status !== "success" || value.length === 0}
 				onPress={exportFile}
 				icon={{
-					name: "send-outline",
+					materialIcon: {
+						name: "share-outline"
+					},
 					ios: {
 						name: "square.and.arrow.up"
 					}

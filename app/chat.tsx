@@ -63,7 +63,11 @@ export const Chat = memo(() => {
 						size="icon"
 					>
 						<Icon
-							name="dots-horizontal-circle-outline"
+							namingScheme="sfSymbol"
+							name="ellipsis"
+							ios={{
+								name: "ellipsis.circle"
+							}}
 							size={24}
 							color={colors.primary}
 						/>

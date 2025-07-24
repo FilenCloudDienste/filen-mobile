@@ -34,6 +34,7 @@ import queryClient from "@/queries/client"
 import * as ImagePicker from "expo-image-picker"
 import { router } from "expo-router"
 import { type TextEditorItem } from "@/components/textEditor/editor"
+import cache from "@/lib/cache"
 
 export type SelectDriveItemsResponse =
 	| {
@@ -1654,6 +1655,8 @@ export class DriveService {
 					]
 				})
 			}
+
+			cache.directoryUUIDToName.set(directoryUUID, name)
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()

@@ -73,7 +73,8 @@ export const Participant = memo(({ info, chat }: { info: ListRenderItemInfo<List
 						size="icon"
 					>
 						<Icon
-							name="dots-horizontal"
+							namingScheme="sfSymbol"
+							name="ellipsis"
 							size={24}
 							color={colors.foreground}
 						/>

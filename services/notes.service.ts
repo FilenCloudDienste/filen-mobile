@@ -629,7 +629,15 @@ export class NotesService {
 		}
 	}
 
-	public async createNote({ title, disableLoader }: { title?: string; disableLoader?: boolean }): Promise<Note | null> {
+	public async createNote({
+		title,
+		disableLoader,
+		disableNavigation
+	}: {
+		title?: string
+		disableLoader?: boolean
+		disableNavigation?: boolean
+	}): Promise<Note | null> {
 		if (!title) {
 			const inputPromptResponse = await inputPrompt({
 				title: t("notes.prompts.createNote.title"),
@@ -672,6 +680,15 @@ export class NotesService {
 			queryUtils.useNotesQuerySet({
 				updater: () => notes
 			})
+
+			if (!disableNavigation) {
+				router.push({
+					pathname: "/notes/[uuid]",
+					params: {
+						uuid
+					}
+				})
+			}
 
 			return notes.find(n => n.uuid === uuid) ?? null
 		} finally {

@@ -1,6 +1,6 @@
 import { useRouter, Stack } from "expo-router"
 import { useState, useCallback, memo, useMemo } from "react"
-import { Image, Platform, View } from "react-native"
+import { Platform, View } from "react-native"
 import { KeyboardAwareScrollView, KeyboardController, KeyboardStickyView } from "react-native-keyboard-controller"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import authService from "@/services/auth.service"
@@ -9,7 +9,6 @@ import { Form, FormItem, FormSection } from "@/components/nativewindui/Form"
 import { Text } from "@/components/nativewindui/Text"
 import { TextField } from "@/components/nativewindui/TextField"
 import Container from "@/components/Container"
-import { useColorScheme } from "@/lib/useColorScheme"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
@@ -30,7 +29,6 @@ export const Login = memo(() => {
 	const router = useRouter()
 	const [email, setEmail] = useState<string>("")
 	const [password, setPassword] = useState<string>("")
-	const { isDarkColorScheme } = useColorScheme()
 	const { t } = useTranslation()
 
 	const disabled = useMemo(() => {
@@ -123,10 +121,6 @@ export const Login = memo(() => {
 		)
 	}, [goBack, t])
 
-	const logoSource = useMemo(() => {
-		return isDarkColorScheme ? require("../../assets/images/logo_light.png") : require("../../assets/images/logo_dark.png")
-	}, [isDarkColorScheme])
-
 	const signUp = useCallback(() => {
 		router.push({
 			pathname: "/(auth)/register"
@@ -191,11 +185,6 @@ export const Login = memo(() => {
 				>
 					<View className="ios:px-12 flex-1 px-8">
 						<View className="items-center pb-1">
-							<Image
-								source={logoSource}
-								className="h-14 w-14"
-								resizeMode="contain"
-							/>
 							<Text
 								variant="title1"
 								className="ios:font-bold pb-1 pt-4 text-center"

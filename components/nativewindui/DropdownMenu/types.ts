@@ -29,7 +29,11 @@ export type DropdownItem = {
 	// icon or image, not both image has higher priority
 	icon?: DropdownIcon
 	// icon or image, not both image has higher priority
-	image?: { url?: string; cornerRadius?: number; tint?: string }
+	image?: {
+		url?: string
+		cornerRadius?: number
+		tint?: string
+	}
 }
 
 export type DropdownSubMenuDropdown = {

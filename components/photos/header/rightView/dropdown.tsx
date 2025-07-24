@@ -354,7 +354,11 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 			>
 				<Icon
 					size={24}
-					name="dots-horizontal-circle-outline"
+					namingScheme="sfSymbol"
+					name="ellipsis"
+					ios={{
+						name: "ellipsis.circle"
+					}}
 					color={colors.primary}
 				/>
 			</Button>

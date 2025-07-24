@@ -1035,7 +1035,7 @@
 			"login": "Log in",
 			"signUp": "Sign up for free",
 			"next": "Next",
-			"submit": "Submit",
+			"submit": "Log in",
 			"errors": {
 				"emptyFields": "Please fill out all fields."
 			},

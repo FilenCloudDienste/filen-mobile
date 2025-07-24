@@ -384,10 +384,12 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 					<ToolbarIcon
 						disabled={query.status !== "success" || !query.data?.enabled}
 						icon={{
+							materialIcon: {
+								name: "share-outline"
+							},
 							ios: {
 								name: "square.and.arrow.up"
-							},
-							name: "link"
+							}
 						}}
 						onPress={share}
 					/>
