@@ -105,9 +105,9 @@ export const Settings = memo(() => {
 
 					clearBiometricAuth()
 
-					fileProvider.enable(authService.getSDKConfig())
+					await fileProvider.enable(authService.getSDKConfig())
 				} else {
-					fileProvider.disable()
+					await fileProvider.disable()
 				}
 
 				await fileProviderEnabledQueryRefetch()

@@ -172,9 +172,13 @@ export class SQLite {
 
 			if (!offlineFilesDir.exists) {
 				offlineFilesDir.create()
+
+				await db.runAsync("DELETE FROM offline_files")
+
+				return
 			}
 
-			const existingOfflineFiles = offlineFilesDir.listAsRecords().map(entry => Paths.basename(entry.uri))
+			const existingOfflineFiles = offlineFilesDir.listAsRecords().map(entry => Paths.basename(entry.uri).split(".")[0])
 
 			if (existingOfflineFiles.length === 0) {
 				await db.runAsync("DELETE FROM offline_files")

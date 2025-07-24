@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import paths from "@/lib/paths"
 import { type FilenSDKConfig } from "@filen/sdk"
 
@@ -8,44 +8,55 @@ export type AuthFileSchema = {
 }
 
 export class FileProvider {
-	public read(): AuthFileSchema | null {
-		const file = new FileSystem.File(paths.fileProviderAuthFile())
+	public async read(): Promise<AuthFileSchema | null> {
+		const authFilePath = await paths.fileProviderAuthFile()
 
-		if (!file.exists) {
+		if (!(await FileSystem.getInfoAsync(authFilePath)).exists) {
 			return null
 		}
 
 		try {
-			return JSON.parse(file.text()) as AuthFileSchema
+			return JSON.parse(
+				await FileSystem.readAsStringAsync(authFilePath, {
+					encoding: FileSystem.EncodingType.UTF8
+				})
+			) as AuthFileSchema
 		} catch {
 			return null
 		}
 	}
 
-	public enabled(): boolean {
-		const data = this.read()
+	public async enabled(): Promise<boolean> {
+		const data = await this.read()
 
 		return data?.providerEnabled ?? false
 	}
 
-	public disable(): void {
-		this.write({
-			providerEnabled: false,
-			sdkConfig: null
-		} satisfies AuthFileSchema)
+	public async disable(): Promise<void> {
+		const authFilePath = await paths.fileProviderAuthFile()
+
+		if ((await FileSystem.getInfoAsync(authFilePath)).exists) {
+			await FileSystem.deleteAsync(authFilePath)
+		}
 	}
 
-	public enable(sdkConfig: Required<FilenSDKConfig>): void {
-		this.write({
+	public async enable(sdkConfig: Required<FilenSDKConfig>): Promise<void> {
+		return await this.write({
 			providerEnabled: true,
 			sdkConfig
 		} satisfies AuthFileSchema)
 	}
 
-	public write(data: AuthFileSchema): void {
-		const file = new FileSystem.File(paths.fileProviderAuthFile())
+	public async write(data: AuthFileSchema): Promise<void> {
+		const authFilePath = await paths.fileProviderAuthFile()
 
-		file.write(JSON.stringify(data))
+		if ((await FileSystem.getInfoAsync(authFilePath)).exists) {
+			await FileSystem.deleteAsync(authFilePath)
+		}
+
+		await FileSystem.writeAsStringAsync(authFilePath, JSON.stringify(data), {
+			encoding: FileSystem.EncodingType.UTF8
+		})
 	}
 }
 

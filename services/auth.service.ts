@@ -39,23 +39,21 @@ export class AuthService {
 		await this.setupMutex.acquire()
 
 		try {
+			console.log("starting setup...")
+
 			if (!params?.background) {
 				await nodeWorker.start()
 
-				mmkvInstance.delete("notesSearchTerm")
-				mmkvInstance.delete("notesSelectedTag")
+				console.log("node worker started")
 			}
 
 			const thumbnailWarmup = params?.background ? Promise.resolve() : thumbnails.warmupCache()
-			const verifyOfflineFiles = params?.background ? Promise.resolve() : sqlite.offlineFiles.verify()
 			const i18n = params?.background ? Promise.resolve() : waitForI18n()
 			const isAuthed = params && typeof params.isAuthed === "boolean" ? params.isAuthed : this.getIsAuthed()
 			const assetsCopy = params?.background ? Promise.resolve() : assets.initialize()
 
 			if (!isAuthed) {
-				await Promise.all([thumbnailWarmup, verifyOfflineFiles, i18n, assetsCopy])
-
-				fileProvider.disable()
+				await Promise.all([thumbnailWarmup, i18n, assetsCopy, fileProvider.disable()])
 
 				console.log("setup done, not authed")
 
@@ -82,10 +80,21 @@ export class AuthService {
 							tmpPath
 					  }),
 				thumbnailWarmup,
-				verifyOfflineFiles,
 				i18n,
 				assetsCopy
 			])
+
+			if (!params?.background) {
+				mmkvInstance.delete("notesSearchTerm")
+				mmkvInstance.delete("notesSelectedTag")
+
+				sqlite.offlineFiles
+					.verify()
+					.then(() => {
+						console.log("offline files verified")
+					})
+					.catch(console.error)
+			}
 
 			console.log("setup done, authed")
 

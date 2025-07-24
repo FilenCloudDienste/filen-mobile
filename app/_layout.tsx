@@ -29,6 +29,7 @@ import { NotifierWrapper } from "react-native-notifier"
 import Biometric from "@/components/biometric"
 import * as SplashScreen from "expo-splash-screen"
 import { SCREEN_OPTIONS } from "@/lib/constants"
+import alerts from "@/lib/alerts"
 
 SplashScreen.setOptions({
 	duration: 400,
@@ -68,7 +69,13 @@ export default function RootLayout() {
 
 				SplashScreen.hideAsync().catch(console.error)
 			})
-			.catch(console.error)
+			.catch(err => {
+				console.error(err)
+
+				if (err instanceof Error) {
+					alerts.error(err.message)
+				}
+			})
 	}, [])
 
 	return (

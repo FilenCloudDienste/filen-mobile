@@ -630,7 +630,7 @@ export class DriveService {
 			}
 		}
 
-		const offlinePath = FileSystem.Paths.join(paths.offlineFiles(), item.uuid)
+		const offlinePath = FileSystem.Paths.join(paths.offlineFiles(), `${item.uuid}${FileSystem.Paths.extname(item.name)}`)
 		const offlineFile = new FileSystem.File(offlinePath)
 
 		if (!offlineFile.exists) {
@@ -1080,7 +1080,9 @@ export class DriveService {
 		try {
 			const offlineStatus = await this.itemExistsOffline(item)
 			const toggle = typeof offline === "boolean" ? offline : !offlineStatus.exists
-			const offlineFileDestination = new FileSystem.File(FileSystem.Paths.join(paths.offlineFiles(), item.uuid))
+			const offlineFileDestination = new FileSystem.File(
+				FileSystem.Paths.join(paths.offlineFiles(), `${item.uuid}${FileSystem.Paths.extname(item.name)}`)
+			)
 
 			if (!toggle) {
 				if (offlineFileDestination.exists) {

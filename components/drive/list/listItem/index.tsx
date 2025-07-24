@@ -7,7 +7,7 @@ import LeftView from "./leftView"
 import { useDriveStore } from "@/stores/drive.store"
 import { Platform, type ListRenderItemInfo } from "react-native"
 import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
-import { formatBytes, getPreviewType } from "@/lib/utils"
+import { formatBytes, getPreviewType, normalizeFilePathForExpo } from "@/lib/utils"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
 import useNetInfo from "@/hooks/useNetInfo"
 import { viewDocument } from "@react-native-documents/viewer"
@@ -276,7 +276,7 @@ export const ListItem = memo(
 				}
 
 				viewDocument({
-					uri: offlineStatus.path,
+					uri: normalizeFilePathForExpo(offlineStatus.path),
 					grantPermissions: "read",
 					headerTitle: info.item.item.name,
 					mimeType: info.item.item.mime,

@@ -39,9 +39,9 @@ export default function useFileOfflineStatusQuery({
 		queryFn: () =>
 			new Promise<UseFileOfflineStatusQuery>((resolve, reject) => {
 				sqlite.offlineFiles
-					.contains(uuid)
-					.then(exists => {
-						if (!exists) {
+					.get(uuid)
+					.then(item => {
+						if (!item) {
 							resolve({
 								exists: false
 							})
@@ -51,7 +51,7 @@ export default function useFileOfflineStatusQuery({
 
 						resolve({
 							exists: true,
-							path: FileSystem.Paths.join(paths.offlineFiles(), uuid)
+							path: FileSystem.Paths.join(paths.offlineFiles(), `${uuid}${FileSystem.Paths.extname(item.name)}`)
 						})
 					})
 					.catch(reject)

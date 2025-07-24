@@ -47,7 +47,7 @@ export const Biometric = memo(() => {
 	const toggleBiometric = useCallback(
 		async (value: boolean) => {
 			if (value) {
-				if (fileProvider.enabled()) {
+				if (await fileProvider.enabled()) {
 					const fileProviderPrompt = await alertPrompt({
 						title: Platform.select({
 							ios: t("settings.biometric.prompts.fileProvider.title"),
@@ -147,7 +147,7 @@ export const Biometric = memo(() => {
 					}
 				}
 
-				fileProvider.disable()
+				await fileProvider.disable()
 
 				setBiometricAuth({
 					enabled: true,
