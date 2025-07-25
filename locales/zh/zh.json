@@ -1035,7 +1035,7 @@
 			"login": "登录",
 			"signUp": "免费注册",
 			"next": "下一步",
-			"submit": "提交",
+			"submit": "登录",
 			"errors": {
 				"emptyFields": "请填写所有字段。"
 			},
