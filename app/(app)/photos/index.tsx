@@ -213,8 +213,14 @@ export const Photos = memo(() => {
 					return false
 				}
 
-				const previewType = getPreviewType(item.name)
-				const extname = Paths.extname(item.name).toLowerCase()
+				const nameNormalized = item.name.toLowerCase().trim()
+
+				if (nameNormalized.startsWith("cannot_decrypt_") && nameNormalized.endsWith(`_${item.uuid}`)) {
+					return false
+				}
+
+				const previewType = getPreviewType(nameNormalized)
+				const extname = Paths.extname(nameNormalized).toLowerCase()
 
 				if (
 					(previewType === "image" || previewType === "video") &&

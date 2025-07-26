@@ -59,10 +59,16 @@ export const Menu = memo(
 			return item.type === "file" && fileOfflineStatus.status === "success" ? fileOfflineStatus.data : null
 		}, [item.type, fileOfflineStatus.status, fileOfflineStatus.data])
 
+		const isUndecryptable = useMemo(() => {
+			const nameNormalized = item.name.toLowerCase().trim()
+
+			return nameNormalized.startsWith("cannot_decrypt_") && nameNormalized.endsWith(`_${item.uuid}`)
+		}, [item.name, item.uuid])
+
 		const menuItems = useMemo(() => {
 			const items: (ContextItem | ContextSubMenu)[] = []
 
-			if (!fromPreview && !fromSearch && !fromHome) {
+			if (!fromPreview && !fromSearch && !fromHome && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "select",
@@ -81,7 +87,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (item.type === "directory" && queryParams.of !== "trash" && !fromPreview) {
+			if (item.type === "directory" && queryParams.of !== "trash" && !fromPreview && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "openDirectory",
@@ -100,7 +106,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (Platform.OS === "ios" ? item.type === "file" && item.size > 0 : item.size > 0) {
+			if ((Platform.OS === "ios" ? item.type === "file" && item.size > 0 : item.size > 0) && !isUndecryptable) {
 				items.push(
 					createContextSubMenu(
 						{
@@ -184,7 +190,13 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			if (
+				queryParams.of !== "sharedIn" &&
+				queryParams.of !== "offline" &&
+				queryParams.of !== "trash" &&
+				hasInternet &&
+				!isUndecryptable
+			) {
 				if (isProUser && (item.type === "directory" || item.size > 0)) {
 					items.push(
 						createContextSubMenu(
@@ -244,7 +256,13 @@ export const Menu = memo(
 				}
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			if (
+				queryParams.of !== "sharedIn" &&
+				queryParams.of !== "offline" &&
+				queryParams.of !== "trash" &&
+				hasInternet &&
+				!isUndecryptable
+			) {
 				items.push(
 					createContextItem({
 						actionKey: item.favorited ? "unfavorite" : "favorite",
@@ -266,7 +284,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			if (queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet && !isUndecryptable) {
 				if (item.type === "directory") {
 					items.push(
 						createContextItem({
@@ -350,7 +368,8 @@ export const Menu = memo(
 				queryParams.of !== "sharedIn" &&
 				queryParams.of !== "offline" &&
 				queryParams.of !== "trash" &&
-				hasInternet
+				hasInternet &&
+				!isUndecryptable
 			) {
 				items.push(
 					createContextItem({
@@ -370,7 +389,13 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			if (
+				queryParams.of !== "sharedIn" &&
+				queryParams.of !== "offline" &&
+				queryParams.of !== "trash" &&
+				hasInternet &&
+				!isUndecryptable
+			) {
 				items.push(
 					createContextItem({
 						actionKey: "rename",
@@ -389,7 +414,13 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			if (
+				queryParams.of !== "sharedIn" &&
+				queryParams.of !== "offline" &&
+				queryParams.of !== "trash" &&
+				hasInternet &&
+				!isUndecryptable
+			) {
 				items.push(
 					createContextItem({
 						actionKey: "move",
@@ -519,22 +550,24 @@ export const Menu = memo(
 			}
 
 			if (queryParams.of === "trash" && hasInternet) {
-				items.push(
-					createContextItem({
-						actionKey: "restore",
-						title: t("drive.list.item.menu.restore"),
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "repeat"
-								  }
-								: {
-										namingScheme: "material",
-										name: "repeat"
-								  }
-					})
-				)
+				if (!isUndecryptable) {
+					items.push(
+						createContextItem({
+							actionKey: "restore",
+							title: t("drive.list.item.menu.restore"),
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "repeat"
+									  }
+									: {
+											namingScheme: "material",
+											name: "repeat"
+									  }
+						})
+					)
+				}
 
 				items.push(
 					createContextItem({
@@ -570,7 +603,8 @@ export const Menu = memo(
 			hasInternet,
 			isSelectedDrive,
 			isSelectedPhotos,
-			fromHome
+			fromHome,
+			isUndecryptable
 		])
 
 		const select = useCallback(() => {

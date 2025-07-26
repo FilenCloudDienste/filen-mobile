@@ -48,6 +48,16 @@ export const Menu = memo(
 			return chatUnreadCountQuery.data
 		}, [chatUnreadCountQuery.data, chatUnreadCountQuery.status])
 
+		const isUndecryptable = useMemo(() => {
+			const nameNormalized = chat.name?.toLowerCase().trim() ?? ""
+			const lastMessageNormalized = chat.lastMessage?.toLowerCase().trim() ?? ""
+
+			return (
+				(nameNormalized.startsWith("cannot_decrypt_") && nameNormalized.endsWith(`_${chat.uuid}`)) ||
+				(lastMessageNormalized.startsWith("cannot_decrypt_") && lastMessageNormalized.endsWith(`_${chat.lastMessageUUID}`))
+			)
+		}, [chat.name, chat.uuid, chat.lastMessage, chat.lastMessageUUID])
+
 		const menuItems = useMemo(() => {
 			if (!hasInternet) {
 				return []
@@ -55,7 +65,7 @@ export const Menu = memo(
 
 			const items: (ContextItem | ContextSubMenu)[] = []
 
-			if (unreadCount > 0 && !insideChat) {
+			if (unreadCount > 0 && !insideChat && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "markAsRead",
@@ -74,7 +84,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (!insideChat) {
+			if (!insideChat && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "participants",
@@ -93,43 +103,47 @@ export const Menu = memo(
 				)
 			}
 
-			items.push(
-				createContextItem({
-					actionKey: "mute",
-					title: t("chats.menu.muted"),
-					state: {
-						checked: chat.muted
-					},
-					icon:
-						Platform.OS === "ios"
-							? {
-									namingScheme: "sfSymbol",
-									name: "bell"
-							  }
-							: {
-									namingScheme: "material",
-									name: "bell-outline"
-							  }
-				})
-			)
-
-			if (chat.ownerId === userId) {
+			if (!isUndecryptable) {
 				items.push(
 					createContextItem({
-						actionKey: "rename",
-						title: t("chats.menu.rename"),
+						actionKey: "mute",
+						title: t("chats.menu.muted"),
+						state: {
+							checked: chat.muted
+						},
 						icon:
 							Platform.OS === "ios"
 								? {
 										namingScheme: "sfSymbol",
-										name: "pencil"
+										name: "bell"
 								  }
 								: {
 										namingScheme: "material",
-										name: "pencil"
+										name: "bell-outline"
 								  }
 					})
 				)
+			}
+
+			if (chat.ownerId === userId) {
+				if (!isUndecryptable) {
+					items.push(
+						createContextItem({
+							actionKey: "rename",
+							title: t("chats.menu.rename"),
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "pencil"
+									  }
+									: {
+											namingScheme: "material",
+											name: "pencil"
+									  }
+						})
+					)
+				}
 
 				items.push(
 					createContextItem({
@@ -173,7 +187,7 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [t, chat.ownerId, userId, unreadCount, insideChat, colors.destructive, chat.muted, hasInternet])
+		}, [t, chat.ownerId, userId, unreadCount, insideChat, colors.destructive, chat.muted, hasInternet, isUndecryptable])
 
 		const onItemPress = useCallback(
 			async (item: Omit<ContextItem, "icon">, _?: boolean) => {

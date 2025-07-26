@@ -57,10 +57,16 @@ export const Menu = memo(
 			)
 		}, [notesTagsQuery.data, notesTagsQuery.status])
 
+		const isUndecryptable = useMemo(() => {
+			const nameNormalized = note.title.toLowerCase().trim()
+
+			return nameNormalized.startsWith("cannot_decrypt_") && nameNormalized.endsWith(`_${note.uuid}`)
+		}, [note.title, note.uuid])
+
 		const menuItems = useMemo(() => {
 			const items: (ContextItem | ContextSubMenu)[] = []
 
-			if (!insideNote) {
+			if (!insideNote && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "select",
@@ -79,7 +85,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (note.type === "md" && insideNote) {
+			if (note.type === "md" && insideNote && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "preview",
@@ -101,7 +107,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (note.isOwner && hasInternet) {
+			if (note.isOwner && hasInternet && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "history",
@@ -233,7 +239,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (hasInternet) {
+			if (hasInternet && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: note.pinned ? "unpin" : "pin",
@@ -275,7 +281,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (tags.length > 0 && hasInternet) {
+			if (tags.length > 0 && hasInternet && !isUndecryptable) {
 				items.push(
 					createContextSubMenu(
 						{
@@ -305,7 +311,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (note.isOwner && hasInternet) {
+			if (note.isOwner && hasInternet && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "rename",
@@ -342,25 +348,27 @@ export const Menu = memo(
 			}
 
 			if (hasInternet) {
-				items.push(
-					createContextItem({
-						actionKey: "export",
-						title: t("notes.menu.export"),
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "square.and.arrow.up"
-								  }
-								: {
-										namingScheme: "material",
-										name: "send-outline"
-								  }
-					})
-				)
+				if (!isUndecryptable) {
+					items.push(
+						createContextItem({
+							actionKey: "export",
+							title: t("notes.menu.export"),
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "square.and.arrow.up"
+									  }
+									: {
+											namingScheme: "material",
+											name: "send-outline"
+									  }
+						})
+					)
+				}
 
 				if (note.isOwner) {
-					if (!note.trash && !note.archive) {
+					if (!note.trash && !note.archive && !isUndecryptable) {
 						items.push(
 							createContextItem({
 								actionKey: "archive",
@@ -379,7 +387,7 @@ export const Menu = memo(
 						)
 					}
 
-					if (note.archive || note.trash) {
+					if ((note.archive || note.trash) && !isUndecryptable) {
 						items.push(
 							createContextItem({
 								actionKey: "restore",
@@ -463,7 +471,7 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [note, t, tags, markdownPreview, insideNote, colors.destructive, hasInternet, isSelected])
+		}, [note, t, tags, markdownPreview, insideNote, colors.destructive, hasInternet, isSelected, isUndecryptable])
 
 		const select = useCallback(() => {
 			const isSelected = useNotesStore.getState().selectedNotes.some(i => i.uuid === note.uuid)
