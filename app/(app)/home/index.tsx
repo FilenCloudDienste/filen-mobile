@@ -18,6 +18,7 @@ import OfflineListHeader from "@/components/offlineListHeader"
 import ContainerComponent from "@/components/home/container"
 import { useTranslation } from "react-i18next"
 import Dropdown from "@/components/home/header/dropdown"
+import useIsProUser from "@/hooks/useIsProUser"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -116,6 +117,7 @@ export const Home = memo(() => {
 	const router = useRouter()
 	const { hasInternet } = useNetInfo()
 	const { t } = useTranslation()
+	const isProUser = useIsProUser()
 
 	const recents = useCloudItemsQuery({
 		parent: "recents",
@@ -132,7 +134,8 @@ export const Home = memo(() => {
 	const links = useCloudItemsQuery({
 		parent: "links",
 		of: "links",
-		receiverId: 0
+		receiverId: 0,
+		enabled: isProUser
 	})
 
 	const sharedIn = useCloudItemsQuery({
@@ -180,13 +183,17 @@ export const Home = memo(() => {
 	}, [favorites.status, favorites.data])
 
 	const linksItems = useMemo(() => {
+		if (!isProUser) {
+			return []
+		}
+
 		return links.status === "success"
 			? orderItemsByType({
 					items: links.data.slice(0, 12),
 					type: "lastModifiedDesc"
 			  })
 			: []
-	}, [links.status, links.data])
+	}, [links.status, links.data, isProUser])
 
 	const sharedInItems = useMemo(() => {
 		return sharedIn.status === "success"
@@ -314,7 +321,7 @@ export const Home = memo(() => {
 			await Promise.all([
 				recents.refetch(),
 				favorites.refetch(),
-				links.refetch(),
+				isProUser ? links.refetch() : Promise.resolve(),
 				sharedIn.refetch(),
 				sharedOut.refetch(),
 				offline.refetch(),
@@ -330,7 +337,7 @@ export const Home = memo(() => {
 		} finally {
 			setRefreshing(false)
 		}
-	}, [recents, favorites, links, sharedIn, sharedOut, offline, trash, account])
+	}, [recents, favorites, links, sharedIn, sharedOut, offline, trash, account, isProUser])
 
 	const refreshControl = useMemo(() => {
 		if (!hasInternet) {
@@ -346,34 +353,41 @@ export const Home = memo(() => {
 	}, [refreshing, onRefresh, hasInternet])
 
 	const items = useMemo(() => {
-		return ["recents", "favorites", "links", "sharedIn", "sharedOut", "offline", ...(hasInternet ? ["trash"] : []), "bottom"].map(
-			type => {
-				return (
-					<Item
-						key={type}
-						type={type as unknown as ItemType}
-						items={
-							type === "recents"
-								? recentsItems
-								: type === "favorites"
-								? favoritesItems
-								: type === "links"
-								? linksItems
-								: type === "sharedIn"
-								? sharedInItems
-								: type === "sharedOut"
-								? sharedOutItems
-								: type === "offline"
-								? offlineItems
-								: type === "trash"
-								? trashItems
-								: []
-						}
-					/>
-				)
-			}
-		)
-	}, [hasInternet, recentsItems, favoritesItems, linksItems, sharedInItems, sharedOutItems, offlineItems, trashItems])
+		return [
+			"recents",
+			"favorites",
+			...(isProUser ? ["links"] : []),
+			"sharedIn",
+			"sharedOut",
+			"offline",
+			...(hasInternet ? ["trash"] : []),
+			"bottom"
+		].map(type => {
+			return (
+				<Item
+					key={type}
+					type={type as unknown as ItemType}
+					items={
+						type === "recents"
+							? recentsItems
+							: type === "favorites"
+							? favoritesItems
+							: type === "links"
+							? linksItems
+							: type === "sharedIn"
+							? sharedInItems
+							: type === "sharedOut"
+							? sharedOutItems
+							: type === "offline"
+							? offlineItems
+							: type === "trash"
+							? trashItems
+							: []
+					}
+				/>
+			)
+		})
+	}, [hasInternet, recentsItems, favoritesItems, linksItems, sharedInItems, sharedOutItems, offlineItems, trashItems, isProUser])
 
 	return (
 		<Fragment>
