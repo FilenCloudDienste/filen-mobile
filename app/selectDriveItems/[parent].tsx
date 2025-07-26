@@ -22,6 +22,7 @@ import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export type ListItemInfo = {
 	title: string
@@ -40,6 +41,7 @@ export default function SelectDriveItems() {
 	const [{ baseFolderUUID }] = useSDKConfig()
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const maxParsed = useMemo(() => {
 		return typeof max === "string" ? parseInt(max) : 1
@@ -261,13 +263,17 @@ export default function SelectDriveItems() {
 	}, [query])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
 		return {

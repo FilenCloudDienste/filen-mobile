@@ -70,13 +70,17 @@ export const Chats = memo(() => {
 	}, [])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const listFooter = useMemo(() => {
 		return chats.length > 0 ? (

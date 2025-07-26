@@ -25,6 +25,7 @@ import RequireInternet from "@/components/requireInternet"
 import ListEmpty from "@/components/listEmpty"
 import { useTranslation } from "react-i18next"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export type ListItemInfo = {
 	title: string
@@ -119,6 +120,7 @@ export default function Participants() {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const noteUUIDParsed = useMemo((): string | null => {
 		try {
@@ -335,13 +337,17 @@ export default function Participants() {
 	}, [notesQuery])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [onRefresh, refreshing])
+	}, [onRefresh, refreshing, hasInternet])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {

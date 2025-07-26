@@ -21,6 +21,7 @@ import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export default function SelectContacts() {
 	const { colors } = useColorScheme()
@@ -32,6 +33,7 @@ export default function SelectContacts() {
 	const setSelectedContacts = useSelectContactsStore(useShallow(state => state.setSelectedContacts))
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const query = useContactsQuery({
 		type: typeof type === "string" ? (type as "all" | "blocked") : "all"
@@ -259,13 +261,17 @@ export default function SelectContacts() {
 	}, [query])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
 		return {

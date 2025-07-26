@@ -19,6 +19,7 @@ import { type ListDataItem } from "@/components/nativewindui/List"
 import useDimensions from "@/hooks/useDimensions"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
+import useNetInfo from "@/hooks/useNetInfo"
 
 const contentContainerStyle = {
 	paddingTop: 8
@@ -32,6 +33,7 @@ export const Playlist = memo(() => {
 	const playlistSearchTerm = useTrackPlayerStore(useShallow(state => state.playlistSearchTerm))
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const playlistsQuery = usePlaylistsQuery({
 		enabled: false
@@ -67,7 +69,7 @@ export const Playlist = memo(() => {
 
 	const handleReorder = useCallback(
 		async (e: ReorderableListReorderEvent) => {
-			if (!playlist) {
+			if (!playlist || !hasInternet) {
 				return
 			}
 
@@ -101,7 +103,7 @@ export const Playlist = memo(() => {
 				updatePlaylistRemoteMutex.current.release()
 			}
 		},
-		[playlist]
+		[playlist, hasInternet]
 	)
 
 	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
@@ -149,13 +151,17 @@ export const Playlist = memo(() => {
 	}, [playlistsQuery])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return Platform.OS === "ios" ? (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		) : undefined
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {

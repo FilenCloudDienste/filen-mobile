@@ -19,6 +19,7 @@ import useDimensions from "@/hooks/useDimensions"
 import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
+import useNetInfo from "@/hooks/useNetInfo"
 
 const contentContainerStyle = {
 	paddingTop: 8
@@ -33,6 +34,7 @@ export default function SelectTrackPlayerPlaylists() {
 	const setSelectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.setSelectedPlaylists))
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const playlistsQuery = usePlaylistsQuery({})
 
@@ -171,13 +173,17 @@ export default function SelectTrackPlayerPlaylists() {
 	}, [playlistsQuery])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (

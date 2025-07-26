@@ -23,6 +23,7 @@ import queryUtils from "@/queries/utils"
 import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
+import useNetInfo from "@/hooks/useNetInfo"
 
 export const LIST_ITEM_HEIGHT = Platform.select({
 	ios: 61,
@@ -112,6 +113,7 @@ export default function Participants() {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const chatUUIDParsed = useMemo((): string | null => {
 		try {
@@ -291,13 +293,17 @@ export default function Participants() {
 	}, [chatsQuery])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {

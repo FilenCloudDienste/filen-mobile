@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import { sortAndFilterNotes } from "@/lib/utils"
 import { useFocusEffect } from "expo-router"
+import useNetInfo from "@/hooks/useNetInfo"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -29,6 +30,7 @@ export const Notes = memo(() => {
 	const setNotes = useNotesStore(useShallow(state => state.setNotes))
 	const listRef = useRef<FlatList<Note>>(null)
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const notesQuery = useNotesQuery({})
 	const notesTagsQuery = useNotesTagsQuery({})
@@ -62,13 +64,17 @@ export const Notes = memo(() => {
 	}, [notesQuery, notesTagsQuery])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [onRefresh, refreshing])
+	}, [onRefresh, refreshing, hasInternet])
 
 	const renderItem = useCallback((info: ListRenderItemInfo<Note>) => {
 		return <Item note={info.item} />

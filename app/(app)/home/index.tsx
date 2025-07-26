@@ -333,13 +333,17 @@ export const Home = memo(() => {
 	}, [recents, favorites, links, sharedIn, sharedOut, offline, trash, account])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const items = useMemo(() => {
 		return ["recents", "favorites", "links", "sharedIn", "sharedOut", "offline", ...(hasInternet ? ["trash"] : []), "bottom"].map(

@@ -99,28 +99,34 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 		[queryParams, driveItems, itemSize, spacing, scrollToUUID]
 	)
 
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			await cloudItemsQuery.refetch()
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
+	}, [cloudItemsQuery])
+
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					try {
-						await cloudItemsQuery.refetch()
-					} catch (e) {
-						console.error(e)
-
-						if (e instanceof Error) {
-							alerts.error(e.message)
-						}
-					} finally {
-						setRefreshing(false)
-					}
-				}}
+				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, cloudItemsQuery])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const initialScrollIndex = useMemo(() => {
 		if (!scrollToUUID || items.length === 0) {

@@ -18,6 +18,7 @@ import { CONTACTS_ONLINE_TIMEOUT } from "@/lib/constants"
 import useDimensions from "@/hooks/useDimensions"
 import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
+import useNetInfo from "@/hooks/useNetInfo"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -32,6 +33,7 @@ export const Contacts = memo(() => {
 	const { colors } = useColorScheme()
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const allContactsQuery = useContactsQuery({
 		type: "all"
@@ -278,13 +280,17 @@ export const Contacts = memo(() => {
 	}, [setRefreshing, allContactsQuery, blockedContactsQuery, contactsRequestsQuery])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {
