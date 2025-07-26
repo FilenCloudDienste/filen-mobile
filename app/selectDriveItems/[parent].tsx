@@ -36,7 +36,7 @@ export default function SelectDriveItems() {
 	const { id, type, max, parent, dismissHref, toMove, previewTypes, extensions, multiScreen } = useLocalSearchParams()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const [searchTerm, setSearchTerm] = useState<string>("")
-	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo } = useRouter()
+	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo, back: routerBack } = useRouter()
 	const setSelectedItems = useSelectDriveItemsStore(useShallow(state => state.setSelectedItems))
 	const [{ baseFolderUUID }] = useSDKConfig()
 	const { screen } = useDimensions()
@@ -153,8 +153,12 @@ export default function SelectDriveItems() {
 			}
 		})
 
-		routerDismissTo(typeof dismissHref === "string" ? dismissHref : "/drive")
-	}, [id, routerCanGoBack, routerDismissTo, dismissHref])
+		if (typeof dismissHref === "string") {
+			routerDismissTo(dismissHref)
+		} else {
+			routerBack()
+		}
+	}, [id, routerCanGoBack, routerDismissTo, dismissHref, routerBack])
 
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (

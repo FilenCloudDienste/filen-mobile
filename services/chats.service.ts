@@ -12,6 +12,12 @@ import contactsService from "./contacts.service"
 import { randomUUID } from "expo-crypto"
 import { type Contact } from "@filen/sdk/dist/types/api/v3/contacts"
 import queryClient from "@/queries/client"
+import * as ImagePicker from "expo-image-picker"
+import * as DocumentPicker from "expo-document-picker"
+import { promiseAllChunked } from "@/lib/utils"
+import { fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatusQuery"
+import { FILE_PUBLIC_LINK_BASE_URL, DIRECTORY_PUBLIC_LINK_BASE_URL } from "@/lib/constants"
+import driveService from "./drive.service"
 
 export class ChatsService {
 	public async leaveChat({
@@ -440,6 +446,177 @@ export class ChatsService {
 				uuid: chat.uuid,
 				updater: prev => prev.filter(m => m.uuid !== message.uuid)
 			})
+		} finally {
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+		}
+	}
+
+	private async enablePublicLinksForAttachments(items: DriveCloudItem[]): Promise<{ item: DriveCloudItem; link: string }[]> {
+		return (
+			await promiseAllChunked(
+				items.map(async item => {
+					const linkStatusBefore = await fetchItemPublicLinkStatus(item)
+
+					if (linkStatusBefore.enabled) {
+						return {
+							item,
+							link: `${item.type === "file" ? FILE_PUBLIC_LINK_BASE_URL : DIRECTORY_PUBLIC_LINK_BASE_URL}${
+								linkStatusBefore.uuid
+							}${encodeURIComponent("#")}${Buffer.from(linkStatusBefore.key, "utf-8").toString("hex")}`
+						}
+					}
+
+					await nodeWorker.proxy("toggleItemPublicLink", {
+						item,
+						enable: true,
+						linkUUID: ""
+					})
+
+					const linkStatus = await fetchItemPublicLinkStatus(item)
+
+					if (!linkStatus.enabled) {
+						return null
+					}
+
+					return {
+						item,
+						link: `${item.type === "file" ? FILE_PUBLIC_LINK_BASE_URL : DIRECTORY_PUBLIC_LINK_BASE_URL}${
+							linkStatus.uuid
+						}${encodeURIComponent("#")}${Buffer.from(linkStatus.key, "utf-8").toString("hex")}`
+					}
+				})
+			)
+		).filter(link => link !== null)
+	}
+
+	private async getChatUploadsDirectoryUuid(): Promise<string> {
+		const { baseFolderUUID } = authService.getSDKConfig()
+
+		return await nodeWorker.proxy("createDirectory", {
+			parent: baseFolderUUID,
+			name: "Chat Uploads"
+		})
+	}
+
+	public async uploadMediaForAttachment({
+		imagePickerAssets,
+		disableLoader
+	}: {
+		imagePickerAssets?: ImagePicker.ImagePickerAsset[]
+		disableLoader?: boolean
+	}): Promise<{ item: DriveCloudItem; link: string }[]> {
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		try {
+			const parent = await this.getChatUploadsDirectoryUuid()
+			const uploadedItems = await driveService.uploadMedia({
+				parent,
+				disableAlert: true,
+				disableLoader: true,
+				imagePickerAssets
+			})
+
+			return await this.enablePublicLinksForAttachments(uploadedItems)
+		} finally {
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+		}
+	}
+
+	public async createPhotosForAttachment({
+		imagePickerAssets,
+		disableLoader
+	}: {
+		imagePickerAssets?: ImagePicker.ImagePickerAsset[]
+		disableLoader?: boolean
+	}): Promise<{ item: DriveCloudItem; link: string }[]> {
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		try {
+			const parent = await this.getChatUploadsDirectoryUuid()
+			const uploadedItems = await driveService.createPhotos({
+				parent,
+				disableAlert: true,
+				disableLoader: true,
+				imagePickerAssets
+			})
+
+			return await this.enablePublicLinksForAttachments(uploadedItems)
+		} finally {
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+		}
+	}
+
+	public async uploadFilesForAttachment({
+		documentPickerAssets,
+		disableLoader
+	}: {
+		documentPickerAssets?: DocumentPicker.DocumentPickerAsset[]
+		disableLoader?: boolean
+	}): Promise<{ item: DriveCloudItem; link: string }[]> {
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		try {
+			const parent = await this.getChatUploadsDirectoryUuid()
+			const uploadedItems = await driveService.uploadFiles({
+				parent,
+				disableAlert: true,
+				disableLoader: true,
+				documentPickerAssets
+			})
+
+			return await this.enablePublicLinksForAttachments(uploadedItems)
+		} finally {
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+		}
+	}
+
+	public async selectDriveItemsForAttachment({
+		disableLoader,
+		items,
+		chat
+	}: {
+		disableLoader?: boolean
+		items?: DriveCloudItem[]
+		chat?: ChatConversation
+	}): Promise<{ item: DriveCloudItem; link: string }[]> {
+		if (!items) {
+			const selectedItems = await driveService.selectDriveItems({
+				type: "file",
+				max: 9999,
+				dismissHref: chat ? `/chat/${chat.uuid}` : undefined
+			})
+
+			if (selectedItems.cancelled || selectedItems.items.length === 0) {
+				return []
+			}
+
+			items = selectedItems.items
+		}
+
+		if (items.length === 0) {
+			return []
+		}
+
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		try {
+			return await this.enablePublicLinksForAttachments(items)
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()

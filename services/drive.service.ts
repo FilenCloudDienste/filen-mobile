@@ -48,7 +48,7 @@ export type SelectDriveItemsResponse =
 export type SelectDriveItemsParams = {
 	type: "file" | "directory"
 	max: number
-	dismissHref: string
+	dismissHref?: string
 	toMove?: string[]
 	extensions?: string[]
 	previewTypes?: PreviewType[]
@@ -1515,7 +1515,7 @@ export class DriveService {
 		documentPickerAssets?: DocumentPicker.DocumentPickerAsset[]
 		disableAlert?: boolean
 		disableLoader?: boolean
-	}): Promise<void> {
+	}): Promise<DriveCloudItem[]> {
 		if (!documentPickerAssets) {
 			const documentPickerResult = await DocumentPicker.getDocumentAsync({
 				copyToCacheDirectory: true,
@@ -1523,14 +1523,14 @@ export class DriveService {
 			})
 
 			if (documentPickerResult.canceled) {
-				return
+				return []
 			}
 
 			documentPickerAssets = documentPickerResult.assets
 		}
 
 		if (documentPickerAssets.length === 0) {
-			return
+			return []
 		}
 
 		if (!disableLoader) {
@@ -1569,6 +1569,8 @@ export class DriveService {
 					]
 				})
 			}
+
+			return uploadedItems
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -1588,7 +1590,7 @@ export class DriveService {
 		name?: string
 		disableLoader?: boolean
 		disableAlert?: boolean
-	}): Promise<void> {
+	}): Promise<string | null> {
 		if (!name) {
 			const inputPromptResponse = await inputPrompt({
 				title: t("drive.header.rightView.actionSheet.create.directory"),
@@ -1604,14 +1606,14 @@ export class DriveService {
 			})
 
 			if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
-				return
+				return null
 			}
 
 			name = inputPromptResponse.text.trim()
 		}
 
 		if (name.length === 0) {
-			return
+			return null
 		}
 
 		if (!disableLoader) {
@@ -1657,6 +1659,8 @@ export class DriveService {
 			}
 
 			cache.directoryUUIDToName.set(directoryUUID, name)
+
+			return directoryUUID
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -1676,22 +1680,22 @@ export class DriveService {
 		disableLoader?: boolean
 		disableAlert?: boolean
 		imagePickerAssets?: ImagePicker.ImagePickerAsset[]
-	}): Promise<void> {
-		const permissions = await ImagePicker.getMediaLibraryPermissionsAsync(false)
-
-		if (!permissions.granted) {
-			if (!permissions.canAskAgain) {
-				return
-			}
-
-			const ask = await ImagePicker.requestMediaLibraryPermissionsAsync(false)
-
-			if (!ask.granted) {
-				return
-			}
-		}
-
+	}): Promise<DriveCloudItem[]> {
 		if (!imagePickerAssets) {
+			const permissions = await ImagePicker.getMediaLibraryPermissionsAsync(false)
+
+			if (!permissions.granted) {
+				if (!permissions.canAskAgain) {
+					return []
+				}
+
+				const ask = await ImagePicker.requestMediaLibraryPermissionsAsync(false)
+
+				if (!ask.granted) {
+					return []
+				}
+			}
+
 			const imagePickerResult = await ImagePicker.launchImageLibraryAsync({
 				mediaTypes: ["images", "livePhotos", "videos"],
 				allowsEditing: false,
@@ -1702,14 +1706,14 @@ export class DriveService {
 			})
 
 			if (imagePickerResult.canceled) {
-				return
+				return []
 			}
 
 			imagePickerAssets = imagePickerResult.assets
 		}
 
 		if (imagePickerAssets.length === 0) {
-			return
+			return []
 		}
 
 		if (!disableLoader) {
@@ -1780,6 +1784,8 @@ export class DriveService {
 					]
 				})
 			}
+
+			return uploadedItems
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -1799,22 +1805,22 @@ export class DriveService {
 		disableLoader?: boolean
 		disableAlert?: boolean
 		imagePickerAssets?: ImagePicker.ImagePickerAsset[]
-	}): Promise<void> {
-		const permissions = await ImagePicker.getCameraPermissionsAsync()
-
-		if (!permissions.granted) {
-			if (!permissions.canAskAgain) {
-				return
-			}
-
-			const ask = await ImagePicker.requestCameraPermissionsAsync()
-
-			if (!ask.granted) {
-				return
-			}
-		}
-
+	}): Promise<DriveCloudItem[]> {
 		if (!imagePickerAssets) {
+			const permissions = await ImagePicker.getCameraPermissionsAsync()
+
+			if (!permissions.granted) {
+				if (!permissions.canAskAgain) {
+					return []
+				}
+
+				const ask = await ImagePicker.requestCameraPermissionsAsync()
+
+				if (!ask.granted) {
+					return []
+				}
+			}
+
 			const imagePickerResult = await ImagePicker.launchCameraAsync({
 				mediaTypes: ["images", "livePhotos", "videos"],
 				base64: false,
@@ -1822,14 +1828,14 @@ export class DriveService {
 			})
 
 			if (imagePickerResult.canceled) {
-				return
+				return []
 			}
 
 			imagePickerAssets = imagePickerResult.assets
 		}
 
 		if (imagePickerAssets.length === 0) {
-			return
+			return []
 		}
 
 		if (!disableLoader) {
@@ -1900,6 +1906,8 @@ export class DriveService {
 					]
 				})
 			}
+
+			return uploadedItems
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -1919,7 +1927,7 @@ export class DriveService {
 		name?: string
 		disableLoader?: boolean
 		disableNavigation?: boolean
-	}): Promise<void> {
+	}): Promise<DriveCloudItem | null> {
 		if (!name) {
 			const inputPromptResponse = await inputPrompt({
 				title: t("drive.header.rightView.actionSheet.create.textFile"),
@@ -1935,14 +1943,14 @@ export class DriveService {
 			})
 
 			if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
-				return
+				return null
 			}
 
 			name = inputPromptResponse.text.trim()
 		}
 
 		if (name.length === 0) {
-			return
+			return null
 		}
 
 		fullScreenLoadingModal.show()
@@ -1990,6 +1998,8 @@ export class DriveService {
 					}
 				})
 			}
+
+			return uploadedItem
 		} finally {
 			if (tmpFile.exists) {
 				tmpFile.delete()

@@ -12,7 +12,7 @@ import { Button } from "../nativewindui/Button"
 import { Text } from "../nativewindui/Text"
 
 export const Toolbar = memo(() => {
-	const { canGoBack, dismissTo } = useRouter()
+	const { canGoBack, dismissTo, back } = useRouter()
 	const selectedItems = useSelectDriveItemsStore(useShallow(state => state.selectedItems))
 	const { id, max, type, dismissHref, parent } = useGlobalSearchParams()
 	const { t } = useTranslation()
@@ -89,8 +89,12 @@ export const Toolbar = memo(() => {
 			}
 		})
 
-		dismissTo(typeof dismissHref === "string" ? dismissHref : "/drive")
-	}, [id, canSubmit, dismissTo, selectedItems, dismissHref])
+		if (typeof dismissHref === "string") {
+			dismissTo(dismissHref)
+		} else {
+			back()
+		}
+	}, [id, canSubmit, dismissTo, selectedItems, dismissHref, back])
 
 	const createDirectory = useCallback(async () => {
 		try {
@@ -135,8 +139,12 @@ export const Toolbar = memo(() => {
 			}
 		})
 
-		dismissTo(typeof dismissHref === "string" ? dismissHref : "/drive")
-	}, [id, canGoBack, dismissTo, dismissHref, baseFolderUUID])
+		if (typeof dismissHref === "string") {
+			dismissTo(dismissHref)
+		} else {
+			back()
+		}
+	}, [id, canGoBack, dismissTo, dismissHref, baseFolderUUID, back])
 
 	const leftView = useMemo(() => {
 		return (

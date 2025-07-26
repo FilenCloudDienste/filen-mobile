@@ -30,7 +30,7 @@ export default function SelectTrackPlayerPlaylists() {
 	const { id, max, dismissHref } = useLocalSearchParams()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const [searchTerm, setSearchTerm] = useState<string>("")
-	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo } = useRouter()
+	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo, back: routerBack } = useRouter()
 	const setSelectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.setSelectedPlaylists))
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
@@ -97,8 +97,12 @@ export default function SelectTrackPlayerPlaylists() {
 			}
 		})
 
-		routerDismissTo(typeof dismissHref === "string" ? dismissHref : "/drive")
-	}, [id, routerCanGoBack, routerDismissTo, dismissHref])
+		if (typeof dismissHref === "string") {
+			routerDismissTo(dismissHref)
+		} else {
+			routerBack()
+		}
+	}, [id, routerCanGoBack, routerDismissTo, dismissHref, routerBack])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {

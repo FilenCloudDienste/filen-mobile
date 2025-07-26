@@ -15,7 +15,6 @@ import { cn } from "@/lib/cn"
 import { Embed } from "./embeds"
 import useViewLayout from "@/hooks/useViewLayout"
 import { useChatsStore } from "@/stores/chats.store"
-import { useShallow } from "zustand/shallow"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import useNetInfo from "@/hooks/useNetInfo"
 import { useTranslation } from "react-i18next"
@@ -126,7 +125,6 @@ CodeBlock.displayName = "CodeBlock"
 
 export const Link = memo(({ match, embedsDisabled }: { match: string; embedsDisabled: boolean }) => {
 	const viewRef = useRef<View>(null)
-	const setEmbedContainerWidth = useChatsStore(useShallow(state => state.setEmbedContainerWidth))
 	const { onLayout, layout } = useViewLayout(viewRef)
 	const { hasInternet } = useNetInfo()
 
@@ -143,8 +141,20 @@ export const Link = memo(({ match, embedsDisabled }: { match: string; embedsDisa
 			return
 		}
 
-		setEmbedContainerWidth(layout.width)
-	}, [layout.width, setEmbedContainerWidth])
+		const width = Math.round(layout.width)
+
+		if (width <= 0) {
+			return
+		}
+
+		const currentWidth = Math.round(useChatsStore.getState().embedContainerWidth)
+
+		if (currentWidth === width) {
+			return
+		}
+
+		useChatsStore.getState().setEmbedContainerWidth(width)
+	}, [layout.width])
 
 	if (embedsDisabled || !hasInternet) {
 		return <Fallback link={url} />

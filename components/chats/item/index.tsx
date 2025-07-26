@@ -79,7 +79,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 		}
 
 		routerPush({
-			pathname: "/chat",
+			pathname: "/chat/[uuid]",
 			params: {
 				uuid: info.item.uuid
 			}

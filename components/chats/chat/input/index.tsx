@@ -40,6 +40,8 @@ import { useShallow } from "zustand/shallow"
 import useIsProUser from "@/hooks/useIsProUser"
 import useNetInfo from "@/hooks/useNetInfo"
 import { useTranslation } from "react-i18next"
+import { useActionSheet } from "@expo/react-native-action-sheet"
+import chatsService from "@/services/chats.service"
 
 export const Input = memo(
 	({ chat, setInputHeight }: { chat: ChatConversation; setInputHeight: React.Dispatch<React.SetStateAction<number>> }) => {
@@ -73,6 +75,7 @@ export const Input = memo(
 		const editMessage = useChatsStore(useShallow(state => state.editMessage[chat.uuid] ?? null))
 		const { hasInternet } = useNetInfo()
 		const { t } = useTranslation()
+		const { showActionSheetWithOptions } = useActionSheet()
 
 		const suggestionsOrReplyOrEditVisible = useMemo(() => {
 			return (
@@ -222,6 +225,132 @@ export const Input = memo(
 				setEditMessage
 			]
 		)
+
+		const actionSheetOptions = useMemo(() => {
+			const options = [
+				t("chats.input.attachment.options.addPhotos"),
+				t("chats.input.attachment.options.addMedia"),
+				t("chats.input.attachment.options.addFiles"),
+				t("chats.input.attachment.options.addDriveItems"),
+				t("chats.input.attachment.options.cancel")
+			]
+
+			return {
+				options,
+				cancelIndex: options.length - 1,
+				desctructiveIndex: options.length - 1,
+				indexToType: {
+					0: "addPhotos",
+					1: "addMedia",
+					2: "addFiles",
+					3: "addDriveItems"
+				} as Record<number, "addPhotos" | "addMedia" | "addFiles" | "addDriveItems">
+			}
+		}, [t])
+
+		const onPlus = useCallback(() => {
+			if (!isProUser || !hasInternet) {
+				return
+			}
+
+			showActionSheetWithOptions(
+				{
+					options: actionSheetOptions.options,
+					cancelButtonIndex: actionSheetOptions.cancelIndex,
+					destructiveButtonIndex: actionSheetOptions.desctructiveIndex,
+					...(Platform.OS === "android"
+						? {
+								containerStyle: {
+									paddingBottom: insets.bottom,
+									backgroundColor: colors.card
+								},
+								textStyle: {
+									color: colors.foreground
+								}
+						  }
+						: {})
+				},
+				async (selectedIndex?: number) => {
+					const type = actionSheetOptions.indexToType[selectedIndex ?? -1]
+
+					try {
+						switch (type) {
+							case "addFiles": {
+								const links = await chatsService.uploadFilesForAttachment({})
+
+								if (links.length === 0) {
+									return
+								}
+
+								const prevText = value ?? ""
+
+								onChangeText(`${prevText ? `${prevText}\n` : ""}${links.map(link => link.link).join("\n")}`)
+
+								break
+							}
+
+							case "addMedia": {
+								const links = await chatsService.uploadMediaForAttachment({})
+
+								if (links.length === 0) {
+									return
+								}
+
+								const prevText = value ?? ""
+
+								onChangeText(`${prevText ? `${prevText}\n` : ""}${links.map(link => link.link).join("\n")}`)
+
+								break
+							}
+
+							case "addPhotos": {
+								const links = await chatsService.createPhotosForAttachment({})
+
+								if (links.length === 0) {
+									return
+								}
+
+								const prevText = value ?? ""
+
+								onChangeText(`${prevText ? `${prevText}\n` : ""}${links.map(link => link.link).join("\n")}`)
+
+								break
+							}
+
+							case "addDriveItems": {
+								const links = await chatsService.selectDriveItemsForAttachment({})
+
+								if (links.length === 0) {
+									return
+								}
+
+								const prevText = value ?? ""
+
+								onChangeText(`${prevText ? `${prevText}\n` : ""}${links.map(link => link.link).join("\n")}`)
+
+								break
+							}
+						}
+					} catch (e) {
+						console.error(e)
+
+						if (e instanceof Error) {
+							alerts.error(e.message)
+						}
+					}
+				}
+			)
+		}, [
+			isProUser,
+			hasInternet,
+			showActionSheetWithOptions,
+			actionSheetOptions,
+			onChangeText,
+			colors.card,
+			colors.foreground,
+			value,
+			insets.bottom
+		])
 
 		const onTextInputPress = useCallback(() => {
 			if (!value || value.length === 0) {
@@ -534,11 +663,12 @@ export const Input = memo(
 				>
 					<Container>
 						<View className="flex-col flex-1">
-							<View className="flex-1 flex-row items-end gap-0 px-4 py-3">
+							<View className="flex-1 flex-row items-end gap-2 px-4 py-3">
 								{isProUser && hasInternet && (
 									<Button
 										size="icon"
 										variant="plain"
+										onPress={onPlus}
 									>
 										<Icon
 											name="plus"

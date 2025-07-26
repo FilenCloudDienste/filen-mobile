@@ -13,7 +13,7 @@ export type SelectTrackPlayerPlaylistsResponse =
 
 export type SelectTrackPlayerPlaylistsParams = {
 	max: number
-	dismissHref: string
+	dismissHref?: string
 }
 
 export type SelectTrackPlayerPlaylistsEvent =

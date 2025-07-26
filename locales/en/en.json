@@ -382,6 +382,15 @@
 				"replyTo": {
 					"replyingTo": "Replying to {{name}}"
 				}
+			},
+			"attachment": {
+				"options": {
+					"addMedia": "Add media",
+					"addPhotos": "Add photos",
+					"addFiles": "Add files",
+					"addDriveItems": "Add drive items",
+					"cancel": "Cancel"
+				}
 			}
 		},
 		"header": {
