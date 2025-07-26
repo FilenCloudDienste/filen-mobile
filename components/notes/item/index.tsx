@@ -7,10 +7,6 @@ import { View, Platform } from "react-native"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
-import MaterialIcons from "@expo/vector-icons/MaterialIcons"
-import FontAwesome from "@expo/vector-icons/FontAwesome"
-import AntDesign from "@expo/vector-icons/AntDesign"
 import Avatar from "@/components/avatar"
 import { cn } from "@/lib/cn"
 import { simpleDate, contactName } from "@/lib/utils"
@@ -25,6 +21,7 @@ import { Checkbox } from "@/components/nativewindui/Checkbox"
 import Animated, { SlideInLeft, SlideOutLeft } from "react-native-reanimated"
 import { useNotesStore } from "@/stores/notes.store"
 import { useShallow } from "zustand/shallow"
+import Ionicons from "@expo/vector-icons/Ionicons"
 
 const ICON_SIZE = 24
 
@@ -150,50 +147,50 @@ export const Item = memo(({ note }: { note: Note }) => {
 								)}
 							</Fragment>
 						) : note.trash ? (
-							<MaterialCommunityIcons
-								name="trash-can-outline"
+							<Ionicons
+								name="trash-outline"
 								color="#ef4444"
 								size={ICON_SIZE}
 							/>
 						) : note.archive ? (
-							<MaterialCommunityIcons
+							<Ionicons
 								name="archive-outline"
 								color="#eab308"
 								size={ICON_SIZE}
 							/>
 						) : note.type === "text" ? (
-							<MaterialCommunityIcons
-								name="text"
+							<Ionicons
+								name="text-outline"
 								color="#3b82f6"
 								size={ICON_SIZE}
 							/>
 						) : note.type === "checklist" ? (
-							<MaterialIcons
-								name="checklist"
+							<Ionicons
+								name="checkbox-outline"
 								color="#a855f7"
 								size={ICON_SIZE}
 							/>
 						) : note.type === "code" ? (
-							<FontAwesome
-								name="code"
+							<Ionicons
+								name="code-outline"
 								color="#ef4444"
 								size={ICON_SIZE}
 							/>
 						) : note.type === "md" ? (
-							<AntDesign
-								name="file-markdown"
+							<Ionicons
+								name="logo-markdown"
 								color="#6366f1"
 								size={ICON_SIZE}
 							/>
 						) : note.type === "rich" ? (
-							<MaterialCommunityIcons
-								name="file-document-outline"
+							<Ionicons
+								name="document-text-outline"
 								color="#06b6d4"
 								size={ICON_SIZE}
 							/>
 						) : null}
 						{note.pinned && (
-							<MaterialCommunityIcons
+							<Icon
 								name="pin-outline"
 								color={colors.grey}
 								size={ICON_SIZE}
