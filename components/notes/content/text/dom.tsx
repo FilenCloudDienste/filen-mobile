@@ -152,7 +152,8 @@ const TextEditor = memo(
 				placeholder={placeholder}
 				style={{
 					width: "100%",
-					padding: type === "text" ? "16px" : "0px"
+					padding: type === "text" ? "16px" : "0px",
+					paddingBottom: "500px"
 				}}
 			/>
 		)

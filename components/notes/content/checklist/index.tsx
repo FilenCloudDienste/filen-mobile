@@ -155,7 +155,7 @@ export const Checklist = memo(
 					flex: 1
 				}}
 				contentInsetAdjustmentBehavior="automatic"
-				contentContainerClassName="p-4 px-6 pb-64 flex-col gap-2"
+				contentContainerClassName="p-4 px-6 pb-[500px] flex-col gap-2"
 				keyboardShouldPersistTaps="handled"
 				keyboardDismissMode="interactive"
 			>
