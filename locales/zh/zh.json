@@ -382,6 +382,15 @@
 				"replyTo": {
 					"replyingTo": "回复给{{name}}"
 				}
+			},
+			"attachment": {
+				"options": {
+					"addMedia": "添加媒体",
+					"addPhotos": "添加照片",
+					"addFiles": "添加文件",
+					"addDriveItems": "添加云盘项目",
+					"cancel": "取消"
+				}
 			}
 		},
 		"header": {
