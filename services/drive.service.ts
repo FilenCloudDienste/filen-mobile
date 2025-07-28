@@ -2051,6 +2051,8 @@ export class DriveService {
 				tmpDir.delete()
 			}
 
+			tmpDir.create()
+
 			const directoryName = FileSystem.Paths.parse(selectedSafDirectoryUri).name
 
 			await FileSystemLegacy.StorageAccessFramework.copyAsync({

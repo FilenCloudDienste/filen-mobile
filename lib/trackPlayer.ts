@@ -38,7 +38,7 @@ export type TrackMetadata = {
 
 export type RepeatMode = "off" | "track" | "queue"
 
-export const TRACK_PLAYER_MMKV_PREFIX = "trackPlayerState:v1:"
+export const TRACK_PLAYER_MMKV_PREFIX = "trackPlayerState:v2:"
 export const TRACK_PLAYER_QUEUE_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Queue`
 export const TRACK_PLAYER_PLAYING_TRACK_KEY = `${TRACK_PLAYER_MMKV_PREFIX}PlayingTrack`
 export const TRACK_PLAYER_TIMINGS_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Timings`
@@ -703,7 +703,7 @@ export class TrackPlayer {
 		const queueWithLoadedTrack = this.getQueue().map(t => (t.file.uuid === loadedTrack.file.uuid ? loadedTrack : t))
 
 		mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify(queueWithLoadedTrack))
-		mmkvInstance.set(TRACK_PLAYER_PLAYING_TRACK_KEY, JSON.stringify(track))
+		mmkvInstance.set(TRACK_PLAYER_PLAYING_TRACK_KEY, JSON.stringify(loadedTrack))
 
 		AudioPro.play(loadedTrack, {
 			autoPlay,
