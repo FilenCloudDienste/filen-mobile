@@ -2053,7 +2053,7 @@ export class DriveService {
 
 			tmpDir.create()
 
-			const directoryName = FileSystem.Paths.parse(selectedSafDirectoryUri).name
+			const directoryName = FileSystem.Paths.parse(decodeURIComponent(selectedSafDirectoryUri)).name
 
 			await FileSystemLegacy.StorageAccessFramework.copyAsync({
 				from: selectedSafDirectoryUri,
