@@ -63,7 +63,7 @@ echo $JAVA_HOME
 1. Clone repository
 
 ```bash
-git clone https://github.com/FilenCloudDienste/filen-mobile filen-mobile
+git clone https://github.com/FilenCloudDienste/filen-mobile filen-mobile --recursive
 ```
 
 2. Update dependencies
