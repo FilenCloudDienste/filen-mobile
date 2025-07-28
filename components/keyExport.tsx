@@ -6,6 +6,7 @@ import { useShallow } from "zustand/shallow"
 import { usePathname } from "expo-router"
 import alerts from "@/lib/alerts"
 import authService from "@/services/auth.service"
+import useIsAuthed from "@/hooks/useIsAuthed"
 
 export const KeyExport = memo(() => {
 	const didPrompt = useRef<boolean>(false)
@@ -13,6 +14,7 @@ export const KeyExport = memo(() => {
 	const appState = useAppStateStore(useShallow(state => state.appState))
 	const setupDone = useAppStateStore(useShallow(state => state.setupDone))
 	const pathname = usePathname()
+	const [isAuthed] = useIsAuthed()
 
 	const accountQuery = useAccountQuery({
 		enabled: false
@@ -44,6 +46,7 @@ export const KeyExport = memo(() => {
 
 	useEffect(() => {
 		if (
+			!isAuthed ||
 			accountQuery.status !== "success" ||
 			accountQuery.data?.account.didExportMasterKeys ||
 			appState !== "active" ||
@@ -58,7 +61,16 @@ export const KeyExport = memo(() => {
 		didPrompt.current = true
 
 		prompt()
-	}, [accountQuery.status, appState, setupDone, accountQuery.data?.account.didExportMasterKeys, biometricVisible, pathname, prompt])
+	}, [
+		accountQuery.status,
+		appState,
+		setupDone,
+		accountQuery.data?.account.didExportMasterKeys,
+		biometricVisible,
+		pathname,
+		prompt,
+		isAuthed
+	])
 
 	return null
 })
