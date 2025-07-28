@@ -11,6 +11,7 @@ import * as FileSystem from "expo-file-system/next"
 import sqlite from "@/lib/sqlite"
 import trackPlayer from "@/lib/trackPlayer"
 import { useTranslation } from "react-i18next"
+import { Image } from "expo-image"
 
 export const Advanced = memo(() => {
 	const { t } = useTranslation()
@@ -95,6 +96,8 @@ export const Advanced = memo(() => {
 
 		try {
 			paths.clearTempDirectories()
+
+			await Promise.all([Image.clearDiskCache(), Image.clearMemoryCache()])
 
 			await refetch()
 		} catch (e) {
