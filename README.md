@@ -61,21 +61,23 @@ echo $JAVA_HOME
 
 #### Expo
 
-1. Set up your environment for expo Development for [iOS](https://docs.expo.dev/get-started/set-up-your-environment/?platform=ios&device=simulated&mode=development-build&buildEnv=local) and [android](https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated&mode=development-build&buildEnv=local)
+1. Use Node.js version 24+
 
-2. Clone repository
+2. Set up your environment for expo Development for [iOS](https://docs.expo.dev/get-started/set-up-your-environment/?platform=ios&device=simulated&mode=development-build&buildEnv=local) and [android](https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated&mode=development-build&buildEnv=local)
+
+3. Clone repository
 
 ```bash
 git clone --recursive https://github.com/FilenCloudDienste/filen-mobile filen-mobile
 ```
 
-3. Update dependencies
+4. Update dependencies
 
 ```bash
 cd filen-mobile && npm install --force && cd nodejs-assets/nodejs-project && npm install --force && cd .. && cd ..
 ```
 
-4. Running a development build
+5. Running a development build
 
 ```bash
 npm run buildNodeThread
