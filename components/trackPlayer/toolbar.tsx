@@ -11,13 +11,11 @@ import useDimensions from "@/hooks/useDimensions"
 import useViewLayout from "@/hooks/useViewLayout"
 import { useMMKVNumber } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { formatSecondsToMMSS, formatBytes, normalizeFilePathForExpo } from "@/lib/utils"
+import { formatSecondsToMMSS, formatBytes } from "@/lib/utils"
 import { cn } from "@/lib/cn"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import Container from "../Container"
-import paths from "@/lib/paths"
-import { Paths } from "expo-file-system/next"
 import { useTranslation } from "react-i18next"
 
 export const Toolbar = memo(() => {
@@ -47,22 +45,6 @@ export const Toolbar = memo(() => {
 			paddingBottom: insets.bottom + 16
 		}
 	}, [insets.bottom])
-
-	const imageSource = useMemo(() => {
-		return {
-			uri: normalizeFilePathForExpo(
-				Paths.join(
-					paths.trackPlayerPictures(),
-					Paths.basename(
-						typeof trackPlayerState.playingTrack?.artwork === "string" &&
-							!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png")
-							? trackPlayerState.playingTrack.artwork
-							: "audio_fallback.png"
-					)
-				)
-			)
-		}
-	}, [trackPlayerState.playingTrack])
 
 	const imageStyle = useMemo(() => {
 		return {
@@ -152,11 +134,9 @@ export const Toolbar = memo(() => {
 			>
 				<Container>
 					<View className="flex-row gap-3">
-						{active &&
-						typeof trackPlayerState.playingTrack?.artwork === "string" &&
-						!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png") ? (
+						{active && trackPlayerState.isPlayingTrackArtworkValid ? (
 							<Image
-								source={imageSource}
+								source={trackPlayerState.playingTrackArtworkSource}
 								contentFit="cover"
 								style={imageStyle}
 							/>

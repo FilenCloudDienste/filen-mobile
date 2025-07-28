@@ -12,6 +12,10 @@ import { useAudioPro } from "@/lib/audioPro"
 import { AudioProState } from "react-native-audio-pro"
 import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
+import { validate as validateUuid } from "uuid"
+import { Paths } from "expo-file-system/next"
+import { normalizeFilePathForExpo } from "@/lib/utils"
+import paths from "@/lib/paths"
 
 export function useTrackPlayerState() {
 	const trackPlayerState = useAudioPro()
@@ -115,6 +119,20 @@ export function useTrackPlayerState() {
 		return repeatModeMMKV
 	}, [repeatModeMMKV])
 
+	const isPlayingTrackArtworkValid = useMemo(() => {
+		return typeof playingTrack?.artwork === "string" && validateUuid(Paths.parse(playingTrack.artwork).name)
+	}, [playingTrack])
+
+	const playingTrackArtworkSource = useMemo(() => {
+		if (!isPlayingTrackArtworkValid || typeof playingTrack?.artwork !== "string") {
+			return undefined
+		}
+
+		return {
+			uri: normalizeFilePathForExpo(Paths.join(paths.trackPlayerPictures(), Paths.basename(playingTrack.artwork)))
+		}
+	}, [isPlayingTrackArtworkValid, playingTrack])
+
 	return {
 		isError,
 		isIdle,
@@ -132,6 +150,8 @@ export function useTrackPlayerState() {
 		position: trackPlayerState.position,
 		durationSeconds,
 		positionSeconds,
-		repeatMode
+		repeatMode,
+		isPlayingTrackArtworkValid,
+		playingTrackArtworkSource
 	}
 }
