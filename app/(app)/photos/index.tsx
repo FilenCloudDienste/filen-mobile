@@ -79,27 +79,11 @@ export const Photo = memo(
 				return
 			}
 
-			useGalleryStore.getState().setItems(
-				items
-					.map(item => {
-						const previewType = getPreviewType(item.name)
-
-						return item.size > 0
-							? {
-									itemType: "cloudItem" as const,
-									previewType,
-									data: {
-										item,
-										queryParams
-									}
-							  }
-							: null
-					})
-					.filter(item => item !== null)
-			)
-
-			useGalleryStore.getState().setInitialUUID(info.item.uuid)
-			useGalleryStore.getState().setVisible(true)
+			useGalleryStore.getState().open({
+				items,
+				initialUUIDOrURI: info.item.uuid,
+				queryParams
+			})
 		}, [items, info.item, queryParams, isSelected, selectedItemsCount])
 
 		const imageStyle = useMemo(() => {
@@ -410,11 +394,14 @@ export const Photos = memo(() => {
 	}, [query.status, items.length, t, cameraUploadRemoteSetup])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+		const rowHeight = itemSize + spacing
+		const visibleRows = Math.ceil(screen.height / rowHeight)
+
 		return {
-			initialNumToRender: Math.round(screen.height / (itemSize + spacing)),
-			maxToRenderPerBatch: Math.round(screen.height / (itemSize + spacing) / 2)
+			initialNumToRender: Math.floor(visibleRows * numColumns + numColumns),
+			maxToRenderPerBatch: Math.max(1, Math.round((visibleRows * numColumns) / 2))
 		}
-	}, [screen.height, itemSize, spacing])
+	}, [screen.height, itemSize, spacing, numColumns])
 
 	const getItemLayout = useCallback(
 		(_: ArrayLike<DriveCloudItem> | null | undefined, index: number) => {
@@ -469,7 +456,6 @@ export const Photos = memo(() => {
 						showsHorizontalScrollIndicator={false}
 						extraData={extraData}
 						getItemLayout={getItemLayout}
-						removeClippedSubviews={true}
 						maxToRenderPerBatch={maxToRenderPerBatch}
 						initialNumToRender={initialNumToRender}
 						updateCellsBatchingPeriod={100}

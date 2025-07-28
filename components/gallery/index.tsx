@@ -1,5 +1,5 @@
 import { View, type ListRenderItemInfo, type ViewToken, type ViewabilityConfig } from "react-native"
-import { memo, useState, useCallback, useMemo, useLayoutEffect, useRef } from "react"
+import { memo, useState, useCallback, useMemo } from "react"
 import { FlatList } from "react-native-gesture-handler"
 import Item from "./item"
 import { type GalleryItem, useGalleryStore } from "@/stores/gallery.store"
@@ -9,33 +9,21 @@ import { useShallow } from "zustand/shallow"
 export const Gallery = memo(
 	({
 		items,
-		initialScrollIndex,
 		panEnabled,
 		pinchEnabled,
 		doubleTapEnabled,
 		swipeToCloseEnabled
 	}: {
 		items: GalleryItem[]
-		initialScrollIndex: number
 		panEnabled: boolean
 		pinchEnabled: boolean
 		doubleTapEnabled: boolean
 		swipeToCloseEnabled: boolean
 	}) => {
 		const [scrollEnabled, setScrollEnabled] = useState<boolean>(true)
-		const setGalleryCurrentVisibleIndex = useGalleryStore(useShallow(state => state.setCurrentVisibleIndex))
 		const { screen, isPortrait } = useDimensions()
-		const initialVisibleIndexSet = useRef<boolean>(false)
-		const galleryCurrentVisibleIndex = useGalleryStore(useShallow(state => state.currentVisibleIndex))
 		const [scrolling, setScrolling] = useState<boolean>(false)
-
-		const validInitialScrollIndex = useMemo(() => {
-			if (galleryCurrentVisibleIndex && typeof items.at(galleryCurrentVisibleIndex) !== "undefined") {
-				return galleryCurrentVisibleIndex >= 0 ? galleryCurrentVisibleIndex : 0
-			}
-
-			return typeof items.at(initialScrollIndex) === "undefined" || initialScrollIndex < 0 ? 0 : initialScrollIndex
-		}, [initialScrollIndex, items, galleryCurrentVisibleIndex])
+		const currentVisibleIndex = useGalleryStore(useShallow(state => state.currentVisibleIndex))
 
 		const getItemLayout = useCallback(
 			(_: unknown, index: number) => ({
@@ -73,7 +61,7 @@ export const Gallery = memo(
 
 		const onViewableItemsChanged = useCallback(
 			(e: { viewableItems: ViewToken<GalleryItem>[]; changed: ViewToken<GalleryItem>[] }) => {
-				if (e.viewableItems.length > 0 && initialVisibleIndexSet.current) {
+				if (e.viewableItems.length > 0) {
 					const visibleIndex = e.viewableItems.map(item => item.index).at(0) ?? -1
 					const visibleItem = items.at(visibleIndex)
 
@@ -81,10 +69,10 @@ export const Gallery = memo(
 						return
 					}
 
-					setGalleryCurrentVisibleIndex(visibleIndex)
+					useGalleryStore.getState().setCurrentVisibleIndex(visibleIndex)
 				}
 			},
-			[setGalleryCurrentVisibleIndex, items]
+			[items]
 		)
 
 		const fullScreenStyle = useMemo(() => {
@@ -106,15 +94,17 @@ export const Gallery = memo(
 			return isPortrait ? "portrait" : "landscape"
 		}, [isPortrait])
 
-		useLayoutEffect(() => {
-			if (initialVisibleIndexSet.current) {
-				return
+		const keyExtractor = useCallback((item: GalleryItem) => {
+			return item.itemType === "cloudItem" ? item.data.item.uuid : item.data.uri
+		}, [])
+
+		const validatedInitialScrollIndex = useMemo(() => {
+			if (!currentVisibleIndex) {
+				return undefined
 			}
 
-			initialVisibleIndexSet.current = true
-
-			setGalleryCurrentVisibleIndex(validInitialScrollIndex)
-		}, [setGalleryCurrentVisibleIndex, validInitialScrollIndex])
+			return items.at(currentVisibleIndex) ? currentVisibleIndex : undefined
+		}, [items, currentVisibleIndex])
 
 		return (
 			<View
@@ -126,13 +116,14 @@ export const Gallery = memo(
 					data={items}
 					pagingEnabled={true}
 					horizontal={true}
-					initialScrollIndex={validInitialScrollIndex}
+					initialScrollIndex={validatedInitialScrollIndex}
 					onScrollBeginDrag={onScrollBeginDrag}
 					onScrollEndDrag={onScrollEndDrag}
 					showsHorizontalScrollIndicator={false}
 					showsVerticalScrollIndicator={false}
 					scrollEnabled={scrollEnabled}
 					renderItem={renderItem}
+					keyExtractor={keyExtractor}
 					decelerationRate="fast"
 					overScrollMode="never"
 					bounces={false}
@@ -145,7 +136,6 @@ export const Gallery = memo(
 					viewabilityConfig={viewabilityConfig}
 					onViewableItemsChanged={onViewableItemsChanged}
 					style={fullScreenStyle}
-					removeClippedSubviews={true}
 					nestedScrollEnabled={true}
 					snapToAlignment="start"
 				/>

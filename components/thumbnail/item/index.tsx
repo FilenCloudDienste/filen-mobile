@@ -73,17 +73,10 @@ export const Thumbnail = memo(
 		const onError = useCallback(async () => {
 			setLocalPath(undefined)
 
-			try {
-				const thumbnailPath = await thumbnails.generate({
-					item,
-					queryParams
-				})
-
-				setLocalPath(thumbnailPath)
-			} catch (e) {
-				console.error(e)
-			}
-		}, [item, queryParams])
+			setTimeout(() => {
+				generate()
+			}, 100)
+		}, [generate])
 
 		useEffect(() => {
 			generate()

@@ -1,5 +1,5 @@
 import GalleryComponent from "@/components/gallery"
-import { useEffect, useMemo, memo, useRef } from "react"
+import { useEffect, memo, useRef } from "react"
 import { BackHandler, type StyleProp, type ViewStyle } from "react-native"
 import { useGalleryStore } from "@/stores/gallery.store"
 import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-reanimated"
@@ -22,46 +22,14 @@ const animatedStyle = {
 export const GalleryModal = memo(() => {
 	const visible = useGalleryStore(useShallow(state => state.visible))
 	const items = useGalleryStore(useShallow(state => state.items))
-	const initialUUID = useGalleryStore(useShallow(state => state.initialUUID))
-	const setCurrentVisibleIndex = useGalleryStore(useShallow(state => state.setCurrentVisibleIndex))
 	const beforeOrientationRef = useRef<ScreenOrientation.OrientationLock | null>(null)
 	const orientationMutex = useRef<Semaphore>(new Semaphore(1))
 
-	const initialScrollIndex = useMemo((): number => {
-		if (!visible || items.length === 0) {
-			return 0
-		}
-
-		const uuid = typeof initialUUID === "string" ? initialUUID : ""
-		const foundIndex = items.findIndex(item => {
-			if (item.itemType === "cloudItem" && item.data.item.uuid === uuid) {
-				return true
-			}
-
-			if (item.itemType === "cloudItem" && item.data.item.uuid === uuid) {
-				return true
-			}
-
-			if (item.itemType === "remoteItem" && item.data.uri === uuid) {
-				return true
-			}
-
-			return false
-		})
-		const index = foundIndex === -1 ? 0 : foundIndex
-
-		return index
-	}, [items, initialUUID, visible])
-
 	useEffect(() => {
-		if (visible && initialScrollIndex >= 0 && items.length > 0) {
-			setCurrentVisibleIndex(initialScrollIndex)
-
-			if (KeyboardController.isVisible()) {
-				KeyboardController.dismiss().catch(console.error)
-			}
+		if (visible && items.length > 0 && KeyboardController.isVisible()) {
+			KeyboardController.dismiss().catch(console.error)
 		}
-	}, [visible, initialScrollIndex, items.length, setCurrentVisibleIndex])
+	}, [visible, items.length])
 
 	useEffect(() => {
 		;(async () => {
@@ -119,7 +87,6 @@ export const GalleryModal = memo(() => {
 				style={animatedStyle}
 			>
 				<GalleryComponent
-					initialScrollIndex={initialScrollIndex}
 					panEnabled={true}
 					pinchEnabled={true}
 					doubleTapEnabled={true}
