@@ -13,9 +13,10 @@ import Semaphore from "@/lib/semaphore"
 import { reinitSDK } from "@/lib/sdk"
 import thumbnails from "@/lib/thumbnails"
 import assets from "@/lib/assets"
-import { normalizeFilePathForNode } from "@/lib/utils"
+import { normalizeFilePathForNode, sanitizeFileName } from "@/lib/utils"
 import * as FileSystem from "expo-file-system/next"
 import fileProvider from "@/lib/fileProvider"
+import * as Sharing from "expo-sharing"
 
 export type SetupResult =
 	| {
@@ -386,6 +387,66 @@ export class AuthService {
 				fullScreenLoadingModal.hide()
 			}
 		}
+	}
+
+	public async exportMasterKeys({
+		disableLoader,
+		disableSharing
+	}: {
+		disableLoader?: boolean
+		disableSharing?: boolean
+	}): Promise<FileSystem.File | null> {
+		if (!disableLoader) {
+			fullScreenLoadingModal.show()
+		}
+
+		const sdkConfig = this.getSDKConfig()
+		const fileName = `${sanitizeFileName(sdkConfig.email)}.masterKeys.txt`
+		const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.exports(), fileName))
+
+		try {
+			if (!(await Sharing.isAvailableAsync())) {
+				throw new Error("Sharing is not available on this device.")
+			}
+
+			const base64 = Buffer.from(
+				sdkConfig.masterKeys
+					.map(key => "_VALID_FILEN_MASTERKEY_" + key + "@" + sdkConfig.userId + "_VALID_FILEN_MASTERKEY_")
+					.join("|"),
+				"utf-8"
+			).toString("base64")
+
+			if (tmpFile.exists) {
+				tmpFile.delete()
+			}
+
+			tmpFile.write(base64)
+
+			if (!disableSharing) {
+				await new Promise<void>(resolve => setTimeout(resolve, 250))
+
+				await Sharing.shareAsync(tmpFile.uri, {
+					mimeType: "text/plain",
+					dialogTitle: fileName
+				})
+			}
+
+			return tmpFile
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			if (!disableSharing && tmpFile.exists) {
+				tmpFile.delete()
+			}
+
+			fullScreenLoadingModal.hide()
+		}
+
+		return null
 	}
 }
 

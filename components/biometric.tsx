@@ -12,6 +12,8 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { inputPrompt } from "./prompts/inputPrompt"
 import { useTranslation } from "react-i18next"
+import { Portal } from "@rn-primitives/portal"
+import { useAppStateStore } from "@/stores/appState.store"
 
 export const Action = memo(({ lockedSeconds, pinAuth }: { lockedSeconds: number; pinAuth: () => Promise<void> }) => {
 	const [seconds, setSeconds] = useState<number>(lockedSeconds)
@@ -252,6 +254,10 @@ export const Biometric = memo(() => {
 	}, [biometricAuth, setBiometricAuth, t, biometricsLockedForSeconds, authenticated])
 
 	useEffect(() => {
+		useAppStateStore.getState().setBiometricVisible(show)
+	}, [show])
+
+	useEffect(() => {
 		if (!canPromptLocalAuthentication) {
 			return
 		}
@@ -296,22 +302,24 @@ export const Biometric = memo(() => {
 	}
 
 	return (
-		<Animated.View
-			exiting={FadeOut}
-			className="flex-1 items-center justify-center bg-background absolute top-0 left-0 right-0 bottom-0 z-[900] w-full h-full"
-		>
-			<View className="flex-1 items-center justify-center flex-col gap-4">
-				<Icon
-					name="lock-outline"
-					size={64}
-					color={colors.foreground}
-				/>
-				<Action
-					lockedSeconds={biometricsLockedForSeconds()}
-					pinAuth={pinAuth}
-				/>
-			</View>
-		</Animated.View>
+		<Portal name="biometric-portal">
+			<Animated.View
+				exiting={FadeOut}
+				className="flex-1 items-center justify-center bg-background absolute top-0 left-0 right-0 bottom-0 z-[900] w-full h-full"
+			>
+				<View className="flex-1 items-center justify-center flex-col gap-4">
+					<Icon
+						name="lock-outline"
+						size={64}
+						color={colors.foreground}
+					/>
+					<Action
+						lockedSeconds={biometricsLockedForSeconds()}
+						pinAuth={pinAuth}
+					/>
+				</View>
+			</Animated.View>
+		</Portal>
 	)
 })
 

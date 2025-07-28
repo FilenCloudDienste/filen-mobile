@@ -30,6 +30,8 @@ import Biometric from "@/components/biometric"
 import * as SplashScreen from "expo-splash-screen"
 import { SCREEN_OPTIONS } from "@/lib/constants"
 import alerts from "@/lib/alerts"
+import KeyExport from "@/components/keyExport"
+import { useAppStateStore } from "@/stores/appState.store"
 
 SplashScreen.setOptions({
 	duration: 400,
@@ -61,6 +63,10 @@ export default function RootLayout() {
 	const initialRouteName = useMemo(() => {
 		return isAuthed ? "(app)" : "(auth)"
 	}, [isAuthed])
+
+	useEffect(() => {
+		useAppStateStore.getState().setSetupDone(setupDone)
+	}, [setupDone])
 
 	useEffect(() => {
 		Promise.all([authService.setup(), restoreQueries()])
@@ -150,7 +156,7 @@ export default function RootLayout() {
 														options={SCREEN_OPTIONS.modal}
 													/>
 													<Stack.Screen
-														name="chat"
+														name="chat/[uuid]"
 														options={SCREEN_OPTIONS.base}
 													/>
 													<Stack.Screen
@@ -169,6 +175,7 @@ export default function RootLayout() {
 														<AuthedListeners />
 														<SocketEvents />
 														<Biometric />
+														<KeyExport />
 													</Fragment>
 												)}
 												<InputPrompt />
