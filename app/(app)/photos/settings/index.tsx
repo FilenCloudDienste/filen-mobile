@@ -108,6 +108,10 @@ export const Settings = memo(() => {
 			...prev,
 			videos: !prev.videos
 		}))
+
+		setTimeout(() => {
+			foregroundCameraUpload.run().catch(console.error)
+		}, 1000)
 	}, [setCameraUpload])
 
 	const selectRemoteDirectory = useCallback(async () => {
@@ -139,6 +143,10 @@ export const Settings = memo(() => {
 					path
 				}
 			}))
+
+			setTimeout(() => {
+				foregroundCameraUpload.run().catch(console.error)
+			}, 1000)
 		} catch (e) {
 			console.error(e)
 
