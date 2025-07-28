@@ -87,6 +87,8 @@ export const Settings = memo(() => {
 			try {
 				if (value) {
 					if (getBiometricAuth()?.enabled) {
+						fullScreenLoadingModal.hide()
+
 						const fileProviderPrompt = await alertPrompt({
 							title: Platform.select({
 								ios: t("settings.index.prompts.fileProvider.title"),
