@@ -13,6 +13,7 @@
 
 ### Installation and building
 
+
 #### Rust
 
 1. [Install Rust](https://www.rust-lang.org/tools/install)
@@ -58,21 +59,23 @@ javac -version
 echo $JAVA_HOME
 ```
 
-#### Expo Project
+#### Expo
 
-1. Clone repository
+1. Set up your environment for expo Development for [iOS](https://docs.expo.dev/get-started/set-up-your-environment/?platform=ios&device=simulated&mode=development-build&buildEnv=local) and [android](https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=simulated&mode=development-build&buildEnv=local)
+
+2. Clone repository
 
 ```bash
 git clone --recursive https://github.com/FilenCloudDienste/filen-mobile filen-mobile
 ```
 
-2. Update dependencies
+3. Update dependencies
 
 ```bash
 cd filen-mobile && npm install --force && cd nodejs-assets/nodejs-project && npm install --force && cd .. && cd ..
 ```
 
-3. Running a development build
+4. Running a development build
 
 ```bash
 npm run buildNodeThread
