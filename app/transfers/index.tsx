@@ -195,18 +195,22 @@ export const Transfers = memo(() => {
 	}, [colors.card, t])
 
 	const listHeader = useMemo(() => {
-		return Platform.OS === "android" && info ? (
+		if (Platform.OS !== "android") {
+			return undefined
+		}
+
+		return (
 			<View className="flex-1 flex-row px-4 pb-4">
 				<Text
 					numberOfLines={1}
 					ellipsizeMode="middle"
 					className="text-sm text-muted-foreground flex-1"
 				>
-					{info}
+					{info ? info : t("transfers.noOngoingTransfers")}
 				</Text>
 			</View>
-		) : undefined
-	}, [info])
+		)
+	}, [info, t])
 
 	const listEmpty = useMemo(() => {
 		return (

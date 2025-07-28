@@ -11,6 +11,7 @@ export const AuthedListeners = memo(() => {
 	const { push: routerPush } = useRouter()
 	const [{ baseFolderUUID, userId }] = useSDKConfig()
 	const nextCameraUploadRunRef = useRef<number>(0)
+	const updateTransfersIntervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
 
 	const updateTransfers = useCallback(async () => {
 		try {
@@ -41,15 +42,19 @@ export const AuthedListeners = memo(() => {
 	}, [])
 
 	useEffect(() => {
-		const updateTransfersInterval = setInterval(() => {
+		updateTransfersIntervalRef.current = setInterval(() => {
 			updateTransfers().catch(console.error)
 		}, 3000)
 
 		const appStateChangeListener = AppState.addEventListener("change", nextAppState => {
 			if (nextAppState === "active") {
+				updateTransfersIntervalRef.current = setInterval(() => {
+					updateTransfers().catch(console.error)
+				}, 3000)
+
 				updateTransfers().catch(console.error)
 			} else {
-				clearInterval(updateTransfersInterval)
+				clearInterval(updateTransfersIntervalRef.current)
 			}
 		})
 

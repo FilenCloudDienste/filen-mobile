@@ -1277,6 +1277,7 @@
 			"back": "Back"
 		},
 		"info": "Transferring {{ongoingTransfers}} items at {{speed}}, {{remaining}} remaining",
+		"noOngoingTransfers": "No ongoing transfers",
 		"list": {
 			"empty": "No transfers yet",
 			"emptySearch": "No transfers found for this search",
