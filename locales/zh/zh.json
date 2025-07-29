@@ -1277,6 +1277,7 @@
 			"back": "返回"
 		},
 		"info": "正在以{{speed}}的速度传输{{ongoingTransfers}}项，剩余{{remaining}}",
+		"noOngoingTransfers": "没有进行中的传输",
 		"list": {
 			"empty": "尚无传输",
 			"emptySearch": "此搜索未找到传输",
