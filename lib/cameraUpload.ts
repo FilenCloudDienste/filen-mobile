@@ -54,7 +54,8 @@ export class CameraUpload {
 	private readonly mediaTypes: MediaLibrary.MediaTypeValue[]
 	private readonly maxSize: number
 	private readonly useCameraUploadStore = {
-		setSyncState: useCameraUploadStore.getState().setSyncState
+		setSyncState: useCameraUploadStore.getState().setSyncState,
+		setRunning: useCameraUploadStore.getState().setRunning
 	}
 	private readonly deltaErrors: Record<string, number> = {}
 
@@ -551,6 +552,8 @@ export class CameraUpload {
 
 		await runMutex.acquire()
 
+		this.useCameraUploadStore.setRunning(true)
+
 		try {
 			if (params?.abortSignal?.aborted) {
 				throw new Error("Aborted")
@@ -653,6 +656,8 @@ export class CameraUpload {
 				})
 			}
 		} finally {
+			this.useCameraUploadStore.setRunning(false)
+
 			runMutex.release()
 		}
 	}

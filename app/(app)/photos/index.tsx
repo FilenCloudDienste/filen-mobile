@@ -92,7 +92,7 @@ export const Photo = memo(
 										item,
 										queryParams
 									}
-							  }
+								}
 							: null
 					})
 					.filter(item => item !== null),
@@ -178,6 +178,7 @@ export const Photos = memo(() => {
 	const [cameraUpload] = useCameraUpload()
 	const router = useRouter()
 	const syncState = useCameraUploadStore(useShallow(state => state.syncState))
+	const running = useCameraUploadStore(useShallow(state => state.running))
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
 	const selectedItemsCount = usePhotosStore(useShallow(state => state.selectedItems.length))
@@ -280,16 +281,7 @@ export const Photos = memo(() => {
 					</Text>
 				) : cameraUpload.enabled ? (
 					<Fragment>
-						{syncState.count === 0 ? (
-							<View className="flex-row items-center gap-2">
-								<Icon
-									name="check-circle-outline"
-									color={colors.primary}
-									size={24}
-								/>
-								<Text>{t("photos.state.synced")}</Text>
-							</View>
-						) : (
+						{syncState.count > 0 ? (
 							<View className="flex-row items-center gap-2">
 								<ActivityIndicator
 									size="small"
@@ -301,6 +293,22 @@ export const Photos = memo(() => {
 										total: syncState.count
 									})}
 								</Text>
+							</View>
+						) : running ? (
+							<View className="flex-row items-center gap-2">
+								<ActivityIndicator
+									size="small"
+									color={colors.foreground}
+								/>
+							</View>
+						) : (
+							<View className="flex-row items-center gap-2">
+								<Icon
+									name="check-circle-outline"
+									color={colors.primary}
+									size={24}
+								/>
+								<Text>{t("photos.state.synced")}</Text>
 							</View>
 						)}
 					</Fragment>
@@ -332,7 +340,8 @@ export const Photos = memo(() => {
 		syncState.count,
 		syncState.done,
 		hasInternet,
-		selectedItemsCount
+		selectedItemsCount,
+		running
 	])
 
 	const headerRightView = useCallback(() => {
