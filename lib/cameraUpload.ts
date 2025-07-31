@@ -169,17 +169,6 @@ export class CameraUpload {
 	}
 
 	public async fetchLocalItems(): Promise<Tree> {
-		if (
-			!(await this.canRun({
-				checkPermissions: true,
-				checkBattery: false,
-				checkNetwork: false,
-				checkAppState: true
-			}))
-		) {
-			return {}
-		}
-
 		const state = getCameraUploadState()
 		const items: Tree = {}
 
@@ -223,17 +212,6 @@ export class CameraUpload {
 	}
 
 	public async fetchRemoteItems(): Promise<Tree> {
-		if (
-			!(await this.canRun({
-				checkPermissions: false,
-				checkBattery: false,
-				checkNetwork: false,
-				checkAppState: true
-			}))
-		) {
-			return {}
-		}
-
 		const state = getCameraUploadState()
 
 		if (!state.remote || !validateUUID(state.remote.uuid)) {
@@ -345,17 +323,6 @@ export class CameraUpload {
 			return
 		}
 
-		if (
-			!(await this.canRun({
-				checkPermissions: false,
-				checkBattery: true,
-				checkNetwork: true,
-				checkAppState: true
-			}))
-		) {
-			return
-		}
-
 		const manipulated = await ImageManipulator.manipulate(normalizeFilePathForExpo(file.uri)).renderAsync()
 		const result = await manipulated.saveAsync({
 			compress: 0.8,
@@ -392,21 +359,6 @@ export class CameraUpload {
 			const errorKey = `${delta.type}:${delta.item.path}`
 
 			if (this.deltaErrors[errorKey] && this.deltaErrors[errorKey] >= 3) {
-				return
-			}
-
-			if (abortSignal?.aborted) {
-				throw new Error("Aborted")
-			}
-
-			if (
-				!(await this.canRun({
-					checkPermissions: false,
-					checkBattery: true,
-					checkNetwork: true,
-					checkAppState: true
-				}))
-			) {
 				return
 			}
 
