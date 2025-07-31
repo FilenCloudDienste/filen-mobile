@@ -39,13 +39,14 @@ export type Tree = Record<string, TreeItem>
 export type Delta = {
 	type: "upload"
 	item: TreeItem
+	localFile: FileSystem.File | null
 }
 
 export type CameraUploadType = "foreground" | "background"
 
 export const runMutex: Semaphore = new Semaphore(1)
-export const processDeltaSemaphore: Semaphore = new Semaphore(4)
-export const calculateDeltaSemaphore: Semaphore = new Semaphore(32)
+export const processDeltaSemaphore: Semaphore = new Semaphore(8)
+export const calculateDeltaSemaphore: Semaphore = new Semaphore(16)
 
 export class CameraUpload {
 	private readonly type: CameraUploadType
@@ -274,7 +275,8 @@ export class CameraUpload {
 					if (localItem && !remoteItem) {
 						const delta: Delta = {
 							type: "upload",
-							item: localItem
+							item: localItem,
+							localFile: null
 						}
 
 						const errorKey = `${delta.type}:${delta.item.path}`
@@ -289,7 +291,7 @@ export class CameraUpload {
 							}
 
 							const stat = await MediaLibrary.getAssetInfoAsync(localItem.asset, {
-								shouldDownloadFromNetwork: false
+								shouldDownloadFromNetwork: true
 							})
 
 							if (!stat.localUri) {
@@ -301,6 +303,12 @@ export class CameraUpload {
 							if (!localFile.exists || !localFile.size || localFile.size > this.maxSize) {
 								return
 							}
+
+							delta.localFile = localFile
+						}
+
+						if (!delta.localFile) {
+							return
 						}
 
 						deltas.push(delta)
@@ -379,7 +387,7 @@ export class CameraUpload {
 			const uploadId = randomUUID()
 
 			try {
-				if (delta.type === "upload") {
+				if (delta.type === "upload" && delta.localFile) {
 					if (delta.item.type !== "local") {
 						return
 					}
@@ -406,24 +414,6 @@ export class CameraUpload {
 						throw new Error("Aborted")
 					}
 
-					const stat = await MediaLibrary.getAssetInfoAsync(delta.item.asset, {
-						shouldDownloadFromNetwork: true
-					})
-
-					if (abortSignal?.aborted) {
-						throw new Error("Aborted")
-					}
-
-					if (!stat.localUri) {
-						return
-					}
-
-					const localFile = new FileSystem.File(stat.localUri)
-
-					if (!localFile.exists || !localFile.size || localFile.size > this.maxSize) {
-						return
-					}
-
 					const tmpFile = new FileSystem.File(
 						FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(delta.item.name)}`)
 					)
@@ -441,7 +431,7 @@ export class CameraUpload {
 							throw new Error("Aborted")
 						}
 
-						localFile.copy(tmpFile)
+						delta.localFile.copy(tmpFile)
 
 						if (!tmpFile.exists || !tmpFile.size) {
 							throw new Error(`Could not get size of file at "${tmpFile.uri}".`)
