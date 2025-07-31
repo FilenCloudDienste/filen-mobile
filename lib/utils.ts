@@ -169,10 +169,10 @@ export const orderItemsByTypeCompareFunctions = {
 		return isAscending
 			? a.name.toLowerCase().localeCompare(b.name.toLowerCase(), "en", {
 					numeric: true
-			  })
+				})
 			: b.name.toLowerCase().localeCompare(a.name.toLowerCase(), "en", {
 					numeric: true
-			  })
+				})
 	},
 	size: (a: DriveCloudItem, b: DriveCloudItem, isAscending: boolean = true): number => {
 		const typeComparison = orderItemsByTypeCompareItemTypes(a, b)
@@ -222,8 +222,8 @@ export const orderItemsByTypeCompareFunctions = {
 			return typeComparison
 		}
 
-		const aTime = a.type === "file" ? a.creation ?? a.lastModified ?? a.timestamp : a.lastModified ?? a.timestamp
-		const bTime = b.type === "file" ? b.creation ?? b.lastModified ?? b.timestamp : b.lastModified ?? b.timestamp
+		const aTime = a.type === "file" ? (a.creation ?? a.lastModified ?? a.timestamp) : (a.lastModified ?? a.timestamp)
+		const bTime = b.type === "file" ? (b.creation ?? b.lastModified ?? b.timestamp) : (b.lastModified ?? b.timestamp)
 
 		if (aTime === bTime) {
 			const aUuid = parseNumbersFromString(a.uuid)
@@ -275,7 +275,7 @@ export function normalizeTransferProgress(size: number, bytes: number): number {
 		return 0
 	}
 
-	return result
+	return result >= 100 ? 100 : result <= 0 ? 0 : result
 }
 
 export const bpsToReadableUnits = [
@@ -914,7 +914,7 @@ export function sortAndFilterNotes({ notes, searchTerm, selectedTag }: { notes: 
 						note.preview.toLowerCase().trim().includes(lowercaseSearchTerm) ||
 						note.type.toLowerCase().trim().includes(lowercaseSearchTerm) ||
 						note.tags.some(tag => tag.name.toLowerCase().trim().includes(lowercaseSearchTerm))
-			  )
+				)
 			: notes
 
 	const selectedTagIsUUID = validateUUID(selectedTag)
@@ -947,7 +947,7 @@ export function sortAndFilterNotes({ notes, searchTerm, selectedTag }: { notes: 
 					}
 
 					return true
-			  })
+				})
 			: filteredBySearchTerm
 
 	return filteredByTag.sort((a, b) => {
