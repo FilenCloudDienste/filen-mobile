@@ -7,6 +7,8 @@ import { usePathname } from "expo-router"
 import alerts from "@/lib/alerts"
 import authService from "@/services/auth.service"
 import useIsAuthed from "@/hooks/useIsAuthed"
+import nodeWorker from "@/lib/nodeWorker"
+import { useTranslation } from "react-i18next"
 
 export const KeyExport = memo(() => {
 	const didPrompt = useRef<boolean>(false)
@@ -15,6 +17,7 @@ export const KeyExport = memo(() => {
 	const setupDone = useAppStateStore(useShallow(state => state.setupDone))
 	const pathname = usePathname()
 	const [isAuthed] = useIsAuthed()
+	const { t } = useTranslation()
 
 	const accountQuery = useAccountQuery({
 		enabled: false
@@ -22,11 +25,10 @@ export const KeyExport = memo(() => {
 
 	const prompt = useCallback(async () => {
 		const response = await alertPrompt({
-			title: "Export Master Keys",
-			message:
-				"You have not exported your master keys yet. It is highly recommended to export them now and store them in a safe place.",
-			okText: "Export Now",
-			cancelText: "Later"
+			title: t("alertPrompt.exportMasterKeys.title"),
+			message: t("alertPrompt.exportMasterKeys.message"),
+			okText: t("alertPrompt.exportMasterKeys.okText"),
+			cancelText: t("alertPrompt.exportMasterKeys.cancelText")
 		})
 
 		if (response.cancelled) {
@@ -35,6 +37,7 @@ export const KeyExport = memo(() => {
 
 		try {
 			await authService.exportMasterKeys({})
+			await nodeWorker.proxy("didExportMasterKeys", undefined)
 		} catch (e) {
 			console.error(e)
 
@@ -42,7 +45,7 @@ export const KeyExport = memo(() => {
 				alerts.error(e.message)
 			}
 		}
-	}, [])
+	}, [t])
 
 	useEffect(() => {
 		if (

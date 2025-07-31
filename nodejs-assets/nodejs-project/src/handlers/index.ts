@@ -114,7 +114,8 @@ import {
 	deleteAllVersionedFiles,
 	deleteEverything,
 	fetchAccount,
-	fetchUserPublicKey
+	fetchUserPublicKey,
+	didExportMasterKeys
 } from "./user"
 import {
 	deleteOutgoingContactRequest,
@@ -260,5 +261,6 @@ export {
 	muteChat,
 	register,
 	resendConfirmation,
-	forgotPassword
+	forgotPassword,
+	didExportMasterKeys
 }

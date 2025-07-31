@@ -422,7 +422,8 @@ export class NodeWorker {
 		muteChat: handlers.muteChat.bind(this),
 		register: handlers.register.bind(this),
 		resendConfirmation: handlers.resendConfirmation.bind(this),
-		forgotPassword: handlers.forgotPassword.bind(this)
+		forgotPassword: handlers.forgotPassword.bind(this),
+		didExportMasterKeys: handlers.didExportMasterKeys.bind(this)
 	}
 }
 

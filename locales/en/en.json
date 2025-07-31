@@ -15,6 +15,12 @@
 			"title": "Title",
 			"okText": "OK",
 			"cancelText": "Cancel"
+		},
+		"exportMasterKeys": {
+			"title": "Export master keys",
+			"message": "You have not exported your master keys yet. It is highly recommended to export them now and store them in a safe place.",
+			"okText": "Export",
+			"cancelText": "Later"
 		}
 	},
 	"inputPrompt": {

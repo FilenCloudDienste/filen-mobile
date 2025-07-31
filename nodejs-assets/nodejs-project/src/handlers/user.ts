@@ -88,3 +88,7 @@ export async function fetchAccount(this: NodeWorker) {
 export async function fetchUserPublicKey(this: NodeWorker, params: Parameters<User["publicKey"]>[0]) {
 	return await sdk.get().user().publicKey(params)
 }
+
+export async function didExportMasterKeys(this: NodeWorker) {
+	return await sdk.get().user().didExportMasterKeys()
+}
