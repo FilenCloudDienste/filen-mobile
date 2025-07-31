@@ -555,6 +555,13 @@
 				"settings": "Settings"
 			},
 			"dropdown": {
+				"types": {
+					"markdown": "Markdown",
+					"checklist": "Checklist",
+					"text": "Text",
+					"rich": "Rich text",
+					"code": "Code"
+				},
 				"items": {
 					"selectAll": "Select all",
 					"deselectAll": "Deselect all"

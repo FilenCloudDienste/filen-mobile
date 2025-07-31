@@ -632,11 +632,13 @@ export class NotesService {
 	public async createNote({
 		title,
 		disableLoader,
-		disableNavigation
+		disableNavigation,
+		type
 	}: {
 		title?: string
 		disableLoader?: boolean
 		disableNavigation?: boolean
+		type?: NoteType
 	}): Promise<Note | null> {
 		if (!title) {
 			const inputPromptResponse = await inputPrompt({
@@ -674,6 +676,13 @@ export class NotesService {
 				uuid,
 				title
 			})
+
+			if (type) {
+				await nodeWorker.proxy("changeNoteType", {
+					uuid,
+					newType: type
+				})
+			}
 
 			const notes = await nodeWorker.proxy("fetchNotes", undefined)
 

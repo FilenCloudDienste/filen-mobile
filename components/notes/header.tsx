@@ -13,7 +13,11 @@ import notesService from "@/services/notes.service"
 import HeaderDropdown from "./headerDropdown"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { View } from "react-native"
+import { View, Platform } from "react-native"
+import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
+import { createDropdownItem } from "../nativewindui/DropdownMenu/utils"
+import { type NoteType } from "@filen/sdk/dist/types/api/v3/notes"
+import { type DropdownItem } from "@/components/nativewindui/DropdownMenu/types"
 
 export const Header = memo(() => {
 	const selectedNotesCount = useNotesStore(useShallow(state => state.selectedNotes.length))
@@ -22,9 +26,11 @@ export const Header = memo(() => {
 	const { hasInternet } = useNetInfo()
 	const [, setSearchTerm] = useMMKVString("notesSearchTerm", mmkvInstance)
 
-	const createNote = useCallback(async () => {
+	const createNote = useCallback(async (type: NoteType) => {
 		try {
-			await notesService.createNote({})
+			await notesService.createNote({
+				type
+			})
 		} catch (e) {
 			console.error(e)
 
@@ -56,6 +62,126 @@ export const Header = memo(() => {
 			: undefined
 	}, [selectedNotesCount, t])
 
+	const createNoteDropdownItems = useMemo(() => {
+		return [
+			createDropdownItem({
+				actionKey: "createNote_text",
+				title: t("notes.header.dropdown.types.text"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "note.text"
+						  }
+						: {
+								namingScheme: "material",
+								name: "note-text-outline"
+						  }
+			}),
+			createDropdownItem({
+				actionKey: "createNote_checklist",
+				title: t("notes.header.dropdown.types.checklist"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "checklist"
+						  }
+						: {
+								namingScheme: "material",
+								name: "format-list-checks"
+						  }
+			}),
+			createDropdownItem({
+				actionKey: "createNote_markdown",
+				title: t("notes.header.dropdown.types.markdown"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "note.text"
+						  }
+						: {
+								namingScheme: "material",
+								name: "note-text-outline"
+						  }
+			}),
+			createDropdownItem({
+				actionKey: "createNote_code",
+				title: t("notes.header.dropdown.types.code"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "note.text"
+						  }
+						: {
+								namingScheme: "material",
+								name: "note-text-outline"
+						  }
+			}),
+			createDropdownItem({
+				actionKey: "createNote_rich",
+				title: t("notes.header.dropdown.types.rich"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "doc"
+						  }
+						: {
+								namingScheme: "material",
+								name: "file-document-outline"
+						  }
+			})
+		]
+	}, [t])
+
+	const onCreateNoteDropdownPress = useCallback(
+		async (item: Omit<DropdownItem, "icon">) => {
+			try {
+				switch (item.actionKey) {
+					case "createNote_markdown": {
+						await createNote("md")
+
+						break
+					}
+
+					case "createNote_checklist": {
+						await createNote("checklist")
+
+						break
+					}
+
+					case "createNote_text": {
+						await createNote("text")
+
+						break
+					}
+
+					case "createNote_code": {
+						await createNote("code")
+
+						break
+					}
+
+					case "createNote_rich": {
+						await createNote("rich")
+
+						break
+					}
+				}
+			} catch (e) {
+				console.error(e)
+
+				if (e instanceof Error) {
+					alerts.error(e.message)
+				}
+			}
+		},
+		[createNote]
+	)
+
 	const headerRightView = useCallback(() => {
 		if (!hasInternet) {
 			return undefined
@@ -63,21 +189,26 @@ export const Header = memo(() => {
 
 		return (
 			<View className="flex-row items-center">
-				<Button
-					variant="plain"
-					size="icon"
-					onPress={createNote}
+				<DropdownMenu
+					items={createNoteDropdownItems}
+					onItemPress={onCreateNoteDropdownPress}
 				>
-					<Icon
-						name="plus"
-						size={24}
-						color={colors.primary}
-					/>
-				</Button>
+					<Button
+						variant="plain"
+						size="icon"
+					>
+						<Icon
+							name="plus"
+							size={24}
+							color={colors.primary}
+						/>
+					</Button>
+				</DropdownMenu>
+
 				<HeaderDropdown />
 			</View>
 		)
-	}, [createNote, colors.primary, hasInternet])
+	}, [colors.primary, hasInternet, createNoteDropdownItems, onCreateNoteDropdownPress])
 
 	return (
 		<LargeTitleHeader
