@@ -6,6 +6,7 @@ import * as FileSystem from "expo-file-system/next"
 import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
 import useNetInfo from "@/hooks/useNetInfo"
+import alerts from "@/lib/alerts"
 
 export type UseFileBufferQuery = {
 	item: DriveCloudItem
@@ -82,6 +83,12 @@ export default function useFileBufferQuery({
 						}
 					})
 			}),
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
+		},
 		notifyOnChangeProps,
 		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,

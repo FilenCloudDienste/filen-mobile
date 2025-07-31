@@ -7,6 +7,7 @@ import { DEFAULT_QUERY_OPTIONS } from "./client"
 import { getCameraUploadState } from "@/hooks/useCameraUpload"
 import { validate as validateUUID } from "uuid"
 import useNetInfo from "@/hooks/useNetInfo"
+import alerts from "@/lib/alerts"
 
 export default function useCameraUploadParentQuery({
 	refetchOnMount = DEFAULT_QUERY_OPTIONS.refetchOnMount,
@@ -45,6 +46,12 @@ export default function useCameraUploadParentQuery({
 			}
 
 			return state.remote
+		},
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
 		},
 		notifyOnChangeProps,
 		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,

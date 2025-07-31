@@ -22,6 +22,11 @@ export const Fetch = memo(({ link }: { link: string }) => {
 	const query = useQuery({
 		queryKey: ["chatEmbedFetchDataParsed", link],
 		queryFn: () => new WebpageMetadataParser(link).parseWebpageMetadata(),
+		throwOnError(err) {
+			console.error(err)
+
+			return false
+		},
 		refetchOnMount: DEFAULT_QUERY_OPTIONS.refetchOnMount,
 		refetchOnReconnect: DEFAULT_QUERY_OPTIONS.refetchOnReconnect,
 		refetchOnWindowFocus: DEFAULT_QUERY_OPTIONS.refetchOnWindowFocus,

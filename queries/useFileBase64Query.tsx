@@ -4,6 +4,7 @@ import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import axios from "axios"
 import { Buffer } from "buffer"
 import useNetInfo from "@/hooks/useNetInfo"
+import alerts from "@/lib/alerts"
 
 export type UseFileBase64Query = {
 	item: DriveCloudItem
@@ -38,10 +39,16 @@ export default function useFileBase64Query({
 			})
 
 			if (request.status !== 200) {
-				throw new Error("Failed to fetch YouTube data.")
+				throw new Error("Failed to fetch file data.")
 			}
 
 			return Buffer.from(request.data).toString("base64")
+		},
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
 		},
 		notifyOnChangeProps,
 		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,

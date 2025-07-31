@@ -65,6 +65,12 @@ export const YouTube = memo(({ link }: { link: string }) => {
 
 			return request.data as YouTubeInfo
 		},
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
+		},
 		refetchOnMount: DEFAULT_QUERY_OPTIONS.refetchOnMount,
 		refetchOnReconnect: DEFAULT_QUERY_OPTIONS.refetchOnReconnect,
 		refetchOnWindowFocus: DEFAULT_QUERY_OPTIONS.refetchOnWindowFocus,

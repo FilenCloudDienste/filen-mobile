@@ -13,6 +13,7 @@ import { xxHash32 } from "js-xxhash"
 import { Image } from "expo-image"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import useNetInfo from "@/hooks/useNetInfo"
+import nodeWorker from "@/lib/nodeWorker"
 
 export const Video = memo(({ source, link, name }: { source: string; link: string; name: string }) => {
 	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
@@ -30,6 +31,12 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 			)
 
 			if (!destination.exists) {
+				const nodeWorkerHTTPServerAlive = await nodeWorker.httpServerAlive()
+
+				if (!nodeWorkerHTTPServerAlive) {
+					throw new Error("Node worker HTTP server is not alive.")
+				}
+
 				const videoThumbnail = await VideoThumbnails.getThumbnailAsync(source, {
 					quality: 0.7,
 					time: 500
@@ -49,6 +56,12 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 			}
 
 			return destination.uri
+		},
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
 		},
 		refetchOnMount: false,
 		refetchOnReconnect: false,

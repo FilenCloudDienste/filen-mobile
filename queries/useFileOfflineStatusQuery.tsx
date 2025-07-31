@@ -6,6 +6,7 @@ import { DEFAULT_QUERY_OPTIONS } from "./client"
 import sqlite from "@/lib/sqlite"
 import * as FileSystem from "expo-file-system/next"
 import paths from "@/lib/paths"
+import alerts from "@/lib/alerts"
 
 export type UseFileOfflineStatusQuery =
 	| {
@@ -56,6 +57,12 @@ export default function useFileOfflineStatusQuery({
 					})
 					.catch(reject)
 			}),
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
+		},
 		notifyOnChangeProps,
 		enabled: typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,

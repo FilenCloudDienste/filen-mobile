@@ -5,6 +5,7 @@ import useFocusNotifyOnChangeProps from "@/hooks/useFocusNotifyOnChangeProps"
 import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import { DEFAULT_QUERY_OPTIONS } from "./client"
 import useNetInfo from "@/hooks/useNetInfo"
+import alerts from "@/lib/alerts"
 
 export function useDirectorySizeQueryNoFocusRefetch({
 	uuid,
@@ -42,6 +43,12 @@ export function useDirectorySizeQueryNoFocusRefetch({
 				receiverId,
 				trash
 			}),
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
+		},
 		notifyOnChangeProps,
 		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,
@@ -90,6 +97,12 @@ export function useDirectorySizeQuery({
 				receiverId,
 				trash
 			}),
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
+		},
 		notifyOnChangeProps,
 		enabled: typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,

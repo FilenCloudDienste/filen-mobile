@@ -23,7 +23,13 @@ export const Settings = memo(() => {
 
 	const { refetch: fileProviderEnabledQueryRefetch, data: fileProviderEnabledQueryData } = useQuery({
 		queryKey: ["fileProviderEnabledQuery"],
-		queryFn: () => fileProvider.enabled()
+		queryFn: () => fileProvider.enabled(),
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
+		}
 	})
 
 	const avatarSource = useMemo(() => {

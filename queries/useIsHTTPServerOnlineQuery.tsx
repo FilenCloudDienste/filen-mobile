@@ -31,6 +31,11 @@ export default function useIsHTTPServerOnlineQuery({
 				online: await nodeWorker.httpServerAlive()
 			}
 		},
+		throwOnError(err) {
+			console.error(err)
+
+			return false
+		},
 		notifyOnChangeProps,
 		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,

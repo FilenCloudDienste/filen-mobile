@@ -15,6 +15,7 @@ import paths from "@/lib/paths"
 import useNetInfo from "@/hooks/useNetInfo"
 import upload from "@/lib/upload"
 import download from "@/lib/download"
+import alerts from "@/lib/alerts"
 
 export const PlaylistFileSchema = Type.Object({
 	uuid: Type.String(),
@@ -231,6 +232,12 @@ export function usePlaylistsQuery({
 	const query = useQuery({
 		queryKey: ["usePlaylistsQuery"],
 		queryFn: () => fetchPlaylists(),
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
+		},
 		notifyOnChangeProps,
 		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,

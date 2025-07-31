@@ -6,6 +6,7 @@ import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
 import { type PublicLinkExpiration } from "@filen/sdk"
 import useNetInfo from "@/hooks/useNetInfo"
+import alerts from "@/lib/alerts"
 
 export type UseItemPublicLinkStatusQuery =
 	| {
@@ -93,6 +94,12 @@ export default function useItemPublicLinkStatusQuery({
 	const query = useQuery({
 		queryKey: ["useItemPublicLinkStatusQuery", item],
 		queryFn: () => fetchItemPublicLinkStatus(item),
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
+		},
 		notifyOnChangeProps,
 		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,
