@@ -530,8 +530,8 @@ export const Account = memo(() => {
 					<Avatar
 						source={avatarSource}
 						style={{
-							width: 42,
-							height: 42
+							width: 36,
+							height: 36
 						}}
 					/>
 				)

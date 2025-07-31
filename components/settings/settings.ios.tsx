@@ -37,6 +37,8 @@ export const IconView = memo(({ className, name }: { className?: string; name: M
 IconView.displayName = "IconView"
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<SettingsItem> }) => {
+	const { colors, isDarkColorScheme } = useColorScheme()
+
 	const rightView = useMemo(() => {
 		if (typeof info.item === "string") {
 			return undefined
@@ -96,6 +98,13 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<SettingsItem> }) 
 			leftView={leftView}
 			rightView={rightView}
 			onPress={info.item.onPress}
+			style={
+				!isDarkColorScheme
+					? {
+							backgroundColor: colors.grey5
+					  }
+					: undefined
+			}
 		/>
 	)
 })

@@ -13,6 +13,7 @@ import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
+import { useColorScheme } from "@/lib/useColorScheme"
 
 export type ListItemInfo = {
 	title: string
@@ -35,6 +36,7 @@ const contentContainerStyle = {
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const [cameraUpload, setCameraUpload] = useCameraUpload()
+	const { colors, isDarkColorScheme } = useColorScheme()
 
 	const enabled = useMemo(() => {
 		return cameraUpload.albums.some(album => album.id === info.item.id)
@@ -92,7 +94,11 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 				android: {
 					backgroundColor: "transparent"
 				},
-				default: undefined
+				default: !isDarkColorScheme
+					? {
+							backgroundColor: colors.grey5
+					  }
+					: undefined
 			})}
 			titleClassName="text-lg"
 			innerClassName={cn("py-3 ios:py-3 android:py-3", Platform.OS === "android" && "bg-transparent")}
