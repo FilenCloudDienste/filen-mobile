@@ -6,8 +6,11 @@ import { getSDK } from "@/lib/sdk"
 import Semaphore from "@/lib/semaphore"
 import { type NodeWorkerHandlers } from "nodeWorker"
 import type Cloud from "@filen/sdk/dist/types/cloud"
+import { useTransfersStore } from "@/stores/transfers.store"
 
 export class Download {
+	private readonly setHiddenTransfers = useTransfersStore.getState().setHiddenTransfers
+
 	private isAuthed(): boolean {
 		const apiKey = getSDK().config.apiKey
 
@@ -15,7 +18,11 @@ export class Download {
 	}
 
 	public directory = {
-		foreground: async (params: Parameters<NodeWorkerHandlers["downloadDirectory"]>[0]): Promise<void> => {
+		foreground: async (
+			params: Parameters<NodeWorkerHandlers["downloadDirectory"]>[0] & {
+				dontEmitProgress?: boolean
+			}
+		): Promise<void> => {
 			if (!this.isAuthed()) {
 				throw new Error("You must be authenticated to download files.")
 			}
@@ -34,13 +41,19 @@ export class Download {
 				destination.delete()
 			}
 
+			if (params.dontEmitProgress) {
+				this.setHiddenTransfers(hidden => ({
+					...hidden,
+					[params.id]: params.id
+				}))
+			}
+
 			await nodeWorker.proxy("downloadDirectory", {
 				id: params.id ?? randomUUID(),
 				uuid: params.uuid,
 				destination: destination.uri,
 				size: params.size,
-				name: params.name,
-				dontEmitProgress: params.dontEmitProgress
+				name: params.name
 			})
 		},
 		background: async (params: Parameters<NodeWorkerHandlers["downloadDirectory"]>[0]): Promise<void> => {
@@ -158,7 +171,11 @@ export class Download {
 	}
 
 	public file = {
-		foreground: async (params: Parameters<NodeWorkerHandlers["downloadFile"]>[0]): Promise<void> => {
+		foreground: async (
+			params: Parameters<NodeWorkerHandlers["downloadFile"]>[0] & {
+				dontEmitProgress?: boolean
+			}
+		): Promise<void> => {
 			if (!this.isAuthed()) {
 				throw new Error("You must be authenticated to download files.")
 			}
@@ -176,6 +193,13 @@ export class Download {
 
 			if (destination.exists) {
 				destination.delete()
+			}
+
+			if (params.dontEmitProgress) {
+				this.setHiddenTransfers(hidden => ({
+					...hidden,
+					[params.id]: params.id
+				}))
 			}
 
 			await nodeWorker.proxy("downloadFile", params)

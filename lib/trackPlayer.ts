@@ -239,7 +239,7 @@ export class TrackPlayer {
 			if (!file.isDirectory) {
 				const entry = new FileSystem.File(file.uri)
 
-				return acc + (entry.exists ? entry.size ?? 0 : 0)
+				return acc + (entry.exists ? (entry.size ?? 0) : 0)
 			}
 
 			return acc
@@ -732,8 +732,7 @@ export class TrackPlayer {
 					key: track.file.key,
 					destination: destination.uri,
 					size: track.file.size,
-					name: track.file.name,
-					dontEmitProgress: true
+					name: track.file.name
 				})
 			}
 

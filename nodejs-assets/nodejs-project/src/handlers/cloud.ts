@@ -16,7 +16,6 @@ export type UploadFileParams = {
 	size: number
 	lastModified?: number
 	creation?: number
-	dontEmitProgress?: boolean
 	deleteAfterUpload?: boolean
 	uuid?: string
 } & (
@@ -65,7 +64,6 @@ export async function downloadDirectory(
 		destination: string
 		name: string
 		size: number
-		dontEmitProgress?: boolean
 	}
 ) {
 	if (!this.transfersAbortControllers[params.id]) {
@@ -88,10 +86,6 @@ export async function downloadDirectory(
 			abortSignal: this.transfersAbortControllers[params.id]?.signal,
 			pauseSignal: this.transfersPauseSignals[params.id],
 			onQueued: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev => [
@@ -122,10 +116,6 @@ export async function downloadDirectory(
 				}
 			},
 			onStarted: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -136,7 +126,7 @@ export async function downloadDirectory(
 									state: "started",
 									startedTimestamp: now,
 									size: params.size
-							  }
+								}
 							: transfer
 					)
 				)
@@ -144,10 +134,6 @@ export async function downloadDirectory(
 				this.transfersAllBytes += params.size
 			},
 			onProgress: transferred => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -157,7 +143,7 @@ export async function downloadDirectory(
 									...transfer,
 									bytes: transfer.bytes + transferred,
 									progressTimestamp: now
-							  }
+								}
 							: transfer
 					)
 				)
@@ -165,10 +151,6 @@ export async function downloadDirectory(
 				this.transfersBytesSent += transferred
 			},
 			onFinished: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setFinishedTransfers(prev => [
@@ -193,10 +175,6 @@ export async function downloadDirectory(
 				setTransfers(prev => prev.filter(transfer => transfer.id !== params.id))
 			},
 			onError: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -206,7 +184,7 @@ export async function downloadDirectory(
 									...transfer,
 									state: "error",
 									errorTimestamp: now
-							  }
+								}
 							: transfer
 					)
 				)
@@ -261,7 +239,6 @@ export async function downloadFile(
 		destination: string
 		size: number
 		name: string
-		dontEmitProgress?: boolean
 	}
 ) {
 	if (!this.transfersAbortControllers[params.id]) {
@@ -291,10 +268,6 @@ export async function downloadFile(
 			abortSignal: this.transfersAbortControllers[params.id]?.signal,
 			pauseSignal: this.transfersPauseSignals[params.id],
 			onQueued: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev => [
@@ -325,10 +298,6 @@ export async function downloadFile(
 				}
 			},
 			onStarted: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -339,7 +308,7 @@ export async function downloadFile(
 									state: "started",
 									startedTimestamp: now,
 									size: params.size
-							  }
+								}
 							: transfer
 					)
 				)
@@ -347,10 +316,6 @@ export async function downloadFile(
 				this.transfersAllBytes += params.size
 			},
 			onProgress: transferred => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -360,7 +325,7 @@ export async function downloadFile(
 									...transfer,
 									bytes: transfer.bytes + transferred,
 									progressTimestamp: now
-							  }
+								}
 							: transfer
 					)
 				)
@@ -368,10 +333,6 @@ export async function downloadFile(
 				this.transfersBytesSent += transferred
 			},
 			onFinished: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setFinishedTransfers(prev => [
@@ -396,10 +357,6 @@ export async function downloadFile(
 				setTransfers(prev => prev.filter(transfer => transfer.id !== params.id))
 			},
 			onError: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -409,7 +366,7 @@ export async function downloadFile(
 									...transfer,
 									state: "error",
 									errorTimestamp: now
-							  }
+								}
 							: transfer
 					)
 				)
@@ -751,7 +708,6 @@ export async function uploadDirectory(
 		parent: string
 		name: string
 		size: number
-		dontEmitProgress?: boolean
 		deleteAfterUpload?: boolean
 		isShared?: boolean
 	}
@@ -777,10 +733,6 @@ export async function uploadDirectory(
 			pauseSignal: this.transfersPauseSignals[params.id],
 			throwOnSingleFileUploadError: false,
 			onQueued: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev => [
@@ -811,10 +763,6 @@ export async function uploadDirectory(
 				}
 			},
 			onStarted: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -825,7 +773,7 @@ export async function uploadDirectory(
 									state: "started",
 									startedTimestamp: now,
 									size: params.size
-							  }
+								}
 							: transfer
 					)
 				)
@@ -833,10 +781,6 @@ export async function uploadDirectory(
 				this.transfersAllBytes += params.size
 			},
 			onProgress: transferred => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -846,7 +790,7 @@ export async function uploadDirectory(
 									...transfer,
 									bytes: transfer.bytes + transferred,
 									progressTimestamp: now
-							  }
+								}
 							: transfer
 					)
 				)
@@ -854,10 +798,6 @@ export async function uploadDirectory(
 				this.transfersBytesSent += transferred
 			},
 			onFinished: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setFinishedTransfers(prev => [
@@ -882,10 +822,6 @@ export async function uploadDirectory(
 				setTransfers(prev => prev.filter(transfer => transfer.id !== params.id))
 			},
 			onError: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -895,7 +831,7 @@ export async function uploadDirectory(
 									...transfer,
 									state: "error",
 									errorTimestamp: now
-							  }
+								}
 							: transfer
 					)
 				)
@@ -937,10 +873,6 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 			abortSignal: this.transfersAbortControllers[params.id]?.signal,
 			pauseSignal: this.transfersPauseSignals[params.id],
 			onQueued: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev => [
@@ -971,10 +903,6 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 				}
 			},
 			onStarted: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -985,7 +913,7 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 									state: "started",
 									startedTimestamp: now,
 									size: params.size
-							  }
+								}
 							: transfer
 					)
 				)
@@ -993,10 +921,6 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 				this.transfersAllBytes += params.size
 			},
 			onProgress: transferred => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -1006,7 +930,7 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 									...transfer,
 									bytes: transfer.bytes + transferred,
 									progressTimestamp: now
-							  }
+								}
 							: transfer
 					)
 				)
@@ -1014,10 +938,6 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 				this.transfersBytesSent += transferred
 			},
 			onFinished: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setFinishedTransfers(prev => [
@@ -1042,10 +962,6 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 				setTransfers(prev => prev.filter(transfer => transfer.id !== params.id))
 			},
 			onError: () => {
-				if (params.dontEmitProgress) {
-					return
-				}
-
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -1055,7 +971,7 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 									...transfer,
 									state: "error",
 									errorTimestamp: now
-							  }
+								}
 							: transfer
 					)
 				)

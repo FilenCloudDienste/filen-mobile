@@ -23,12 +23,14 @@ export const Transfers = memo(() => {
 	const finishedTransfers = useTransfersStore(useShallow(state => state.finishedTransfers))
 	const speed = useTransfersStore(useShallow(state => state.speed))
 	const remaining = useTransfersStore(useShallow(state => state.remaining))
+	const hiddenTransfers = useTransfersStore(useShallow(state => state.hiddenTransfers))
 	const { colors } = useColorScheme()
 	const { screen } = useDimensions()
 	const { t } = useTranslation()
 
 	const data = useMemo(() => {
 		return transfers
+			.filter(transfer => !hiddenTransfers[transfer.id])
 			.map(transfer => ({
 				id: `${transfer.id}:${transfer.state}:${transfer.type}:${transfer.name}`,
 				title: transfer.name,
@@ -42,6 +44,7 @@ export const Transfers = memo(() => {
 			)
 			.concat(
 				finishedTransfers
+					.filter(transfer => !hiddenTransfers[transfer.id])
 					.map(transfer => ({
 						id: `${transfer.id}:${transfer.state}:${transfer.type}:${transfer.name}`,
 						title: transfer.name,
@@ -50,7 +53,7 @@ export const Transfers = memo(() => {
 					}))
 					.sort((a, b) => b.transfer.finishedTimestamp - a.transfer.finishedTimestamp)
 			)
-	}, [transfers, finishedTransfers])
+	}, [transfers, finishedTransfers, hiddenTransfers])
 
 	const ongoingTransfers = useMemo(() => {
 		return transfers.filter(transfer => transfer.state === "queued" || transfer.state === "started" || transfer.state === "paused")

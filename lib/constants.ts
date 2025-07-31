@@ -49,7 +49,6 @@ export const UNCACHED_QUERY_KEYS: string[] = [
 	"useTextEditorItemContentQuery",
 	"useItemToPathQuery",
 	"useItemPublicLinkStatusQuery",
-	"useFileBufferQuery",
 	"useFileBase64Query"
 ]
 

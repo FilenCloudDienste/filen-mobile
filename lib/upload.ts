@@ -6,8 +6,11 @@ import { type ReadableStream } from "stream/web"
 import { type NodeWorkerHandlers } from "nodeWorker"
 import thumbnails from "./thumbnails"
 import { normalizeFilePathForExpo } from "./utils"
+import { useTransfersStore } from "@/stores/transfers.store"
 
 export class Upload {
+	private readonly setHiddenTransfers = useTransfersStore.getState().setHiddenTransfers
+
 	private isAuthed(): boolean {
 		const apiKey = getSDK().config.apiKey
 
@@ -15,7 +18,11 @@ export class Upload {
 	}
 
 	public directory = {
-		foreground: async (params: Parameters<NodeWorkerHandlers["uploadDirectory"]>[0]): Promise<void> => {
+		foreground: async (
+			params: Parameters<NodeWorkerHandlers["uploadDirectory"]>[0] & {
+				dontEmitProgress?: boolean
+			}
+		): Promise<void> => {
 			if (!this.isAuthed()) {
 				throw new Error("You must be authenticated to upload files.")
 			}
@@ -24,6 +31,13 @@ export class Upload {
 
 			if (!sourceEntry.exists) {
 				throw new Error(`Source ${params.localPath} does not exist.`)
+			}
+
+			if (params.dontEmitProgress) {
+				this.setHiddenTransfers(hidden => ({
+					...hidden,
+					[params.id]: params.id
+				}))
 			}
 
 			return await nodeWorker.proxy("uploadDirectory", params)
@@ -37,6 +51,7 @@ export class Upload {
 		foreground: async (
 			params: Parameters<NodeWorkerHandlers["uploadFile"]>[0] & {
 				disableThumbnailGeneration?: boolean
+				dontEmitProgress?: boolean
 			}
 		): Promise<DriveCloudItem> => {
 			if (!this.isAuthed()) {
@@ -47,6 +62,13 @@ export class Upload {
 
 			if (!sourceEntry.exists) {
 				throw new Error(`Source ${params.localPath} does not exist.`)
+			}
+
+			if (params.dontEmitProgress) {
+				this.setHiddenTransfers(hidden => ({
+					...hidden,
+					[params.id]: params.id
+				}))
 			}
 
 			const wantsToDeleteAfterUpload = params.deleteAfterUpload ?? false
@@ -126,13 +148,13 @@ export class Upload {
 										sharerEmail: params.sharerEmail,
 										sharerId: params.sharerId,
 										receivers: params.receivers
-								  }
+									}
 								: {
 										...item,
 										isShared: false,
 										type: "file",
 										selected: false
-								  }) satisfies DriveCloudItem,
+									}) satisfies DriveCloudItem,
 							originalFilePath: normalizeFilePathForExpo(params.localPath)
 						})
 						.catch(() => {
