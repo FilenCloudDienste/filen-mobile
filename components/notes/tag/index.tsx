@@ -24,6 +24,16 @@ export const Tag = memo(
 			return validateUUID(id)
 		}, [id])
 
+		const isUndecryptable = useMemo(() => {
+			if (!isValidUUID) {
+				return false
+			}
+
+			const nameNormalized = name.toLowerCase().trim()
+
+			return nameNormalized.startsWith("cannot_decrypt_") && nameNormalized.endsWith(`_${id}`)
+		}, [id, name, isValidUUID])
+
 		const select = useCallback(() => {
 			setSelectedTag(id)
 		}, [id, setSelectedTag])
@@ -118,7 +128,7 @@ export const Tag = memo(
 			)
 		}
 
-		if (!tag) {
+		if (!tag || isUndecryptable) {
 			return (
 				<Button
 					variant="plain"
