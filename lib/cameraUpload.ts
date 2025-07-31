@@ -25,6 +25,7 @@ export type TreeItem = (
 	  }
 	| {
 			type: "remote"
+			uuid: string
 	  }
 ) & {
 	name: string
@@ -42,8 +43,9 @@ export type Delta = {
 
 export type CameraUploadType = "foreground" | "background"
 
-const runMutex: Semaphore = new Semaphore(1)
-const processDeltaSemaphore: Semaphore = new Semaphore(10)
+export const runMutex: Semaphore = new Semaphore(1)
+export const processDeltaSemaphore: Semaphore = new Semaphore(4)
+export const calculateDeltaSemaphore: Semaphore = new Semaphore(32)
 
 export class CameraUpload {
 	private readonly type: CameraUploadType
@@ -124,21 +126,21 @@ export class CameraUpload {
 				? MediaLibrary.getPermissionsAsync(false, this.type === "background" ? ["photo"] : ["photo", "video"])
 				: Promise.resolve({
 						status: MediaLibrary.PermissionStatus.GRANTED
-				  }),
+					}),
 			checkNetwork
 				? getNetInfoState()
 				: Promise.resolve({
 						hasInternet: true,
 						isWifiEnabled: true,
 						cellular: false
-				  }),
+					}),
 			checkBattery
 				? Battery.getPowerStateAsync()
 				: Promise.resolve({
 						lowPowerMode: false,
 						batteryLevel: 1,
 						batteryState: Battery.BatteryState.FULL
-				  })
+					})
 		])
 
 		if (
@@ -244,11 +246,11 @@ export class CameraUpload {
 				? await nodeWorker.proxy("getDirectoryTree", {
 						uuid: state.remote.uuid,
 						type: "normal"
-				  })
+					})
 				: await getSDK().cloud().getDirectoryTree({
 						uuid: state.remote.uuid,
 						type: "normal"
-				  })
+					})
 
 		for (const path in tree) {
 			const file = tree[path]
@@ -262,6 +264,7 @@ export class CameraUpload {
 			items[pathNormalized] = {
 				type: "remote",
 				name: file.name,
+				uuid: file.uuid,
 				creation: file.creation ?? file.lastModified ?? file.timestamp,
 				lastModified: file.lastModified,
 				path: pathNormalized
@@ -271,28 +274,64 @@ export class CameraUpload {
 		return items
 	}
 
-	public deltas({ localItems, remoteItems }: { localItems: Tree; remoteItems: Tree }): Delta[] {
+	public async deltas({ localItems, remoteItems }: { localItems: Tree; remoteItems: Tree }): Promise<Delta[]> {
 		const deltas: Delta[] = []
 
-		for (const path in localItems) {
-			const localItem = localItems[path]
-			const remoteItem = remoteItems[path]
+		await promiseAllChunked(
+			Object.keys(localItems).map(async path => {
+				await calculateDeltaSemaphore.acquire()
 
-			/*
-			||
-				(localItem &&
-					remoteItem &&
-					this.normalizeModificationTimestampForComparison(localItem.lastModified) >
-						this.normalizeModificationTimestampForComparison(remoteItem.lastModified))
-			*/
+				try {
+					const localItem = localItems[path]
+					const remoteItem = remoteItems[path]
 
-			if (localItem && !remoteItem) {
-				deltas.push({
-					type: "upload",
-					item: localItem
-				})
-			}
-		}
+					/*
+					||
+						(localItem &&
+							remoteItem &&
+							this.normalizeModificationTimestampForComparison(localItem.lastModified) >
+								this.normalizeModificationTimestampForComparison(remoteItem.lastModified))
+					*/
+
+					if (localItem && !remoteItem) {
+						const delta: Delta = {
+							type: "upload",
+							item: localItem
+						}
+
+						const errorKey = `${delta.type}:${delta.item.path}`
+
+						if (this.deltaErrors[errorKey] && this.deltaErrors[errorKey] >= 3) {
+							return
+						}
+
+						if (localItem.type === "local") {
+							if (localItem.asset.mediaType === "unknown") {
+								return
+							}
+
+							const stat = await MediaLibrary.getAssetInfoAsync(localItem.asset, {
+								shouldDownloadFromNetwork: false
+							})
+
+							if (!stat.localUri) {
+								return
+							}
+
+							const localFile = new FileSystem.File(stat.localUri)
+
+							if (!localFile.exists || !localFile.size || localFile.size > this.maxSize) {
+								return
+							}
+						}
+
+						deltas.push(delta)
+					}
+				} finally {
+					calculateDeltaSemaphore.release()
+				}
+			})
+		)
 
 		return deltas.sort((a, b) => {
 			return a.item.creation - b.item.creation
@@ -402,14 +441,14 @@ export class CameraUpload {
 						!parentName || parentName.length === 0 || parentName === "."
 							? state.remote.uuid
 							: this.type === "foreground"
-							? await nodeWorker.proxy("createDirectory", {
-									name: parentName,
-									parent: state.remote.uuid
-							  })
-							: await getSDK().cloud().createDirectory({
-									name: parentName,
-									parent: state.remote.uuid
-							  })
+								? await nodeWorker.proxy("createDirectory", {
+										name: parentName,
+										parent: state.remote.uuid
+									})
+								: await getSDK().cloud().createDirectory({
+										name: parentName,
+										parent: state.remote.uuid
+									})
 
 					if (abortSignal?.aborted) {
 						throw new Error("Aborted")
@@ -429,7 +468,7 @@ export class CameraUpload {
 
 					const localFile = new FileSystem.File(stat.localUri)
 
-					if (!localFile.exists || (localFile.size && localFile.size > this.maxSize)) {
+					if (!localFile.exists || !localFile.size || localFile.size > this.maxSize) {
 						return
 					}
 
@@ -483,7 +522,7 @@ export class CameraUpload {
 										deleteAfterUpload: true,
 										creation: delta.item.creation,
 										lastModified: delta.item.lastModified
-								  })
+									})
 								: await upload.file.background({
 										parent: parentUUID,
 										localPath: tmpFile.uri,
@@ -495,7 +534,7 @@ export class CameraUpload {
 										creation: delta.item.creation,
 										lastModified: delta.item.lastModified,
 										abortSignal
-								  })
+									})
 
 						if (item.type !== "file") {
 							throw new Error("Invalid response from uploadFile.")
@@ -605,11 +644,11 @@ export class CameraUpload {
 					? await nodeWorker.proxy("directoryExists", {
 							name: state.remote.name,
 							parent: state.remote.parent
-					  })
+						})
 					: await getSDK().cloud().directoryExists({
 							name: state.remote.name,
 							parent: state.remote.parent
-					  })
+						})
 
 			if (!exists.exists || exists.uuid !== state.remote.uuid) {
 				return
@@ -625,7 +664,7 @@ export class CameraUpload {
 				throw new Error("Aborted")
 			}
 
-			const deltas = this.deltas({
+			const deltas = await this.deltas({
 				localItems,
 				remoteItems
 			})
