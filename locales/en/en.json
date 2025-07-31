@@ -302,7 +302,8 @@
 			},
 			"new": "New",
 			"everyone": "Everyone",
-			"unknown": "Unknown"
+			"unknown": "Unknown",
+			"undecryptable": "Cannot decrypt message."
 		},
 		"menu": {
 			"leave": "Leave",

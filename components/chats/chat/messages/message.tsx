@@ -10,7 +10,6 @@ import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/convers
 import { useChatsStore } from "@/stores/chats.store"
 import { cn } from "@/lib/cn"
 import Animated, {
-	FadeInDown,
 	useSharedValue,
 	withSpring,
 	runOnJS,
@@ -56,14 +55,12 @@ export const Message = memo(
 	({
 		info,
 		chat,
-		lastMessageTimestamp,
 		lastFocus,
 		previousMessage,
 		nextMessage
 	}: {
 		info: ListRenderItemInfo<ChatMessage>
 		chat: ChatConversation
-		lastMessageTimestamp: number
 		lastFocus: number | null
 		previousMessage: ChatMessage | undefined
 		nextMessage: ChatMessage | undefined
@@ -87,6 +84,18 @@ export const Message = memo(
 		const [, setChatInputValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
 		const { hasInternet } = useNetInfo()
 		const { t } = useTranslation()
+
+		const { isMessageUndecryptable, isReplyToMessageUndecryptable } = useMemo(() => {
+			const messageNormalized = info.item.message.toLowerCase().trim()
+			const replyToMessageNormalized = info.item.replyTo?.message.toLowerCase().trim() ?? ""
+
+			return {
+				isMessageUndecryptable: messageNormalized.startsWith("cannot_decrypt_") && messageNormalized.endsWith(`_${info.item.uuid}`),
+				isReplyToMessageUndecryptable:
+					replyToMessageNormalized.startsWith("cannot_decrypt_") &&
+					replyToMessageNormalized.endsWith(`_${info.item.replyTo?.uuid}`)
+			}
+		}, [info.item.uuid, info.item.message, info.item.replyTo?.uuid, info.item.replyTo?.message])
 
 		const actionSheetOptions = useMemo(() => {
 			const options =
@@ -241,10 +250,6 @@ export const Message = memo(
 			chat
 		])
 
-		const animateOnEnter = useMemo(() => {
-			return info.item.sentTimestamp > lastMessageTimestamp
-		}, [info.item.sentTimestamp, lastMessageTimestamp])
-
 		const name = useMemo(() => {
 			return contactName(info.item.senderEmail, info.item.senderNickName)
 		}, [info.item.senderEmail, info.item.senderNickName])
@@ -348,17 +353,17 @@ export const Message = memo(
 		}, [screen.width])
 
 		const onSwipeLeft = useCallback(() => {
-			if (!hasInternet) {
+			if (!hasInternet || isMessageUndecryptable) {
 				return
 			}
 
 			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(console.error)
 
 			onPress()
-		}, [onPress, hasInternet])
+		}, [onPress, hasInternet, isMessageUndecryptable])
 
 		const onSwipeRight = useCallback(() => {
-			if (!hasInternet) {
+			if (!hasInternet || isMessageUndecryptable) {
 				return
 			}
 
@@ -368,7 +373,7 @@ export const Message = memo(
 				...prev,
 				[chat.uuid]: info.item
 			}))
-		}, [setReplyToMessage, chat.uuid, info.item, hasInternet])
+		}, [setReplyToMessage, chat.uuid, info.item, hasInternet, isMessageUndecryptable])
 
 		const panGesture = useMemo(() => {
 			return Gesture.Pan()
@@ -444,10 +449,6 @@ export const Message = memo(
 			}
 		}, [groupWithPreviousMessage])
 
-		const enteringAnimation = useMemo(() => {
-			return animateOnEnter ? FadeInDown : undefined
-		}, [animateOnEnter])
-
 		const animatedStyle = useMemo(() => {
 			return [
 				{
@@ -517,10 +518,7 @@ export const Message = memo(
 					message={info.item}
 				>
 					<GestureDetector gesture={panGesture}>
-						<Animated.View
-							entering={enteringAnimation}
-							style={animatedStyle}
-						>
+						<Animated.View style={animatedStyle}>
 							<Button
 								className={buttonClassName}
 								variant="plain"
@@ -528,14 +526,17 @@ export const Message = memo(
 								unstable_pressDelay={100}
 								onPress={onPress}
 							>
-								{info.item.replyTo && info.item.replyTo.uuid && info.item.replyTo.uuid.length > 0 && (
-									<View className="flex-1 flex-row items-center">
-										<ReplyTo
-											message={info.item}
-											chat={chat}
-										/>
-									</View>
-								)}
+								{info.item.replyTo &&
+									info.item.replyTo.uuid &&
+									info.item.replyTo.uuid.length > 0 &&
+									!isReplyToMessageUndecryptable && (
+										<View className="flex-1 flex-row items-center">
+											<ReplyTo
+												message={info.item}
+												chat={chat}
+											/>
+										</View>
+									)}
 								<View className="flex-row gap-4 flex-1">
 									{!groupWithPreviousMessage && (
 										<Avatar
@@ -563,12 +564,18 @@ export const Message = memo(
 											</View>
 										)}
 										<View className={replaceClassName}>
-											<ReplacedMessageContent
-												message={info.item}
-												chat={chat}
-												embedsDisabled={info.item.embedDisabled}
-												edited={info.item.edited}
-											/>
+											{isMessageUndecryptable ? (
+												<Text className="italic text-sm text-muted-foreground font-normal shrink flex-wrap text-wrap items-center break-all">
+													{t("chats.messages.undecryptable")}
+												</Text>
+											) : (
+												<ReplacedMessageContent
+													message={info.item}
+													chat={chat}
+													embedsDisabled={info.item.embedDisabled}
+													edited={info.item.edited}
+												/>
+											)}
 										</View>
 										{pendingState && pendingState === "failed" && (
 											<MaterialCommunityIcons

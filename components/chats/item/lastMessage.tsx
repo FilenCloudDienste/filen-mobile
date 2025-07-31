@@ -93,6 +93,16 @@ export const LastMessage = memo(({ chat }: { chat: ChatConversation }) => {
 		return contactName(lastMessageUser.email, lastMessageUser.nickName)
 	}, [chat.lastMessage, chat.lastMessageSender, chat.participants])
 
+	const isUndecryptable = useMemo(() => {
+		const nameNormalized = chat.name?.toLowerCase().trim() ?? ""
+		const lastMessageNormalized = chat.lastMessage?.toLowerCase().trim() ?? ""
+
+		return (
+			(nameNormalized.startsWith("cannot_decrypt_") && nameNormalized.endsWith(`_${chat.uuid}`)) ||
+			(lastMessageNormalized.startsWith("cannot_decrypt_") && lastMessageNormalized.endsWith(`_${chat.lastMessageUUID}`))
+		)
+	}, [chat.name, chat.uuid, chat.lastMessage, chat.lastMessageUUID])
+
 	useEffect(() => {
 		const socketEventListener = socketEvents.subscribe("socketEvent", e => {
 			if (e.type === "chatTyping" && e.data.conversation === chat.uuid) {
@@ -118,6 +128,18 @@ export const LastMessage = memo(({ chat }: { chat: ChatConversation }) => {
 			socketEventListener.remove()
 		}
 	}, [chat.uuid, socketEvents])
+
+	if (isUndecryptable) {
+		return (
+			<Text
+				className="text-muted-foreground text-sm font-normal italic flex-1"
+				numberOfLines={1}
+				ellipsizeMode="middle"
+			>
+				{t("chats.item.noMessages")}
+			</Text>
+		)
+	}
 
 	if (chatInputValue && chatInputValue.length > 0 && chatInputValue.trim().length > 0) {
 		return (
