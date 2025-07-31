@@ -80,9 +80,23 @@ export const Photo = memo(
 			}
 
 			useGalleryStore.getState().open({
-				items,
-				initialUUIDOrURI: info.item.uuid,
-				queryParams
+				items: items
+					.map(item => {
+						const previewType = getPreviewType(item.name)
+
+						return item.size > 0
+							? {
+									itemType: "cloudItem" as const,
+									previewType,
+									data: {
+										item,
+										queryParams
+									}
+							  }
+							: null
+					})
+					.filter(item => item !== null),
+				initialUUIDOrURI: info.item.uuid
 			})
 		}, [items, info.item, queryParams, isSelected, selectedItemsCount])
 

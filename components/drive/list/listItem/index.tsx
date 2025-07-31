@@ -293,8 +293,8 @@ export const ListItem = memo(
 			}
 
 			if ((previewType === "image" || previewType === "video" || previewType === "audio") && info.item.item.size > 0) {
-				useGalleryStore.getState().setItems(
-					items
+				useGalleryStore.getState().open({
+					items: items
 						.map(item => {
 							const previewType = getPreviewType(item.name)
 
@@ -309,11 +309,9 @@ export const ListItem = memo(
 								  }
 								: null
 						})
-						.filter(item => item !== null)
-				)
-
-				useGalleryStore.getState().setInitialUUID(info.item.item.uuid)
-				useGalleryStore.getState().setVisible(true)
+						.filter(item => item !== null),
+					initialUUIDOrURI: info.item.item.uuid
+				})
 			}
 
 			if (previewType === "text" || previewType === "code") {

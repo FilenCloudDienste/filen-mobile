@@ -119,6 +119,8 @@ export const Item = memo(
 							uuid: item.uuid
 						}
 					})
+
+					return
 				}
 
 				if (type === "sharedIn") {
@@ -128,6 +130,8 @@ export const Item = memo(
 							uuid: item.uuid
 						}
 					})
+
+					return
 				}
 
 				if (type === "sharedOut" && item.isShared) {
@@ -138,6 +142,8 @@ export const Item = memo(
 							receiverId: item.receiverId
 						}
 					})
+
+					return
 				}
 
 				if (type === "offline") {
@@ -147,6 +153,8 @@ export const Item = memo(
 							uuid: item.uuid
 						}
 					})
+
+					return
 				}
 
 				return
@@ -179,8 +187,8 @@ export const Item = memo(
 			}
 
 			if ((previewType === "image" || previewType === "video" || previewType === "audio") && item.size > 0) {
-				useGalleryStore.getState().setItems(
-					items
+				useGalleryStore.getState().open({
+					items: items
 						.map(item => {
 							const previewType = getPreviewType(item.name)
 
@@ -195,11 +203,11 @@ export const Item = memo(
 								  }
 								: null
 						})
-						.filter(item => item !== null)
-				)
+						.filter(item => item !== null),
+					initialUUIDOrURI: item.uuid
+				})
 
-				useGalleryStore.getState().setInitialUUID(item.uuid)
-				useGalleryStore.getState().setVisible(true)
+				return
 			}
 
 			if (previewType === "text" || previewType === "code") {
@@ -212,6 +220,8 @@ export const Item = memo(
 						} satisfies TextEditorItem)
 					}
 				})
+
+				return
 			}
 
 			if (previewType === "pdf" && item.size > 0) {
@@ -224,6 +234,8 @@ export const Item = memo(
 						} satisfies PDFPreviewItem)
 					}
 				})
+
+				return
 			}
 
 			if (previewType === "docx" && item.size > 0) {
@@ -236,6 +248,8 @@ export const Item = memo(
 						} satisfies DOCXPreviewItem)
 					}
 				})
+
+				return
 			}
 		}, [routerPush, item, hasInternet, offlineStatus, items, type, queryParams, t])
 

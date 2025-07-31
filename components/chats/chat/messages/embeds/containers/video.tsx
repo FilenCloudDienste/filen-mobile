@@ -77,18 +77,18 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 				}
 			}
 
-			useGalleryStore.getState().setItems([
-				{
-					itemType: "remoteItem" as const,
-					previewType: "video",
-					data: {
-						uri: source
+			useGalleryStore.getState().open({
+				items: [
+					{
+						itemType: "remoteItem" as const,
+						previewType: "video",
+						data: {
+							uri: source
+						}
 					}
-				}
-			])
-
-			useGalleryStore.getState().setInitialUUID(source)
-			useGalleryStore.getState().setVisible(true)
+				],
+				initialUUIDOrURI: source
+			})
 		},
 		[link, source, query.status]
 	)

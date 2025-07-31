@@ -36,18 +36,18 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 			e.stopPropagation()
 
 			if (loadSuccess) {
-				useGalleryStore.getState().setItems([
-					{
-						itemType: "remoteItem" as const,
-						previewType: "image",
-						data: {
-							uri: source
+				useGalleryStore.getState().open({
+					items: [
+						{
+							itemType: "remoteItem" as const,
+							previewType: "image",
+							data: {
+								uri: source
+							}
 						}
-					}
-				])
-
-				useGalleryStore.getState().setInitialUUID(source)
-				useGalleryStore.getState().setVisible(true)
+					],
+					initialUUIDOrURI: source
+				})
 
 				return
 			}

@@ -186,7 +186,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 
 	const viewabilityConfig = useMemo((): ViewabilityConfig => {
 		return {
-			itemVisiblePercentThreshold: 99
+			itemVisiblePercentThreshold: 99.9
 		}
 	}, [])
 
