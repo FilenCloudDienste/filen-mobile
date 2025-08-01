@@ -273,6 +273,7 @@ export class CameraUpload {
 								this.normalizeModificationTimestampForComparison(remoteItem.lastModified))
 					*/
 
+					// If the local item exists and the remote item does not, we need to upload it
 					if (localItem && !remoteItem) {
 						const delta: Delta = {
 							type: "upload",
