@@ -67,7 +67,6 @@ export const YouTube = memo(({ link }: { link: string }) => {
 		},
 		throwOnError(err) {
 			console.error(err)
-			alerts.error(err.message)
 
 			return false
 		},

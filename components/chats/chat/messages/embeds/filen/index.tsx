@@ -15,7 +15,6 @@ import Directory from "./directory"
 import Fallback from "../containers/fallback"
 import useHTTPServer from "@/hooks/useHTTPServer"
 import useNetInfo from "@/hooks/useNetInfo"
-import alerts from "@/lib/alerts"
 
 export type PublicLinkInfo =
 	| {
@@ -102,7 +101,6 @@ export const Filen = memo(({ link }: { link: string }) => {
 		},
 		throwOnError(err) {
 			console.error(err)
-			alerts.error(err.message)
 
 			return false
 		},

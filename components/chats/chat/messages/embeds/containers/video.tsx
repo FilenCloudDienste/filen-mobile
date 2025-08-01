@@ -59,7 +59,6 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 		},
 		throwOnError(err) {
 			console.error(err)
-			alerts.error(err.message)
 
 			return false
 		},

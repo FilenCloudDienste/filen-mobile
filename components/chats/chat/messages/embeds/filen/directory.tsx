@@ -48,7 +48,6 @@ export const Directory = memo(
 			},
 			throwOnError(err) {
 				console.error(err)
-				alerts.error(err.message)
 
 				return false
 			},
