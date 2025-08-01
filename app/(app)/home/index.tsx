@@ -2,7 +2,7 @@ import { memo, useState, Fragment, useMemo, useCallback } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { Platform, RefreshControl, View, ActivityIndicator, ScrollView } from "react-native"
+import { Platform, RefreshControl, View, ScrollView } from "react-native"
 import { cn } from "@/lib/cn"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import Avatar from "@/components/avatar"
@@ -169,7 +169,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: recents.data.filter(item => item.type === "file").slice(0, 12),
 					type: "uploadDateDesc"
-			  })
+				})
 			: []
 	}, [recents.status, recents.data])
 
@@ -178,7 +178,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: favorites.data.filter(item => item.type === "file").slice(0, 12),
 					type: "lastModifiedDesc"
-			  })
+				})
 			: []
 	}, [favorites.status, favorites.data])
 
@@ -191,7 +191,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: links.data.slice(0, 12),
 					type: "lastModifiedDesc"
-			  })
+				})
 			: []
 	}, [links.status, links.data, isProUser])
 
@@ -200,7 +200,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: sharedIn.data.slice(0, 12),
 					type: "lastModifiedDesc"
-			  })
+				})
 			: []
 	}, [sharedIn.status, sharedIn.data])
 
@@ -209,7 +209,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: sharedOut.data.slice(0, 12),
 					type: "lastModifiedDesc"
-			  })
+				})
 			: []
 	}, [sharedOut.status, sharedOut.data])
 
@@ -218,7 +218,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: offline.data.slice(0, 12),
 					type: "lastModifiedDesc"
-			  })
+				})
 			: []
 	}, [offline.status, offline.data])
 
@@ -227,7 +227,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: trash.data.slice(0, 12),
 					type: "lastModifiedDesc"
-			  })
+				})
 			: []
 	}, [trash.status, trash.data])
 
@@ -236,19 +236,6 @@ export const Home = memo(() => {
 			pathname: "/(app)/home/settings"
 		})
 	}, [router])
-
-	const loadDone = useMemo(() => {
-		return (
-			recents.status === "success" &&
-			links.status === "success" &&
-			account.status === "success" &&
-			trash.status === "success" &&
-			sharedIn.status === "success" &&
-			sharedOut.status === "success" &&
-			offline.status === "success" &&
-			favorites.status === "success"
-		)
-	}, [recents.status, links.status, account.status, trash.status, sharedIn.status, sharedOut.status, offline.status, favorites.status])
 
 	const avatarSource = useMemo(() => {
 		if (account.status !== "success" || !account.data.account.avatarURL || !account.data.account.avatarURL.startsWith("https://")) {
@@ -282,7 +269,7 @@ export const Home = memo(() => {
 							</Button>
 						</View>
 					)
-			  }
+				}
 			: undefined
 	}, [account.status, hasInternet, avatarSource, openSettings])
 
@@ -354,13 +341,13 @@ export const Home = memo(() => {
 
 	const items = useMemo(() => {
 		return [
-			"recents",
-			"favorites",
-			...(isProUser ? ["links"] : []),
-			"sharedIn",
-			"sharedOut",
-			"offline",
-			...(hasInternet ? ["trash"] : []),
+			...(recents.status === "success" ? ["recents"] : []),
+			...(favorites.status === "success" ? ["favorites"] : []),
+			...(isProUser && links.status === "success" ? ["links"] : []),
+			...(sharedIn.status === "success" ? ["sharedIn"] : []),
+			...(sharedOut.status === "success" ? ["sharedOut"] : []),
+			...(offline.status === "success" ? ["offline"] : []),
+			...(hasInternet && trash.status === "success" ? ["trash"] : []),
 			"bottom"
 		].map(type => {
 			return (
@@ -371,23 +358,40 @@ export const Home = memo(() => {
 						type === "recents"
 							? recentsItems
 							: type === "favorites"
-							? favoritesItems
-							: type === "links"
-							? linksItems
-							: type === "sharedIn"
-							? sharedInItems
-							: type === "sharedOut"
-							? sharedOutItems
-							: type === "offline"
-							? offlineItems
-							: type === "trash"
-							? trashItems
-							: []
+								? favoritesItems
+								: type === "links"
+									? linksItems
+									: type === "sharedIn"
+										? sharedInItems
+										: type === "sharedOut"
+											? sharedOutItems
+											: type === "offline"
+												? offlineItems
+												: type === "trash"
+													? trashItems
+													: []
 					}
 				/>
 			)
 		})
-	}, [hasInternet, recentsItems, favoritesItems, linksItems, sharedInItems, sharedOutItems, offlineItems, trashItems, isProUser])
+	}, [
+		hasInternet,
+		recentsItems,
+		favoritesItems,
+		linksItems,
+		sharedInItems,
+		sharedOutItems,
+		offlineItems,
+		trashItems,
+		isProUser,
+		recents.status,
+		favorites.status,
+		links.status,
+		sharedIn.status,
+		sharedOut.status,
+		offline.status,
+		trash.status
+	])
 
 	return (
 		<Fragment>
@@ -399,26 +403,17 @@ export const Home = memo(() => {
 				rightView={headerRightView}
 			/>
 			<Container>
-				{!loadDone ? (
-					<View className="flex-1 flex-row items-center justify-center">
-						<ActivityIndicator
-							color={colors.foreground}
-							size="small"
-						/>
-					</View>
-				) : (
-					<ScrollView
-						contentInsetAdjustmentBehavior="automatic"
-						contentContainerClassName={cn("pt-2", Platform.OS === "ios" && "pt-4")}
-						contentContainerStyle={contentContainerStyle}
-						showsVerticalScrollIndicator={false}
-						showsHorizontalScrollIndicator={false}
-						refreshControl={refreshControl}
-					>
-						{!hasInternet && <OfflineListHeader className="mb-4" />}
-						{items}
-					</ScrollView>
-				)}
+				<ScrollView
+					contentInsetAdjustmentBehavior="automatic"
+					contentContainerClassName={cn("pt-2", Platform.OS === "ios" && "pt-4")}
+					contentContainerStyle={contentContainerStyle}
+					showsVerticalScrollIndicator={false}
+					showsHorizontalScrollIndicator={false}
+					refreshControl={refreshControl}
+				>
+					{!hasInternet && <OfflineListHeader className="mb-4" />}
+					{items}
+				</ScrollView>
 			</Container>
 		</Fragment>
 	)
