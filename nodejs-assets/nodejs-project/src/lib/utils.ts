@@ -25,7 +25,7 @@ export function normalizeTransferProgress(size: number, bytes: number): number {
 		return 0
 	}
 
-	return result
+	return result >= 100 ? 100 : result <= 0 ? 0 : result
 }
 
 export async function sleep(ms: number = 1000): Promise<void> {

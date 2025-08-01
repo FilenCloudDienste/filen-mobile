@@ -8,7 +8,7 @@ import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/n
 import Container from "@/components/Container"
 import { Text } from "@/components/nativewindui/Text"
 import Transfer, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/transfers/transfer"
-import { formatBytes, promiseAllChunked, normalizeTransferProgress, bpsToReadable } from "@/lib/utils"
+import { formatBytes, promiseAllChunked, normalizeTransferProgress, bpsToReadable, getTimeRemaining } from "@/lib/utils"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
@@ -168,10 +168,18 @@ export const Transfers = memo(() => {
 			return null
 		}
 
+		const remainingReadable = getTimeRemaining(Math.floor(Date.now() + remaining * 1000))
+
 		return t("transfers.info", {
 			ongoingTransfers: ongoingTransfers.length,
 			speed: bpsToReadable(speed),
-			remaining: formatBytes(remaining)
+			remaining:
+				remainingReadable.total <= 1 || remainingReadable.seconds <= 1
+					? "1s"
+					: (remainingReadable.days > 0 ? remainingReadable.days + "d " : "") +
+						(remainingReadable.hours > 0 ? remainingReadable.hours + "h " : "") +
+						(remainingReadable.minutes > 0 ? remainingReadable.minutes + "m " : "") +
+						(remainingReadable.seconds > 0 ? remainingReadable.seconds + "s " : "")
 		})
 	}, [ongoingTransfers.length, speed, remaining, t])
 
