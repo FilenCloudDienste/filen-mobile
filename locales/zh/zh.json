@@ -15,6 +15,12 @@
 			"title": "标题",
 			"okText": "确定",
 			"cancelText": "取消"
+		},
+		"exportMasterKeys": {
+			"title": "导出主密钥",
+			"message": "您尚未导出主密钥。强烈建议您立即导出并妥善保管。",
+			"okText": "导出",
+			"cancelText": "以后"
 		}
 	},
 	"inputPrompt": {
@@ -302,7 +308,8 @@
 			},
 			"new": "新消息",
 			"everyone": "所有人",
-			"unknown": "未知"
+			"unknown": "未知",
+			"undecryptable": "无法解密消息。"
 		},
 		"menu": {
 			"leave": "离开",
@@ -554,6 +561,13 @@
 				"settings": "设置"
 			},
 			"dropdown": {
+				"types": {
+					"markdown": "Markdown",
+					"checklist": "清单",
+					"text": "文本",
+					"rich": "富文本",
+					"code": "代码"
+				},
 				"items": {
 					"selectAll": "全选",
 					"deselectAll": "取消全选"
