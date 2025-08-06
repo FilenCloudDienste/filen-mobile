@@ -265,7 +265,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			}
 		],
 		"./plugins/withAndroidSigning",
-		"./plugins/withGradleMemory"
+		"./plugins/withGradleMemory",
+		"./plugins/withAndroidLibCryptoPackaging"
 	],
 	experiments: {
 		typedRoutes: true,

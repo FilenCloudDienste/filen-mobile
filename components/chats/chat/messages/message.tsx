@@ -75,12 +75,10 @@ export const Message = memo(
 		} = useDimensions()
 		const { showActionSheetWithOptions } = useActionSheet()
 		const { colors } = useColorScheme()
-		const setReplyToMessage = useChatsStore(useShallow(state => state.setReplyToMessage))
 		const translateX = useSharedValue<number>(0)
 		const contextX = useSharedValue<number>(0)
 		const replyToMessageUUID = useChatsStore(useShallow(state => state.replyToMessage[chat.uuid]?.uuid))
 		const editMessageUUID = useChatsStore(useShallow(state => state.editMessage[chat.uuid]?.uuid))
-		const setEditMessage = useChatsStore(useShallow(state => state.setEditMessage))
 		const [, setChatInputValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
 		const { hasInternet } = useNetInfo()
 		const { t } = useTranslation()
@@ -130,30 +128,30 @@ export const Message = memo(
 		}, [info.item.senderId, userId, t])
 
 		const reply = useCallback(() => {
-			setReplyToMessage(prev => ({
+			useChatsStore.getState().setReplyToMessage(prev => ({
 				...prev,
 				[chat.uuid]: info.item
 			}))
 
-			setEditMessage(prev => ({
+			useChatsStore.getState().setEditMessage(prev => ({
 				...prev,
 				[chat.uuid]: null
 			}))
-		}, [info.item, setReplyToMessage, chat.uuid, setEditMessage])
+		}, [info.item, chat.uuid])
 
 		const edit = useCallback(() => {
 			setChatInputValue(info.item.message)
 
-			setEditMessage(prev => ({
+			useChatsStore.getState().setEditMessage(prev => ({
 				...prev,
 				[chat.uuid]: info.item
 			}))
 
-			setReplyToMessage(prev => ({
+			useChatsStore.getState().setReplyToMessage(prev => ({
 				...prev,
 				[chat.uuid]: null
 			}))
-		}, [info.item, setEditMessage, chat.uuid, setReplyToMessage, setChatInputValue])
+		}, [info.item, chat.uuid, setChatInputValue])
 
 		const onPress = useCallback(() => {
 			if (!hasInternet) {
@@ -369,11 +367,11 @@ export const Message = memo(
 
 			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(console.error)
 
-			setReplyToMessage(prev => ({
+			useChatsStore.getState().setReplyToMessage(prev => ({
 				...prev,
 				[chat.uuid]: info.item
 			}))
-		}, [setReplyToMessage, chat.uuid, info.item, hasInternet, isMessageUndecryptable])
+		}, [chat.uuid, info.item, hasInternet, isMessageUndecryptable])
 
 		const panGesture = useMemo(() => {
 			return Gesture.Pan()
@@ -445,7 +443,12 @@ export const Message = memo(
 		const rootStyle = useMemo(() => {
 			return {
 				flex: 1,
-				paddingTop: groupWithPreviousMessage ? 0 : 8
+				paddingTop: groupWithPreviousMessage ? 0 : 8,
+				transform: [
+					{
+						scaleY: -1
+					}
+				]
 			}
 		}, [groupWithPreviousMessage])
 
@@ -559,7 +562,10 @@ export const Message = memo(
 													variant="caption1"
 													className="text-muted-foreground shrink-0 pt-1"
 												>
-													<Date timestamp={info.item.sentTimestamp} />
+													<Date
+														timestamp={info.item.sentTimestamp}
+														uuid={info.item.uuid}
+													/>
 												</Text>
 											</View>
 										)}
@@ -591,6 +597,7 @@ export const Message = memo(
 						</Animated.View>
 					</GestureDetector>
 				</Menu>
+				{info.index === 0 && <View className="h-8 w-full flex-1 basis-full" />}
 			</View>
 		)
 	}

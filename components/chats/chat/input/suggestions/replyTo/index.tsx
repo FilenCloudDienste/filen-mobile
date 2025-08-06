@@ -8,10 +8,8 @@ import Animated, { SlideInDown, SlideOutDown, type AnimatedStyle } from "react-n
 import { useChatsStore } from "@/stores/chats.store"
 import { Icon } from "@roninoss/icons"
 import { View, type StyleProp, type ViewStyle } from "react-native"
-import { useKeyboardState, KeyboardController } from "react-native-keyboard-controller"
+import { useKeyboardState } from "react-native-keyboard-controller"
 import { useShallow } from "zustand/shallow"
-import { useMMKVString } from "react-native-mmkv"
-import mmkvInstance from "@/lib/mmkv"
 import { useTranslation } from "react-i18next"
 
 export const ReplyTo = memo(({ chat }: { chat: ChatConversation }) => {
@@ -25,7 +23,6 @@ export const ReplyTo = memo(({ chat }: { chat: ChatConversation }) => {
 	const mentionSuggestions = useChatsStore(useShallow(state => state.mentionSuggestions[chat.uuid] ?? []))
 	const mentionText = useChatsStore(useShallow(state => state.mentionText[chat.uuid] ?? ""))
 	const { isVisible: isKeyboardVisible } = useKeyboardState()
-	const [value] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
 	const { t } = useTranslation()
 
 	const suggestionsVisible = useMemo(() => {
@@ -40,11 +37,7 @@ export const ReplyTo = memo(({ chat }: { chat: ChatConversation }) => {
 			...prev,
 			[chat.uuid]: null
 		}))
-
-		if (!value || value.length === 0) {
-			KeyboardController.dismiss().catch(console.error)
-		}
-	}, [chat.uuid, setReplyToMessage, value])
+	}, [chat.uuid, setReplyToMessage])
 
 	const viewStyle = useMemo(() => {
 		return {

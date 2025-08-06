@@ -212,7 +212,6 @@
 		"react-native-url-polyfill": "^2.0.0",
 		"react-native-web": "^0.20.0",
 		"react-native-webview": "13.13.5",
-		"react-native-worklets-core": "^1.6.1",
 		"realistic-structured-clone": "^3.0.0",
 		"reanimated-color-picker": "^4.1.0",
 		"regexify-string": "^1.0.19",

@@ -130,7 +130,10 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 							</View>
 							<Text className="text-muted-foreground font-normal text-xs">
 								{info.item.lastMessageTimestamp && info.item.lastMessageTimestamp > 0 ? (
-									<Date timestamp={info.item.lastMessageTimestamp} />
+									<Date
+										timestamp={info.item.lastMessageTimestamp}
+										uuid={info.item.uuid}
+									/>
 								) : (
 									""
 								)}

@@ -18,6 +18,7 @@ import { useChatsStore } from "@/stores/chats.store"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import useNetInfo from "@/hooks/useNetInfo"
 import { useTranslation } from "react-i18next"
+import { useMappingHelper } from "@shopify/flash-list"
 
 export const MENTION_REGEX = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/g
 export const customEmojisList = customEmojis.map(emoji => emoji.id)
@@ -156,7 +157,7 @@ export const Link = memo(({ match, embedsDisabled }: { match: string; embedsDisa
 		useChatsStore.getState().setEmbedContainerWidth(width)
 	}, [layout.width])
 
-	if (embedsDisabled || !hasInternet) {
+	if (embedsDisabled || !hasInternet || url.length === 0 || url.startsWith("http://")) {
 		return <Fallback link={url} />
 	}
 
@@ -191,6 +192,7 @@ export const ReplacedMessageContent = memo(
 		edited: boolean
 	}) => {
 		const { t } = useTranslation()
+		const { getMappingKey } = useMappingHelper()
 
 		const replaced = useMemo(() => {
 			const emojiCount = message.message.match(emojiRegexWithSkinTones)
@@ -272,7 +274,7 @@ export const ReplacedMessageContent = memo(
 					return match
 				},
 				input: message.message
-			}) satisfies React.ReactNode[]
+			}) as (string | React.ReactElement)[]
 
 			if (edited) {
 				regexed.push(
@@ -298,7 +300,7 @@ export const ReplacedMessageContent = memo(
 
 						return (
 							<Text
-								key={index}
+								key={getMappingKey(index, index)}
 								className="text-sm text-foreground font-normal shrink flex-wrap text-wrap items-center break-all"
 							>
 								{item}
@@ -306,7 +308,7 @@ export const ReplacedMessageContent = memo(
 						)
 					}
 
-					return <Fragment key={index}>{item}</Fragment>
+					return <Fragment key={getMappingKey(index, index)}>{item}</Fragment>
 				})}
 			</View>
 		)

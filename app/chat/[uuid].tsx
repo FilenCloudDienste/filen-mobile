@@ -1,5 +1,5 @@
-import { useLocalSearchParams, Redirect, Stack } from "expo-router"
-import { useMemo, memo, useCallback, useState } from "react"
+import { useLocalSearchParams, Redirect, Stack, useFocusEffect } from "expo-router"
+import { useMemo, memo, useCallback } from "react"
 import { View, Platform } from "react-native"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { Icon } from "@roninoss/icons"
@@ -17,6 +17,8 @@ import * as ScreenOrientation from "expo-screen-orientation"
 import useNetInfo from "@/hooks/useNetInfo"
 import { useTranslation } from "react-i18next"
 import useLockOrientation from "@/hooks/useLockOrientation"
+import { useChatsStore } from "@/stores/chats.store"
+import useDimensions from "@/hooks/useDimensions"
 
 export const Chat = memo(() => {
 	useLockOrientation(ScreenOrientation.OrientationLock.PORTRAIT_UP)
@@ -24,9 +26,9 @@ export const Chat = memo(() => {
 	const { uuid } = useLocalSearchParams()
 	const { colors } = useColorScheme()
 	const [{ userId }] = useSDKConfig()
-	const [inputHeight, setInputHeight] = useState<number>(0)
 	const { hasInternet } = useNetInfo()
 	const { t } = useTranslation()
+	const { insets } = useDimensions()
 
 	const chatsQuery = useChatsQuery({
 		enabled: false
@@ -111,6 +113,20 @@ export const Chat = memo(() => {
 		})
 	}, [name, headerRightView, colors.card, t])
 
+	useFocusEffect(
+		useCallback(() => {
+			useChatsStore.getState().setEditMessage({})
+			useChatsStore.getState().setReplyToMessage({})
+			useChatsStore.getState().setEmojisSuggestions({})
+			useChatsStore.getState().setMentionSuggestions({})
+			useChatsStore.getState().setShowEmojis({})
+			useChatsStore.getState().setShowMention({})
+			useChatsStore.getState().setEmojisText({})
+			useChatsStore.getState().setMentionText({})
+			useChatsStore.getState().setShowEmojis({})
+		}, [])
+	)
+
 	if (!chatParsed) {
 		return <Redirect href="/chats" />
 	}
@@ -119,20 +135,22 @@ export const Chat = memo(() => {
 		<View className="flex-1">
 			{header}
 			<KeyboardAvoidingView
-				className="flex-1 min-h-2"
+				className="flex-1 bg-card"
 				behavior="padding"
 			>
 				<Container>
 					<Messages
 						chat={chatParsed}
 						isPreview={false}
-						inputHeight={inputHeight}
 					/>
+					<Input chat={chatParsed} />
 				</Container>
 			</KeyboardAvoidingView>
-			<Input
-				chat={chatParsed}
-				setInputHeight={setInputHeight}
+			<View
+				className="bg-card"
+				style={{
+					height: insets.bottom
+				}}
 			/>
 		</View>
 	)
