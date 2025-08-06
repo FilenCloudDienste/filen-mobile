@@ -12,6 +12,7 @@ import { Icon } from "@roninoss/icons"
 import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import useNetInfo from "@/hooks/useNetInfo"
+import assets from "@/lib/assets"
 
 export type YouTubeInfo = {
 	title?: string
@@ -142,6 +143,9 @@ export const YouTube = memo(({ link }: { link: string }) => {
 							style={{
 								width: "100%",
 								height: "100%"
+							}}
+							placeholder={{
+								blurhash: assets.blurhash.images.fallback
 							}}
 						/>
 					) : (

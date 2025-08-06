@@ -12,6 +12,7 @@ import mmkvInstance from "@/lib/mmkv"
 import { xxHash32 } from "js-xxhash"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import TurboImage, { type Success, type Failure } from "react-native-turbo-image"
+import assets from "@/lib/assets"
 
 export type ImageDimensions = {
 	width: number
@@ -164,6 +165,9 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 					onSuccess={onSuccess}
 					onFailure={onFailure}
 					style={imageStyle}
+					placeholder={{
+						blurhash: assets.blurhash.images.fallback
+					}}
 				/>
 			</View>
 		</Button>

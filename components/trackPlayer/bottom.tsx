@@ -16,6 +16,7 @@ import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { cn } from "@/lib/cn"
 import Container from "../Container"
 import { useTranslation } from "react-i18next"
+import assets from "@/lib/assets"
 
 export const Bottom = memo(() => {
 	const trackPlayerState = useTrackPlayerState()
@@ -112,6 +113,9 @@ export const Bottom = memo(() => {
 										resizeMode="cover"
 										cachePolicy="dataCache"
 										style={imageStyle}
+										placeholder={{
+											blurhash: assets.blurhash.images.fallback
+										}}
 									/>
 								) : (
 									<View

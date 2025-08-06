@@ -36,6 +36,7 @@ import useNetInfo from "@/hooks/useNetInfo"
 import { useTranslation } from "react-i18next"
 import chatsService from "@/services/chats.service"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
+import assets from "@/lib/assets"
 
 const avatarStyle = {
 	width: 36,
@@ -257,7 +258,7 @@ export const Message = memo(
 				uri:
 					typeof info.item.senderAvatar === "string" && info.item.senderAvatar.startsWith("https")
 						? info.item.senderAvatar
-						: "avatar_fallback"
+						: assets.uri.images.avatar_fallback()
 			}
 		}, [info.item.senderAvatar])
 

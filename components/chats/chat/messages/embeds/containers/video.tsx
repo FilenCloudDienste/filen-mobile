@@ -14,6 +14,7 @@ import TurboImage from "react-native-turbo-image"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import useNetInfo from "@/hooks/useNetInfo"
 import nodeWorker from "@/lib/nodeWorker"
+import assets from "@/lib/assets"
 
 export const Video = memo(({ source, link, name }: { source: string; link: string; name: string }) => {
 	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
@@ -135,6 +136,9 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 					style={{
 						width: "100%",
 						height: "100%"
+					}}
+					placeholder={{
+						blurhash: assets.blurhash.images.fallback
 					}}
 				/>
 			</View>

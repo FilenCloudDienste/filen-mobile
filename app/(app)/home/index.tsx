@@ -19,6 +19,7 @@ import ContainerComponent from "@/components/home/container"
 import { useTranslation } from "react-i18next"
 import Dropdown from "@/components/home/header/dropdown"
 import useIsProUser from "@/hooks/useIsProUser"
+import assets from "@/lib/assets"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -169,7 +170,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: recents.data.filter(item => item.type === "file").slice(0, 12),
 					type: "uploadDateDesc"
-				})
+			  })
 			: []
 	}, [recents.status, recents.data])
 
@@ -178,7 +179,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: favorites.data.filter(item => item.type === "file").slice(0, 12),
 					type: "lastModifiedDesc"
-				})
+			  })
 			: []
 	}, [favorites.status, favorites.data])
 
@@ -191,7 +192,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: links.data.slice(0, 12),
 					type: "lastModifiedDesc"
-				})
+			  })
 			: []
 	}, [links.status, links.data, isProUser])
 
@@ -200,7 +201,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: sharedIn.data.slice(0, 12),
 					type: "lastModifiedDesc"
-				})
+			  })
 			: []
 	}, [sharedIn.status, sharedIn.data])
 
@@ -209,7 +210,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: sharedOut.data.slice(0, 12),
 					type: "lastModifiedDesc"
-				})
+			  })
 			: []
 	}, [sharedOut.status, sharedOut.data])
 
@@ -218,7 +219,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: offline.data.slice(0, 12),
 					type: "lastModifiedDesc"
-				})
+			  })
 			: []
 	}, [offline.status, offline.data])
 
@@ -227,7 +228,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: trash.data.slice(0, 12),
 					type: "lastModifiedDesc"
-				})
+			  })
 			: []
 	}, [trash.status, trash.data])
 
@@ -240,7 +241,7 @@ export const Home = memo(() => {
 	const avatarSource = useMemo(() => {
 		if (account.status !== "success" || !account.data.account.avatarURL || !account.data.account.avatarURL.startsWith("https://")) {
 			return {
-				uri: "avatar_fallback"
+				uri: assets.uri.images.avatar_fallback()
 			}
 		}
 
@@ -269,7 +270,7 @@ export const Home = memo(() => {
 							</Button>
 						</View>
 					)
-				}
+			  }
 			: undefined
 	}, [account.status, hasInternet, avatarSource, openSettings])
 
@@ -358,18 +359,18 @@ export const Home = memo(() => {
 						type === "recents"
 							? recentsItems
 							: type === "favorites"
-								? favoritesItems
-								: type === "links"
-									? linksItems
-									: type === "sharedIn"
-										? sharedInItems
-										: type === "sharedOut"
-											? sharedOutItems
-											: type === "offline"
-												? offlineItems
-												: type === "trash"
-													? trashItems
-													: []
+							? favoritesItems
+							: type === "links"
+							? linksItems
+							: type === "sharedIn"
+							? sharedInItems
+							: type === "sharedOut"
+							? sharedOutItems
+							: type === "offline"
+							? offlineItems
+							: type === "trash"
+							? trashItems
+							: []
 					}
 				/>
 			)

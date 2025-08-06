@@ -60,10 +60,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 			const silentSoundURI = assets.uri.audio.silent()
 			const audioImageFallbackURI = assets.uri.images.audio_fallback()
 
-			if (!silentSoundURI || !audioImageFallbackURI) {
-				return
-			}
-
 			await trackPlayerControls.clear()
 			await trackPlayerControls.setQueue({
 				queue: info.item.playlist.files.map(file => {
@@ -150,11 +146,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 	const addToQueue = useCallback(async () => {
 		const silentSoundURI = assets.uri.audio.silent()
 		const audioImageFallbackURI = assets.uri.images.audio_fallback()
-
-		if (!silentSoundURI || !audioImageFallbackURI) {
-			return
-		}
-
 		const metadata = mmkvInstance.getString(trackPlayer.getTrackMetadataKeyFromUUID(info.item.file.uuid))
 		const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
@@ -306,6 +297,9 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 							backgroundColor: colors.card,
 							borderWidth: playing ? 1 : 0,
 							borderColor: playing ? colors.primary : "transparent"
+						}}
+						placeholder={{
+							blurhash: assets.blurhash.images.fallback
 						}}
 					/>
 				) : (

@@ -22,6 +22,8 @@ import Animated, { SlideInLeft, SlideOutLeft } from "react-native-reanimated"
 import { useNotesStore } from "@/stores/notes.store"
 import { useShallow } from "zustand/shallow"
 import Ionicons from "@expo/vector-icons/Ionicons"
+import assets from "@/lib/assets"
+import { useMappingHelper } from "@shopify/flash-list"
 
 const ICON_SIZE = 24
 
@@ -33,6 +35,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 	const { t } = useTranslation()
 	const selectedNotesCount = useNotesStore(useShallow(state => state.selectedNotes.length))
 	const isSelected = useNotesStore(useShallow(state => state.selectedNotes.some(n => n.uuid === note.uuid)))
+	const { getMappingKey } = useMappingHelper()
 
 	const hasWriteAccess = useMemo(() => {
 		if (note.isOwner) {
@@ -235,7 +238,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 								<View className="flex-row gap-2 mt-2 flex-wrap">
 									{tags.map((tag, index) => (
 										<Tag
-											key={index}
+											key={getMappingKey(tag.uuid, index)}
 											tag={tag}
 											name={tag.name}
 											id={tag.uuid}
@@ -249,7 +252,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 								{participants.map((participant, index) => {
 									return (
 										<Avatar
-											key={index}
+											key={getMappingKey(participant.userId, index)}
 											className={cn("h-7 w-7", index > 0 && "-ml-3")}
 											source={
 												participant.avatar?.startsWith("https")
@@ -257,7 +260,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 															uri: participant.avatar
 													  }
 													: {
-															uri: "avatar_fallback"
+															uri: assets.uri.images.avatar_fallback()
 													  }
 											}
 											style={{

@@ -19,6 +19,7 @@ import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
 import driveService from "@/services/drive.service"
 import { useShallow } from "zustand/shallow"
 import { usePhotosStore } from "@/stores/photos.store"
+import assets from "@/lib/assets"
 
 export const Menu = memo(
 	({
@@ -900,6 +901,9 @@ export const Menu = memo(
 						style={{
 							width: "100%",
 							height: "100%"
+						}}
+						placeholder={{
+							blurhash: assets.blurhash.images.fallback
 						}}
 					/>
 				</View>

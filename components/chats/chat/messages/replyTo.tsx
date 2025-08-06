@@ -9,6 +9,7 @@ import { ReplacedMessageContentInline } from "./replace"
 import Ionicons from "@expo/vector-icons/Ionicons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Button } from "@/components/nativewindui/Button"
+import assets from "@/lib/assets"
 
 const avatarStyle = {
 	width: 14,
@@ -37,7 +38,7 @@ export const ReplyTo = memo(({ message, chat }: { message: ChatMessage; chat: Ch
 					uri: participant.avatar
 			  }
 			: {
-					uri: "avatar_fallback"
+					uri: assets.uri.images.avatar_fallback()
 			  }
 	}, [participant?.avatar])
 

@@ -13,6 +13,7 @@ import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import { useColorScheme } from "@/lib/useColorScheme"
+import assets from "@/lib/assets"
 
 export type ListItemInfo = {
 	title: string
@@ -50,6 +51,9 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 							borderRadius: 6,
 							width: 38,
 							height: 38
+						}}
+						placeholder={{
+							blurhash: assets.blurhash.images.fallback
 						}}
 					/>
 				) : (

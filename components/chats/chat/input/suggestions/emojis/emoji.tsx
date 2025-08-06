@@ -10,6 +10,7 @@ import { useChatsStore } from "@/stores/chats.store"
 import { findClosestIndexString } from "@/lib/utils"
 import { View } from "react-native"
 import { useShallow } from "zustand/shallow"
+import assets from "@/lib/assets"
 
 export const Emoji = memo(({ emoji, chat }: { emoji: CustomEmoji; chat: ChatConversation }) => {
 	const [value, setValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
@@ -80,6 +81,9 @@ export const Emoji = memo(({ emoji, chat }: { emoji: CustomEmoji; chat: ChatConv
 					style={style}
 					cachePolicy="dataCache"
 					className="shrink-0"
+					placeholder={{
+						blurhash: assets.blurhash.images.fallback
+					}}
 				/>
 				<Text
 					className="text-foreground text-sm shrink"

@@ -25,6 +25,7 @@ import ListEmpty from "@/components/listEmpty"
 import { useTranslation } from "react-i18next"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import useNetInfo from "@/hooks/useNetInfo"
+import assets from "@/lib/assets"
 
 export type ListItemInfo = {
 	title: string
@@ -39,7 +40,7 @@ export const Participant = memo(({ info, note }: { info: ListRenderItemInfo<List
 
 	const avatarSource = useMemo(() => {
 		return {
-			uri: info.item.participant.avatar?.startsWith("https") ? info.item.participant.avatar : "avatar_fallback"
+			uri: info.item.participant.avatar?.startsWith("https") ? info.item.participant.avatar : assets.uri.images.avatar_fallback()
 		}
 	}, [info.item.participant.avatar])
 

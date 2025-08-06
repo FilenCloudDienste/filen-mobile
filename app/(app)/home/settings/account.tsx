@@ -20,6 +20,7 @@ import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import * as Sharing from "expo-sharing"
 import authService from "@/services/auth.service"
+import assets from "@/lib/assets"
 
 export const Account = memo(() => {
 	const router = useRouter()
@@ -32,7 +33,7 @@ export const Account = memo(() => {
 	const avatarSource = useMemo(() => {
 		if (account.status !== "success" || !account.data.account.avatarURL || !account.data.account.avatarURL.startsWith("https://")) {
 			return {
-				uri: "avatar_fallback"
+				uri: assets.uri.images.avatar_fallback()
 			}
 		}
 

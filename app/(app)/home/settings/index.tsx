@@ -14,6 +14,7 @@ import alerts from "@/lib/alerts"
 import { getBiometricAuth, clearBiometricAuth } from "@/app/(app)/home/settings/security"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import authService from "@/services/auth.service"
+import assets from "@/lib/assets"
 
 export const Settings = memo(() => {
 	const router = useRouter()
@@ -35,7 +36,7 @@ export const Settings = memo(() => {
 	const avatarSource = useMemo(() => {
 		if (account.status !== "success" || !account.data.account.avatarURL || !account.data.account.avatarURL.startsWith("https://")) {
 			return {
-				uri: "avatar_fallback"
+				uri: assets.uri.images.avatar_fallback()
 			}
 		}
 

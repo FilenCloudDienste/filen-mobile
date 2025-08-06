@@ -8,6 +8,7 @@ import Animated, { FadeOut } from "react-native-reanimated"
 import useHTTPServer from "@/hooks/useHTTPServer"
 import { Icon } from "@roninoss/icons"
 import { Text } from "@/components/nativewindui/Text"
+import assets from "@/lib/assets"
 
 export const Image = memo(({ item, layout }: { item: GalleryItem; layout: WH }) => {
 	const [loading, setLoading] = useState<boolean>(true)
@@ -119,6 +120,9 @@ export const Image = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 							onStart={onStart}
 							onCompletion={onCompletion}
 							onFailure={onFailure}
+							placeholder={{
+								blurhash: assets.blurhash.images.fallback
+							}}
 						/>
 					)}
 				</Fragment>

@@ -21,6 +21,7 @@ import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
+import assets from "@/lib/assets"
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation> }) => {
 	const [{ userId }] = useSDKConfig()
@@ -36,7 +37,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 
 		if (participants.length === 0 || participants.length >= 2) {
 			return {
-				uri: "avatar_fallback"
+				uri: assets.uri.images.avatar_fallback()
 			}
 		}
 
@@ -44,7 +45,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 
 		if (!firstParticipant || !firstParticipant.avatar || !firstParticipant.avatar.startsWith("https")) {
 			return {
-				uri: "avatar_fallback"
+				uri: assets.uri.images.avatar_fallback()
 			}
 		}
 

@@ -182,10 +182,6 @@ export const Header = memo(() => {
 			const silentSoundURI = assets.uri.audio.silent()
 			const audioImageFallbackURI = assets.uri.images.audio_fallback()
 
-			if (!silentSoundURI || !audioImageFallbackURI) {
-				return
-			}
-
 			await trackPlayerControls.clear()
 			await trackPlayerControls.setQueue({
 				queue: playlist.files.map(file => {

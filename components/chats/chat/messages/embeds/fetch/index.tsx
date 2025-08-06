@@ -15,6 +15,7 @@ import Outer from "../containers/outer"
 import Fallback from "../containers/fallback"
 import * as FileSystem from "expo-file-system/next"
 import useNetInfo from "@/hooks/useNetInfo"
+import assets from "@/lib/assets"
 
 export const Fetch = memo(({ link }: { link: string }) => {
 	const { hasInternet } = useNetInfo()
@@ -144,6 +145,9 @@ export const Fetch = memo(({ link }: { link: string }) => {
 						style={{
 							width: "100%",
 							height: "100%"
+						}}
+						placeholder={{
+							blurhash: assets.blurhash.images.fallback
 						}}
 					/>
 				) : undefined}

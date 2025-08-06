@@ -239,7 +239,7 @@ export class TrackPlayer {
 			if (!file.isDirectory) {
 				const entry = new FileSystem.File(file.uri)
 
-				return acc + (entry.exists ? (entry.size ?? 0) : 0)
+				return acc + (entry.exists ? entry.size ?? 0 : 0)
 			}
 
 			return acc
@@ -560,10 +560,6 @@ export class TrackPlayer {
 		try {
 			const silentSoundURI = assets.uri.audio.silent()
 			const audioImageFallbackURI = assets.uri.images.audio_fallback()
-
-			if (!silentSoundURI || !audioImageFallbackURI) {
-				return
-			}
 
 			mmkvInstance.set(
 				TRACK_PLAYER_QUEUE_KEY,

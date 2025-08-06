@@ -19,6 +19,7 @@ import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import useNetInfo from "@/hooks/useNetInfo"
 import { useTranslation } from "react-i18next"
 import { useMappingHelper } from "@shopify/flash-list"
+import assets from "@/lib/assets"
 
 export const MENTION_REGEX = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/g
 export const customEmojisList = customEmojis.map(emoji => emoji.id)
@@ -266,6 +267,9 @@ export const ReplacedMessageContent = memo(
 									uri: customEmojisListRecord[customEmoji]
 								}}
 								className="shrink-0"
+								placeholder={{
+									blurhash: assets.blurhash.images.fallback
+								}}
 							/>
 						)
 					}
@@ -394,6 +398,9 @@ export const ReplacedMessageContentInline = memo(
 								}}
 								source={{
 									uri: customEmojisListRecord[customEmoji]
+								}}
+								placeholder={{
+									blurhash: assets.blurhash.images.fallback
 								}}
 							/>
 						)

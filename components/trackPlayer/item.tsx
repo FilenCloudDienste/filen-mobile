@@ -123,10 +123,6 @@ export const Item = memo(
 				const silentSoundURI = assets.uri.audio.silent()
 				const audioImageFallbackURI = assets.uri.images.audio_fallback()
 
-				if (!silentSoundURI || !audioImageFallbackURI) {
-					return
-				}
-
 				await trackPlayerControls.clear()
 				await trackPlayerControls.setQueue({
 					queue: info.item.playlist.files.map(file => {
@@ -166,10 +162,6 @@ export const Item = memo(
 			try {
 				const silentSoundURI = assets.uri.audio.silent()
 				const audioImageFallbackURI = assets.uri.images.audio_fallback()
-
-				if (!silentSoundURI || !audioImageFallbackURI) {
-					return
-				}
 
 				await trackPlayerControls.setQueue({
 					queue: [
@@ -370,6 +362,9 @@ export const Item = memo(
 										style={{
 											width: IMAGE_SIZE / 2 - (playing ? 1 : 0),
 											height: IMAGE_SIZE / 2 - (playing ? 1 : 0)
+										}}
+										placeholder={{
+											blurhash: assets.blurhash.images.fallback
 										}}
 									/>
 								)
