@@ -259,7 +259,7 @@ export default function Participants() {
 		)
 	}, [addParticipant, colors.primary])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		return (
 			<View className="h-16 flex-row items-center justify-center">
 				<Text className="text-sm">
@@ -318,7 +318,7 @@ export default function Participants() {
 					data={participants}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
-					ListFooterComponent={listFooter}
+					ListFooterComponent={ListFooterComponent}
 					refreshControl={refreshControl}
 				/>
 			</Container>

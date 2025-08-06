@@ -1,9 +1,10 @@
-import { memo, useRef, useMemo, useCallback, Fragment } from "react"
+import { memo, useRef, useMemo, useCallback } from "react"
 import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
 import { useTranslation } from "react-i18next"
 import Tag from "./tag"
 import useNetInfo from "@/hooks/useNetInfo"
+import { View } from "react-native"
 import OfflineListHeader from "../offlineListHeader"
 
 export const Item = memo((info: ListRenderItemInfo<string>) => {
@@ -109,19 +110,19 @@ export const ListHeader = memo(() => {
 	}, [hasInternet])
 
 	return (
-		<Fragment>
+		<View className="shrink-0">
 			{!hasInternet && <OfflineListHeader />}
 			<FlashList
 				ref={tagsListRef}
 				horizontal={true}
+				data={listTags}
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 				keyExtractor={keyExtractor}
-				data={listTags}
 				renderItem={renderItem}
 				contentContainerStyle={contentContainerStyle}
 			/>
-		</Fragment>
+		</View>
 	)
 })
 

@@ -207,7 +207,7 @@ export default function SelectDriveItems() {
 		)
 	}, [baseFolderUUID, colors.card, headerTitle, parent, cancel, t])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={query.status}
@@ -232,7 +232,7 @@ export default function SelectDriveItems() {
 		)
 	}, [query.status, items.length, t])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		if (items.length === 0) {
 			return undefined
 		}
@@ -307,8 +307,8 @@ export default function SelectDriveItems() {
 					refreshing={refreshing}
 					contentInsetAdjustmentBehavior="automatic"
 					contentContainerClassName="pb-16"
-					ListEmptyComponent={listEmpty}
-					ListFooterComponent={listFooter}
+					ListEmptyComponent={ListEmptyComponent}
+					ListFooterComponent={ListFooterComponent}
 					refreshControl={refreshControl}
 				/>
 			</Container>

@@ -123,7 +123,7 @@ export const Playlist = memo(() => {
 		}
 	}, [trackPlayerToolbarHeight])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		return (
 			<View
 				style={{
@@ -178,7 +178,7 @@ export const Playlist = memo(() => {
 		}
 	}, [])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={playlistsQuery.status}
@@ -214,12 +214,12 @@ export const Playlist = memo(() => {
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
 						contentContainerStyle={contentContainerStyle}
-						ListEmptyComponent={listEmpty}
+						ListEmptyComponent={ListEmptyComponent}
 						showsVerticalScrollIndicator={true}
 						showsHorizontalScrollIndicator={false}
 						contentInsetAdjustmentBehavior="automatic"
 						scrollIndicatorInsets={scrollIndicatorInsets}
-						ListFooterComponent={listFooter}
+						ListFooterComponent={ListFooterComponent}
 						refreshing={Platform.OS === "ios" ? refreshing : false}
 						refreshControl={refreshControl}
 						initialNumToRender={initialNumToRender}

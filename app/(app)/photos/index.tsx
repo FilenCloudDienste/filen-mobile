@@ -394,7 +394,7 @@ export const Photos = memo(() => {
 		)
 	}, [refreshing, onRefresh, hasInternet])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={cameraUploadRemoteSetup ? query.status : "success"}
@@ -419,7 +419,7 @@ export const Photos = memo(() => {
 		)
 	}, [query.status, items.length, t, cameraUploadRemoteSetup])
 
-	const listHeader = useMemo(() => {
+	const ListHeaderComponent = useCallback(() => {
 		return !hasInternet ? <OfflineListHeader /> : undefined
 	}, [hasInternet])
 
@@ -452,8 +452,8 @@ export const Photos = memo(() => {
 						contentInsetAdjustmentBehavior="automatic"
 						showsVerticalScrollIndicator={true}
 						showsHorizontalScrollIndicator={false}
-						ListHeaderComponent={listHeader}
-						ListEmptyComponent={listEmpty}
+						ListHeaderComponent={ListHeaderComponent}
+						ListEmptyComponent={ListEmptyComponent}
 						contentContainerStyle={contentContainerStyle}
 						refreshControl={refreshControl}
 					/>

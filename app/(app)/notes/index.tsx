@@ -85,8 +85,16 @@ export const Notes = memo(() => {
 		return item.uuid
 	}, [])
 
-	const listFooter = useMemo(() => {
-		return notes.length > 0 ? (
+	const ListHeaderComponent = useCallback(() => {
+		return <ListHeader />
+	}, [])
+
+	const ListFooterComponent = useCallback(() => {
+		if (notes.length === 0) {
+			return undefined
+		}
+
+		return (
 			<View className="flex-row items-center justify-center h-16">
 				<Text className="text-sm">
 					{t("notes.list.footer", {
@@ -94,10 +102,10 @@ export const Notes = memo(() => {
 					})}
 				</Text>
 			</View>
-		) : undefined
+		)
 	}, [notes.length, t])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={notesQuery.status}
@@ -144,9 +152,9 @@ export const Notes = memo(() => {
 					renderItem={renderItem}
 					refreshing={refreshing}
 					contentContainerStyle={contentContainerStyle}
-					ListFooterComponent={listFooter}
-					ListEmptyComponent={listEmpty}
-					ListHeaderComponent={ListHeader}
+					ListFooterComponent={ListFooterComponent}
+					ListEmptyComponent={ListEmptyComponent}
+					ListHeaderComponent={ListHeaderComponent}
 					refreshControl={refreshControl}
 					keyExtractor={keyExtractor}
 				/>

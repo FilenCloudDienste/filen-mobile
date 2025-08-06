@@ -182,7 +182,7 @@ export const Contacts = memo(() => {
 		)
 	}, [sendRequest, colors.primary])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={
@@ -290,6 +290,10 @@ export const Contacts = memo(() => {
 		)
 	}, [refreshing, onRefresh, hasInternet])
 
+	const ListHeaderComponent = useCallback(() => {
+		return <ListHeader />
+	}, [])
+
 	return (
 		<Fragment>
 			<LargeTitleHeader
@@ -304,10 +308,10 @@ export const Contacts = memo(() => {
 				data={listData}
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
-				ListEmptyComponent={listEmpty}
+				ListEmptyComponent={ListEmptyComponent}
 				refreshing={queryPending}
 				refreshControl={refreshControl}
-				ListHeaderComponent={ListHeader}
+				ListHeaderComponent={ListHeaderComponent}
 			/>
 		</Fragment>
 	)

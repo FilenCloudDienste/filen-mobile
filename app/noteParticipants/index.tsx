@@ -273,7 +273,7 @@ export default function Participants() {
 		)
 	}, [addParticipant, colors.primary])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		if (participants.length === 0) {
 			return undefined
 		}
@@ -289,7 +289,7 @@ export default function Participants() {
 		)
 	}, [participants.length, t])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={notesQuery.status}
@@ -382,8 +382,8 @@ export default function Participants() {
 					data={participants}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
-					ListFooterComponent={listFooter}
-					ListEmptyComponent={listEmpty}
+					ListFooterComponent={ListFooterComponent}
+					ListEmptyComponent={ListEmptyComponent}
 					refreshControl={refreshControl}
 				/>
 			</Container>

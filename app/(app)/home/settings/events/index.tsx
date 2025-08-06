@@ -300,7 +300,7 @@ export const Events = memo(() => {
 		return typeof item === "string" ? item : item.id
 	}, [])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={events.status}
@@ -335,7 +335,7 @@ export const Events = memo(() => {
 				data={eventsSorted}
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
-				ListEmptyComponent={listEmpty}
+				ListEmptyComponent={ListEmptyComponent}
 			/>
 		</Fragment>
 	)

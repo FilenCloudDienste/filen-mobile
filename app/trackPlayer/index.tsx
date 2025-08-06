@@ -70,7 +70,7 @@ export const TrackPlayer = memo(() => {
 		}
 	}, [trackPlayerToolbarHeight])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		return (
 			<View
 				style={{
@@ -81,7 +81,7 @@ export const TrackPlayer = memo(() => {
 		)
 	}, [trackPlayerToolbarHeight])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={playlistsQuery.status}
@@ -148,8 +148,8 @@ export const TrackPlayer = memo(() => {
 					contentInsetAdjustmentBehavior="automatic"
 					scrollIndicatorInsets={scrollIndicatorInsets}
 					contentContainerStyle={contentContainerStyle}
-					ListFooterComponent={listFooter}
-					ListEmptyComponent={listEmpty}
+					ListFooterComponent={ListFooterComponent}
+					ListEmptyComponent={ListEmptyComponent}
 					refreshing={refreshing}
 					refreshControl={refreshControl}
 				/>

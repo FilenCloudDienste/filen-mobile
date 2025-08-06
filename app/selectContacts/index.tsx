@@ -201,7 +201,7 @@ export default function SelectContacts() {
 		)
 	}, [cancel, colors.card, maxParsed, t])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={query.status}
@@ -226,7 +226,7 @@ export default function SelectContacts() {
 		)
 	}, [query.status, contacts.length, t])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		if (contacts.length === 0) {
 			return undefined
 		}
@@ -320,8 +320,8 @@ export default function SelectContacts() {
 					refreshing={refreshing || query.status === "pending"}
 					contentInsetAdjustmentBehavior="automatic"
 					contentContainerClassName="pb-40 pt-2"
-					ListEmptyComponent={listEmpty}
-					ListFooterComponent={listFooter}
+					ListEmptyComponent={ListEmptyComponent}
+					ListFooterComponent={ListFooterComponent}
 					refreshControl={refreshControl}
 				/>
 				<Toolbar

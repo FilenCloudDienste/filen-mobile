@@ -160,7 +160,7 @@ export const History = memo(({ note }: { note: Note }) => {
 		[note]
 	)
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={noteHistoryQuery.status}
@@ -185,7 +185,7 @@ export const History = memo(({ note }: { note: Note }) => {
 		)
 	}, [noteHistoryQuery.status, history.length, t])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		return (
 			<View className="h-16 flex-row items-center justify-center">
 				<Text className="text-sm">
@@ -230,8 +230,8 @@ export const History = memo(({ note }: { note: Note }) => {
 					data={history}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
-					ListFooterComponent={listFooter}
-					ListEmptyComponent={listEmpty}
+					ListFooterComponent={ListFooterComponent}
+					ListEmptyComponent={ListEmptyComponent}
 				/>
 			</Container>
 		</Fragment>

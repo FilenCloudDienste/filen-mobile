@@ -161,7 +161,7 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 		setShowScrollToBottom(false)
 	}, [])
 
-	const listHeader = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		return isPreview ? undefined : (
 			<View
 				style={{
@@ -171,7 +171,7 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 		)
 	}, [headerHeight, isPreview])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<View className={cn("flex-1 flex-col gap-2 px-4", isPreview && "py-4")}>
 				<Text variant="heading">End-to-end encrypted chat</Text>
@@ -215,6 +215,13 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 			autoscrollToBottomThreshold: undefined
 		} satisfies FlashListProps<ChatMessage>["maintainVisibleContentPosition"]
 	}, [])
+
+	const scrollIndicatorInsets = useMemo(() => {
+		return {
+			top: -(insets.bottom + 68),
+			bottom: headerHeight
+		} satisfies FlashListProps<ChatMessage>["scrollIndicatorInsets"]
+	}, [insets.bottom, headerHeight])
 
 	return (
 		<Fragment>
@@ -271,12 +278,9 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 					keyboardShouldPersistTaps={suggestionsVisible ? "handled" : "always"}
 					showsHorizontalScrollIndicator={false}
 					showsVerticalScrollIndicator={true}
-					scrollIndicatorInsets={{
-						top: -(insets.bottom + 68),
-						bottom: headerHeight
-					}}
-					ListFooterComponent={listHeader}
-					ListEmptyComponent={listEmpty}
+					scrollIndicatorInsets={scrollIndicatorInsets}
+					ListFooterComponent={ListFooterComponent}
+					ListEmptyComponent={ListEmptyComponent}
 					maintainVisibleContentPosition={maintainVisibleContentPosition}
 				/>
 			</View>

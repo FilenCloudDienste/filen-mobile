@@ -42,7 +42,7 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 		return typeof item === "string" ? item : item.id
 	}, [])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={query.status}
@@ -77,7 +77,7 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 				contentInsetAdjustmentBehavior="automatic"
 				refreshing={query.status === "pending"}
 				contentContainerStyle={contentContainerStyle}
-				ListEmptyComponent={listEmpty}
+				ListEmptyComponent={ListEmptyComponent}
 			/>
 		</Container>
 	)

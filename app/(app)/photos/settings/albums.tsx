@@ -142,7 +142,7 @@ export const Albums = memo(() => {
 		return <Item info={info} />
 	}, [])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={localAlbumsQuery.status}
@@ -179,7 +179,7 @@ export const Albums = memo(() => {
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
 					sectionHeaderAsGap={true}
-					ListEmptyComponent={listEmpty}
+					ListEmptyComponent={ListEmptyComponent}
 					contentContainerStyle={contentContainerStyle}
 				/>
 			</Container>

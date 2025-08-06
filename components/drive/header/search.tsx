@@ -170,7 +170,7 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 		}
 	}, 1000)
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		if (isLoading || items.length === 0) {
 			return undefined
 		}
@@ -186,7 +186,7 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 		)
 	}, [items.length, t, isLoading])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={isLoading ? "pending" : "success"}
@@ -234,8 +234,8 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 			keyboardDismissMode="none"
 			keyboardShouldPersistTaps="never"
 			refreshing={isLoading}
-			ListEmptyComponent={listEmpty}
-			ListFooterComponent={listFooter}
+			ListEmptyComponent={ListEmptyComponent}
+			ListFooterComponent={ListFooterComponent}
 		/>
 	)
 })

@@ -101,7 +101,7 @@ export const Settings = memo((props: SettingsProps) => {
 		return __DEV__ ? (props.loading ? [] : props.items) : undefined
 	}, [props.loading, props.items])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<View className="flex-1 items-center justify-center">
 				<ActivityIndicator
@@ -131,7 +131,7 @@ export const Settings = memo((props: SettingsProps) => {
 				keyExtractor={keyExtractor}
 				sectionHeaderAsGap={true}
 				refreshing={props.loading}
-				ListEmptyComponent={listEmpty}
+				ListEmptyComponent={ListEmptyComponent}
 				ListHeaderComponent={props.listHeader ? () => props.listHeader : undefined}
 				ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
 			/>

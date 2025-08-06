@@ -143,7 +143,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 		return index
 	}, [scrollToUUID, items])
 
-	const listHeader = useMemo(() => {
+	const ListHeaderComponent = useCallback(() => {
 		if (hasInternet) {
 			return undefined
 		}
@@ -151,7 +151,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 		return <OfflineListHeader />
 	}, [hasInternet])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={cloudItemsQuery.status}
@@ -177,7 +177,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 		)
 	}, [cloudItemsQuery.status, searchTerm.length, items.length, t])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		return items.length > 0 ? (
 			<View className="flex-row items-center justify-center h-16">
 				<Text className="text-sm">
@@ -224,9 +224,9 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						contentInsetAdjustmentBehavior="automatic"
 						initialScrollIndex={initialScrollIndex}
 						contentContainerStyle={contentContainerStyle}
-						ListHeaderComponent={listHeader}
-						ListEmptyComponent={listEmpty}
-						ListFooterComponent={listFooter}
+						ListHeaderComponent={ListHeaderComponent}
+						ListEmptyComponent={ListEmptyComponent}
+						ListFooterComponent={ListFooterComponent}
 						refreshControl={refreshControl}
 					/>
 				) : (
@@ -240,9 +240,9 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						contentInsetAdjustmentBehavior="automatic"
 						initialScrollIndex={initialScrollIndex}
 						contentContainerStyle={contentContainerStyle}
-						ListHeaderComponent={listHeader}
-						ListEmptyComponent={listEmpty}
-						ListFooterComponent={listFooter}
+						ListHeaderComponent={ListHeaderComponent}
+						ListEmptyComponent={ListEmptyComponent}
+						ListFooterComponent={ListFooterComponent}
 						refreshControl={refreshControl}
 					/>
 				)}

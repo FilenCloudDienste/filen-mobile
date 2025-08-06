@@ -81,7 +81,7 @@ export const Chats = memo(() => {
 		)
 	}, [refreshing, onRefresh, hasInternet])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		return chats.length > 0 ? (
 			<View className="flex-row items-center justify-center h-16">
 				<Text className="text-sm">
@@ -91,7 +91,7 @@ export const Chats = memo(() => {
 		) : undefined
 	}, [chats.length, t])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={chatsQuery.status}
@@ -121,7 +121,7 @@ export const Chats = memo(() => {
 		return <Item info={info} />
 	}, [])
 
-	const listHeader = useMemo(() => {
+	const ListHeaderComponent = useCallback(() => {
 		return !hasInternet ? <OfflineListHeader /> : undefined
 	}, [hasInternet])
 
@@ -137,10 +137,10 @@ export const Chats = memo(() => {
 					renderItem={renderItem}
 					refreshing={refreshing || chatsQuery.status === "pending"}
 					contentContainerStyle={contentContainerStyle}
-					ListEmptyComponent={listEmpty}
-					ListFooterComponent={listFooter}
+					ListEmptyComponent={ListEmptyComponent}
+					ListFooterComponent={ListFooterComponent}
 					refreshControl={refreshControl}
-					ListHeaderComponent={listHeader}
+					ListHeaderComponent={ListHeaderComponent}
 				/>
 			</Container>
 		</Fragment>

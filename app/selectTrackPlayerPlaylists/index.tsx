@@ -102,7 +102,7 @@ export default function SelectTrackPlayerPlaylists() {
 		}
 	}, [id, routerCanGoBack, routerDismissTo, dismissHref, routerBack])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={playlistsQuery.status}
@@ -127,7 +127,7 @@ export default function SelectTrackPlayerPlaylists() {
 		)
 	}, [playlistsQuery.status, playlists.length, t])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		if (playlists.length === 0) {
 			return undefined
 		}
@@ -255,8 +255,8 @@ export default function SelectTrackPlayerPlaylists() {
 					showsHorizontalScrollIndicator={false}
 					contentInsetAdjustmentBehavior="automatic"
 					contentContainerStyle={contentContainerStyle}
-					ListEmptyComponent={listEmpty}
-					ListFooterComponent={listFooter}
+					ListEmptyComponent={ListEmptyComponent}
+					ListFooterComponent={ListFooterComponent}
 					refreshing={refreshing}
 					refreshControl={refreshControl}
 				/>

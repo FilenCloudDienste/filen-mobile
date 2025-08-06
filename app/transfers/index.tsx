@@ -208,7 +208,7 @@ export const Transfers = memo(() => {
 		)
 	}, [colors.card, t])
 
-	const listHeader = useMemo(() => {
+	const ListHeaderComponent = useCallback(() => {
 		if (Platform.OS !== "android") {
 			return undefined
 		}
@@ -226,7 +226,7 @@ export const Transfers = memo(() => {
 		)
 	}, [info, t])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus="success"
@@ -299,8 +299,8 @@ export const Transfers = memo(() => {
 					keyExtractor={keyExtractor}
 					contentInsetAdjustmentBehavior="automatic"
 					contentContainerClassName="pb-16"
-					ListHeaderComponent={listHeader}
-					ListEmptyComponent={listEmpty}
+					ListHeaderComponent={ListHeaderComponent}
+					ListEmptyComponent={ListEmptyComponent}
 				/>
 			</Container>
 			<Toolbar
