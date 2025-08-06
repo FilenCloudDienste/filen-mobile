@@ -7,14 +7,13 @@ import { Toolbar, ToolbarIcon } from "@/components/nativewindui/Toolbar"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import Container from "@/components/Container"
 import { Text } from "@/components/nativewindui/Text"
-import Transfer, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/transfers/transfer"
+import Transfer, { type ListItemInfo } from "@/components/transfers/transfer"
 import { formatBytes, promiseAllChunked, normalizeTransferProgress, bpsToReadable, getTimeRemaining } from "@/lib/utils"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { useColorScheme } from "@/lib/useColorScheme"
-import useDimensions from "@/hooks/useDimensions"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 
@@ -25,7 +24,6 @@ export const Transfers = memo(() => {
 	const remaining = useTransfersStore(useShallow(state => state.remaining))
 	const hiddenTransfers = useTransfersStore(useShallow(state => state.hiddenTransfers))
 	const { colors } = useColorScheme()
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 
 	const data = useMemo(() => {
@@ -56,8 +54,13 @@ export const Transfers = memo(() => {
 	}, [transfers, finishedTransfers, hiddenTransfers])
 
 	const ongoingTransfers = useMemo(() => {
-		return transfers.filter(transfer => transfer.state === "queued" || transfer.state === "started" || transfer.state === "paused")
-	}, [transfers])
+		return transfers.filter(
+			transfer =>
+				(!hiddenTransfers[transfer.id] && transfer.state === "queued") ||
+				transfer.state === "started" ||
+				transfer.state === "paused"
+		)
+	}, [transfers, hiddenTransfers])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
 		return typeof item === "string" ? item : item.id
@@ -177,9 +180,9 @@ export const Transfers = memo(() => {
 				remainingReadable.total <= 1 || remainingReadable.seconds <= 1
 					? "1s"
 					: (remainingReadable.days > 0 ? remainingReadable.days + "d " : "") +
-						(remainingReadable.hours > 0 ? remainingReadable.hours + "h " : "") +
-						(remainingReadable.minutes > 0 ? remainingReadable.minutes + "m " : "") +
-						(remainingReadable.seconds > 0 ? remainingReadable.seconds + "s " : "")
+					  (remainingReadable.hours > 0 ? remainingReadable.hours + "h " : "") +
+					  (remainingReadable.minutes > 0 ? remainingReadable.minutes + "m " : "") +
+					  (remainingReadable.seconds > 0 ? remainingReadable.seconds + "s " : "")
 		})
 	}, [ongoingTransfers.length, speed, remaining, t])
 
@@ -248,21 +251,6 @@ export const Transfers = memo(() => {
 		)
 	}, [transfers.length, t])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
 	const toolbarLeftView = useMemo(() => {
 		return (
 			<ToolbarIcon
@@ -313,12 +301,6 @@ export const Transfers = memo(() => {
 					contentContainerClassName="pb-16"
 					ListHeaderComponent={listHeader}
 					ListEmptyComponent={listEmpty}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 			<Toolbar

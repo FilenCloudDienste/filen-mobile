@@ -22,12 +22,6 @@ import queryUtils from "@/queries/utils"
 
 export const ICON_HEIGHT: number = 44
 
-const separators = {
-	highlight: () => {},
-	unhighlight: () => {},
-	updateProps: () => {}
-}
-
 export const Item = memo(
 	({
 		item,
@@ -287,8 +281,8 @@ export const Item = memo(
 						<Thumbnail
 							item={item}
 							size={ICON_HEIGHT}
-							imageContentFit="contain"
-							imageCachePolicy="none"
+							imageResizeMode="contain"
+							imageCachePolicy="dataCache"
 							imageStyle={{
 								width: ICON_HEIGHT,
 								height: ICON_HEIGHT,
@@ -336,8 +330,8 @@ export const Item = memo(
 				fromHome={true}
 			>
 				<ListItem
+					target="Cell"
 					item={itemInfo}
-					separators={separators}
 					index={index}
 					className="overflow-hidden bg-background"
 					leftView={leftView}

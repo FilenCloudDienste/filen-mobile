@@ -171,7 +171,6 @@ export const DropdownMenuInnerContent = memo(({ items }: { items: (DropdownItem 
 			}}
 			showsHorizontalScrollIndicator={false}
 			directionalLockEnabled={true}
-			removeClippedSubviews={true}
 			contentInsetAdjustmentBehavior="automatic"
 		>
 			{items.map((item, index) => {

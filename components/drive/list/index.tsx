@@ -1,11 +1,11 @@
-import { View, RefreshControl, FlatList, type ListRenderItemInfo } from "react-native"
+import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react"
 import { List, ListDataItem } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { simpleDate, formatBytes, orderItemsByType, type OrderByType } from "@/lib/utils"
 import { Container } from "@/components/Container"
-import ListItem, { type ListItemInfo, LIST_ITEM_HEIGHT } from "./listItem"
+import ListItem, { type ListItemInfo } from "./listItem"
 import { useFocusEffect } from "expo-router"
 import { useDriveStore } from "@/stores/drive.store"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -19,6 +19,7 @@ import { useKeyboardState } from "react-native-keyboard-controller"
 import ListEmpty from "@/components/listEmpty"
 import { useTranslation } from "react-i18next"
 import alerts from "@/lib/alerts"
+import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -29,11 +30,11 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	const searchTerm = useDriveStore(useShallow(state => state.searchTerm))
 	const { hasInternet } = useNetInfo()
 	const [orderBy] = useMMKVString("orderBy", mmkvInstance) as [OrderByType | undefined, (value: OrderByType) => void]
-	const listRef = useRef<FlatList<ListItemInfo>>(null)
+	const listRef = useRef<FlashListRef<ListItemInfo>>(null)
 	const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
-	const { isTablet, isPortrait, screen } = useDimensions()
+	const { isTablet, isPortrait } = useDimensions()
 	const keyboardState = useKeyboardState()
 	const { t } = useTranslation()
 
@@ -142,21 +143,6 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 		return index
 	}, [scrollToUUID, items])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
 	const listHeader = useMemo(() => {
 		if (hasInternet) {
 			return undefined
@@ -228,7 +214,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 				style={viewStyle}
 			>
 				{gridModeEnabled ? (
-					<FlatList
+					<FlashList
 						ref={listRef}
 						data={items}
 						numColumns={numColumns}
@@ -242,11 +228,6 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						ListEmptyComponent={listEmpty}
 						ListFooterComponent={listFooter}
 						refreshControl={refreshControl}
-						windowSize={3}
-						initialNumToRender={32}
-						maxToRenderPerBatch={16}
-						removeClippedSubviews={true}
-						updateCellsBatchingPeriod={100}
 					/>
 				) : (
 					<List
@@ -263,12 +244,6 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						ListEmptyComponent={listEmpty}
 						ListFooterComponent={listFooter}
 						refreshControl={refreshControl}
-						removeClippedSubviews={true}
-						initialNumToRender={initialNumToRender}
-						maxToRenderPerBatch={maxToRenderPerBatch}
-						updateCellsBatchingPeriod={100}
-						windowSize={3}
-						getItemLayout={getItemLayout}
 					/>
 				)}
 			</View>

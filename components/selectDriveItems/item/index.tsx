@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router"
 import { memo, useCallback, useMemo } from "react"
-import { ListItem as ListItemComponent } from "@/components/nativewindui/List"
+import { ListItem as ListItemComponent, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import { useSelectDriveItemsStore } from "@/stores/selectDriveItems.store"
 import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
 import { formatBytes, getPreviewType } from "@/lib/utils"
@@ -8,7 +8,7 @@ import LeftView from "./leftView"
 import { useShallow } from "zustand/shallow"
 import { type PreviewType } from "@/stores/gallery.store"
 import { Paths } from "expo-file-system/next"
-import { Platform, type ListRenderItemInfo } from "react-native"
+import { Platform } from "react-native"
 
 export type ListItemInfo = {
 	title: string
@@ -16,11 +16,6 @@ export type ListItemInfo = {
 	id: string
 	item: DriveCloudItem
 }
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
 
 export const Item = memo(
 	({

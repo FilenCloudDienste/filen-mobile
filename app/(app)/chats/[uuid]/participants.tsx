@@ -20,15 +20,9 @@ import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import queryUtils from "@/queries/utils"
-import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import useNetInfo from "@/hooks/useNetInfo"
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
 
 export type ListItemInfo = {
 	title: string
@@ -111,7 +105,6 @@ export default function Participants() {
 	const { colors } = useColorScheme()
 	const [{ userId }] = useSDKConfig()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
@@ -305,21 +298,6 @@ export default function Participants() {
 		)
 	}, [refreshing, onRefresh, hasInternet])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
 	if (!chat) {
 		return <Redirect href="/chats" />
 	}
@@ -341,12 +319,6 @@ export default function Participants() {
 					keyExtractor={keyExtractor}
 					ListFooterComponent={listFooter}
 					refreshControl={refreshControl}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

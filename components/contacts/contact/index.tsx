@@ -39,11 +39,6 @@ export type ListItemInfo = {
 	  }
 )
 
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
-
 export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<ListItemInfo>; fromSelect?: { max: number } }) => {
 	const { showActionSheetWithOptions } = useActionSheet()
 	const {

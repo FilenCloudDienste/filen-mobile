@@ -6,7 +6,6 @@ import useEventsQuery from "@/queries/useEventsQuery"
 import { type UserEvent } from "@filen/sdk/dist/types/api/v3/user/events"
 import { simpleDate } from "@/lib/utils"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
-import useDimensions from "@/hooks/useDimensions"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 
@@ -16,11 +15,6 @@ export type ListItemInfo = {
 	id: string
 	event: UserEvent
 }
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -56,7 +50,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 Item.displayName = "Item"
 
 export const Events = memo(() => {
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 
 	const events = useEventsQuery({})
@@ -332,21 +325,6 @@ export const Events = memo(() => {
 		)
 	}, [events.status, eventsSorted.length, t])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
 	return (
 		<Fragment>
 			<LargeTitleHeader title={t("settings.events.title")} />
@@ -358,12 +336,6 @@ export const Events = memo(() => {
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
 				ListEmptyComponent={listEmpty}
-				removeClippedSubviews={true}
-				initialNumToRender={initialNumToRender}
-				maxToRenderPerBatch={maxToRenderPerBatch}
-				updateCellsBatchingPeriod={100}
-				windowSize={3}
-				getItemLayout={getItemLayout}
 			/>
 		</Fragment>
 	)

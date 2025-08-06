@@ -3,7 +3,7 @@ import Container from "@/components/Container"
 import ListHeader from "@/components/notes/listHeader"
 import useNotesQuery from "@/queries/useNotesQuery"
 import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
-import { View, RefreshControl, type ListRenderItemInfo, FlatList } from "react-native"
+import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useNotesStore } from "@/stores/notes.store"
 import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
@@ -18,6 +18,7 @@ import ListEmpty from "@/components/listEmpty"
 import { sortAndFilterNotes } from "@/lib/utils"
 import { useFocusEffect } from "expo-router"
 import useNetInfo from "@/hooks/useNetInfo"
+import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -28,7 +29,7 @@ export const Notes = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const [selectedTag] = useMMKVString("notesSelectedTag", mmkvInstance)
 	const setNotes = useNotesStore(useShallow(state => state.setNotes))
-	const listRef = useRef<FlatList<Note>>(null)
+	const listRef = useRef<FlashListRef<Note>>(null)
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
@@ -78,6 +79,10 @@ export const Notes = memo(() => {
 
 	const renderItem = useCallback((info: ListRenderItemInfo<Note>) => {
 		return <Item note={info.item} />
+	}, [])
+
+	const keyExtractor = useCallback((item: Note) => {
+		return item.uuid
 	}, [])
 
 	const listFooter = useMemo(() => {
@@ -132,7 +137,7 @@ export const Notes = memo(() => {
 		<Fragment>
 			<Header />
 			<Container>
-				<FlatList
+				<FlashList
 					ref={listRef}
 					data={notes}
 					contentInsetAdjustmentBehavior="automatic"
@@ -143,11 +148,7 @@ export const Notes = memo(() => {
 					ListEmptyComponent={listEmpty}
 					ListHeaderComponent={ListHeader}
 					refreshControl={refreshControl}
-					windowSize={3}
-					removeClippedSubviews={true}
-					initialNumToRender={32}
-					maxToRenderPerBatch={16}
-					updateCellsBatchingPeriod={100}
+					keyExtractor={keyExtractor}
 				/>
 			</Container>
 		</Fragment>

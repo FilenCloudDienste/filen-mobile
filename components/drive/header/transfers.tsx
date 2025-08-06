@@ -7,12 +7,17 @@ import { useShallow } from "zustand/shallow"
 
 export const Transfers = memo(() => {
 	const transfers = useTransfersStore(useShallow(state => state.transfers))
+	const hiddenTransfers = useTransfersStore(useShallow(state => state.hiddenTransfers))
 	const { push: routerPush } = useRouter()
 
 	const ongoingTransfersLength = useMemo(() => {
-		return transfers.filter(transfer => transfer.state === "queued" || transfer.state === "started" || transfer.state === "paused")
-			.length
-	}, [transfers])
+		return transfers.filter(
+			transfer =>
+				(!hiddenTransfers[transfer.id] && transfer.state === "queued") ||
+				transfer.state === "started" ||
+				transfer.state === "paused"
+		).length
+	}, [transfers, hiddenTransfers])
 
 	const onPress = useCallback(() => {
 		routerPush({

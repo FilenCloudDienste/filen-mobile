@@ -3,7 +3,7 @@ import { Button } from "@/components/nativewindui/Button"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator, type ListRenderItemInfo, FlatList } from "react-native"
+import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator } from "react-native"
 import Thumbnail from "@/components/thumbnail/item"
 import { cn } from "@/lib/cn"
 import { Container } from "@/components/Container"
@@ -23,7 +23,6 @@ import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { useShallow } from "zustand/shallow"
 import Menu from "@/components/drive/list/listItem/menu"
 import Transfers from "@/components/drive/header/transfers"
-import useDimensions from "@/hooks/useDimensions"
 import OfflineListHeader from "@/components/offlineListHeader"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
 import { useTranslation } from "react-i18next"
@@ -33,6 +32,7 @@ import { usePhotosStore } from "@/stores/photos.store"
 import Dropdown from "@/components/photos/header/rightView/dropdown"
 import { Checkbox } from "@/components/nativewindui/Checkbox"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
+import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
 
 const contentContainerStyle = {
 	paddingBottom: 100,
@@ -179,7 +179,6 @@ export const Photos = memo(() => {
 	const router = useRouter()
 	const syncState = useCameraUploadStore(useShallow(state => state.syncState))
 	const running = useCameraUploadStore(useShallow(state => state.running))
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 	const selectedItemsCount = usePhotosStore(useShallow(state => state.selectedItems.length))
 
@@ -236,7 +235,11 @@ export const Photos = memo(() => {
 	}, [query.status, query.data, cameraUpload.remote])
 
 	const { itemSize, numColumns, spacing } = useMemo(() => {
-		const numColumns = 5
+		const numColumns = Platform.select({
+			ios: 5,
+			default: 4
+		})
+
 		const spacing = 2
 		const totalSpacing = spacing * (numColumns - 1)
 
@@ -416,37 +419,9 @@ export const Photos = memo(() => {
 		)
 	}, [query.status, items.length, t, cameraUploadRemoteSetup])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		const rowHeight = itemSize + spacing
-		const visibleRows = Math.ceil(screen.height / rowHeight)
-
-		return {
-			initialNumToRender: Math.floor(visibleRows * numColumns + numColumns),
-			maxToRenderPerBatch: Math.max(1, Math.round((visibleRows * numColumns) / 2))
-		}
-	}, [screen.height, itemSize, spacing, numColumns])
-
-	const getItemLayout = useCallback(
-		(_: ArrayLike<DriveCloudItem> | null | undefined, index: number) => {
-			return {
-				length: itemSize + spacing,
-				offset: (itemSize + spacing) * index,
-				index
-			}
-		},
-		[itemSize, spacing]
-	)
-
 	const listHeader = useMemo(() => {
 		return !hasInternet ? <OfflineListHeader /> : undefined
 	}, [hasInternet])
-
-	const extraData = useMemo(() => {
-		return {
-			numColumns,
-			itemSize
-		}
-	}, [numColumns, itemSize])
 
 	useFocusEffect(
 		useCallback(() => {
@@ -469,7 +444,7 @@ export const Photos = memo(() => {
 					onLayout={onLayout}
 					className="flex-1"
 				>
-					<FlatList
+					<FlashList
 						data={items}
 						renderItem={renderItem}
 						numColumns={numColumns}
@@ -477,12 +452,6 @@ export const Photos = memo(() => {
 						contentInsetAdjustmentBehavior="automatic"
 						showsVerticalScrollIndicator={true}
 						showsHorizontalScrollIndicator={false}
-						extraData={extraData}
-						getItemLayout={getItemLayout}
-						maxToRenderPerBatch={maxToRenderPerBatch}
-						initialNumToRender={initialNumToRender}
-						updateCellsBatchingPeriod={100}
-						windowSize={3}
 						ListHeaderComponent={listHeader}
 						ListEmptyComponent={listEmpty}
 						contentContainerStyle={contentContainerStyle}

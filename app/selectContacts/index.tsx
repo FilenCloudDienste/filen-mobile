@@ -10,14 +10,13 @@ import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHe
 import { useLocalSearchParams, useRouter } from "expo-router"
 import Container from "@/components/Container"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "@/components/nativewindui/Toolbar"
-import Contact, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/contacts/contact"
+import Contact, { type ListItemInfo } from "@/components/contacts/contact"
 import { useSelectContactsStore } from "@/stores/selectContacts.store"
 import { contactName } from "@/lib/utils"
 import { useShallow } from "zustand/shallow"
 import { Button } from "@/components/nativewindui/Button"
 import contactsService from "@/services/contacts.service"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
@@ -31,7 +30,6 @@ export default function SelectContacts() {
 	const { back, canGoBack } = useRouter()
 	const selectedContacts = useSelectContactsStore(useShallow(state => state.selectedContacts))
 	const setSelectedContacts = useSelectContactsStore(useShallow(state => state.setSelectedContacts))
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
@@ -273,21 +271,6 @@ export default function SelectContacts() {
 		)
 	}, [refreshing, onRefresh, hasInternet])
 
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
 	const toolbarLeftView = useMemo(() => {
 		return (
 			<ToolbarIcon
@@ -340,12 +323,6 @@ export default function SelectContacts() {
 					ListEmptyComponent={listEmpty}
 					ListFooterComponent={listFooter}
 					refreshControl={refreshControl}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 				<Toolbar
 					iosBlurIntensity={100}

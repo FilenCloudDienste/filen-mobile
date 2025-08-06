@@ -17,7 +17,6 @@ import { List, type ListRenderItemInfo, ListItem } from "@/components/nativewind
 import { useColorScheme } from "@/lib/useColorScheme"
 import Container from "@/components/Container"
 import paths from "@/lib/paths"
-import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import upload from "@/lib/upload"
@@ -30,11 +29,6 @@ export type ListItemInfo = {
 }
 
 export const ICON_HEIGHT: number = 42
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const { colors } = useColorScheme()
@@ -89,7 +83,6 @@ Item.displayName = "Item"
 
 export default function ShareIntent() {
 	const { shareIntent, resetShareIntent } = useShareIntentContext()
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 
 	const items = useMemo(() => {
@@ -244,21 +237,6 @@ export default function ShareIntent() {
 		return item.id
 	}, [])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
 	return (
 		<RequireInternet>
 			{header}
@@ -269,12 +247,6 @@ export default function ShareIntent() {
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
 					contentInsetAdjustmentBehavior="automatic"
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

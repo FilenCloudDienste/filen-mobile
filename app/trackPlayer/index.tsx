@@ -9,9 +9,8 @@ import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import Container from "@/components/Container"
-import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/trackPlayer/item"
+import Item, { type ListItemInfo } from "@/components/trackPlayer/item"
 import { formatMessageDate } from "@/lib/utils"
-import useDimensions from "@/hooks/useDimensions"
 import ListEmpty from "@/components/listEmpty"
 import { useTranslation } from "react-i18next"
 import alerts from "@/lib/alerts"
@@ -25,7 +24,6 @@ export const TrackPlayer = memo(() => {
 	const [trackPlayerToolbarHeight] = useMMKVNumber("trackPlayerToolbarHeight", mmkvInstance)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const playlistsSearchTerm = useTrackPlayerStore(useShallow(state => state.playlistsSearchTerm))
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
@@ -137,21 +135,6 @@ export const TrackPlayer = memo(() => {
 		)
 	}, [refreshing, onRefresh, hasInternet])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
 	return (
 		<RequireInternet>
 			<Header />
@@ -169,12 +152,6 @@ export const TrackPlayer = memo(() => {
 					ListEmptyComponent={listEmpty}
 					refreshing={refreshing}
 					refreshControl={refreshControl}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

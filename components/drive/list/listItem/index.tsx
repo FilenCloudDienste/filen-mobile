@@ -5,7 +5,7 @@ import Menu from "./menu"
 import RightView from "./rightView"
 import LeftView from "./leftView"
 import { useDriveStore } from "@/stores/drive.store"
-import { Platform, type ListRenderItemInfo } from "react-native"
+import { Platform } from "react-native"
 import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
 import { formatBytes, getPreviewType, normalizeFilePathForExpo } from "@/lib/utils"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
@@ -26,6 +26,7 @@ import nodeWorker from "@/lib/nodeWorker"
 import cache from "@/lib/cache"
 import { useTranslation } from "react-i18next"
 import queryUtils from "@/queries/utils"
+import { type ListRenderItemInfo } from "@shopify/flash-list"
 
 export type ListItemInfo = {
 	title: string
@@ -33,11 +34,6 @@ export type ListItemInfo = {
 	id: string
 	item: DriveCloudItem
 }
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
 
 export const ListItem = memo(
 	({

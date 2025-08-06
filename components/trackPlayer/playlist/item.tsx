@@ -1,4 +1,4 @@
-import { View, Platform } from "react-native"
+import { View, Platform, type ListRenderItemInfo } from "react-native"
 import { type PlaylistFile, updatePlaylist, type Playlist } from "@/queries/usePlaylistsQuery"
 import { memo, useCallback, useMemo, useRef } from "react"
 import { Button } from "@/components/nativewindui/Button"
@@ -20,7 +20,7 @@ import { cn } from "@/lib/cn"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import trackPlayerService from "@/services/trackPlayer.service"
-import { ListItem, type ListRenderItemInfo } from "../../nativewindui/List"
+import { ListItem } from "../../nativewindui/List"
 import { Paths } from "expo-file-system/next"
 import { normalizeFilePathForExpo } from "@/lib/utils"
 import paths from "@/lib/paths"
@@ -351,6 +351,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 	return (
 		<ListItem
 			{...info}
+			target="Cell"
 			leftView={leftView}
 			rightView={rightView}
 			subTitleClassName="text-xs pt-1 font-normal"

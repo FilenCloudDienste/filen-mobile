@@ -1,9 +1,9 @@
 import { useLocalSearchParams, Redirect } from "expo-router"
 import { useMemo, useCallback, useState, memo } from "react"
-import { View, Platform, RefreshControl, type ListRenderItemInfo } from "react-native"
+import { View, Platform, RefreshControl } from "react-native"
 import { type Note, type NoteParticipant } from "@filen/sdk/dist/types/api/v3/notes"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { ListItem, List, type ListDataItem } from "@/components/nativewindui/List"
+import { ListItem, List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import Container from "@/components/Container"
 import { contactName } from "@/lib/utils"
 import Avatar from "@/components/avatar"
@@ -20,7 +20,6 @@ import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import queryUtils from "@/queries/utils"
-import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import ListEmpty from "@/components/listEmpty"
 import { useTranslation } from "react-i18next"
@@ -34,11 +33,6 @@ export type ListItemInfo = {
 	participant: NoteParticipant
 	name: string
 }
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
 
 export const Participant = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInfo>; note: Note }) => {
 	const { colors } = useColorScheme()
@@ -118,7 +112,6 @@ export default function Participants() {
 	const { colors } = useColorScheme()
 	const [{ userId }] = useSDKConfig()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
@@ -349,21 +342,6 @@ export default function Participants() {
 		)
 	}, [onRefresh, refreshing, hasInternet])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
 			<AdaptiveSearchHeader
@@ -406,12 +384,6 @@ export default function Participants() {
 					ListFooterComponent={listFooter}
 					ListEmptyComponent={listEmpty}
 					refreshControl={refreshControl}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

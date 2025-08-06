@@ -10,12 +10,11 @@ import Container from "@/components/Container"
 import { useSelectTrackPlayerPlaylistsStore } from "@/stores/selectTrackPlayerPlaylists.store"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/trackPlayer/item"
+import Item, { type ListItemInfo } from "@/components/trackPlayer/item"
 import { formatMessageDate } from "@/lib/utils"
 import { Button } from "@/components/nativewindui/Button"
 import { useShallow } from "zustand/shallow"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
-import useDimensions from "@/hooks/useDimensions"
 import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
@@ -32,7 +31,6 @@ export default function SelectTrackPlayerPlaylists() {
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo, back: routerBack } = useRouter()
 	const setSelectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.setSelectedPlaylists))
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
@@ -103,21 +101,6 @@ export default function SelectTrackPlayerPlaylists() {
 			routerBack()
 		}
 	}, [id, routerCanGoBack, routerDismissTo, dismissHref, routerBack])
-
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
 
 	const listEmpty = useMemo(() => {
 		return (
@@ -276,12 +259,6 @@ export default function SelectTrackPlayerPlaylists() {
 					ListFooterComponent={listFooter}
 					refreshing={refreshing}
 					refreshControl={refreshControl}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

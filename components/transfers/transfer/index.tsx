@@ -21,11 +21,6 @@ export type ListItemInfo = {
 
 export const ICON_HEIGHT: number = 42
 
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
-
 export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const { colors } = useColorScheme()
 	const { showActionSheetWithOptions } = useActionSheet()

@@ -13,11 +13,10 @@ import useSDKConfig from "@/hooks/useSDKConfig"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import cache from "@/lib/cache"
-import Item, { LIST_ITEM_HEIGHT } from "@/components/selectDriveItems/item"
+import Item from "@/components/selectDriveItems/item"
 import { Button } from "@/components/nativewindui/Button"
 import { useShallow } from "zustand/shallow"
 import { type PreviewType } from "@/stores/gallery.store"
-import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
@@ -39,7 +38,6 @@ export default function SelectDriveItems() {
 	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo, back: routerBack } = useRouter()
 	const setSelectedItems = useSelectDriveItemsStore(useShallow(state => state.setSelectedItems))
 	const [{ baseFolderUUID }] = useSDKConfig()
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
@@ -279,21 +277,6 @@ export default function SelectDriveItems() {
 		)
 	}, [refreshing, onRefresh, hasInternet])
 
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
 	useEffect(() => {
 		if (!multiScreenParsed) {
 			setSelectedItems([])
@@ -327,12 +310,6 @@ export default function SelectDriveItems() {
 					ListEmptyComponent={listEmpty}
 					ListFooterComponent={listFooter}
 					refreshControl={refreshControl}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

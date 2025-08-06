@@ -38,11 +38,6 @@ export type ListItemInfo = {
 
 export const IMAGE_SIZE = 42
 
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
-
 export const Item = memo(
 	({
 		info,

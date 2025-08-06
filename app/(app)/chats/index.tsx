@@ -3,16 +3,16 @@ import useChatsQuery from "@/queries/useChatsQuery"
 import Header from "@/components/chats/header"
 import Container from "@/components/Container"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
-import { View, RefreshControl, type ListRenderItemInfo, FlatList } from "react-native"
+import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { contactName } from "@/lib/utils"
 import alerts from "@/lib/alerts"
-import Item, { LIST_ITEM_HEIGHT } from "@/components/chats/item"
-import useDimensions from "@/hooks/useDimensions"
+import Item from "@/components/chats/item"
 import useNetInfo from "@/hooks/useNetInfo"
 import OfflineListHeader from "@/components/offlineListHeader"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
+import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -20,9 +20,8 @@ const contentContainerStyle = {
 
 export const Chats = memo(() => {
 	const [searchTerm, setSearchTerm] = useState<string>("")
-	const listRef = useRef<FlatList<ChatConversation>>(null)
+	const listRef = useRef<FlashListRef<ChatConversation>>(null)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
-	const { screen } = useDimensions()
 	const { hasInternet } = useNetInfo()
 	const { t } = useTranslation()
 
@@ -126,26 +125,11 @@ export const Chats = memo(() => {
 		return !hasInternet ? <OfflineListHeader /> : undefined
 	}, [hasInternet])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ChatConversation> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
 	return (
 		<Fragment>
 			<Header setSearchTerm={setSearchTerm} />
 			<Container>
-				<FlatList
+				<FlashList
 					ref={listRef}
 					data={chats}
 					contentInsetAdjustmentBehavior="automatic"
@@ -157,12 +141,6 @@ export const Chats = memo(() => {
 					ListFooterComponent={listFooter}
 					refreshControl={refreshControl}
 					ListHeaderComponent={listHeader}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</Fragment>

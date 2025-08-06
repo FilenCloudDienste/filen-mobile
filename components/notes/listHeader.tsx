@@ -1,5 +1,5 @@
 import { memo, useRef, useMemo, useCallback, Fragment } from "react"
-import { FlatList, type ListRenderItemInfo } from "react-native"
+import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
 import { useTranslation } from "react-i18next"
 import Tag from "./tag"
@@ -62,7 +62,7 @@ export const Item = memo((info: ListRenderItemInfo<string>) => {
 Item.displayName = "Item"
 
 export const ListHeader = memo(() => {
-	const tagsListRef = useRef<FlatList<string>>(null)
+	const tagsListRef = useRef<FlashListRef<string>>(null)
 	const { hasInternet } = useNetInfo()
 
 	const notesTagsQuery = useNotesTagsQuery({
@@ -111,7 +111,7 @@ export const ListHeader = memo(() => {
 	return (
 		<Fragment>
 			{!hasInternet && <OfflineListHeader />}
-			<FlatList
+			<FlashList
 				ref={tagsListRef}
 				horizontal={true}
 				showsHorizontalScrollIndicator={false}
@@ -120,11 +120,6 @@ export const ListHeader = memo(() => {
 				data={listTags}
 				renderItem={renderItem}
 				contentContainerStyle={contentContainerStyle}
-				windowSize={3}
-				removeClippedSubviews={true}
-				initialNumToRender={16}
-				maxToRenderPerBatch={8}
-				updateCellsBatchingPeriod={100}
 			/>
 		</Fragment>
 	)

@@ -5,12 +5,11 @@ import { Text } from "@/components/nativewindui/Text"
 import alerts from "@/lib/alerts"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
-import ListItem, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/drive/list/listItem"
+import ListItem, { type ListItemInfo } from "@/components/drive/list/listItem"
 import { orderItemsByType, simpleDate, formatBytes } from "@/lib/utils"
 import { useDebouncedCallback } from "use-debounce"
 import cache from "@/lib/cache"
 import { type SearchFindItemDecrypted } from "@filen/sdk/dist/types/api/v3/search/find"
-import useDimensions from "@/hooks/useDimensions"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import { useDriveStore } from "@/stores/drive.store"
@@ -19,7 +18,6 @@ import { useShallow } from "zustand/shallow"
 export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const [result, setResults] = useState<SearchFindItemDecrypted[]>([])
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 	const searchTerm = useDriveStore(useShallow(state => state.searchTerm))
 
@@ -213,21 +211,6 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 		)
 	}, [t, items.length, isLoading])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
 	useEffect(() => {
 		if (searchTerm.length < 3 || queryParams.of !== "drive") {
 			setResults([])
@@ -253,12 +236,6 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 			refreshing={isLoading}
 			ListEmptyComponent={listEmpty}
 			ListFooterComponent={listFooter}
-			removeClippedSubviews={true}
-			initialNumToRender={initialNumToRender}
-			maxToRenderPerBatch={maxToRenderPerBatch}
-			updateCellsBatchingPeriod={100}
-			windowSize={3}
-			getItemLayout={getItemLayout}
 		/>
 	)
 })

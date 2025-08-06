@@ -9,7 +9,6 @@ import { Toggle } from "@/components/nativewindui/Toggle"
 import { cn } from "@/lib/cn"
 import useCameraUpload from "@/hooks/useCameraUpload"
 import TurboImage from "react-native-turbo-image"
-import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
@@ -24,11 +23,6 @@ export type ListItemInfo = {
 		lastAssetURI?: string
 	}
 }
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 61
-})
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -115,7 +109,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 Item.displayName = "Item"
 
 export const Albums = memo(() => {
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 
 	const localAlbumsQuery = useLocalAlbumsQuery({})
@@ -143,21 +136,6 @@ export const Albums = memo(() => {
 
 	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
 		return <Item info={info} />
-	}, [])
-
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
 	}, [])
 
 	const listEmpty = useMemo(() => {
@@ -199,12 +177,6 @@ export const Albums = memo(() => {
 					sectionHeaderAsGap={true}
 					ListEmptyComponent={listEmpty}
 					contentContainerStyle={contentContainerStyle}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

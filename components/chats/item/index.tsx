@@ -1,5 +1,5 @@
 import { memo, useMemo, useCallback } from "react"
-import { View, Platform, type ListRenderItemInfo } from "react-native"
+import { View, Platform } from "react-native"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
@@ -20,11 +20,7 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 71,
-	default: 71
-})
+import { type ListRenderItemInfo } from "@shopify/flash-list"
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation> }) => {
 	const [{ userId }] = useSDKConfig()
