@@ -92,7 +92,7 @@ export const Photo = memo(
 										item,
 										queryParams
 									}
-								}
+							  }
 							: null
 					})
 					.filter(item => item !== null),

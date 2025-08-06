@@ -29,7 +29,7 @@ import { useShallow } from "zustand/shallow"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
+import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 import { Text } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 
@@ -39,17 +39,6 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const chatMessagesQuery = useChatMessagesQuery({
 		uuid: chat.uuid
 	})
-	const lastMessageTimestampRef = useRef<number>(
-		Math.max(
-			...(
-				chatMessagesQuery.data ?? [
-					{
-						sentTimestamp: Date.now()
-					}
-				]
-			).map(m => m.sentTimestamp)
-		)
-	)
 	const chatsLastFocusQuery = useChatsLastFocusQuery({})
 	const { isPortrait, insets, screen } = useDimensions()
 	const [initialScrollIndex, setInitialScrollIndex] = useState<number | undefined>(undefined)
@@ -61,7 +50,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const emojisSuggestions = useChatsStore(useShallow(state => state.emojisSuggestions[chat.uuid] ?? []))
 	const mentionSuggestions = useChatsStore(useShallow(state => state.mentionSuggestions[chat.uuid] ?? []))
 	const replyToMessage = useChatsStore(useShallow(state => state.replyToMessage[chat.uuid] ?? null))
-	const listRef = useRef<FlashList<ChatMessage>>(null)
+	const listRef = useRef<FlashListRef<ChatMessage>>(null)
 	const { colors } = useColorScheme()
 	const [showScrollToBottom, setShowScrollToBottom] = useState<boolean>(false)
 
@@ -121,7 +110,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 			return []
 		}
 
-		return chatMessagesQuery.data.sort((a, b) => b.sentTimestamp - a.sentTimestamp)
+		return chatMessagesQuery.data.sort((a, b) => a.sentTimestamp - b.sentTimestamp)
 	}, [chatMessagesQuery.data, chatMessagesQuery.status])
 
 	const keyExtractor = useCallback((item: ChatMessage) => {
@@ -134,7 +123,6 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 				<Message
 					info={info}
 					chat={chat}
-					lastMessageTimestamp={lastMessageTimestampRef.current}
 					lastFocus={lastFocus}
 					previousMessage={messages.at(info.index + 1)}
 					nextMessage={messages.at(info.index - 1)}
@@ -196,14 +184,13 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 
 	const onScroll = useCallback(
 		(e: NativeSyntheticEvent<NativeScrollEvent>) => {
-			setShowScrollToBottom(e.nativeEvent.contentOffset.y > screen.height)
+			setShowScrollToBottom(e.nativeEvent.contentOffset.y < screen.height)
 		},
 		[screen.height]
 	)
 
 	const scrollToBottom = useCallback(() => {
-		listRef.current?.scrollToOffset({
-			offset: 0,
+		listRef.current?.scrollToEnd({
 			animated: false
 		})
 
@@ -211,6 +198,10 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	}, [])
 
 	const listFooter = useMemo(() => {
+		return isPreview ? undefined : <Animated.View style={headerComponentStyle} />
+	}, [isPreview, headerComponentStyle])
+
+	const listHeader = useMemo(() => {
 		return isPreview ? undefined : (
 			<View
 				style={{
@@ -220,30 +211,9 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 		)
 	}, [headerHeight, isPreview])
 
-	const listHeader = useMemo(() => {
-		return isPreview ? undefined : <Animated.View style={headerComponentStyle} />
-	}, [headerComponentStyle, isPreview])
-
-	const maintainVisibleContentPosition = useMemo(() => {
-		return scrollToBottomStyle.display === "flex"
-			? {
-					minIndexForVisible: 0
-			  }
-			: undefined
-	}, [scrollToBottomStyle.display])
-
 	const listEmpty = useMemo(() => {
 		return (
-			<View
-				className={cn("flex-1 flex-col gap-2 px-4", isPreview && "py-4")}
-				style={{
-					transform: [
-						{
-							scaleY: -1
-						}
-					]
-				}}
-			>
+			<View className={cn("flex-1 flex-col gap-2 px-4", isPreview && "py-4")}>
 				<Text variant="heading">End-to-end encrypted chat</Text>
 				<Text variant="subhead">Filen secures every chat with zero-knowledge end-to-end encryption by default.</Text>
 				{chatMessagesQuery.status === "pending" && !isPreview && (
@@ -292,21 +262,21 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 				data={messages}
 				keyExtractor={keyExtractor}
 				renderItem={renderItem}
-				inverted={true}
 				initialScrollIndex={initialScrollIndex}
 				keyboardDismissMode={suggestionsVisible ? "none" : "on-drag"}
 				keyboardShouldPersistTaps={suggestionsVisible ? "always" : "never"}
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
-				estimatedItemSize={150}
-				extraData={lastFocus}
 				ListFooterComponent={listFooter}
 				ListHeaderComponent={listHeader}
 				viewabilityConfig={viewabilityConfig}
 				onViewableItemsChanged={onViewableItemsChanged}
-				removeClippedSubviews={true}
-				maintainVisibleContentPosition={maintainVisibleContentPosition}
 				ListEmptyComponent={listEmpty}
+				maintainVisibleContentPosition={{
+					disabled: false,
+					startRenderingFromBottom: true,
+					animateAutoScrollToBottom: false
+				}}
 			/>
 			{!isPreview && (
 				<Animated.View style={toolbarStyle}>
