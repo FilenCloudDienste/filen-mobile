@@ -11,20 +11,6 @@ module.exports = function (api) {
 			],
 			"nativewind/babel"
 		],
-		plugins: [
-			[
-				"react-native-boost/plugin",
-				{
-					verbose: true,
-					ignores: ["node_modules/**"],
-					optimizations: {
-						text: true,
-						view: true
-					}
-				}
-			],
-			["react-native-worklets-core/plugin"],
-			["react-native-reanimated/plugin"]
-		]
+		plugins: [["react-native-worklets-core/plugin"], ["react-native-reanimated/plugin"]]
 	}
 }
