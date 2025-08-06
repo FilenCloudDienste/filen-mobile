@@ -1,7 +1,7 @@
-import { Image as ExpoImage, type ImageErrorEventData } from "expo-image"
+import TurboImage, { type Failure } from "react-native-turbo-image"
 import { memo, useMemo, useState, useCallback, Fragment } from "react"
 import { type GalleryItem } from "@/stores/gallery.store"
-import { View, ActivityIndicator } from "react-native"
+import { View, ActivityIndicator, type NativeSyntheticEvent } from "react-native"
 import { type WH } from "."
 import { useColorScheme } from "@/lib/useColorScheme"
 import Animated, { FadeOut } from "react-native-reanimated"
@@ -25,7 +25,9 @@ export const Image = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 
 	const source = useMemo(() => {
 		if (item.itemType === "remoteItem") {
-			return item.data.uri
+			return {
+				uri: item.data.uri
+			}
 		}
 
 		if (item.itemType === "cloudItem" && item.data.item.type === "file") {
@@ -51,17 +53,17 @@ export const Image = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 		return null
 	}, [item, httpServer.port, httpServer.authToken])
 
-	const onLoadStart = useCallback(() => {
+	const onStart = useCallback(() => {
 		setLoading(true)
 	}, [])
 
-	const onLoadEnd = useCallback(() => {
+	const onCompletion = useCallback(() => {
 		setLoading(false)
 	}, [])
 
-	const onError = useCallback((e: ImageErrorEventData) => {
+	const onFailure = useCallback((e: NativeSyntheticEvent<Failure>) => {
 		setLoading(false)
-		setError(e.error)
+		setError(e.nativeEvent.error)
 	}, [])
 
 	return (
@@ -109,19 +111,14 @@ export const Image = memo(({ item, layout }: { item: GalleryItem; layout: WH }) 
 						</Animated.View>
 					)}
 					{!error && (
-						<ExpoImage
+						<TurboImage
 							source={source}
-							contentFit="contain"
-							cachePolicy="disk"
-							priority="high"
-							autoplay={true}
-							focusable={false}
-							accessible={false}
-							enableLiveTextInteraction={false}
+							resizeMode="contain"
+							cachePolicy="dataCache"
 							style={style}
-							onLoadStart={onLoadStart}
-							onLoadEnd={onLoadEnd}
-							onError={onError}
+							onStart={onStart}
+							onCompletion={onCompletion}
+							onFailure={onFailure}
 						/>
 					)}
 				</Fragment>

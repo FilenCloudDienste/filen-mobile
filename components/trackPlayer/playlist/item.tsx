@@ -9,7 +9,7 @@ import alerts from "@/lib/alerts"
 import assets from "@/lib/assets"
 import { useMMKVObject } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import { useReorderableDrag } from "react-native-reorderable-list"
 import { useActionSheet } from "@expo/react-native-action-sheet"
 import useDimensions from "@/hooks/useDimensions"
@@ -291,13 +291,14 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		return (
 			<View className="flex-row items-center px-4 gap-4">
 				{trackPlayerFileMetadata?.picture ? (
-					<Image
+					<TurboImage
 						source={{
 							uri: normalizeFilePathForExpo(
 								Paths.join(paths.trackPlayerPictures(), Paths.basename(trackPlayerFileMetadata.picture))
 							)
 						}}
-						contentFit="cover"
+						resizeMode="cover"
+						cachePolicy="dataCache"
 						style={{
 							width: 36,
 							height: 36,

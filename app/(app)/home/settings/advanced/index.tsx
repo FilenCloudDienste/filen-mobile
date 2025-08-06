@@ -11,7 +11,7 @@ import * as FileSystem from "expo-file-system/next"
 import sqlite from "@/lib/sqlite"
 import trackPlayer from "@/lib/trackPlayer"
 import { useTranslation } from "react-i18next"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 
 export const Advanced = memo(() => {
 	const { t } = useTranslation()
@@ -21,37 +21,37 @@ export const Advanced = memo(() => {
 		queryFn: async () => {
 			const thumbnailsSize = new FileSystem.Directory(paths.thumbnails())
 				.list()
-				.map(entry => (entry instanceof FileSystem.File ? (entry.size ?? 0) : 0))
+				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
 				.reduce((a, b) => a + b, 0)
 
 			const exportsSize = new FileSystem.Directory(paths.exports())
 				.list()
-				.map(entry => (entry instanceof FileSystem.File ? (entry.size ?? 0) : 0))
+				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
 				.reduce((a, b) => a + b, 0)
 
 			const offlineFilesSize = new FileSystem.Directory(paths.offlineFiles())
 				.list()
-				.map(entry => (entry instanceof FileSystem.File ? (entry.size ?? 0) : 0))
+				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
 				.reduce((a, b) => a + b, 0)
 
 			const temporaryDownloadsSize = new FileSystem.Directory(paths.temporaryDownloads())
 				.list()
-				.map(entry => (entry instanceof FileSystem.File ? (entry.size ?? 0) : 0))
+				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
 				.reduce((a, b) => a + b, 0)
 
 			const temporaryUploadsSize = new FileSystem.Directory(paths.temporaryUploads())
 				.list()
-				.map(entry => (entry instanceof FileSystem.File ? (entry.size ?? 0) : 0))
+				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
 				.reduce((a, b) => a + b, 0)
 
 			const trackPlayerSize = new FileSystem.Directory(paths.trackPlayer())
 				.list()
-				.map(entry => (entry instanceof FileSystem.File ? (entry.size ?? 0) : 0))
+				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
 				.reduce((a, b) => a + b, 0)
 
 			const trackPlayerPicturesSize = new FileSystem.Directory(paths.trackPlayerPictures())
 				.list()
-				.map(entry => (entry instanceof FileSystem.File ? (entry.size ?? 0) : 0))
+				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
 				.reduce((a, b) => a + b, 0)
 
 			return {
@@ -103,7 +103,7 @@ export const Advanced = memo(() => {
 		try {
 			paths.clearTempDirectories()
 
-			await Promise.all([Image.clearDiskCache(), Image.clearMemoryCache()])
+			await Promise.all([TurboImage.clearDiskCache(), TurboImage.clearMemoryCache()])
 
 			await refetch()
 		} catch (e) {

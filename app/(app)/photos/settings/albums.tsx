@@ -8,7 +8,7 @@ import { View, Platform } from "react-native"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import { cn } from "@/lib/cn"
 import useCameraUpload from "@/hooks/useCameraUpload"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
@@ -46,11 +46,12 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		return (
 			<View className="flex-row items-center px-4">
 				{info.item.album.lastAssetURI ? (
-					<Image
+					<TurboImage
 						source={{
 							uri: info.item.album.lastAssetURI
 						}}
-						contentFit="cover"
+						cachePolicy="dataCache"
+						resizeMode="cover"
 						style={{
 							borderRadius: 6,
 							width: 38,

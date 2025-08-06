@@ -1,52 +1,67 @@
-import { Image, type ImageSource, type ImageErrorEventData, type ImageStyle } from "expo-image"
 import { memo, useCallback, useState, useMemo } from "react"
 import { cn } from "@/lib/cn"
+import TurboImage, { type Source, type Failure } from "react-native-turbo-image"
+import { type StyleProp, type ImageStyle, type NativeSyntheticEvent } from "react-native"
 
-export const Avatar = memo(({ source, style, className }: { source: ImageSource; style: ImageStyle; className?: string }) => {
+export const Avatar = memo(({ source, style, className }: { source: Source; style?: StyleProp<ImageStyle>; className?: string }) => {
 	const [fallback, setFallback] = useState<boolean>(false)
 
-	const onError = useCallback((_: ImageErrorEventData) => {
-		setFallback(true)
-	}, [])
+	const onFailure = useCallback(
+		(_: NativeSyntheticEvent<Failure>) => {
+			if (fallback) {
+				return undefined
+			}
+
+			setFallback(true)
+		},
+		[fallback]
+	)
 
 	const classNameMemo = useMemo(() => {
 		return cn("relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full", className)
 	}, [className])
 
 	const styleMemo = useMemo(() => {
+		const styleObj = typeof style === "object" && style !== null ? style : {}
+
+		const flatStyle = styleObj as unknown as {
+			width?: number
+			height?: number
+		}
+
+		const width = typeof flatStyle?.width === "number" ? flatStyle.width : 40
+		const height = typeof flatStyle?.height === "number" ? flatStyle.height : 40
+
 		return {
-			...style,
-			borderRadius: style.width ?? 9999,
-			width: style.width ?? 40,
-			height: style.height ?? 40,
+			...styleObj,
+			borderRadius: 9999,
+			width,
+			height,
 			aspectRatio: 1,
 			display: "flex",
 			overflow: "hidden",
 			position: "relative",
 			flexShrink: 0
-		} satisfies ImageStyle
+		} satisfies StyleProp<ImageStyle>
 	}, [style])
 
 	const avatarSource = useMemo(() => {
-		return fallback || !source || typeof source.uri !== "string"
-			? {
-					uri: "avatar_fallback"
-			  }
-			: source
+		return (
+			fallback || !source || typeof source.uri !== "string"
+				? {
+						uri: "avatar_fallback"
+				  }
+				: source
+		) satisfies Source
 	}, [fallback, source])
 
-	const onErrorHandler = useMemo(() => {
-		return fallback ? undefined : onError
-	}, [fallback, onError])
-
 	return (
-		<Image
+		<TurboImage
 			className={classNameMemo}
 			source={avatarSource}
-			onError={onErrorHandler}
+			onFailure={onFailure}
 			style={styleMemo}
-			cachePolicy="disk"
-			priority="low"
+			cachePolicy="dataCache"
 		/>
 	)
 })

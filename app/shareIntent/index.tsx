@@ -3,7 +3,7 @@ import { Stack } from "expo-router"
 import { useShareIntentContext, type ShareIntentFile } from "expo-share-intent"
 import { useMemo, useCallback, memo } from "react"
 import { Text } from "@/components/nativewindui/Text"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import { getPreviewType, formatBytes } from "@/lib/utils"
 import driveService from "@/services/drive.service"
 import { randomUUID } from "expo-crypto"
@@ -43,12 +43,13 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		return (
 			<View className="flex-row items-center px-4">
 				{getPreviewType(info.item.item.fileName) === "image" ? (
-					<Image
+					<TurboImage
 						source={{
 							uri: info.item.item.path
 						}}
 						className="w-full h-full rounded-md"
-						contentFit="contain"
+						resizeMode="contain"
+						cachePolicy="dataCache"
 						style={{
 							width: ICON_HEIGHT,
 							height: ICON_HEIGHT,

@@ -7,7 +7,7 @@ import { useRouter } from "expo-router"
 import { Button } from "@/components/nativewindui/Button"
 import { type TrackMetadata, trackPlayer, TRACK_PLAYER_MMKV_PREFIX } from "@/lib/trackPlayer"
 import mmkvInstance from "@/lib/mmkv"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import { cn } from "@/lib/cn"
 import { useActionSheet } from "@expo/react-native-action-sheet"
 import alerts from "@/lib/alerts"
@@ -365,12 +365,13 @@ export const Item = memo(
 						>
 							{playlistPictures.map((picture, index) => {
 								return (
-									<Image
+									<TurboImage
 										key={index}
 										source={{
 											uri: picture
 										}}
-										contentFit="cover"
+										resizeMode="cover"
+										cachePolicy="dataCache"
 										style={{
 											width: IMAGE_SIZE / 2 - (playing ? 1 : 0),
 											height: IMAGE_SIZE / 2 - (playing ? 1 : 0)

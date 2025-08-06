@@ -1,19 +1,20 @@
-import { memo, Fragment, useCallback, useMemo, useState, useEffect, useRef } from "react"
-import { Image, type ImageContentFit, type ImageStyle } from "expo-image"
+import { memo, Fragment, useCallback, useMemo, useEffect } from "react"
+import TurboImage, { type TurboImageProps } from "react-native-turbo-image"
 import { ColoredFolderSVGIcon, FileNameToSVGIcon } from "@/assets/fileIcons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { normalizeFilePathForExpo } from "@/lib/utils"
 import thumbnails from "@/lib/thumbnails"
 import cache from "@/lib/cache"
 import { View } from "react-native"
+import { useRecyclingState } from "@shopify/flash-list"
 
 export const Thumbnail = memo(
 	({
 		item,
 		size,
 		imageClassName,
-		imageCachePolicy = "none",
-		imageContentFit = "contain",
+		imageCachePolicy = "dataCache",
+		imageResizeMode = "contain",
 		imageStyle,
 		type = "drive",
 		spacing = 0,
@@ -22,22 +23,18 @@ export const Thumbnail = memo(
 		item: DriveCloudItem
 		size: number
 		imageClassName?: string
-		imageCachePolicy?: "none" | "disk" | "memory" | "memory-disk" | null
-		imageContentFit?: ImageContentFit
-		imageStyle?: ImageStyle
+		imageCachePolicy?: TurboImageProps["cachePolicy"]
+		imageResizeMode?: TurboImageProps["resizeMode"]
+		imageStyle?: TurboImageProps["style"]
 		type?: "drive" | "photos"
 		spacing?: number
 		queryParams?: FetchCloudItemsParams
 	}) => {
 		const { colors } = useColorScheme()
-		const [localPath, setLocalPath] = useState<string | undefined>(item.thumbnail ?? cache.availableThumbnails.get(item.uuid))
-		const lastUUIDRef = useRef<string>(item.uuid)
-
-		if (lastUUIDRef.current !== item.uuid) {
-			lastUUIDRef.current = item.uuid
-
-			setLocalPath(item.thumbnail)
-		}
+		const [localPath, setLocalPath] = useRecyclingState<string | undefined>(
+			item.thumbnail ?? cache.availableThumbnails.get(item.uuid),
+			[item.uuid]
+		)
 
 		const style = useMemo(
 			() =>
@@ -68,15 +65,15 @@ export const Thumbnail = memo(
 				})
 				.then(thumbnailPath => setLocalPath(thumbnailPath))
 				.catch(() => {})
-		}, [item, localPath, queryParams])
+		}, [item, localPath, queryParams, setLocalPath])
 
-		const onError = useCallback(async () => {
+		const onFailure = useCallback(async () => {
 			setLocalPath(undefined)
 
 			setTimeout(() => {
 				generate()
 			}, 100)
-		}, [generate])
+		}, [generate, setLocalPath])
 
 		useEffect(() => {
 			generate()
@@ -91,13 +88,13 @@ export const Thumbnail = memo(
 		) : (
 			<Fragment>
 				{source.uri.length > 0 ? (
-					<Image
+					<TurboImage
 						className={imageClassName}
 						source={source}
 						style={style}
-						contentFit={imageContentFit}
+						resizeMode={imageResizeMode}
 						cachePolicy={imageCachePolicy}
-						onError={onError}
+						onFailure={onFailure}
 					/>
 				) : (
 					<Fragment>

@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import * as FileSystem from "expo-file-system/next"
 import { xxHash32 } from "js-xxhash"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import useNetInfo from "@/hooks/useNetInfo"
 import nodeWorker from "@/lib/nodeWorker"
@@ -126,13 +126,12 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 						color="white"
 					/>
 				</View>
-				<Image
+				<TurboImage
 					source={{
 						uri: query.data
 					}}
-					cachePolicy="disk"
-					priority="low"
-					contentFit="contain"
+					cachePolicy="dataCache"
+					resizeMode="contain"
 					style={{
 						width: "100%",
 						height: "100%"

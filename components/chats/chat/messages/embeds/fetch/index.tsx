@@ -4,7 +4,7 @@ import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
 import { WebpageMetadataParser } from "./parser"
 import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
-import { Image as ExpoImage } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import Video from "../containers/video"
 import Image from "../containers/image"
 import DOCX from "../containers/docx"
@@ -135,13 +135,12 @@ export const Fetch = memo(({ link }: { link: string }) => {
 				above={<Fallback link={link} />}
 			>
 				{query.data.metadata.image && query.data.metadata.image.length > 0 ? (
-					<ExpoImage
+					<TurboImage
 						source={{
 							uri: query.data.metadata.image
 						}}
-						priority="low"
-						cachePolicy="disk"
-						contentFit="contain"
+						cachePolicy="dataCache"
+						resizeMode="contain"
 						style={{
 							width: "100%",
 							height: "100%"

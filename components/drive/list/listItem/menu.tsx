@@ -1,4 +1,4 @@
-import { memo, useMemo, useCallback } from "react"
+import { memo, useMemo, useCallback, Fragment } from "react"
 import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextSubMenu, createContextItem } from "@/components/nativewindui/ContextMenu/utils"
 import { type ContextItem, type ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
@@ -11,7 +11,7 @@ import { getPreviewType } from "@/lib/utils"
 import { useDriveStore } from "@/stores/drive.store"
 import { Platform, View } from "react-native"
 import useIsProUser from "@/hooks/useIsProUser"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import events from "@/lib/events"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -879,6 +879,10 @@ export const Menu = memo(
 		)
 
 		const iosRenderPreview = useCallback(() => {
+			if (!item.thumbnail) {
+				return <Fragment />
+			}
+
 			return (
 				<View
 					className="flex-row items-center justify-center bg-background"
@@ -887,12 +891,12 @@ export const Menu = memo(
 						height: Math.floor(screen.height / 3)
 					}}
 				>
-					<Image
+					<TurboImage
 						className="rounded-lg"
 						source={{
 							uri: item.thumbnail
 						}}
-						contentFit="contain"
+						resizeMode="contain"
 						style={{
 							width: "100%",
 							height: "100%"
@@ -920,7 +924,7 @@ export const Menu = memo(
 					items={menuItems}
 					onItemPress={onItemPress}
 					key={contextKey}
-					iosRenderPreview={renderPreview}
+					iosRenderPreview={item.thumbnail ? renderPreview : undefined}
 				>
 					{children}
 				</ContextMenu>

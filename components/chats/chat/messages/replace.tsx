@@ -9,7 +9,7 @@ import { contactName, getMessageLinkType } from "@/lib/utils"
 import { Button } from "@/components/nativewindui/Button"
 import Fallback from "./embeds/containers/fallback"
 import alerts from "@/lib/alerts"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import * as Clipboard from "expo-clipboard"
 import { cn } from "@/lib/cn"
 import { Embed } from "./embeds"
@@ -256,9 +256,8 @@ export const ReplacedMessageContent = memo(
 
 					if (customEmojisList.includes(customEmoji) && customEmojisListRecord[customEmoji]) {
 						return (
-							<Image
-								cachePolicy="disk"
-								priority="low"
+							<TurboImage
+								cachePolicy="dataCache"
 								style={{
 									width: size ? size : 24,
 									height: size ? size : 24
@@ -387,9 +386,8 @@ export const ReplacedMessageContentInline = memo(
 
 					if (customEmojisList.includes(customEmoji) && customEmojisListRecord[customEmoji]) {
 						return (
-							<Image
-								cachePolicy="disk"
-								priority="low"
+							<TurboImage
+								cachePolicy="dataCache"
 								style={{
 									width: typeof emojiSize === "number" ? emojiSize : 14,
 									height: typeof emojiSize === "number" ? emojiSize : 14

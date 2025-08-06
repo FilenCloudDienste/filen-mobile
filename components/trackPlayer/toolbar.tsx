@@ -5,7 +5,7 @@ import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Slider } from "@/components/nativewindui/Slider"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import { BlurView } from "expo-blur"
 import useDimensions from "@/hooks/useDimensions"
 import useViewLayout from "@/hooks/useViewLayout"
@@ -134,10 +134,11 @@ export const Toolbar = memo(() => {
 			>
 				<Container>
 					<View className="flex-row gap-3">
-						{active && trackPlayerState.isPlayingTrackArtworkValid ? (
-							<Image
+						{active && trackPlayerState.isPlayingTrackArtworkValid && trackPlayerState.playingTrackArtworkSource ? (
+							<TurboImage
 								source={trackPlayerState.playingTrackArtworkSource}
-								contentFit="cover"
+								resizeMode="cover"
+								cachePolicy="dataCache"
 								style={imageStyle}
 							/>
 						) : (

@@ -6,7 +6,7 @@ import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-rean
 import useBottomTabsHeight from "@/hooks/useBottomTabsHeight"
 import { View, ActivityIndicator, Platform, type ViewStyle, type StyleProp } from "react-native"
 import { ProgressIndicator } from "../nativewindui/ProgressIndicator"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import { Icon } from "@roninoss/icons"
 import { useRouter, usePathname } from "expo-router"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -106,10 +106,11 @@ export const Bottom = memo(() => {
 					>
 						<View className="flex-row gap-4 p-2 justify-between items-center">
 							<View className="flex-1 flex-row gap-3 items-center">
-								{trackPlayerState.isPlayingTrackArtworkValid ? (
-									<Image
+								{trackPlayerState.isPlayingTrackArtworkValid && trackPlayerState.playingTrackArtworkSource ? (
+									<TurboImage
 										source={trackPlayerState.playingTrackArtworkSource}
-										contentFit="cover"
+										resizeMode="cover"
+										cachePolicy="dataCache"
 										style={imageStyle}
 									/>
 								) : (
