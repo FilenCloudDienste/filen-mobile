@@ -12,7 +12,28 @@ const { transformer, resolver } = config
 
 config.transformer = {
 	...transformer,
-	babelTransformerPath: require.resolve("react-native-svg-transformer/expo")
+	babelTransformerPath: require.resolve("react-native-svg-transformer/expo"),
+	inlineRequires: true,
+	minifierConfig: {
+		...transformer.minifierConfig,
+		ecma: 2022,
+		keep_fnames: false,
+		compress: {
+			...transformer.minifierConfig.compress,
+			drop_console: false,
+			passes: 3
+		},
+		mangle: {
+			...transformer.minifierConfig.mangle,
+			keep_fnames: false,
+			safari10: false
+		},
+		output: {
+			...transformer.minifierConfig.output,
+			ascii_only: false,
+			beautify: false
+		}
+	}
 }
 
 config.resolver = {
