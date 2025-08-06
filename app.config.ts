@@ -227,12 +227,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 				developmentTeamId: APPLE_TEAM_ID
 			}
 		],
-		[
-			"expo-asset",
-			{
-				assets: ["./assets/images/avatar_fallback.png"]
-			}
-		],
 		"expo-font",
 		[
 			"expo-splash-screen",
