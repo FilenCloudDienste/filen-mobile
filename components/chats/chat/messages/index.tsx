@@ -55,13 +55,13 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 		"worklet"
 
 		return {
-			bottom: insets.bottom + 64,
+			bottom: insets.bottom + 48,
 			position: "absolute",
 			right: 16,
 			zIndex: 100,
-			display: showScrollToBottom ? "flex" : "none"
+			display: showScrollToBottom && !suggestionsVisible ? "flex" : "none"
 		}
-	}, [progress, insets.bottom, showScrollToBottom])
+	}, [progress, insets.bottom, showScrollToBottom, suggestionsVisible])
 
 	const lastFocus = useMemo(() => {
 		if (chatsLastFocusQuery.status !== "success") {
@@ -155,7 +155,7 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 
 	const scrollToBottom = useCallback(() => {
 		listRef?.current?.scrollToTop({
-			animated: true
+			animated: false
 		})
 
 		setShowScrollToBottom(false)
