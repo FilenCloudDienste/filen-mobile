@@ -190,6 +190,7 @@
 		"react-native-blob-util": "^0.22.2",
 		"react-native-bottom-tabs": "^0.10.0",
 		"react-native-gesture-handler": "~2.24.0",
+		"react-native-gesture-image-viewer": "^1.6.2",
 		"react-native-ios-context-menu": "^3.1.2",
 		"react-native-ios-utilities": "^5.1.8",
 		"react-native-keyboard-controller": "^1.18.3",

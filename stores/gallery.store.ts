@@ -24,12 +24,14 @@ export type GalleryStore = {
 	visible: boolean
 	initialUUID: string | null
 	items: GalleryItem[]
+	initialIndex: number | null
 	currentVisibleIndex: number | null
 	zoomedIn: boolean
 	setVisible: (fn: boolean | ((prev: boolean) => boolean)) => void
 	setInitialUUID: (fn: string | null | ((prev: string | null) => string | null)) => void
 	setItems: (fn: GalleryItem[] | ((prev: GalleryItem[]) => GalleryItem[])) => void
-	setCurrentVisibleIndex: (fn: (number | null) | ((prev: number | null) => number | null)) => void
+	setInitialIndex: (fn: (number | null) | ((prev: number | null) => number | null)) => void
+	setCurrentVisibleIndex: (fn: number | null | ((prev: number | null) => number | null)) => void
 	setZoomedIn: (fn: boolean | ((prev: boolean) => boolean)) => void
 	reset: () => void
 	open: ({ items, initialUUIDOrURI }: { items: GalleryItem[]; initialUUIDOrURI: string }) => void
@@ -40,7 +42,13 @@ export const useGalleryStore = create<GalleryStore>(set => ({
 	initialUUID: null,
 	items: [],
 	currentVisibleIndex: null,
+	initialIndex: null,
 	zoomedIn: false,
+	setInitialIndex(fn) {
+		set(state => ({
+			initialIndex: typeof fn === "function" ? fn(state.initialIndex) : fn
+		}))
+	},
 	setVisible(fn) {
 		set(state => ({
 			visible: typeof fn === "function" ? fn(state.visible) : fn
@@ -72,6 +80,7 @@ export const useGalleryStore = create<GalleryStore>(set => ({
 			initialUUID: null,
 			items: [],
 			currentVisibleIndex: null,
+			initialIndex: null,
 			zoomedIn: false
 		}))
 	},
@@ -98,6 +107,7 @@ export const useGalleryStore = create<GalleryStore>(set => ({
 			visible: true,
 			initialUUIDOrURI: validateUUID(initialUUIDOrURI) ? initialUUIDOrURI : null,
 			items: items,
+			initialIndex: index,
 			currentVisibleIndex: index,
 			zoomedIn: false
 		}))
