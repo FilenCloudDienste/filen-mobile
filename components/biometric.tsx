@@ -14,6 +14,17 @@ import { inputPrompt } from "./prompts/inputPrompt"
 import { useTranslation } from "react-i18next"
 import { Portal } from "@rn-primitives/portal"
 import { useAppStateStore } from "@/stores/appState.store"
+import { FullWindowOverlay } from "react-native-screens"
+
+export const ParentComponent = memo(({ children }: { children: React.ReactNode }) => {
+	if (Platform.OS === "android") {
+		return <Portal name="biometric-modal">{children}</Portal>
+	}
+
+	return <FullWindowOverlay>{children}</FullWindowOverlay>
+})
+
+ParentComponent.displayName = "ParentComponent"
 
 export const Action = memo(({ lockedSeconds, pinAuth }: { lockedSeconds: number; pinAuth: () => Promise<void> }) => {
 	const [seconds, setSeconds] = useState<number>(lockedSeconds)
@@ -302,7 +313,7 @@ export const Biometric = memo(() => {
 	}
 
 	return (
-		<Portal name="biometric-portal">
+		<ParentComponent>
 			<Animated.View
 				exiting={FadeOut}
 				className="flex-1 items-center justify-center bg-background absolute top-0 left-0 right-0 bottom-0 z-[900] w-full h-full"
@@ -319,7 +330,7 @@ export const Biometric = memo(() => {
 					/>
 				</View>
 			</Animated.View>
-		</Portal>
+		</ParentComponent>
 	)
 })
 
