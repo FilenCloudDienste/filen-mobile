@@ -287,7 +287,7 @@ export default function SelectContacts() {
 			<ToolbarCTA
 				disabled={selectedContacts.length === 0}
 				icon={{
-					name: "send-outline"
+					name: "check"
 				}}
 				onPress={submit}
 			/>

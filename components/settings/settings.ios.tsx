@@ -95,6 +95,8 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<SettingsItem> }) 
 			className={cn("ios:pl-0 pl-2", info.index === 0 && "ios:border-t-0 border-border/25 dark:border-border/80 border-t")}
 			innerClassName={cn("py-2 ios:py-2 android:py-2", info.item.destructive && "text-destructive")}
 			titleClassName={cn("text-lg", info.item.destructive && "text-destructive")}
+			titleEllipsizeMode="middle"
+			textNumberOfLines={1}
 			leftView={leftView}
 			rightView={rightView}
 			onPress={info.item.onPress}

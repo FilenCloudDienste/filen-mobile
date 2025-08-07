@@ -1,5 +1,5 @@
 import { useLocalSearchParams, Redirect, Stack, useFocusEffect } from "expo-router"
-import { useMemo, memo, useCallback } from "react"
+import { useMemo, memo, useCallback, useState } from "react"
 import { View, Platform } from "react-native"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { Icon } from "@roninoss/icons"
@@ -29,6 +29,7 @@ export const Chat = memo(() => {
 	const { hasInternet } = useNetInfo()
 	const { t } = useTranslation()
 	const { insets } = useDimensions()
+	const [inputHeight, setInputHeight] = useState<number>(0)
 
 	const chatsQuery = useChatsQuery({
 		enabled: false
@@ -142,8 +143,12 @@ export const Chat = memo(() => {
 					<Messages
 						chat={chatParsed}
 						isPreview={false}
+						inputHeight={inputHeight}
 					/>
-					<Input chat={chatParsed} />
+					<Input
+						chat={chatParsed}
+						setInputHeight={setInputHeight}
+					/>
 				</Container>
 			</KeyboardAvoidingView>
 			<View

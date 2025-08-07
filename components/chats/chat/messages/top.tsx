@@ -9,6 +9,7 @@ import Container from "@/components/Container"
 import { useTranslation } from "react-i18next"
 import chatsService from "@/services/chats.service"
 import alerts from "@/lib/alerts"
+import { View, Platform } from "react-native"
 
 export const Top = memo(({ chat, messages, lastFocus }: { chat: ChatConversation; messages: ChatMessage[]; lastFocus: number | null }) => {
 	const headerHeight = useHeaderHeight()
@@ -16,11 +17,11 @@ export const Top = memo(({ chat, messages, lastFocus }: { chat: ChatConversation
 	const { t } = useTranslation()
 
 	const lastMessagesSince = useMemo(() => {
-		if (!lastFocus || messages.length === 0) {
+		if (messages.length === 0) {
 			return 0
 		}
 
-		return messages.filter(m => m.senderId !== userId && m.sentTimestamp > lastFocus).length
+		return messages.filter(m => m.senderId !== userId && m.sentTimestamp > (lastFocus ?? 0)).length
 	}, [messages, lastFocus, userId])
 
 	const markAsRead = useCallback(async () => {
@@ -42,28 +43,34 @@ export const Top = memo(({ chat, messages, lastFocus }: { chat: ChatConversation
 	}
 
 	return (
-		<Button
-			variant="plain"
-			size="none"
+		<View
 			className="absolute left-0 right-0 flex-1 flex-row items-center bg-blue-500 px-4 py-1 justify-start z-50"
 			style={{
-				top: headerHeight
+				top: Platform.select({
+					ios: headerHeight,
+					default: 0
+				})
 			}}
-			onPress={markAsRead}
-			unstable_pressDelay={100}
 		>
 			<Container>
-				<Text
-					variant="callout"
-					numberOfLines={1}
-					className="flex-1 font-normal"
+				<Button
+					variant="plain"
+					size="none"
+					onPress={markAsRead}
+					unstable_pressDelay={100}
 				>
-					{t("chats.header.newMessages", {
-						count: lastMessagesSince
-					})}
-				</Text>
+					<Text
+						variant="callout"
+						numberOfLines={1}
+						className="flex-1 font-normal"
+					>
+						{t("chats.header.newMessages", {
+							count: lastMessagesSince
+						})}
+					</Text>
+				</Button>
 			</Container>
-		</Button>
+		</View>
 	)
 })
 

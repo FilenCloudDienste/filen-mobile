@@ -51,7 +51,13 @@ export const Item = memo(({ info, props }: { info: ListRenderItemInfo<SettingsIt
 			>
 				{info.item.leftView && <View className="flex-row items-center">{info.item.leftView}</View>}
 				<View className={cn("flex-col flex-1", info.item.leftView && "pl-4")}>
-					<Text className={cn("text-xl font-normal", info.item.destructive && "text-destructive")}>{info.item.title}</Text>
+					<Text
+						className={cn("text-xl font-normal", info.item.destructive && "text-destructive")}
+						numberOfLines={1}
+						ellipsizeMode="middle"
+					>
+						{info.item.title}
+					</Text>
 					{info.item.subTitle && <Text className="text-muted-foreground text-base font-normal">{info.item.subTitle}</Text>}
 				</View>
 				{info.item.rightView && <View className="flex-row items-center">{info.item.rightView}</View>}

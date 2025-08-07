@@ -12,7 +12,6 @@ import Top from "./top"
 import useDimensions from "@/hooks/useDimensions"
 import { View, type NativeSyntheticEvent, type NativeScrollEvent, ActivityIndicator, type ViewToken } from "react-native"
 import Animated, { useAnimatedStyle, FadeIn, FadeOut } from "react-native-reanimated"
-import { useReanimatedKeyboardAnimation } from "react-native-keyboard-controller"
 import { useChatsStore } from "@/stores/chats.store"
 import { useShallow } from "zustand/shallow"
 import { Icon } from "@roninoss/icons"
@@ -21,15 +20,11 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { FlashList, type ListRenderItemInfo, type FlashListRef, type FlashListProps } from "@shopify/flash-list"
 import { Text } from "@/components/nativewindui/Text"
 
-export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isPreview: boolean }) => {
+export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConversation; isPreview: boolean; inputHeight: number }) => {
 	const headerHeight = useHeaderHeight()
 	const isFetchingMoreMessagesRef = useRef<boolean>(false)
-	const chatMessagesQuery = useChatMessagesQuery({
-		uuid: chat.uuid
-	})
 	const chatsLastFocusQuery = useChatsLastFocusQuery({})
-	const { insets, screen } = useDimensions()
-	const { progress } = useReanimatedKeyboardAnimation()
+	const { screen } = useDimensions()
 	const showEmojis = useChatsStore(useShallow(state => state.showEmojis[chat.uuid] ?? false))
 	const showMention = useChatsStore(useShallow(state => state.showMention[chat.uuid] ?? false))
 	const emojisText = useChatsStore(useShallow(state => state.emojisText[chat.uuid] ?? ""))
@@ -42,6 +37,10 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 	const [showScrollToBottom, setShowScrollToBottom] = useState<boolean>(false)
 	const [initialScrollIndex, setInitialScrollIndex] = useState<number | null>(null)
 
+	const chatMessagesQuery = useChatMessagesQuery({
+		uuid: chat.uuid
+	})
+
 	const suggestionsVisible = useMemo(() => {
 		return (
 			replyToMessage ||
@@ -51,16 +50,14 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 	}, [showEmojis, emojisText, emojisSuggestions, showMention, mentionText, mentionSuggestions, replyToMessage])
 
 	const scrollToBottomStyle = useAnimatedStyle(() => {
-		"worklet"
-
 		return {
-			bottom: insets.bottom + 48,
+			bottom: inputHeight + 16,
 			position: "absolute",
 			right: 16,
 			zIndex: 100,
 			display: showScrollToBottom && !suggestionsVisible ? "flex" : "none"
 		}
-	}, [progress, insets.bottom, showScrollToBottom, suggestionsVisible])
+	}, [showScrollToBottom, suggestionsVisible, inputHeight])
 
 	const lastFocus = useMemo(() => {
 		if (chatsLastFocusQuery.status !== "success") {
@@ -84,14 +81,6 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 
 	const renderItem = useCallback(
 		(info: ListRenderItemInfo<ChatMessage>) => {
-			console.log(
-				"renderItem",
-				info.index,
-				messages.at(info.index + 1)?.uuid,
-				messages.at(info.index - 1)?.uuid,
-				info.index + 1,
-				info.index - 1
-			)
 			return (
 				<Message
 					info={info}
@@ -141,7 +130,9 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 				alerts.error(e.message)
 			}
 		} finally {
-			isFetchingMoreMessagesRef.current = false
+			setTimeout(() => {
+				isFetchingMoreMessagesRef.current = false
+			}, 3000)
 		}
 	}, [messages, chat.uuid])
 
@@ -173,7 +164,7 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 	const ListEmptyComponent = useCallback(() => {
 		return (
 			<View
-				className="flex-1 flex-col gap-2 py-4 px-4"
+				className="flex-1 flex-col gap-2 py-8 px-4"
 				style={{
 					transform: [
 						{
@@ -221,17 +212,17 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 			disabled: false,
 			startRenderingFromBottom: false,
 			animateAutoScrollToBottom: false,
-			autoscrollToTopThreshold: undefined,
-			autoscrollToBottomThreshold: undefined
+			autoscrollToTopThreshold: 1,
+			autoscrollToBottomThreshold: 1
 		} satisfies FlashListProps<ChatMessage>["maintainVisibleContentPosition"]
 	}, [])
 
 	const scrollIndicatorInsets = useMemo(() => {
 		return {
-			top: -(insets.bottom + 68),
+			top: -inputHeight,
 			bottom: headerHeight
 		} satisfies FlashListProps<ChatMessage>["scrollIndicatorInsets"]
-	}, [insets.bottom, headerHeight])
+	}, [inputHeight, headerHeight])
 
 	return (
 		<Fragment>

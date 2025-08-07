@@ -7,7 +7,7 @@ import { type FullScreenLoadingModalEvent } from "@/components/modals/fullScreen
 import { type SelectContactsEvent } from "@/services/contacts.service"
 import { type SelectDriveItemsEvent } from "@/services/drive.service"
 import { type AlertPromptEvent } from "@/components/prompts/alertPrompt"
-import { type SelectTrackPlayerPlaylistsEvent } from "@/app/selectTrackPlayerPlaylists"
+import { type SelectTrackPlayerPlaylistsEvent } from "@/services/trackPlayer.service"
 
 export type Events = {
 	socketEvent: SocketEvent

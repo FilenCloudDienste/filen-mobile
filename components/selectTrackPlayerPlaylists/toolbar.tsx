@@ -148,7 +148,7 @@ export const Toolbar = memo(() => {
 			<ToolbarCTA
 				disabled={!canSubmit}
 				icon={{
-					name: "check-circle-outline"
+					name: "check"
 				}}
 				onPress={submit}
 			/>

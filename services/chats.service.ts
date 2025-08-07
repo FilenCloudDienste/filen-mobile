@@ -118,7 +118,15 @@ export class ChatsService {
 		}
 	}
 
-	public async createChat({ disableLoader, contacts }: { disableLoader?: boolean; contacts?: Contact[] }): Promise<void> {
+	public async createChat({
+		disableLoader,
+		contacts,
+		disableNavigation
+	}: {
+		disableLoader?: boolean
+		contacts?: Contact[]
+		disableNavigation?: boolean
+	}): Promise<void> {
 		if (!contacts) {
 			const selectContactsResponse = await contactsService.selectContacts({
 				type: "all",
@@ -137,14 +145,25 @@ export class ChatsService {
 		}
 
 		try {
+			const uuid = randomUUID()
+
 			await nodeWorker.proxy("createChat", {
-				uuid: randomUUID(),
+				uuid,
 				contacts
 			})
 
 			await queryClient.invalidateQueries({
 				queryKey: ["useChatsQuery"]
 			})
+
+			if (!disableNavigation) {
+				router.push({
+					pathname: "/chat/[uuid]",
+					params: {
+						uuid
+					}
+				})
+			}
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -306,14 +325,22 @@ export class ChatsService {
 					const lastFocusValues = await nodeWorker.proxy("fetchChatsLastFocus", undefined)
 
 					await nodeWorker.proxy("updateChatsLastFocus", {
-						values: lastFocusValues.map(v =>
-							v.uuid === chat.uuid
-								? {
-										...v,
+						values: lastFocusValues.some(v => v.uuid === chat.uuid)
+							? lastFocusValues.map(v =>
+									v.uuid === chat.uuid
+										? {
+												...v,
+												lastFocus: lastFocusTimestamp ?? now
+										  }
+										: v
+							  )
+							: [
+									...lastFocusValues,
+									{
+										uuid: chat.uuid,
 										lastFocus: lastFocusTimestamp ?? now
-								  }
-								: v
-						)
+									}
+							  ]
 					})
 				})()
 			])
