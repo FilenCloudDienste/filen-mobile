@@ -910,10 +910,6 @@ export const Menu = memo(
 			)
 		}, [item.thumbnail, screen])
 
-		const renderPreview = useMemo(() => {
-			return !fromPreview && item.thumbnail && (isPortrait || isTablet) && hasInternet ? iosRenderPreview : undefined
-		}, [fromPreview, item.thumbnail, isPortrait, isTablet, hasInternet, iosRenderPreview])
-
 		const contextKey = useMemo(() => {
 			return hasInternet ? `${isPortrait}:${isTablet}` : undefined
 		}, [hasInternet, isPortrait, isTablet])
@@ -928,7 +924,11 @@ export const Menu = memo(
 					items={menuItems}
 					onItemPress={onItemPress}
 					key={contextKey}
-					iosRenderPreview={item.thumbnail ? renderPreview : undefined}
+					iosRenderPreview={
+						!fromPreview && item.type === "file" && item.thumbnail && (isPortrait || isTablet) && hasInternet
+							? iosRenderPreview
+							: undefined
+					}
 				>
 					{children}
 				</ContextMenu>
