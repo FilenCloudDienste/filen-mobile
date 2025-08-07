@@ -45,9 +45,20 @@ export default function useLocalAlbumsQuery({
 						sortBy: [["creationTime", false]]
 					})
 
+					const lastAsset = assets[0]
+					let lastAssetURI: string | null = null
+
+					if (lastAsset) {
+						const info = await MediaLibrary.getAssetInfoAsync(lastAsset, {
+							shouldDownloadFromNetwork: true
+						})
+
+						lastAssetURI = info.localUri ?? null
+					}
+
 					return {
 						album,
-						lastAssetURI: assets[0]?.uri
+						lastAssetURI
 					}
 				})
 			)

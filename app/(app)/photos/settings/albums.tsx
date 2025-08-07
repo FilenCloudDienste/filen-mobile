@@ -14,6 +14,9 @@ import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import { useColorScheme } from "@/lib/useColorScheme"
 import assets from "@/lib/assets"
+import { normalizeFilePathForExpo } from "@/lib/utils"
+import { foregroundCameraUpload } from "@/lib/cameraUpload"
+import { useFocusEffect } from "expo-router"
 
 export type ListItemInfo = {
 	title: string
@@ -21,7 +24,7 @@ export type ListItemInfo = {
 	id: string
 	album: {
 		album: MediaLibrary.Album
-		lastAssetURI?: string
+		lastAssetURI: string | null
 	}
 }
 
@@ -43,7 +46,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 				{info.item.album.lastAssetURI ? (
 					<TurboImage
 						source={{
-							uri: info.item.album.lastAssetURI
+							uri: normalizeFilePathForExpo(info.item.album.lastAssetURI)
 						}}
 						cachePolicy="dataCache"
 						resizeMode="cover"
@@ -76,6 +79,10 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 								...(!prev.albums.some(album => album.id === info.item.album.album.id) ? [info.item.album.album] : [])
 							]
 						}))
+
+						setTimeout(() => {
+							foregroundCameraUpload.run().catch(console.error)
+						}, 1000)
 					}}
 				/>
 			</View>
@@ -166,6 +173,14 @@ export const Albums = memo(() => {
 			/>
 		)
 	}, [localAlbumsQuery.status, items.length, t])
+
+	useFocusEffect(
+		useCallback(() => {
+			setTimeout(() => {
+				foregroundCameraUpload.run().catch(console.error)
+			}, 1000)
+		}, [])
+	)
 
 	return (
 		<RequireInternet>

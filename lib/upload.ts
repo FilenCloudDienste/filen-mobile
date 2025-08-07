@@ -84,9 +84,6 @@ export class Upload {
 						originalFilePath: normalizeFilePathForExpo(params.localPath),
 						disableInViewCheck: true
 					})
-					.then(() => {
-						console.log("Thumbnail generated successfully for", item.uuid)
-					})
 					.catch(e => {
 						console.error("Failed to generate thumbnail for", item.uuid, e)
 						// We don't want to throw an error if thumbnail generation fails

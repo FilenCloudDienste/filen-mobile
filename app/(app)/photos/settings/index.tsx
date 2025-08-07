@@ -2,7 +2,7 @@ import { memo, useCallback, useMemo, useEffect } from "react"
 import { Settings as SettingsComponent, IconView } from "@/components/settings"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import useCameraUpload from "@/hooks/useCameraUpload"
-import { useRouter } from "expo-router"
+import { useRouter, useFocusEffect } from "expo-router"
 import driveService from "@/services/drive.service"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
@@ -80,6 +80,10 @@ export const Settings = memo(() => {
 			...prev,
 			cellular: !prev.cellular
 		}))
+
+		setTimeout(() => {
+			foregroundCameraUpload.run().catch(console.error)
+		}, 1000)
 	}, [setCameraUpload])
 
 	const toggleCompress = useCallback(() => {
@@ -87,6 +91,10 @@ export const Settings = memo(() => {
 			...prev,
 			compress: !prev.compress
 		}))
+
+		setTimeout(() => {
+			foregroundCameraUpload.run().catch(console.error)
+		}, 1000)
 	}, [setCameraUpload])
 
 	const toggleBackground = useCallback(() => {
@@ -94,6 +102,10 @@ export const Settings = memo(() => {
 			...prev,
 			background: !prev.background
 		}))
+
+		setTimeout(() => {
+			foregroundCameraUpload.run().catch(console.error)
+		}, 1000)
 	}, [setCameraUpload])
 
 	const toggleLowBattery = useCallback(() => {
@@ -101,6 +113,10 @@ export const Settings = memo(() => {
 			...prev,
 			lowBattery: !prev.lowBattery
 		}))
+
+		setTimeout(() => {
+			foregroundCameraUpload.run().catch(console.error)
+		}, 1000)
 	}, [setCameraUpload])
 
 	const toggleVideos = useCallback(() => {
@@ -332,6 +348,14 @@ export const Settings = memo(() => {
 		routerPush,
 		t
 	])
+
+	useFocusEffect(
+		useCallback(() => {
+			setTimeout(() => {
+				foregroundCameraUpload.run().catch(console.error)
+			}, 1000)
+		}, [])
+	)
 
 	useEffect(() => {
 		if (!cameraUploadParentExists) {

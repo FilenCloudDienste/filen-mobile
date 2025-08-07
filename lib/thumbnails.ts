@@ -242,26 +242,6 @@ export class Thumbnails {
 						}
 					}
 
-					console.log(
-						originalFilePath
-							? normalizeFilePathForExpo(originalFilePath)
-							: `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?file=${encodeURIComponent(
-									btoa(
-										JSON.stringify({
-											name: item.name,
-											mime: item.mime,
-											size: item.size,
-											uuid: item.uuid,
-											bucket: item.bucket,
-											key: item.key,
-											version: item.version,
-											chunks: item.chunks,
-											region: item.region
-										})
-									)
-							  )}`
-					)
-
 					const videoThumbnail = await VideoThumbnails.getThumbnailAsync(
 						originalFilePath
 							? normalizeFilePathForExpo(originalFilePath)
