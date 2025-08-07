@@ -20,7 +20,6 @@ import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { FlashList, type ListRenderItemInfo, type FlashListRef, type FlashListProps } from "@shopify/flash-list"
 import { Text } from "@/components/nativewindui/Text"
-import { cn } from "@/lib/cn"
 
 export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isPreview: boolean }) => {
 	const headerHeight = useHeaderHeight()
@@ -173,7 +172,16 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 
 	const ListEmptyComponent = useCallback(() => {
 		return (
-			<View className={cn("flex-1 flex-col gap-2 px-4", isPreview && "py-4")}>
+			<View
+				className="flex-1 flex-col gap-2 py-4 px-4"
+				style={{
+					transform: [
+						{
+							scaleY: -1
+						}
+					]
+				}}
+			>
 				<Text variant="heading">End-to-end encrypted chat</Text>
 				<Text variant="subhead">Filen secures every chat with zero-knowledge end-to-end encryption by default.</Text>
 				{chatMessagesQuery.status === "pending" && !isPreview && (
@@ -271,7 +279,7 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 					initialScrollIndex={initialScrollIndex}
 					viewabilityConfig={viewabilityConfig}
 					onViewableItemsChanged={onViewableItemsChanged}
-					data={messages}
+					data={[]}
 					keyExtractor={keyExtractor}
 					renderItem={renderItem}
 					keyboardDismissMode={suggestionsVisible ? "interactive" : "on-drag"}
