@@ -7,6 +7,9 @@ import sqlite from "@/lib/sqlite"
 import * as FileSystem from "expo-file-system/next"
 import paths from "@/lib/paths"
 import alerts from "@/lib/alerts"
+import Semaphore from "@/lib/semaphore"
+
+export const offlineFilesSemaphore = new Semaphore(1)
 
 export type UseFileOfflineStatusQuery =
 	| {
@@ -16,6 +19,27 @@ export type UseFileOfflineStatusQuery =
 			exists: true
 			path: string
 	  }
+
+export async function fetchFileOfflineStatus(uuid: string): Promise<UseFileOfflineStatusQuery> {
+	await offlineFilesSemaphore.acquire()
+
+	try {
+		const item = await sqlite.offlineFiles.get(uuid)
+
+		if (!item) {
+			return {
+				exists: false
+			}
+		}
+
+		return {
+			exists: true,
+			path: FileSystem.Paths.join(paths.offlineFiles(), `${uuid}${FileSystem.Paths.extname(item.name)}`)
+		}
+	} finally {
+		offlineFilesSemaphore.release()
+	}
+}
 
 export default function useFileOfflineStatusQuery({
 	uuid,
@@ -37,26 +61,7 @@ export default function useFileOfflineStatusQuery({
 	const notifyOnChangeProps = useFocusNotifyOnChangeProps()
 	const query = useQuery({
 		queryKey: ["useFileOfflineStatusQuery", uuid],
-		queryFn: () =>
-			new Promise<UseFileOfflineStatusQuery>((resolve, reject) => {
-				sqlite.offlineFiles
-					.get(uuid)
-					.then(item => {
-						if (!item) {
-							resolve({
-								exists: false
-							})
-
-							return
-						}
-
-						resolve({
-							exists: true,
-							path: FileSystem.Paths.join(paths.offlineFiles(), `${uuid}${FileSystem.Paths.extname(item.name)}`)
-						})
-					})
-					.catch(reject)
-			}),
+		queryFn: () => fetchFileOfflineStatus(uuid),
 		throwOnError(err) {
 			console.error(err)
 			alerts.error(err.message)

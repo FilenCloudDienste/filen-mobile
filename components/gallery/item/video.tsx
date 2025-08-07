@@ -63,7 +63,7 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 
 	const onError = useCallback((e: OnVideoErrorData) => {
 		setLoading(false)
-		setError(e.error.errorString ?? e.error.localizedFailureReason ?? "An unknown error occurred")
+		setError(e?.error?.errorString ?? e?.error?.localizedFailureReason ?? "An unknown error occurred")
 	}, [])
 
 	useEffect(() => {
