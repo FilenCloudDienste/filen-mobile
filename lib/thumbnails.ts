@@ -14,8 +14,8 @@ import download from "./download"
 import { useDriveStore } from "@/stores/drive.store"
 
 export const THUMBNAILS_MAX_ERRORS: number = 3
-export const THUMBNAILS_SIZE: number = 256
-export const THUMBNAILS_COMPRESSION: number = 0.8
+export const THUMBNAILS_SIZE: number = 128
+export const THUMBNAILS_COMPRESSION: number = 0.7
 
 export const THUMBNAILS_SUPPORTED_FORMATS = [...EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS, ...EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS]
 
