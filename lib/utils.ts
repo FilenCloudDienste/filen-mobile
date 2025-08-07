@@ -1,6 +1,6 @@
 import {
 	UNCACHED_QUERY_KEYS,
-	EXPO_IMAGE_SUPPORTED_EXTENSIONS,
+	TURBO_IMAGE_SUPPORTED_EXTENSIONS,
 	EXPO_VIDEO_SUPPORTED_EXTENSIONS,
 	EXPO_AUDIO_SUPPORTED_EXTENSIONS
 } from "./constants"
@@ -169,10 +169,10 @@ export const orderItemsByTypeCompareFunctions = {
 		return isAscending
 			? a.name.toLowerCase().localeCompare(b.name.toLowerCase(), "en", {
 					numeric: true
-				})
+			  })
 			: b.name.toLowerCase().localeCompare(a.name.toLowerCase(), "en", {
 					numeric: true
-				})
+			  })
 	},
 	size: (a: DriveCloudItem, b: DriveCloudItem, isAscending: boolean = true): number => {
 		const typeComparison = orderItemsByTypeCompareItemTypes(a, b)
@@ -222,8 +222,8 @@ export const orderItemsByTypeCompareFunctions = {
 			return typeComparison
 		}
 
-		const aTime = a.type === "file" ? (a.creation ?? a.lastModified ?? a.timestamp) : (a.lastModified ?? a.timestamp)
-		const bTime = b.type === "file" ? (b.creation ?? b.lastModified ?? b.timestamp) : (b.lastModified ?? b.timestamp)
+		const aTime = a.type === "file" ? a.creation ?? a.lastModified ?? a.timestamp : a.lastModified ?? a.timestamp
+		const bTime = b.type === "file" ? b.creation ?? b.lastModified ?? b.timestamp : b.lastModified ?? b.timestamp
 
 		if (aTime === bTime) {
 			const aUuid = parseNumbersFromString(a.uuid)
@@ -307,7 +307,7 @@ export function bpsToReadable(bps: number): string {
 export function getPreviewType(name: string): PreviewType {
 	const extname = Paths.extname(name.trim().toLowerCase())
 
-	if (EXPO_IMAGE_SUPPORTED_EXTENSIONS.includes(extname)) {
+	if (TURBO_IMAGE_SUPPORTED_EXTENSIONS.includes(extname)) {
 		return "image"
 	}
 
@@ -914,7 +914,7 @@ export function sortAndFilterNotes({ notes, searchTerm, selectedTag }: { notes: 
 						note.preview.toLowerCase().trim().includes(lowercaseSearchTerm) ||
 						note.type.toLowerCase().trim().includes(lowercaseSearchTerm) ||
 						note.tags.some(tag => tag.name.toLowerCase().trim().includes(lowercaseSearchTerm))
-				)
+			  )
 			: notes
 
 	const selectedTagIsUUID = validateUUID(selectedTag)
@@ -947,7 +947,7 @@ export function sortAndFilterNotes({ notes, searchTerm, selectedTag }: { notes: 
 					}
 
 					return true
-				})
+			  })
 			: filteredBySearchTerm
 
 	return filteredByTag.sort((a, b) => {

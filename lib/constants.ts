@@ -92,6 +92,12 @@ export const EXPO_IMAGE_SUPPORTED_EXTENSIONS = Platform.select({
 	default: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg"]
 }) as string[]
 
+export const TURBO_IMAGE_SUPPORTED_EXTENSIONS = Platform.select({
+	ios: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".heic", ".heif"],
+	android: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".heic", ".heif"],
+	default: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"]
+}) as string[]
+
 export const REACT_NATIVE_AUDIO_PRO_SUPPORTED_EXTENSIONS = Platform.select({
 	ios: [".mp3", ".m4a", ".aac", ".wav", ".aiff", ".caf", ".flac", ".alac"],
 	android: [".mp3", ".m4a", ".aac", ".wav", ".ogg", ".3gp", ".flac"],
