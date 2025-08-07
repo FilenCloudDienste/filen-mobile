@@ -13,9 +13,8 @@ export const Transfers = memo(() => {
 	const ongoingTransfersLength = useMemo(() => {
 		return transfers.filter(
 			transfer =>
-				(!hiddenTransfers[transfer.id] && transfer.state === "queued") ||
-				transfer.state === "started" ||
-				transfer.state === "paused"
+				!hiddenTransfers[transfer.id] &&
+				(transfer.state === "queued" || transfer.state === "started" || transfer.state === "paused")
 		).length
 	}, [transfers, hiddenTransfers])
 
@@ -25,25 +24,6 @@ export const Transfers = memo(() => {
 		})
 	}, [routerPush])
 
-	const empty = useMemo(() => {
-		return (
-			<Button
-				variant="plain"
-				size="icon"
-			>
-				<ActivityIndicator
-					size="small"
-					className="text-transparent"
-					color="transparent"
-				/>
-			</Button>
-		)
-	}, [])
-
-	if (ongoingTransfersLength === 0) {
-		return empty
-	}
-
 	return (
 		<Button
 			variant="plain"
@@ -51,7 +31,14 @@ export const Transfers = memo(() => {
 			onPress={onPress}
 			hitSlop={10}
 		>
-			<ActivityIndicator size="small" />
+			{ongoingTransfersLength > 0 ? (
+				<ActivityIndicator size="small" />
+			) : (
+				<ActivityIndicator
+					size="small"
+					color="transparent"
+				/>
+			)}
 		</Button>
 	)
 })
