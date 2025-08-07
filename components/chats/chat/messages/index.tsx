@@ -184,11 +184,13 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 			>
 				<Text variant="heading">End-to-end encrypted chat</Text>
 				<Text variant="subhead">Filen secures every chat with zero-knowledge end-to-end encryption by default.</Text>
-				{chatMessagesQuery.status === "pending" && !isPreview && (
-					<ActivityIndicator
-						size="small"
-						color={colors.foreground}
-					/>
+				{chatMessagesQuery.status !== "success" && !isPreview && (
+					<View className="flex-1 justify-center p-8 items-center">
+						<ActivityIndicator
+							size="small"
+							color={colors.foreground}
+						/>
+					</View>
 				)}
 			</View>
 		)
@@ -279,7 +281,7 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 					initialScrollIndex={initialScrollIndex}
 					viewabilityConfig={viewabilityConfig}
 					onViewableItemsChanged={onViewableItemsChanged}
-					data={[]}
+					data={messages}
 					keyExtractor={keyExtractor}
 					renderItem={renderItem}
 					keyboardDismissMode={suggestionsVisible ? "interactive" : "on-drag"}
