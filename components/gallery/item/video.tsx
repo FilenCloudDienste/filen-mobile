@@ -1,9 +1,8 @@
-import { memo, useMemo, useState, Fragment, useEffect } from "react"
+import { memo, useMemo, useState, Fragment, useEffect, useCallback } from "react"
 import { type GalleryItem } from "@/stores/gallery.store"
 import { View, ActivityIndicator } from "react-native"
 import { type WH } from "."
-import { useEventListener } from "expo"
-import { useVideoPlayer, VideoView } from "expo-video"
+import RNVideo, { type OnLoadStartData, type OnVideoErrorData, type OnLoadData } from "react-native-video"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Animated, { FadeOut } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -54,20 +53,18 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 		return null
 	}, [item, httpServer.port, httpServer.authToken])
 
-	const player = useVideoPlayer(source, player => {
-		player.loop = true
+	const onLoadStart = useCallback((_: OnLoadStartData) => {
+		setLoading(true)
+	}, [])
 
-		player.play()
-	})
+	const onLoad = useCallback((_: OnLoadData) => {
+		setLoading(false)
+	}, [])
 
-	useEventListener(player, "statusChange", e => {
-		setError(e.error ? e.error.message : null)
-		setLoading(e.status === "loading")
-	})
-
-	useEventListener(player, "playingChange", _ => {
-		//setPlaying(e.isPlaying)
-	})
+	const onError = useCallback((e: OnVideoErrorData) => {
+		setLoading(false)
+		setError(e.error.errorString ?? e.error.localizedFailureReason ?? "An unknown error occurred")
+	}, [])
 
 	useEffect(() => {
 		trackPlayerControls.stop().catch(console.error)
@@ -128,18 +125,25 @@ export const Video = memo(({ item, layout, headerHeight }: { item: GalleryItem; 
 								}
 							]}
 						>
-							<VideoView
-								player={player}
-								allowsFullscreen={true}
-								allowsPictureInPicture={true}
-								nativeControls={true}
-								startsPictureInPictureAutomatically={false}
-								contentFit="contain"
-								allowsVideoFrameAnalysis={false}
-								useExoShutter={false}
-								style={{
-									flex: 1
+							<RNVideo
+								source={{
+									uri: source
 								}}
+								style={{
+									width: "100%",
+									height: "100%"
+								}}
+								controls={true}
+								focusable={false}
+								playInBackground={false}
+								playWhenInactive={false}
+								allowsExternalPlayback={false}
+								disableFocus={true}
+								disableDisconnectError={true}
+								resizeMode="contain"
+								onLoadStart={onLoadStart}
+								onError={onError}
+								onLoad={onLoad}
 							/>
 						</View>
 					)}

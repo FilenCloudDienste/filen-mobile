@@ -170,13 +170,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			}
 		],
 		[
-			"expo-video",
-			{
-				supportsBackgroundPlayback: true,
-				supportsPictureInPicture: true
-			}
-		],
-		[
 			"expo-document-picker",
 			{
 				iCloudContainerEnvironment: "Production"
@@ -264,7 +257,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			}
 		],
 		"./plugins/withAndroidSigning",
-		"./plugins/withGradleMemory"
+		"./plugins/withGradleMemory",
+		"react-native-video"
 	],
 	experiments: {
 		typedRoutes: true,
