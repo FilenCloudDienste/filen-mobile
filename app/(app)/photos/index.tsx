@@ -3,7 +3,7 @@ import { Button } from "@/components/nativewindui/Button"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator } from "react-native"
+import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator, type ViewabilityConfig } from "react-native"
 import Thumbnail from "@/components/thumbnail/item"
 import { cn } from "@/lib/cn"
 import { Container } from "@/components/Container"
@@ -32,7 +32,8 @@ import { usePhotosStore } from "@/stores/photos.store"
 import Dropdown from "@/components/photos/header/rightView/dropdown"
 import { Checkbox } from "@/components/nativewindui/Checkbox"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
-import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
+import { FlashList, type ListRenderItemInfo, type ViewToken, type FlashListRef } from "@shopify/flash-list"
+import { useDriveStore } from "@/stores/drive.store"
 
 const contentContainerStyle = {
 	paddingBottom: 100,
@@ -181,6 +182,7 @@ export const Photos = memo(() => {
 	const running = useCameraUploadStore(useShallow(state => state.running))
 	const { t } = useTranslation()
 	const selectedItemsCount = usePhotosStore(useShallow(state => state.selectedItems.length))
+	const listRef = useRef<FlashListRef<DriveCloudItem>>(null)
 
 	const queryParams = useMemo(
 		(): FetchCloudItemsParams => ({
@@ -423,10 +425,38 @@ export const Photos = memo(() => {
 		return !hasInternet ? <OfflineListHeader /> : undefined
 	}, [hasInternet])
 
+	const viewabilityConfig = useMemo(() => {
+		return {
+			itemVisiblePercentThreshold: 75
+		} satisfies ViewabilityConfig
+	}, [])
+
+	const onViewableItemsChanged = useCallback(
+		(e: { viewableItems: ViewToken<DriveCloudItem>[]; changed: ViewToken<DriveCloudItem>[] }) => {
+			useDriveStore.getState().setVisibleItemUuids(e.viewableItems.map(item => item.item.uuid))
+		},
+		[]
+	)
+
+	const calculateVisibleItemsOnFocus = useCallback(() => {
+		if (!listRef?.current) {
+			return
+		}
+
+		const visibleIndices = listRef.current.computeVisibleIndices()
+		const uuids = items
+			.slice(visibleIndices.startIndex <= 0 ? 0 : visibleIndices.startIndex, visibleIndices.endIndex + 1)
+			.map(item => item.uuid)
+
+		useDriveStore.getState().setVisibleItemUuids(uuids)
+	}, [items])
+
 	useFocusEffect(
 		useCallback(() => {
 			usePhotosStore.getState().setSelectedItems([])
-		}, [])
+
+			calculateVisibleItemsOnFocus()
+		}, [calculateVisibleItemsOnFocus])
 	)
 
 	return (
@@ -445,6 +475,7 @@ export const Photos = memo(() => {
 					className="flex-1"
 				>
 					<FlashList
+						ref={listRef}
 						data={items}
 						renderItem={renderItem}
 						numColumns={numColumns}
@@ -456,6 +487,8 @@ export const Photos = memo(() => {
 						ListEmptyComponent={ListEmptyComponent}
 						contentContainerStyle={contentContainerStyle}
 						refreshControl={refreshControl}
+						viewabilityConfig={viewabilityConfig}
+						onViewableItemsChanged={onViewableItemsChanged}
 					/>
 				</View>
 			</Container>

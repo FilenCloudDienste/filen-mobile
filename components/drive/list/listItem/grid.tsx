@@ -111,8 +111,8 @@ export const Grid = memo(
 								item={item}
 								size={thumbnailSize}
 								imageClassName="bg-transparent"
-								imageContentFit="contain"
-								imageCachePolicy="none"
+								imageResizeMode="contain"
+								imageCachePolicy="dataCache"
 								imageStyle={{
 									width: thumbnailSize,
 									height: thumbnailSize

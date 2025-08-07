@@ -48,7 +48,7 @@ export const ListItem = memo(
 	}: {
 		info: ListRenderItemInfo<ListItemInfo>
 		queryParams: FetchCloudItemsParams
-		items: DriveCloudItem[]
+		items: ListItemInfo[]
 		itemSize: number
 		spacing: number
 		fromSearch?: boolean
@@ -291,6 +291,7 @@ export const ListItem = memo(
 			if ((previewType === "image" || previewType === "video" || previewType === "audio") && info.item.item.size > 0) {
 				useGalleryStore.getState().open({
 					items: items
+						.map(item => item.item)
 						.map(item => {
 							const previewType = getPreviewType(item.name)
 

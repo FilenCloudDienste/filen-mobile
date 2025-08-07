@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import Avatar from "@/components/avatar"
 import { Container } from "@/components/Container"
-import { useRouter } from "expo-router"
+import { useRouter, useFocusEffect } from "expo-router"
 import { orderItemsByType } from "@/lib/utils"
 import useAccountQuery from "@/queries/useAccountQuery"
 import { Icon } from "@roninoss/icons"
@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next"
 import Dropdown from "@/components/home/header/dropdown"
 import useIsProUser from "@/hooks/useIsProUser"
 import assets from "@/lib/assets"
+import { useDriveStore } from "@/stores/drive.store"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -393,6 +394,28 @@ export const Home = memo(() => {
 		offline.status,
 		trash.status
 	])
+
+	const calculateVisibleItemsOnFocus = useCallback(() => {
+		useDriveStore
+			.getState()
+			.setVisibleItemUuids([
+				...recentsItems.map(item => item.uuid),
+				...favoritesItems.map(item => item.uuid),
+				...linksItems.map(item => item.uuid),
+				...sharedInItems.map(item => item.uuid),
+				...sharedOutItems.map(item => item.uuid),
+				...offlineItems.map(item => item.uuid),
+				...trashItems.map(item => item.uuid)
+			])
+	}, [recentsItems, favoritesItems, linksItems, sharedInItems, sharedOutItems, offlineItems, trashItems])
+
+	useFocusEffect(
+		useCallback(() => {
+			useDriveStore.getState().setSelectedItems([])
+
+			calculateVisibleItemsOnFocus()
+		}, [calculateVisibleItemsOnFocus])
+	)
 
 	return (
 		<Fragment>

@@ -55,7 +55,7 @@ export const Thumbnail = memo(
 		)
 
 		const generate = useCallback(() => {
-			if (localPath || item.type !== "file" || !thumbnails.canGenerate(item.name)) {
+			if (localPath || item.type !== "file" || !thumbnails.canGenerate(item.name) || !thumbnails.isItemInView(item.uuid)) {
 				return
 			}
 

@@ -36,7 +36,7 @@ export const Gallery = memo(
 
 		const viewabilityConfig = useMemo((): ViewabilityConfig => {
 			return {
-				itemVisiblePercentThreshold: 99.9
+				itemVisiblePercentThreshold: 99
 			}
 		}, [])
 

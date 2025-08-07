@@ -81,7 +81,8 @@ export class Upload {
 				await thumbnails
 					.generate({
 						item,
-						originalFilePath: normalizeFilePathForExpo(params.localPath)
+						originalFilePath: normalizeFilePathForExpo(params.localPath),
+						disableInViewCheck: true
 					})
 					.then(() => {
 						console.log("Thumbnail generated successfully for", item.uuid)
@@ -148,14 +149,15 @@ export class Upload {
 										sharerEmail: params.sharerEmail,
 										sharerId: params.sharerId,
 										receivers: params.receivers
-									}
+								  }
 								: {
 										...item,
 										isShared: false,
 										type: "file",
 										selected: false
-									}) satisfies DriveCloudItem,
-							originalFilePath: normalizeFilePathForExpo(params.localPath)
+								  }) satisfies DriveCloudItem,
+							originalFilePath: normalizeFilePathForExpo(params.localPath),
+							disableInViewCheck: true
 						})
 						.catch(() => {
 							// We don't want to throw an error if thumbnail generation fails

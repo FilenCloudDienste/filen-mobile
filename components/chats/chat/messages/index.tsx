@@ -188,7 +188,7 @@ export const Messages = memo(({ chat, isPreview }: { chat: ChatConversation; isP
 
 	const viewabilityConfig = useMemo(() => {
 		return {
-			itemVisiblePercentThreshold: 99.9
+			itemVisiblePercentThreshold: 99
 		} satisfies FlashListProps<ChatMessage>["viewabilityConfig"]
 	}, [])
 

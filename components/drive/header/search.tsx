@@ -1,7 +1,8 @@
 import { memo, useCallback, useEffect, useState, useMemo } from "react"
 import nodeWorker from "@/lib/nodeWorker"
-import { View } from "react-native"
+import { View, type ViewabilityConfig } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
+import { type ViewToken } from "@shopify/flash-list"
 import alerts from "@/lib/alerts"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
@@ -120,10 +121,6 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 		return sorted
 	}, [query.status, query.data, searchTerm, result, isLoading])
 
-	const driveItems = useMemo(() => {
-		return items.map(item => item.item)
-	}, [items])
-
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
 		return typeof item === "string" ? item : item.id
 	}, [])
@@ -134,14 +131,14 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 				<ListItem
 					info={info}
 					queryParams={queryParams}
-					items={driveItems}
+					items={items}
 					itemSize={0}
 					spacing={0}
 					fromSearch={true}
 				/>
 			)
 		},
-		[queryParams, driveItems]
+		[queryParams, items]
 	)
 
 	const debouncedSearch = useDebouncedCallback(async (searchValue: string) => {
@@ -211,6 +208,16 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 		)
 	}, [t, items.length, isLoading])
 
+	const viewabilityConfig = useMemo(() => {
+		return {
+			itemVisiblePercentThreshold: 75
+		} satisfies ViewabilityConfig
+	}, [])
+
+	const onViewableItemsChanged = useCallback((e: { viewableItems: ViewToken<ListItemInfo>[]; changed: ViewToken<ListItemInfo>[] }) => {
+		useDriveStore.getState().setVisibleItemUuids(e.viewableItems.map(item => item.item.item.uuid))
+	}, [])
+
 	useEffect(() => {
 		if (searchTerm.length < 3 || queryParams.of !== "drive") {
 			setResults([])
@@ -236,6 +243,8 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 			refreshing={isLoading}
 			ListEmptyComponent={ListEmptyComponent}
 			ListFooterComponent={ListFooterComponent}
+			viewabilityConfig={viewabilityConfig}
+			onViewableItemsChanged={onViewableItemsChanged}
 		/>
 	)
 })

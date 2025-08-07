@@ -4,7 +4,7 @@ import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import useFocusNotifyOnChangeProps from "@/hooks/useFocusNotifyOnChangeProps"
 import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import { DEFAULT_QUERY_OPTIONS } from "./client"
-import { orderItemsByType, promiseAllChunked } from "@/lib/utils"
+import { promiseAllChunked } from "@/lib/utils"
 import { validate as validateUUID } from "uuid"
 import { Type, type Static } from "@sinclair/typebox"
 import { Value } from "@sinclair/typebox/value"
@@ -54,10 +54,7 @@ export async function findPlaylistDirectoryUUID(): Promise<string> {
 		receiverId: 0
 	})
 
-	let filenDirectory = orderItemsByType({
-		items: rootFolderList.filter(item => item.type === "directory"),
-		type: "lastModifiedAsc"
-	}).find(item => item.name === ".filen")
+	let filenDirectory = rootFolderList.filter(item => item.type === "directory").find(item => item.name === ".filen")
 
 	if (!filenDirectory) {
 		await nodeWorker.proxy("createDirectory", {
@@ -71,10 +68,7 @@ export async function findPlaylistDirectoryUUID(): Promise<string> {
 			receiverId: 0
 		})
 
-		filenDirectory = orderItemsByType({
-			items: rootFolderList.filter(item => item.type === "directory"),
-			type: "lastModifiedAsc"
-		}).find(item => item.name === ".filen")
+		filenDirectory = rootFolderList.filter(item => item.type === "directory").find(item => item.name === ".filen")
 	}
 
 	if (!filenDirectory) {
@@ -87,10 +81,7 @@ export async function findPlaylistDirectoryUUID(): Promise<string> {
 		receiverId: 0
 	})
 
-	let playlistsDirectory = orderItemsByType({
-		items: filenDirectoryList.filter(item => item.type === "directory"),
-		type: "lastModifiedAsc"
-	}).find(item => item.name === "playlists")
+	let playlistsDirectory = filenDirectoryList.filter(item => item.type === "directory").find(item => item.name === "playlists")
 
 	if (!playlistsDirectory) {
 		await nodeWorker.proxy("createDirectory", {
@@ -104,10 +95,7 @@ export async function findPlaylistDirectoryUUID(): Promise<string> {
 			receiverId: 0
 		})
 
-		playlistsDirectory = orderItemsByType({
-			items: filenDirectoryList.filter(item => item.type === "directory"),
-			type: "lastModifiedAsc"
-		}).find(item => item.name === "playlists")
+		playlistsDirectory = filenDirectoryList.filter(item => item.type === "directory").find(item => item.name === "playlists")
 	}
 
 	if (!playlistsDirectory) {

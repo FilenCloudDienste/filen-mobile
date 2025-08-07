@@ -11,6 +11,7 @@ import queryUtils from "@/queries/utils"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS, EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS } from "./constants"
 import download from "./download"
+import { useDriveStore } from "@/stores/drive.store"
 
 export const THUMBNAILS_MAX_ERRORS: number = 3
 export const THUMBNAILS_SIZE: number = 256
@@ -86,17 +87,27 @@ export class Thumbnails {
 		}
 	}
 
+	public isItemInView(uuid: string): boolean {
+		return useDriveStore.getState().visibleItemUuids.includes(uuid)
+	}
+
 	public async generate({
 		item,
 		queryParams,
-		originalFilePath
+		originalFilePath,
+		disableInViewCheck
 	}: {
 		item: DriveCloudItem
 		queryParams?: FetchCloudItemsParams
 		originalFilePath?: string
+		disableInViewCheck?: boolean
 	}): Promise<string> {
 		if (item.type !== "file") {
 			throw new Error("Item is not of type file.")
+		}
+
+		if (!disableInViewCheck && !this.isItemInView(item.uuid)) {
+			throw new Error("Item is not in view.")
 		}
 
 		const extname = FileSystem.Paths.extname(item.name.trim().toLowerCase())
@@ -122,6 +133,10 @@ export class Thumbnails {
 		await Promise.all([this.semaphore.acquire(), uuidMutex?.acquire()])
 
 		try {
+			if (!disableInViewCheck && !this.isItemInView(item.uuid)) {
+				throw new Error("Item is not in view.")
+			}
+
 			const temporaryDownloadsPath = paths.temporaryDownloads()
 			const thumbnailsPath = paths.thumbnails()
 			const thumbnailDestination = normalizeFilePathForExpo(FileSystem.Paths.join(thumbnailsPath, `${item.uuid}.png`))
