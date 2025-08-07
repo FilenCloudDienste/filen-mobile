@@ -55,14 +55,15 @@ export const Thumbnail = memo(
 		)
 
 		const generate = useCallback(() => {
-			if (localPath || item.type !== "file" || !thumbnails.canGenerate(item.name) || !thumbnails.isItemInView(item.uuid)) {
+			if (localPath || item.type !== "file" || !thumbnails.canGenerate(item.name)) {
 				return
 			}
 
 			thumbnails
 				.generate({
 					item,
-					queryParams
+					queryParams,
+					disableInViewCheck: true
 				})
 				.then(thumbnailPath => setLocalPath(thumbnailPath))
 				.catch(() => {})
