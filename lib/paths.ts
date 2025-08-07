@@ -4,7 +4,7 @@ import { Platform } from "react-native"
 import ReactNativeBlobUtil from "react-native-blob-util"
 
 export const PREFIX: string = "filenv3_"
-export const THUMBNAILS_VERSION: number = 1
+export const THUMBNAILS_VERSION: number = 3
 export const BASE_DIR: string = FileSystem.Paths.document.uri
 export const TEMPORARY_DOWNLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}temporaryDownloads`)
 export const TEMPORARY_UPLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}temporaryUploads`)
