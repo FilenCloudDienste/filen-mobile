@@ -10,6 +10,7 @@ export const NEW_ARCH_ENABLED: boolean = true
 export const ANDROID_MIN_SDK_VERSION: number = 31
 export const ANDROID_TARGET_SDK_VERSION: number = 35
 export const ANDROID_COMPILE_SDK_VERSION: number = 35
+export const ANDROID_BUILD_TOOLS_VERSION: string = "35.0.0"
 export const IOS_DEPLOYMENT_TARGET: string = "16.0"
 export const NAME: string = "Filen"
 export const IDENTIFIER: string = "io.filen.app"
@@ -131,11 +132,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 					compileSdkVersion: ANDROID_COMPILE_SDK_VERSION,
 					targetSdkVersion: ANDROID_TARGET_SDK_VERSION,
 					minSdkVersion: ANDROID_MIN_SDK_VERSION,
+					buildToolsVersion: ANDROID_BUILD_TOOLS_VERSION,
 					enableProguardInReleaseBuilds: false,
 					enableShrinkResourcesInReleaseBuilds: false,
 					enableBundleCompression: false,
 					useLegacyPackaging: false,
-					enablePngCrunchInReleaseBuilds: false
+					enablePngCrunchInReleaseBuilds: false,
+					packagingOptions: {
+						pickFirst: ["**/libcrypto.so"]
+					}
 				},
 				ios: {
 					deploymentTarget: IOS_DEPLOYMENT_TARGET,
@@ -259,8 +264,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			}
 		],
 		"./plugins/withAndroidSigning",
-		"./plugins/withGradleMemory",
-		"./plugins/withAndroidLibCryptoPackaging"
+		"./plugins/withGradleMemory"
 	],
 	experiments: {
 		typedRoutes: true,
