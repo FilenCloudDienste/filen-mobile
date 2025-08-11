@@ -1,20 +1,21 @@
-import { memo, useState, useMemo, useCallback } from "react"
+import { memo, useMemo, useCallback } from "react"
 import { ActivityIndicator, View, type StyleProp, type ViewStyle } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Container from "../Container"
-import PDF from "react-native-pdf"
+import PdfRendererView from "react-native-pdf-renderer"
 import { type PDFPreviewItem } from "@/app/pdfPreview"
 import useHTTPServer from "@/hooks/useHTTPServer"
-import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
-import { useTranslation } from "react-i18next"
+import { useQuery } from "@tanstack/react-query"
+import * as FileSystemLegacy from "expo-file-system"
+import * as FileSystem from "expo-file-system/next"
+import paths from "@/lib/paths"
+import { normalizeFilePathForExpo } from "@/lib/utils"
+import { xxHash32 } from "js-xxhash"
 
 export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 	const { colors } = useColorScheme()
-	const [page, setPage] = useState<number | undefined>(undefined)
-	const [, setNumPages] = useState<number | null>(null)
 	const httpServer = useHTTPServer()
-	const { t } = useTranslation()
 
 	const source = useMemo(() => {
 		if (item.type === "cloud") {
@@ -48,50 +49,45 @@ export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 		}
 	}, [item, httpServer.port, httpServer.authToken])
 
-	const renderActivityIndicator = useCallback(() => {
-		return (
-			<View className="flex-1 items-center justify-center">
-				<ActivityIndicator
-					color={colors.foreground}
-					size="small"
-				/>
-			</View>
-		)
-	}, [colors.foreground])
-
-	const onLoadComplete = useCallback((numberOfPages: number) => {
-		setNumPages(numberOfPages)
-	}, [])
-
-	const onPageChanged = useCallback((page: number, numberOfPages: number) => {
-		setPage(page)
-		setNumPages(numberOfPages)
-	}, [])
-
-	const onError = useCallback((error: object) => {
-		console.error("PDF error:", error)
-	}, [])
-
-	const onPressLink = useCallback(
-		async (uri: string) => {
-			try {
-				if (!(await Linking.canOpenURL(uri))) {
-					alerts.error(t("errors.cannotOpenURL"))
-
-					return
-				}
-
-				await Linking.openURL(uri)
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
+	const pdfFileUriQuery = useQuery({
+		queryKey: ["pdfFileUriQuery", source],
+		queryFn: async () => {
+			if (!source.uri) {
+				return null
 			}
+
+			if (!(source.uri.startsWith("http://") || source.uri.startsWith("https://"))) {
+				return normalizeFilePathForExpo(source.uri)
+			}
+
+			const file = new FileSystem.File(FileSystem.Paths.join(paths.temporaryDownloads(), `${xxHash32(source.uri).toString(16)}.pdf`))
+
+			if (file.exists) {
+				return file.uri
+			}
+
+			await FileSystemLegacy.downloadAsync(source.uri, file.uri, {
+				sessionType: FileSystemLegacy.FileSystemSessionType.BACKGROUND
+			})
+
+			return file.uri
 		},
-		[t]
-	)
+		refetchOnMount: false,
+		refetchOnWindowFocus: false,
+		refetchOnReconnect: false,
+		refetchInterval: false,
+		refetchIntervalInBackground: false,
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
+		}
+	})
+
+	const onError = useCallback(() => {
+		alerts.error("Failed to load PDF file.")
+	}, [])
 
 	const style = useMemo(() => {
 		return {
@@ -104,17 +100,22 @@ export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 
 	return (
 		<Container>
-			<PDF
-				page={page}
-				source={source}
-				trustAllCerts={false}
-				renderActivityIndicator={renderActivityIndicator}
-				onLoadComplete={onLoadComplete}
-				onPageChanged={onPageChanged}
-				onError={onError}
-				onPressLink={onPressLink}
-				style={style}
-			/>
+			{pdfFileUriQuery.status !== "success" || !pdfFileUriQuery.data ? (
+				<View className="flex-1 items-center justify-center">
+					<ActivityIndicator
+						color={colors.foreground}
+						size="small"
+					/>
+				</View>
+			) : (
+				<PdfRendererView
+					source={pdfFileUriQuery.data}
+					distanceBetweenPages={16}
+					maxZoom={5}
+					onError={onError}
+					style={style}
+				/>
+			)}
 		</Container>
 	)
 })

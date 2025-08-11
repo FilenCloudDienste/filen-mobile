@@ -198,7 +198,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		],
 		"expo-background-task",
 		"@config-plugins/react-native-blob-util",
-		"@config-plugins/react-native-pdf",
 		"./plugins/withAndroidNetworkSecurityConfig",
 		"./plugins/withAndroidLargeHeapAndHardwareAcceleration",
 		[
