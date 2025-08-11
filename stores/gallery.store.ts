@@ -27,6 +27,10 @@ export type GalleryStore = {
 	initialIndex: number | null
 	currentVisibleIndex: number | null
 	zoomedIn: boolean
+	headerHeight: number
+	showHeader: boolean
+	setShowHeader: (fn: boolean | ((prev: boolean) => boolean)) => void
+	setHeaderHeight: (fn: number | ((prev: number) => number)) => void
 	setVisible: (fn: boolean | ((prev: boolean) => boolean)) => void
 	setInitialUUID: (fn: string | null | ((prev: string | null) => string | null)) => void
 	setItems: (fn: GalleryItem[] | ((prev: GalleryItem[]) => GalleryItem[])) => void
@@ -44,6 +48,18 @@ export const useGalleryStore = create<GalleryStore>(set => ({
 	currentVisibleIndex: null,
 	initialIndex: null,
 	zoomedIn: false,
+	headerHeight: 0,
+	showHeader: false,
+	setShowHeader(fn) {
+		set(state => ({
+			showHeader: typeof fn === "function" ? fn(state.showHeader) : fn
+		}))
+	},
+	setHeaderHeight(fn) {
+		set(state => ({
+			headerHeight: typeof fn === "function" ? fn(state.headerHeight) : fn
+		}))
+	},
 	setInitialIndex(fn) {
 		set(state => ({
 			initialIndex: typeof fn === "function" ? fn(state.initialIndex) : fn

@@ -1,9 +1,9 @@
-import { memo, useRef, useLayoutEffect } from "react"
+import { memo, useRef, useLayoutEffect, useMemo } from "react"
 import Animated, { FadeInUp, FadeOutUp } from "react-native-reanimated"
 import { Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { type GalleryItem } from "@/stores/gallery.store"
+import { useGalleryStore } from "@/stores/gallery.store"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Button } from "@/components/nativewindui/Button"
@@ -12,53 +12,81 @@ import { cn } from "@/lib/cn"
 import useViewLayout from "@/hooks/useViewLayout"
 import Menu from "../drive/list/listItem/menu"
 import Container from "../Container"
+import { Paths } from "expo-file-system/next"
+import { useShallow } from "zustand/shallow"
 
-export const Header = memo(
-	({
-		item,
-		show,
-		setHeaderHeight
-	}: {
-		item: GalleryItem
-		show: boolean
-		setHeaderHeight: React.Dispatch<React.SetStateAction<number>>
-	}) => {
-		const insets = useSafeAreaInsets()
-		const { colors } = useColorScheme()
-		const viewRef = useRef<Animated.View>(null)
-		const { onLayout, layout } = useViewLayout(viewRef)
+export const Header = memo(() => {
+	const insets = useSafeAreaInsets()
+	const { colors } = useColorScheme()
+	const viewRef = useRef<Animated.View>(null)
+	const { onLayout, layout } = useViewLayout(viewRef)
+	const currentVisibleIndex = useGalleryStore(useShallow(state => state.currentVisibleIndex))
+	const visible = useGalleryStore(useShallow(state => state.visible))
+	const showHeader = useGalleryStore(useShallow(state => state.showHeader))
+	const items = useGalleryStore(useShallow(state => state.items))
 
-		useLayoutEffect(() => {
-			setHeaderHeight(layout.height)
-		}, [layout.height, setHeaderHeight])
-
-		if ((!show && item.previewType !== "audio" && item.previewType !== "video") || item.itemType !== "cloudItem") {
+	const item = useMemo(() => {
+		if (!visible || currentVisibleIndex === null || currentVisibleIndex < 0) {
 			return null
 		}
 
-		return (
-			<Animated.View
-				entering={FadeInUp}
-				exiting={FadeOutUp}
-				ref={viewRef}
-				onLayout={onLayout}
-				className="flex-1 absolute top-0 left-0 right-0 z-[1000]"
+		const foundItem = items.at(currentVisibleIndex)
+
+		if (!foundItem) {
+			return null
+		}
+
+		return foundItem
+	}, [currentVisibleIndex, items, visible])
+
+	const show = useMemo(() => {
+		return !item || !visible ? false : item.previewType === "image" ? showHeader : true
+	}, [item, showHeader, visible])
+
+	const title = useMemo(() => {
+		if (!item) {
+			return null
+		}
+
+		if (item.itemType === "cloudItem") {
+			return item.data.item.name
+		}
+
+		return Paths.parse(decodeURIComponent(item.data.uri))?.name ?? "Unknown name"
+	}, [item])
+
+	useLayoutEffect(() => {
+		useGalleryStore.getState().setHeaderHeight(layout.height)
+	}, [layout.height])
+
+	if (!item || (!show && item.previewType !== "audio" && item.previewType !== "video")) {
+		return null
+	}
+
+	return (
+		<Animated.View
+			entering={FadeInUp}
+			exiting={FadeOutUp}
+			ref={viewRef}
+			onLayout={onLayout}
+			className="flex-1 absolute top-0 left-0 right-0 z-[1000]"
+		>
+			<BlurView
+				intensity={Platform.OS === "ios" ? 100 : 0}
+				tint={Platform.OS === "ios" ? "systemChromeMaterial" : undefined}
+				className={cn("flex-1 flex-row items-center w-full px-4 py-2", Platform.OS === "android" && "bg-card")}
+				style={{
+					paddingTop: insets.top
+				}}
 			>
-				<BlurView
-					intensity={Platform.OS === "ios" ? 100 : 0}
-					tint={Platform.OS === "ios" ? "systemChromeMaterial" : undefined}
-					className={cn("flex-1 flex-row items-center w-full px-4 py-2", Platform.OS === "android" && "bg-card")}
-					style={{
-						paddingTop: insets.top
-					}}
-				>
-					<Container className="flex-1 flex-row items-center w-full justify-between gap-4">
-						<Text
-							numberOfLines={1}
-							className="flex-1 text-foreground"
-						>
-							{item.data.item.name}
-						</Text>
+				<Container className="flex-1 flex-row items-center w-full justify-between gap-4">
+					<Text
+						numberOfLines={1}
+						className="flex-1 text-foreground"
+					>
+						{title}
+					</Text>
+					{item.itemType === "cloudItem" && (
 						<Menu
 							type="dropdown"
 							item={item.data.item}
@@ -80,12 +108,12 @@ export const Header = memo(
 								/>
 							</Button>
 						</Menu>
-					</Container>
-				</BlurView>
-			</Animated.View>
-		)
-	}
-)
+					)}
+				</Container>
+			</BlurView>
+		</Animated.View>
+	)
+})
 
 Header.displayName = "Header"
 

@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, Fragment, useEffect, useCallback } from "react"
-import { type GalleryItem } from "@/stores/gallery.store"
+import { type GalleryItem, useGalleryStore } from "@/stores/gallery.store"
 import { View, ActivityIndicator } from "react-native"
 import RNVideo, { type OnLoadStartData, type OnVideoErrorData, type OnLoadData } from "react-native-video"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -10,19 +10,18 @@ import useHTTPServer from "@/hooks/useHTTPServer"
 import { Icon } from "@roninoss/icons"
 import { Text } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
+import { useShallow } from "zustand/shallow"
 
 export const Video = memo(
 	({
 		item,
-		layout,
-		headerHeight
+		layout
 	}: {
 		item: GalleryItem
 		layout: {
 			width: number
 			height: number
 		}
-		headerHeight: number
 	}) => {
 		const [loading, setLoading] = useState<boolean>(true)
 		const [error, setError] = useState<string | null>(null)
@@ -30,6 +29,7 @@ export const Video = memo(
 		const insets = useSafeAreaInsets()
 		const trackPlayerControls = useTrackPlayerControls()
 		const httpServer = useHTTPServer()
+		const headerHeight = useGalleryStore(useShallow(state => state.headerHeight))
 
 		const style = useMemo(() => {
 			return {

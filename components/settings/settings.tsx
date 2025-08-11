@@ -136,6 +136,8 @@ export const Settings = memo((props: SettingsProps) => {
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
 				sectionHeaderAsGap={true}
+				showsHorizontalScrollIndicator={false}
+				showsVerticalScrollIndicator={false}
 				refreshing={props.loading}
 				ListEmptyComponent={ListEmptyComponent}
 				ListHeaderComponent={props.listHeader ? () => props.listHeader : undefined}

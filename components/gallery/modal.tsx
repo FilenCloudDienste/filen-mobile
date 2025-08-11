@@ -1,9 +1,9 @@
-import { useEffect, memo, useCallback, useMemo, useState } from "react"
-import { BackHandler, View, Pressable, type StyleProp, type ViewStyle, FlatList, Platform } from "react-native"
+import { useEffect, memo, useCallback, useMemo } from "react"
+import { BackHandler, View, Pressable, type StyleProp, type ViewStyle, FlatList } from "react-native"
 import { useGalleryStore, type GalleryItem } from "@/stores/gallery.store"
 import { useShallow } from "zustand/shallow"
 import { KeyboardController } from "react-native-keyboard-controller"
-import { GestureViewer, useGestureViewerEvent } from "react-native-gesture-image-viewer"
+import { GestureViewer, useGestureViewerEvent, type GestureViewerProps } from "react-native-gesture-image-viewer"
 import Image from "./previews/image"
 import Video from "./previews/video"
 import Audio from "./previews/audio"
@@ -13,7 +13,6 @@ import { useTranslation } from "react-i18next"
 import { Text } from "../nativewindui/Text"
 import { Portal } from "@rn-primitives/portal"
 import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-reanimated"
-import { FullWindowOverlay } from "react-native-screens"
 import { ActivityIndicator } from "../nativewindui/ActivityIndicator"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { cn } from "@/lib/cn"
@@ -28,22 +27,10 @@ export const animatedStyle = {
 	bottom: 0
 } satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
 
-export const ParentComponent = memo(({ children }: { children: React.ReactNode }) => {
-	if (Platform.OS === "android") {
-		return <Portal name="gallery-modal">{children}</Portal>
-	}
-
-	return <FullWindowOverlay>{children}</FullWindowOverlay>
-})
-
-ParentComponent.displayName = "ParentComponent"
-
 export const Item = memo(({ item, index }: { item: GalleryItem; index: number }) => {
 	const { t } = useTranslation()
 	const { colors, isDarkColorScheme } = useColorScheme()
 	const currentVisibleIndex = useGalleryStore(useShallow(state => state.currentVisibleIndex))
-	const [headerHeight, setHeaderHeight] = useState<number>(0)
-	const [showHeader, setShowHeader] = useState<boolean>(false)
 	const { screen } = useDimensions()
 
 	const visible = useMemo(() => {
@@ -62,12 +49,16 @@ export const Item = memo(({ item, index }: { item: GalleryItem; index: number })
 			return
 		}
 
-		setShowHeader(prev => !prev)
+		useGalleryStore.getState().setShowHeader(prev => !prev)
 	}, [item.previewType])
 
-	useGestureViewerEvent("zoomChange", ({ scale }) => {
-		setShowHeader(scale <= 1)
-	})
+	const onLongPress = useCallback(() => {
+		if (item.previewType !== "image") {
+			return
+		}
+
+		useGalleryStore.getState().setShowHeader(false)
+	}, [item.previewType])
 
 	return (
 		<Animated.View
@@ -78,12 +69,8 @@ export const Item = memo(({ item, index }: { item: GalleryItem; index: number })
 			<Pressable
 				className="flex-1"
 				onPress={onPress}
+				onLongPress={onLongPress}
 			>
-				<Header
-					item={item}
-					show={!visible ? false : item.previewType === "image" ? showHeader : true}
-					setHeaderHeight={setHeaderHeight}
-				/>
 				{!visible ? (
 					<Animated.View
 						exiting={FadeOut}
@@ -111,7 +98,6 @@ export const Item = memo(({ item, index }: { item: GalleryItem; index: number })
 					<Video
 						layout={layout}
 						item={item}
-						headerHeight={headerHeight}
 					/>
 				) : item.previewType === "audio" ? (
 					<Audio
@@ -199,12 +185,16 @@ export const GalleryModal = memo(() => {
 			getItemLayout,
 			removeClippedSubviews: false,
 			initialScrollIndex: validatedInitialScrollIndex
-		}
+		} satisfies GestureViewerProps<GalleryItem, typeof FlatList>["listProps"]
 	}, [keyExtractor, getItemLayout, validatedInitialScrollIndex])
 
 	const onDismiss = useCallback(() => {
 		useGalleryStore.getState().reset()
 	}, [])
+
+	useGestureViewerEvent("zoomChange", ({ scale }) => {
+		useGalleryStore.getState().setShowHeader(scale <= 1)
+	})
 
 	useEffect(() => {
 		if (visible && items.length > 0 && KeyboardController.isVisible()) {
@@ -233,7 +223,8 @@ export const GalleryModal = memo(() => {
 	}
 
 	return (
-		<ParentComponent>
+		<Portal name="gallery-modal">
+			<Header />
 			<Animated.View
 				className="flex-1"
 				entering={FadeIn}
@@ -259,7 +250,7 @@ export const GalleryModal = memo(() => {
 					onDismiss={onDismiss}
 				/>
 			</Animated.View>
-		</ParentComponent>
+		</Portal>
 	)
 })
 
