@@ -111,7 +111,7 @@ export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 				<PdfRendererView
 					source={pdfFileUriQuery.data}
 					distanceBetweenPages={16}
-					maxZoom={5}
+					maxZoom={2}
 					onError={onError}
 					style={style}
 				/>
