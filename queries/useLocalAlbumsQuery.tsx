@@ -36,34 +36,7 @@ export default function useLocalAlbumsQuery({
 				includeSmartAlbums: true
 			})
 
-			const withLastAssetURI = await Promise.all(
-				albums.map(async album => {
-					const { assets } = await MediaLibrary.getAssetsAsync({
-						album,
-						mediaType: ["photo"],
-						first: 1,
-						sortBy: [["creationTime", false]]
-					})
-
-					const lastAsset = assets[0]
-					let lastAssetURI: string | null = null
-
-					if (lastAsset) {
-						const info = await MediaLibrary.getAssetInfoAsync(lastAsset, {
-							shouldDownloadFromNetwork: true
-						})
-
-						lastAssetURI = info.localUri ?? null
-					}
-
-					return {
-						album,
-						lastAssetURI
-					}
-				})
-			)
-
-			return withLastAssetURI
+			return albums
 		},
 		throwOnError(err) {
 			console.error(err)

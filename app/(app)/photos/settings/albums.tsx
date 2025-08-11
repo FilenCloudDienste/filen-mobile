@@ -8,13 +8,10 @@ import { View, Platform } from "react-native"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import { cn } from "@/lib/cn"
 import useCameraUpload from "@/hooks/useCameraUpload"
-import TurboImage from "react-native-turbo-image"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import { useColorScheme } from "@/lib/useColorScheme"
-import assets from "@/lib/assets"
-import { normalizeFilePathForExpo } from "@/lib/utils"
 import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { useFocusEffect } from "expo-router"
 
@@ -22,10 +19,7 @@ export type ListItemInfo = {
 	title: string
 	subTitle: string
 	id: string
-	album: {
-		album: MediaLibrary.Album
-		lastAssetURI: string | null
-	}
+	album: MediaLibrary.Album
 }
 
 const contentContainerStyle = {
@@ -40,32 +34,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		return cameraUpload.albums.some(album => album.id === info.item.id)
 	}, [cameraUpload.albums, info.item.id])
 
-	const leftView = useMemo(() => {
-		return (
-			<View className="flex-row items-center px-4">
-				{info.item.album.lastAssetURI ? (
-					<TurboImage
-						source={{
-							uri: normalizeFilePathForExpo(info.item.album.lastAssetURI)
-						}}
-						cachePolicy="dataCache"
-						resizeMode="cover"
-						style={{
-							borderRadius: 6,
-							width: 38,
-							height: 38
-						}}
-						placeholder={{
-							blurhash: assets.blurhash.images.fallback
-						}}
-					/>
-				) : (
-					<View className="bg-background/80 rounded-md w-[38px] h-[38px]" />
-				)}
-			</View>
-		)
-	}, [info.item.album.lastAssetURI])
-
 	const rightView = useMemo(() => {
 		return (
 			<View className="flex-1 flex-row items-center px-4">
@@ -75,8 +43,8 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 						setCameraUpload(prev => ({
 							...prev,
 							albums: [
-								...prev.albums.filter(album => album.id !== info.item.album.album.id),
-								...(!prev.albums.some(album => album.id === info.item.album.album.id) ? [info.item.album.album] : [])
+								...prev.albums.filter(album => album.id !== info.item.album.id),
+								...(!prev.albums.some(album => album.id === info.item.album.id) ? [info.item.album] : [])
 							]
 						}))
 
@@ -87,7 +55,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 				/>
 			</View>
 		)
-	}, [enabled, info.item.album.album, setCameraUpload])
+	}, [enabled, info.item.album, setCameraUpload])
 
 	return (
 		<ListItem
@@ -110,7 +78,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 			innerClassName={cn("py-3 ios:py-3 android:py-3", Platform.OS === "android" && "bg-transparent")}
 			textNumberOfLines={1}
 			subTitleNumberOfLines={1}
-			leftView={leftView}
 			rightView={rightView}
 			{...info}
 		/>
@@ -130,12 +97,12 @@ export const Albums = memo(() => {
 		}
 
 		return localAlbumsQuery.data
-			.sort((a, b) => b.album.assetCount - a.album.assetCount)
+			.sort((a, b) => b.assetCount - a.assetCount)
 			.map(album => ({
-				id: album.album.id,
-				title: album.album.title,
+				id: album.id,
+				title: album.title,
 				subTitle: t("photos.settings.albums.item.subTitle", {
-					count: album.album.assetCount
+					count: album.assetCount
 				}),
 				album
 			}))
