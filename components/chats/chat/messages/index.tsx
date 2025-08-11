@@ -24,7 +24,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const headerHeight = useHeaderHeight()
 	const isFetchingMoreMessagesRef = useRef<boolean>(false)
 	const chatsLastFocusQuery = useChatsLastFocusQuery({})
-	const { screen } = useDimensions()
+	const { screen, insets } = useDimensions()
 	const showEmojis = useChatsStore(useShallow(state => state.showEmojis[chat.uuid] ?? false))
 	const showMention = useChatsStore(useShallow(state => state.showMention[chat.uuid] ?? false))
 	const emojisText = useChatsStore(useShallow(state => state.emojisText[chat.uuid] ?? ""))
@@ -213,16 +213,16 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 			startRenderingFromBottom: false,
 			animateAutoScrollToBottom: false,
 			autoscrollToTopThreshold: 1,
-			autoscrollToBottomThreshold: 1
+			autoscrollToBottomThreshold: undefined
 		} satisfies FlashListProps<ChatMessage>["maintainVisibleContentPosition"]
 	}, [])
 
 	const scrollIndicatorInsets = useMemo(() => {
 		return {
-			top: -inputHeight,
+			top: -(inputHeight + insets.bottom),
 			bottom: headerHeight
 		} satisfies FlashListProps<ChatMessage>["scrollIndicatorInsets"]
-	}, [inputHeight, headerHeight])
+	}, [inputHeight, headerHeight, insets.bottom])
 
 	return (
 		<Fragment>
