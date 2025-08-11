@@ -16,6 +16,7 @@ import assets from "@/lib/assets"
 import { normalizeFilePathForNode, sanitizeFileName } from "@/lib/utils"
 import * as FileSystem from "expo-file-system/next"
 import fileProvider from "@/lib/fileProvider"
+import cache from "@/lib/cache"
 import * as Sharing from "expo-sharing"
 
 export type SetupResult =
@@ -151,15 +152,17 @@ export class AuthService {
 		}
 
 		try {
-			mmkvInstance.delete(SDK_CONFIG_STORAGE_KEY)
-			mmkvInstance.delete(AUTHED_STORAGE_KEY)
+			cache.availableThumbnails.clear()
+			cache.directoryUUIDToName.clear()
 
-			await Promise.all([sqlite.offlineFiles.clear(), sqlite.kvAsync.clear()])
+			await sqlite.clearAsync()
 
 			paths.clearOfflineFiles()
 			paths.clearTempDirectories()
 			paths.clearThumbnails()
 			paths.clearTrackPlayer()
+
+			mmkvInstance.clearAll()
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()

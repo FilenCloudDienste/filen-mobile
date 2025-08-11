@@ -73,6 +73,22 @@ export class SQLite {
 		}
 	}
 
+	public async clearAsync(): Promise<void> {
+		await this.rwSemaphore.acquire()
+
+		try {
+			const db = await this.openAsync()
+
+			await db.execAsync("DELETE FROM kv")
+			await db.execAsync("DELETE FROM thumbnails")
+			await db.execAsync("DELETE FROM offline_files")
+
+			this.db = null
+		} finally {
+			this.rwSemaphore.release()
+		}
+	}
+
 	public offlineFiles = {
 		contains: async (uuid: string): Promise<boolean> => {
 			await this.rwSemaphore.acquire()
