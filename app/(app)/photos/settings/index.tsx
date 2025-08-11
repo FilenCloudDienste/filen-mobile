@@ -33,6 +33,11 @@ export const Settings = memo(() => {
 
 	const toggleEnabled = useCallback(
 		async (enable: boolean) => {
+			setCameraUpload(prev => ({
+				...prev,
+				enabled: enable
+			}))
+
 			if (enable) {
 				fullScreenLoadingModal.show()
 
@@ -48,6 +53,10 @@ export const Settings = memo(() => {
 							return
 						}
 					}
+
+					setTimeout(() => {
+						foregroundCameraUpload.run().catch(console.error)
+					}, 1000)
 				} catch (e) {
 					console.error(e)
 
@@ -55,21 +64,15 @@ export const Settings = memo(() => {
 						alerts.error(e.message)
 					}
 
+					setCameraUpload(prev => ({
+						...prev,
+						enabled: false
+					}))
+
 					return
 				} finally {
 					fullScreenLoadingModal.hide()
 				}
-			}
-
-			setCameraUpload(prev => ({
-				...prev,
-				enabled: enable
-			}))
-
-			if (enable) {
-				setTimeout(() => {
-					foregroundCameraUpload.run().catch(console.error)
-				}, 1000)
 			}
 		},
 		[setCameraUpload, t]
