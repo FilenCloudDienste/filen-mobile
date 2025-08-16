@@ -61,12 +61,12 @@ export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo>
 				const progressNormalized = normalizeTransferProgress(info.item.transfer.size, info.item.transfer.bytes)
 
 				try {
-					if (buttonIndex === 0 && progressNormalized <= 95) {
+					if (buttonIndex === 0 && progressNormalized <= 99) {
 						await nodeWorker.proxy("transferAction", {
 							action: info.item.transfer.state === "paused" ? "resume" : "pause",
 							id: info.item.transfer.id
 						})
-					} else if (buttonIndex === 1 && progressNormalized <= 95) {
+					} else if (buttonIndex === 1 && progressNormalized <= 99) {
 						await nodeWorker.proxy("transferAction", {
 							action: "stop",
 							id: info.item.transfer.id

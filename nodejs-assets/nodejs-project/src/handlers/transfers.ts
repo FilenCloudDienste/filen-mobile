@@ -57,7 +57,7 @@ export async function transferAction(
 			!this.transfersAbortControllers[transfer.id] ||
 			transfer.state === "stopped" ||
 			transfer.state === "error" ||
-			progressNormalized >= 95
+			progressNormalized >= 99
 		) {
 			return false
 		}
@@ -104,7 +104,7 @@ export async function transferAction(
 			transfer.state === "error" ||
 			transfer.state === "finished" ||
 			transfer.state === "paused" ||
-			progressNormalized >= 95
+			progressNormalized >= 99
 		) {
 			return false
 		}

@@ -78,7 +78,7 @@ export const Transfers = memo(() => {
 				transfers.map(async transfer => {
 					if (
 						!(transfer.state === "queued" || transfer.state === "started") ||
-						normalizeTransferProgress(transfer.size, transfer.bytes) >= 95
+						normalizeTransferProgress(transfer.size, transfer.bytes) >= 99
 					) {
 						return
 					}
@@ -106,7 +106,7 @@ export const Transfers = memo(() => {
 				transfers.map(async transfer => {
 					if (
 						!(transfer.state === "queued" || transfer.state === "paused") ||
-						normalizeTransferProgress(transfer.size, transfer.bytes) >= 95
+						normalizeTransferProgress(transfer.size, transfer.bytes) >= 99
 					) {
 						return
 					}
@@ -134,7 +134,7 @@ export const Transfers = memo(() => {
 				transfers.map(async transfer => {
 					if (
 						!(transfer.state === "queued" || transfer.state === "started") ||
-						normalizeTransferProgress(transfer.size, transfer.bytes) >= 95
+						normalizeTransferProgress(transfer.size, transfer.bytes) >= 99
 					) {
 						return
 					}
