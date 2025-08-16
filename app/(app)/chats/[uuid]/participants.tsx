@@ -87,10 +87,15 @@ export const Participant = memo(({ info, chat }: { info: ListRenderItemInfo<List
 			participant={info.item.participant}
 		>
 			<ListItem
+				className="overflow-hidden"
+				subTitleClassName="text-xs pt-1 font-normal"
 				variant="full-width"
-				removeSeparator={Platform.OS === "android"}
-				isLastInSection={false}
+				textNumberOfLines={1}
+				subTitleNumberOfLines={1}
 				isFirstInSection={false}
+				isLastInSection={false}
+				removeSeparator={Platform.OS === "android"}
+				innerClassName="ios:py-3 py-3 android:py-3"
 				leftView={leftView}
 				rightView={rightView}
 				{...info}
