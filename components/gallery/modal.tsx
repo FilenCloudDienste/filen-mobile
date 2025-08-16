@@ -242,7 +242,7 @@ export const GalleryModal = memo(() => {
 					enableZoomGesture={true}
 					enableZoomPanGesture={true}
 					onIndexChange={onIndexChange}
-					maxZoomScale={10}
+					maxZoomScale={3}
 					renderItem={renderItem}
 					ListComponent={FlatList}
 					initialIndex={validatedInitialScrollIndex}
