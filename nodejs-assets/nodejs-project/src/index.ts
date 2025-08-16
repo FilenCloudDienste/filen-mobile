@@ -1,4 +1,4 @@
-import { serializeError, sleep, calcSpeed, calcTimeLeft, normalizeTransferProgress, promiseAllChunked } from "./lib/utils"
+import { serializeError, sleep, calcSpeed, calcTimeLeft, normalizeTransferProgress, promiseAllSettledChunked } from "./lib/utils"
 import * as handlers from "./handlers"
 import { PauseSignal } from "@filen/sdk"
 import transfersStore from "./stores/transfers.store"
@@ -12,7 +12,6 @@ export class NodeWorker {
 	public transfersProgressStarted: number = -1
 	public transfersAllBytes: number = 0
 	public transfersBytesSent: number = 0
-	private transfersPausedOnLock: string[] = []
 	private readonly pauseMutex = new Semaphore(1)
 	public readonly http: HTTP
 	private state: "paused" | "running" = "running"
@@ -137,33 +136,22 @@ export class NodeWorker {
 			}
 
 			const start = Date.now()
-			const promises: Promise<void>[] = []
+			const promises: Promise<void | boolean>[] = []
 
 			promises.push(this.http.stop(true))
 
-			this.transfersPausedOnLock = []
-
 			for (const id in this.transfersPauseSignals) {
 				promises.push(
-					new Promise<void>((resolve, reject) => {
-						this.handlers
-							.transferAction({
-								action: "pause",
-								id
-							})
-							.then(paused => {
-								if (paused) {
-									this.transfersPausedOnLock.push(id)
-								}
-
-								resolve()
-							})
-							.catch(reject)
-					})
+					(async () => {
+						await this.handlers.transferAction({
+							action: "stop",
+							id
+						})
+					})()
 				)
 			}
 
-			await promiseAllChunked(promises)
+			await promiseAllSettledChunked(promises)
 
 			const timeTaken = Date.now() - start
 			const sleepWait = 2500 - timeTaken
@@ -188,7 +176,7 @@ export class NodeWorker {
 				return
 			}
 
-			const promises: Promise<boolean>[] = []
+			const promises: Promise<void>[] = []
 
 			promises.push(
 				(async () => {
@@ -201,23 +189,10 @@ export class NodeWorker {
 							authToken
 						}
 					})
-
-					return true
 				})()
 			)
 
-			for (const id in this.transfersPausedOnLock) {
-				promises.push(
-					this.handlers.transferAction({
-						action: "resume",
-						id
-					})
-				)
-			}
-
-			this.transfersPausedOnLock = []
-
-			await promiseAllChunked(promises)
+			await promiseAllSettledChunked(promises)
 
 			this.state = "running"
 		} finally {
