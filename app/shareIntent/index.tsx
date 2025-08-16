@@ -172,12 +172,12 @@ export default function ShareIntent() {
 		} finally {
 			fullScreenLoadingModal.hide()
 
-			resetShareIntent()
+			resetShareIntent(true)
 		}
 	}, [shareIntent.files, resetShareIntent, items.length])
 
 	const cancel = useCallback(() => {
-		resetShareIntent()
+		resetShareIntent(true)
 	}, [resetShareIntent])
 
 	const headerRight = useCallback(() => {
