@@ -353,7 +353,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 		}
 	}, [query])
 
-	if (isProUser) {
+	if (!isProUser) {
 		return (
 			<Container>
 				<View className="flex-1 flex-col gap-4 items-center justify-center px-16">
