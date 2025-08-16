@@ -24,15 +24,17 @@ export class ChatsService {
 		chat,
 		disableAlertPrompt,
 		disableLoader,
-		userId,
 		insideChat
 	}: {
 		chat: ChatConversation
 		disableAlertPrompt?: boolean
 		disableLoader?: boolean
-		userId?: number
 		insideChat?: boolean
 	}): Promise<void> {
+		if (chat.ownerId === authService.getSDKConfig().userId) {
+			return
+		}
+
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
 				title: t("chats.prompts.leaveChat.title"),
@@ -49,9 +51,8 @@ export class ChatsService {
 		}
 
 		try {
-			await nodeWorker.proxy("removeChatParticipant", {
-				conversation: chat.uuid,
-				userId: userId ?? authService.getSDKConfig().userId
+			await nodeWorker.proxy("leaveChat", {
+				conversation: chat.uuid
 			})
 
 			queryUtils.useChatsQuerySet({

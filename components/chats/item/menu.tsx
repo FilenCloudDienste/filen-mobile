@@ -204,8 +204,7 @@ export const Menu = memo(
 						case "leave": {
 							await chatsService.leaveChat({
 								chat,
-								insideChat,
-								userId
+								insideChat
 							})
 
 							break
@@ -256,7 +255,7 @@ export const Menu = memo(
 					}
 				}
 			},
-			[chat, router, insideChat, userId]
+			[chat, router, insideChat]
 		)
 
 		const iosRenderPreview = useCallback(() => {
