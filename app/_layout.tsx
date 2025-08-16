@@ -30,7 +30,7 @@ import Biometric from "@/components/biometric"
 import * as SplashScreen from "expo-splash-screen"
 import { SCREEN_OPTIONS } from "@/lib/constants"
 import alerts from "@/lib/alerts"
-import KeyExport from "@/components/keyExport"
+import Reminders from "@/components/reminders"
 import { useAppStateStore } from "@/stores/appState.store"
 
 SplashScreen.setOptions({
@@ -175,7 +175,7 @@ export default function RootLayout() {
 														<AuthedListeners />
 														<SocketEvents />
 														<Biometric />
-														<KeyExport />
+														<Reminders />
 													</Fragment>
 												)}
 												<InputPrompt />

@@ -21,6 +21,12 @@
 			"message": "You have not exported your master keys yet. It is highly recommended to export them now and store them in a safe place.",
 			"okText": "Export",
 			"cancelText": "Later"
+		},
+		"storageUsageOverLimit": {
+			"title": "Storage usage over limit",
+			"message": "You have exceeded your storage limit. Please free up some space or upgrade your plan to prevent unwanted data deletion.",
+			"okText": "Upgrade",
+			"cancelText": "Later"
 		}
 	},
 	"inputPrompt": {
