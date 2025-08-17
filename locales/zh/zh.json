@@ -21,6 +21,12 @@
 			"message": "您尚未导出主密钥。强烈建议您立即导出并妥善保管。",
 			"okText": "导出",
 			"cancelText": "以后"
+		},
+		"storageUsageOverLimit": {
+			"title": "存储空间使用量超出限制",
+			"message": "您已超出存储限制。请释放一些空间或升级您的计划，以防止不必要的数据删除。",
+			"okText": "升级",
+			"cancelText": "以后"
 		}
 	},
 	"inputPrompt": {
