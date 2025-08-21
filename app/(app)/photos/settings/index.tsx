@@ -8,7 +8,6 @@ import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import { validate as validateUUID } from "uuid"
 import * as MediaLibrary from "expo-media-library"
-import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import useCameraUploadParentQuery from "@/queries/useCameraUploadParentQuery"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
@@ -18,6 +17,11 @@ export const Settings = memo(() => {
 	const [cameraUpload, setCameraUpload] = useCameraUpload()
 	const { push: routerPush } = useRouter()
 	const { t } = useTranslation()
+
+	const [permissions] = MediaLibrary.usePermissions({
+		writeOnly: false,
+		request: false
+	})
 
 	const cameraUploadParentQuery = useCameraUploadParentQuery({
 		enabled: cameraUpload.enabled
@@ -39,43 +43,12 @@ export const Settings = memo(() => {
 			}))
 
 			if (enable) {
-				fullScreenLoadingModal.show()
-
-				try {
-					const permissions = await MediaLibrary.getPermissionsAsync(false, ["video", "photo"])
-
-					if (permissions.status !== MediaLibrary.PermissionStatus.GRANTED && permissions.canAskAgain) {
-						const ask = await MediaLibrary.requestPermissionsAsync(false, ["video", "photo"])
-
-						if (ask.status !== MediaLibrary.PermissionStatus.GRANTED) {
-							alerts.error(t("photos.settings.index.errors.noPermissions"))
-
-							return
-						}
-					}
-
-					setTimeout(() => {
-						foregroundCameraUpload.run().catch(console.error)
-					}, 1000)
-				} catch (e) {
-					console.error(e)
-
-					if (e instanceof Error) {
-						alerts.error(e.message)
-					}
-
-					setCameraUpload(prev => ({
-						...prev,
-						enabled: false
-					}))
-
-					return
-				} finally {
-					fullScreenLoadingModal.hide()
-				}
+				setTimeout(() => {
+					foregroundCameraUpload.run().catch(console.error)
+				}, 1000)
 			}
 		},
-		[setCameraUpload, t]
+		[setCameraUpload]
 	)
 
 	const toggleCellular = useCallback(() => {
@@ -176,6 +149,37 @@ export const Settings = memo(() => {
 	}, [setCameraUpload])
 
 	const items = useMemo(() => {
+		if (permissions && !permissions.granted) {
+			return [
+				{
+					id: "0",
+					title: t("photos.settings.index.items.permissionsError"),
+					subTitle: t("photos.settings.index.items.permissionsErrorInfo"),
+					leftView: (
+						<IconView
+							name="lock-alert-outline"
+							className="bg-red-500"
+						/>
+					),
+					onPress: async () => {
+						try {
+							const ask = await MediaLibrary.requestPermissionsAsync(false)
+
+							if (ask.status !== MediaLibrary.PermissionStatus.GRANTED) {
+								alerts.error(t("photos.settings.index.errors.noPermissions"))
+							}
+						} catch (e) {
+							console.error(e)
+
+							if (e instanceof Error) {
+								alerts.error(e.message)
+							}
+						}
+					}
+				}
+			]
+		}
+
 		return [
 			{
 				id: "0",
@@ -199,39 +203,7 @@ export const Settings = memo(() => {
 						className="bg-blue-500"
 					/>
 				),
-				onPress: async () => {
-					fullScreenLoadingModal.show()
-
-					try {
-						const permissions = await MediaLibrary.getPermissionsAsync(false, ["video", "photo"])
-
-						if (permissions.status !== MediaLibrary.PermissionStatus.GRANTED) {
-							if (!permissions.canAskAgain) {
-								alerts.error(t("photos.settings.index.errors.noPermissions"))
-
-								return
-							}
-
-							const ask = await MediaLibrary.requestPermissionsAsync(false, ["video", "photo"])
-
-							if (ask.status !== MediaLibrary.PermissionStatus.GRANTED) {
-								alerts.error(t("photos.settings.index.errors.noPermissions"))
-
-								return
-							}
-						}
-					} catch (e) {
-						console.error(e)
-
-						if (e instanceof Error) {
-							alerts.error(e.message)
-						}
-
-						return
-					} finally {
-						fullScreenLoadingModal.hide()
-					}
-
+				onPress: () => {
 					routerPush({
 						pathname: "/photos/settings/albums"
 					})
@@ -349,7 +321,8 @@ export const Settings = memo(() => {
 		toggleVideos,
 		selectRemoteDirectory,
 		routerPush,
-		t
+		t,
+		permissions
 	])
 
 	useFocusEffect(

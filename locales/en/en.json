@@ -1011,7 +1011,9 @@
 					"lowBattery": "Low battery",
 					"lowBatteryInfo": "Disable camera upload when the battery is low.",
 					"compress": "Compress",
-					"compressInfo": "Compress photos to save storage space. This can reduce the quality of the photos. JPG compression at 80% quality."
+					"compressInfo": "Compress photos to save storage space. This can reduce the quality of the photos. JPG compression at 80% quality.",
+					"permissionsError": "Permissions error",
+					"permissionsErrorInfo": "Please allow the app to access your photos and videos in the system settings."
 				},
 				"errors": {
 					"noPermissions": "You need to grant media permissions to access your photos."

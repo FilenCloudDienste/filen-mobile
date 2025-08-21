@@ -26,9 +26,9 @@ export default function useLocalAlbumsQuery({
 	const query = useQuery({
 		queryKey: ["useLocalAlbumsQuery"],
 		queryFn: async () => {
-			const permissions = await MediaLibrary.getPermissionsAsync(false, ["video", "photo"])
+			const permissions = await MediaLibrary.getPermissionsAsync(false)
 
-			if (permissions.status === MediaLibrary.PermissionStatus.DENIED) {
+			if (!permissions.granted) {
 				return []
 			}
 
