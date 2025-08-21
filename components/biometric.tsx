@@ -15,6 +15,8 @@ import { useTranslation } from "react-i18next"
 import { Portal } from "@rn-primitives/portal"
 import { useAppStateStore } from "@/stores/appState.store"
 import { FullWindowOverlay } from "react-native-screens"
+import useLocalAuthenticationQuery from "@/queries/useLocalAuthenticationQuery"
+import useIsAuthed from "@/hooks/useIsAuthed"
 
 export const ParentComponent = memo(({ children }: { children: React.ReactNode }) => {
 	if (Platform.OS === "android") {
@@ -78,10 +80,13 @@ export const Biometric = memo(() => {
 	const { colors } = useColorScheme()
 	const { t } = useTranslation()
 	const lastAppStateRef = useRef<AppStateStatus>("active")
+	const [isAuthed] = useIsAuthed()
+
+	const localAuthentication = useLocalAuthenticationQuery({})
 
 	const enabled = useMemo(() => {
-		return biometricAuth?.enabled ?? false
-	}, [biometricAuth])
+		return isAuthed && (biometricAuth?.enabled ?? false)
+	}, [biometricAuth, isAuthed])
 
 	const biometricsLockedForSeconds = useCallback(() => {
 		if (!enabled || !biometricAuth) {
@@ -153,18 +158,16 @@ export const Biometric = memo(() => {
 	}, [setBiometricAuth])
 
 	const promptLocalAuthentication = useCallback(async () => {
-		if (!canPromptLocalAuthentication) {
+		if (!canPromptLocalAuthentication || localAuthentication.status !== "success") {
 			return
 		}
 
 		try {
-			const [hasHardware, isEnrolled, supportedTypes] = await Promise.all([
-				LocalAuthentication.hasHardwareAsync(),
-				LocalAuthentication.isEnrolledAsync(),
-				LocalAuthentication.supportedAuthenticationTypesAsync()
-			])
-
-			if (!hasHardware || !isEnrolled || supportedTypes.length === 0) {
+			if (
+				!localAuthentication.data.hasHardware ||
+				!localAuthentication.data.isEnrolled ||
+				localAuthentication.data.supportedTypes.length === 0
+			) {
 				return
 			}
 
@@ -187,7 +190,7 @@ export const Biometric = memo(() => {
 				alerts.error(e.message)
 			}
 		}
-	}, [canPromptLocalAuthentication, authenticated, t])
+	}, [canPromptLocalAuthentication, authenticated, t, localAuthentication.status, localAuthentication.data])
 
 	const onBackButtonPress = useCallback(() => {
 		if (show) {
@@ -277,15 +280,11 @@ export const Biometric = memo(() => {
 	}, [canPromptLocalAuthentication, promptLocalAuthentication])
 
 	useEffect(() => {
-		if (didRunOnStartRef.current) {
+		if (!enabled || didRunOnStartRef.current || show) {
 			return
 		}
 
 		didRunOnStartRef.current = true
-
-		if (!enabled || didRunOnStartRef.current || show) {
-			return
-		}
 
 		setShow(true)
 		setBiometricAuth(prev =>
