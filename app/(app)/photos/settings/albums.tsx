@@ -42,6 +42,8 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 					onValueChange={() => {
 						setCameraUpload(prev => ({
 							...prev,
+							// We do not need to increase the version here, local album changes do not require aborting uploads
+							// version: (prev.version ?? 0) + 1,
 							albums: [
 								...prev.albums.filter(album => album.id !== info.item.album.id),
 								...(!prev.albums.some(album => album.id === info.item.album.id) ? [info.item.album] : [])

@@ -14,6 +14,9 @@ export type CameraUpload = {
 	lowBattery: boolean
 	videos: boolean
 	compress: boolean
+	// The version value is used to determine if the state has changed and we need to abort any running uploads
+	// This is useful for when the user changes settings, like enabling/disabling camera upload
+	version?: number
 }
 
 export const EMPTY_STATE: CameraUpload = {
@@ -24,7 +27,8 @@ export const EMPTY_STATE: CameraUpload = {
 	cellular: false,
 	lowBattery: false,
 	videos: false,
-	compress: false
+	compress: false,
+	version: 1
 }
 
 export function getCameraUploadState(): CameraUpload {

@@ -39,7 +39,8 @@ export const Settings = memo(() => {
 		async (enable: boolean) => {
 			setCameraUpload(prev => ({
 				...prev,
-				enabled: enable
+				enabled: enable,
+				version: (prev.version ?? 0) + 1
 			}))
 
 			if (enable) {
@@ -130,6 +131,7 @@ export const Settings = memo(() => {
 
 			setCameraUpload(prev => ({
 				...prev,
+				version: (prev.version ?? 0) + 1,
 				remote: {
 					...directory,
 					path
@@ -338,7 +340,8 @@ export const Settings = memo(() => {
 			setCameraUpload(prev => ({
 				...prev,
 				enabled: false,
-				remote: null
+				remote: null,
+				version: (prev.version ?? 0) + 1
 			}))
 		}
 	}, [cameraUploadParentExists, setCameraUpload])

@@ -39,7 +39,6 @@ export type Tree = Record<string, TreeItem>
 export type Delta = {
 	type: "upload"
 	item: TreeItem
-	localFile: FileSystem.File | null
 }
 
 export type CameraUploadType = "foreground" | "background"
@@ -128,21 +127,21 @@ export class CameraUpload {
 				? MediaLibrary.getPermissionsAsync(false, this.type === "background" ? ["photo"] : ["photo", "video"])
 				: Promise.resolve({
 						status: MediaLibrary.PermissionStatus.GRANTED
-					}),
+				  }),
 			checkNetwork
 				? getNetInfoState()
 				: Promise.resolve({
 						hasInternet: true,
 						isWifiEnabled: true,
 						cellular: false
-					}),
+				  }),
 			checkBattery
 				? Battery.getPowerStateAsync()
 				: Promise.resolve({
 						lowPowerMode: false,
 						batteryLevel: 1,
 						batteryState: Battery.BatteryState.FULL
-					})
+				  })
 		])
 
 		if (
@@ -226,11 +225,11 @@ export class CameraUpload {
 				? await nodeWorker.proxy("getDirectoryTree", {
 						uuid: state.remote.uuid,
 						type: "normal"
-					})
+				  })
 				: await getSDK().cloud().getDirectoryTree({
 						uuid: state.remote.uuid,
 						type: "normal"
-					})
+				  })
 
 		for (const path in tree) {
 			const file = tree[path]
@@ -257,15 +256,11 @@ export class CameraUpload {
 	public async deltas({ localItems, remoteItems }: { localItems: Tree; remoteItems: Tree }): Promise<Delta[]> {
 		const deltas: Delta[] = []
 
-		await promiseAllChunked(
-			Object.keys(localItems).map(async path => {
-				await calculateDeltaSemaphore.acquire()
+		for (const path in localItems) {
+			const localItem = localItems[path]
+			const remoteItem = remoteItems[path]
 
-				try {
-					const localItem = localItems[path]
-					const remoteItem = remoteItems[path]
-
-					/*
+			/*
 					||
 						(localItem &&
 							remoteItem &&
@@ -273,53 +268,16 @@ export class CameraUpload {
 								this.normalizeModificationTimestampForComparison(remoteItem.lastModified))
 					*/
 
-					// If the local item exists and the remote item does not, we need to upload it
-					if (localItem && !remoteItem) {
-						const delta: Delta = {
-							type: "upload",
-							item: localItem,
-							localFile: null
-						}
-
-						const errorKey = `${delta.type}:${delta.item.path}`
-
-						if (this.deltaErrors[errorKey] && this.deltaErrors[errorKey] >= 3) {
-							return
-						}
-
-						if (localItem.type === "local") {
-							if (localItem.asset.mediaType === "unknown") {
-								return
-							}
-
-							const stat = await MediaLibrary.getAssetInfoAsync(localItem.asset, {
-								shouldDownloadFromNetwork: true
-							})
-
-							if (!stat.localUri) {
-								return
-							}
-
-							const localFile = new FileSystem.File(stat.localUri)
-
-							if (!localFile.exists || !localFile.size || localFile.size > this.maxSize) {
-								return
-							}
-
-							delta.localFile = localFile
-						}
-
-						if (!delta.localFile) {
-							return
-						}
-
-						deltas.push(delta)
-					}
-				} finally {
-					calculateDeltaSemaphore.release()
+			// If the local item exists and the remote item does not, we need to upload it
+			if (localItem && !remoteItem) {
+				const delta: Delta = {
+					type: "upload",
+					item: localItem
 				}
-			})
-		)
+
+				deltas.push(delta)
+			}
+		}
 
 		return deltas.sort((a, b) => {
 			return a.item.creation - b.item.creation
@@ -389,7 +347,7 @@ export class CameraUpload {
 			const uploadId = randomUUID()
 
 			try {
-				if (delta.type === "upload" && delta.localFile) {
+				if (delta.type === "upload") {
 					if (delta.item.type !== "local") {
 						return
 					}
@@ -403,14 +361,14 @@ export class CameraUpload {
 						!parentName || parentName.length === 0 || parentName === "."
 							? state.remote.uuid
 							: this.type === "foreground"
-								? await nodeWorker.proxy("createDirectory", {
-										name: parentName,
-										parent: state.remote.uuid
-									})
-								: await getSDK().cloud().createDirectory({
-										name: parentName,
-										parent: state.remote.uuid
-									})
+							? await nodeWorker.proxy("createDirectory", {
+									name: parentName,
+									parent: state.remote.uuid
+							  })
+							: await getSDK().cloud().createDirectory({
+									name: parentName,
+									parent: state.remote.uuid
+							  })
 
 					if (abortSignal?.aborted) {
 						throw new Error("Aborted")
@@ -433,7 +391,29 @@ export class CameraUpload {
 							throw new Error("Aborted")
 						}
 
-						delta.localFile.copy(tmpFile)
+						const stat = await MediaLibrary.getAssetInfoAsync(delta.item.asset, {
+							shouldDownloadFromNetwork: true
+						})
+
+						if (!stat.localUri) {
+							return
+						}
+
+						if (abortSignal?.aborted) {
+							throw new Error("Aborted")
+						}
+
+						const localFile = new FileSystem.File(stat.localUri)
+
+						if (!localFile.exists || !localFile.size || localFile.size > this.maxSize) {
+							return
+						}
+
+						if (abortSignal?.aborted) {
+							throw new Error("Aborted")
+						}
+
+						localFile.copy(tmpFile)
 
 						if (!tmpFile.exists || !tmpFile.size) {
 							throw new Error(`Could not get size of file at "${tmpFile.uri}".`)
@@ -466,7 +446,7 @@ export class CameraUpload {
 										deleteAfterUpload: true,
 										creation: delta.item.creation,
 										lastModified: delta.item.lastModified
-									})
+								  })
 								: await upload.file.background({
 										parent: parentUUID,
 										localPath: tmpFile.uri,
@@ -478,7 +458,7 @@ export class CameraUpload {
 										creation: delta.item.creation,
 										lastModified: delta.item.lastModified,
 										abortSignal
-									})
+								  })
 
 						if (item.type !== "file") {
 							throw new Error("Invalid response from uploadFile.")
@@ -542,12 +522,14 @@ export class CameraUpload {
 		}
 	}
 
-	public async run(params?: { abortSignal: AbortSignal }): Promise<void> {
+	public async run(params?: { abortController: AbortController }): Promise<void> {
 		if (runMutex.count() > 0) {
 			return
 		}
 
-		if (params?.abortSignal?.aborted) {
+		const abortController = params?.abortController ?? new AbortController()
+
+		if (abortController.signal.aborted) {
 			throw new Error("Aborted")
 		}
 
@@ -555,8 +537,27 @@ export class CameraUpload {
 
 		this.useCameraUploadStore.setRunning(true)
 
+		let stateCheckInterval: ReturnType<typeof setInterval> | undefined = undefined
+
+		if (this.type === "foreground") {
+			// Copy instead of referencing to avoid issues with stale state
+			const startingState = JSON.parse(JSON.stringify(getCameraUploadState())) as ReturnType<typeof getCameraUploadState>
+
+			stateCheckInterval = setInterval(() => {
+				const currentState = getCameraUploadState()
+
+				if (currentState.version !== startingState.version) {
+					if (!abortController.signal.aborted) {
+						abortController.abort()
+					}
+
+					clearInterval(stateCheckInterval)
+				}
+			}, 1000)
+		}
+
 		try {
-			if (params?.abortSignal?.aborted) {
+			if (abortController.signal.aborted) {
 				throw new Error("Aborted")
 			}
 
@@ -571,7 +572,7 @@ export class CameraUpload {
 				return
 			}
 
-			if (params?.abortSignal?.aborted) {
+			if (abortController.signal.aborted) {
 				throw new Error("Aborted")
 			}
 
@@ -581,7 +582,7 @@ export class CameraUpload {
 				return
 			}
 
-			if (params?.abortSignal?.aborted) {
+			if (abortController.signal.aborted) {
 				throw new Error("Aborted")
 			}
 
@@ -590,23 +591,23 @@ export class CameraUpload {
 					? await nodeWorker.proxy("directoryExists", {
 							name: state.remote.name,
 							parent: state.remote.parent
-						})
+					  })
 					: await getSDK().cloud().directoryExists({
 							name: state.remote.name,
 							parent: state.remote.parent
-						})
+					  })
 
 			if (!exists.exists || exists.uuid !== state.remote.uuid) {
 				return
 			}
 
-			if (params?.abortSignal?.aborted) {
+			if (abortController.signal.aborted) {
 				throw new Error("Aborted")
 			}
 
 			const [localItems, remoteItems] = await Promise.all([this.fetchLocalItems(), this.fetchRemoteItems()])
 
-			if (params?.abortSignal?.aborted) {
+			if (abortController.signal.aborted) {
 				throw new Error("Aborted")
 			}
 
@@ -619,7 +620,7 @@ export class CameraUpload {
 				return
 			}
 
-			if (params?.abortSignal?.aborted) {
+			if (abortController.signal.aborted) {
 				throw new Error("Aborted")
 			}
 
@@ -640,7 +641,7 @@ export class CameraUpload {
 
 						added++
 
-						await this.processDelta(delta, params?.abortSignal)
+						await this.processDelta(delta, abortController.signal)
 
 						done++
 
@@ -657,6 +658,8 @@ export class CameraUpload {
 				})
 			}
 		} finally {
+			clearInterval(stateCheckInterval)
+
 			this.useCameraUploadStore.setRunning(false)
 
 			runMutex.release()

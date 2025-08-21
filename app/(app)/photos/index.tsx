@@ -452,6 +452,8 @@ export const Photos = memo(() => {
 			usePhotosStore.getState().setSelectedItems([])
 
 			calculateVisibleItemsOnFocus()
+
+			foregroundCameraUpload.run().catch(console.error)
 		}, [calculateVisibleItemsOnFocus])
 	)
 

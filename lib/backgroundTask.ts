@@ -50,7 +50,7 @@ ExpoTaskManager.defineTask(BACKGROUND_TASK_IDENTIFIER, async () => {
 			}
 
 			await backgroundCameraUpload.run({
-				abortSignal: abortController.signal
+				abortController
 			})
 		} finally {
 			clearTimeout(abortTimeout)
