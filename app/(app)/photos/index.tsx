@@ -22,7 +22,6 @@ import { validate as validateUUID } from "uuid"
 import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { useShallow } from "zustand/shallow"
 import Menu from "@/components/drive/list/listItem/menu"
-import Transfers from "@/components/drive/header/transfers"
 import OfflineListHeader from "@/components/offlineListHeader"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
 import { useTranslation } from "react-i18next"
@@ -355,13 +354,10 @@ export const Photos = memo(() => {
 		}
 
 		return (
-			<View className="flex-row items-center">
-				<Transfers />
-				<Dropdown
-					photos={items}
-					queryParams={queryParams}
-				/>
-			</View>
+			<Dropdown
+				photos={items}
+				queryParams={queryParams}
+			/>
 		)
 	}, [hasInternet, items, queryParams])
 
