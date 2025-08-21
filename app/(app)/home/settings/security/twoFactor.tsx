@@ -171,8 +171,20 @@ export const TwoFactor = memo(() => {
 			!twoFactorEnabled &&
 			account.data?.settings.twoFactorKey && (
 				<View className="flex-1 flex-col pt-10 gap-10">
-					<View className="rounded-lg items-center justify-center">
-						<View className="p-4 bg-white rounded-lg">
+					<View
+						className="rounded-lg items-center justify-center"
+						style={{
+							width: "100%",
+							height: screen.width / 2 + 32
+						}}
+					>
+						<View
+							className="p-4 bg-white rounded-lg"
+							style={{
+								width: screen.width / 2 + 32,
+								height: screen.width / 2 + 32
+							}}
+						>
 							<QRCode
 								value={qrCodeValue}
 								backgroundColor="white"
@@ -180,7 +192,13 @@ export const TwoFactor = memo(() => {
 							/>
 						</View>
 					</View>
-					<View className="flex-1 flex-row items-center gap-2 justify-center">
+					<View
+						className="flex-1 flex-row items-center gap-2 justify-center absolute"
+						style={{
+							top: screen.width / 2 + 100,
+							width: "100%"
+						}}
+					>
 						<Button
 							variant="plain"
 							size="sm"
