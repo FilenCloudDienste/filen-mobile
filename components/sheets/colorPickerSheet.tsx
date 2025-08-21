@@ -3,7 +3,6 @@ import { BottomSheetView } from "@gorhom/bottom-sheet"
 import events from "@/lib/events"
 import { randomUUID } from "expo-crypto"
 import { DEFAULT_DIRECTORY_COLOR } from "@/assets/fileIcons"
-import { useSharedValue } from "react-native-reanimated"
 import ColorPickerComponent, { Panel1, Preview, HueSlider } from "reanimated-color-picker"
 import { View } from "react-native"
 import { Button } from "../nativewindui/Button"
@@ -64,19 +63,14 @@ export function colorPicker(params: ColorPickerParams): Promise<ColorPickerRespo
 export const ColorPickerSheet = memo(() => {
 	const ref = useSheetRef()
 	const [currentColor, setCurrentColor] = useState<string | null>(null)
-	const selectedColor = useSharedValue<string | null>(null)
+	const selectedColorRef = useRef<string | null>(null)
 	const id = useRef<string>("")
 	const insets = useSafeAreaInsets()
 	const { t } = useTranslation()
 
-	const onSelectColor = useCallback(
-		({ hex }: { hex: string }) => {
-			"worklet"
-
-			selectedColor.set(hex)
-		},
-		[selectedColor]
-	)
+	const onSelectColor = useCallback(({ hex }: { hex: string }) => {
+		selectedColorRef.current = hex
+	}, [])
 
 	const close = useCallback(() => {
 		events.emit("colorPicker", {
@@ -92,9 +86,8 @@ export const ColorPickerSheet = memo(() => {
 		setCurrentColor(null)
 
 		id.current = ""
-
-		selectedColor.set(null)
-	}, [selectedColor, ref])
+		selectedColorRef.current = null
+	}, [ref])
 
 	const select = useCallback(() => {
 		events.emit("colorPicker", {
@@ -102,7 +95,7 @@ export const ColorPickerSheet = memo(() => {
 			data: {
 				id: id.current,
 				cancelled: false,
-				color: selectedColor.get() ?? DEFAULT_DIRECTORY_COLOR
+				color: selectedColorRef.current ?? DEFAULT_DIRECTORY_COLOR
 			}
 		})
 
@@ -111,9 +104,7 @@ export const ColorPickerSheet = memo(() => {
 		setCurrentColor(null)
 
 		id.current = ""
-
-		selectedColor.set(null)
-	}, [selectedColor, ref])
+	}, [ref])
 
 	const onChange = useCallback(
 		(index: number) => {
@@ -157,7 +148,7 @@ export const ColorPickerSheet = memo(() => {
 						width: "100%"
 					}}
 					value={typeof currentColor === "string" ? currentColor : DEFAULT_DIRECTORY_COLOR}
-					onComplete={onSelectColor}
+					onCompleteJS={onSelectColor}
 				>
 					<Preview
 						style={{
@@ -175,9 +166,9 @@ export const ColorPickerSheet = memo(() => {
 						}}
 					/>
 				</ColorPickerComponent>
-				<View className="flex flex-row items-center justify-center gap-4 p-4">
+				<View className="flex flex-row items-center justify-center gap-4 p-4 pt-8">
 					<Button
-						variant="primary"
+						variant="secondary"
 						onPress={close}
 					>
 						<Text>{t("sheets.colorPicker.cancel")}</Text>
