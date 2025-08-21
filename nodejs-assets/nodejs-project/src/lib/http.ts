@@ -43,7 +43,6 @@ export class HTTP {
 
 			const fileBase64 = decodeURIComponent(req.query.file as string)
 			const file = JSON.parse(Buffer.from(fileBase64, "base64").toString("utf-8")) as {
-				name: string
 				mime: string
 				size: number
 				uuid: string
@@ -53,7 +52,7 @@ export class HTTP {
 				chunks: number
 				region: string
 			}
-			const mimeType = file.mime.length > 0 ? file.mime : mimeTypes.lookup(file.name) || "application/octet-stream"
+			const mimeType = file.mime ?? "application/octet-stream"
 			const totalLength = file.size
 			const range = req.headers.range || req.headers["content-range"]
 			let start = 0

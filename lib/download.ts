@@ -162,6 +162,14 @@ export class Download {
 									})
 								)
 								.pipeTo(entry.writableStream())
+
+							if (!entry.exists) {
+								throw new Error("File download failed, file does not exist after download.")
+							}
+
+							if (entry.size !== file.size) {
+								throw new Error("File download failed, file size does not match expected size.")
+							}
 						} finally {
 							semaphore.release()
 						}
@@ -203,6 +211,14 @@ export class Download {
 			}
 
 			await nodeWorker.proxy("downloadFile", params)
+
+			if (!destination.exists) {
+				throw new Error("File download failed, file does not exist after download.")
+			}
+
+			if (destination.size !== params.size) {
+				throw new Error("File download failed, file size does not match expected size.")
+			}
 		},
 		background: async (params: Parameters<NodeWorkerHandlers["downloadFile"]>[0]): Promise<void> => {
 			if (!this.isAuthed()) {
@@ -245,6 +261,14 @@ export class Download {
 					})
 				)
 				.pipeTo(destination.writableStream())
+
+			if (!destination.exists) {
+				throw new Error("File download failed, file does not exist after download.")
+			}
+
+			if (destination.size !== params.size) {
+				throw new Error("File download failed, file size does not match expected size.")
+			}
 		},
 		stream: (params: Parameters<Cloud["downloadFileToReadableStream"]>[0]) => {
 			if (!this.isAuthed()) {

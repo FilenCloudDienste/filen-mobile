@@ -30,7 +30,6 @@ export const Preview = memo(({ item }: { item: DOCXPreviewItem }) => {
 			return `http://127.0.0.1:${httpServer.port}/stream?auth=${httpServer.authToken}&file=${encodeURIComponent(
 				btoa(
 					JSON.stringify({
-						name: item.driveItem.name,
 						mime: item.driveItem.mime,
 						size: item.driveItem.size,
 						uuid: item.driveItem.uuid,

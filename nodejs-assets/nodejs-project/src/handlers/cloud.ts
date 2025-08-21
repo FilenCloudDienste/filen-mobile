@@ -126,7 +126,7 @@ export async function downloadDirectory(
 									state: "started",
 									startedTimestamp: now,
 									size: params.size
-								}
+							  }
 							: transfer
 					)
 				)
@@ -143,7 +143,7 @@ export async function downloadDirectory(
 									...transfer,
 									bytes: transfer.bytes + transferred,
 									progressTimestamp: now
-								}
+							  }
 							: transfer
 					)
 				)
@@ -184,7 +184,7 @@ export async function downloadDirectory(
 									...transfer,
 									state: "error",
 									errorTimestamp: now
-								}
+							  }
 							: transfer
 					)
 				)
@@ -250,6 +250,7 @@ export async function downloadFile(
 	}
 
 	const { setTransfers, setFinishedTransfers } = transfersStore.getState()
+	const to = normalizeFilePathForNode(params.destination)
 
 	await sdk
 		.get()
@@ -263,7 +264,7 @@ export async function downloadFile(
 			key: params.key,
 			end: params.end,
 			start: params.start,
-			to: normalizeFilePathForNode(params.destination),
+			to,
 			size: params.size,
 			abortSignal: this.transfersAbortControllers[params.id]?.signal,
 			pauseSignal: this.transfersPauseSignals[params.id],
@@ -308,7 +309,7 @@ export async function downloadFile(
 									state: "started",
 									startedTimestamp: now,
 									size: params.size
-								}
+							  }
 							: transfer
 					)
 				)
@@ -325,7 +326,7 @@ export async function downloadFile(
 									...transfer,
 									bytes: transfer.bytes + transferred,
 									progressTimestamp: now
-								}
+							  }
 							: transfer
 					)
 				)
@@ -366,7 +367,7 @@ export async function downloadFile(
 									...transfer,
 									state: "error",
 									errorTimestamp: now
-								}
+							  }
 							: transfer
 					)
 				)
@@ -376,6 +377,10 @@ export async function downloadFile(
 				}
 			}
 		})
+
+	if ((await fs.stat(to)).size !== params.size) {
+		throw new Error("File download failed, file size does not match expected size.")
+	}
 }
 
 export async function editFileMetadata(this: NodeWorker, params: Parameters<Cloud["editFileMetadata"]>[0]) {
@@ -773,7 +778,7 @@ export async function uploadDirectory(
 									state: "started",
 									startedTimestamp: now,
 									size: params.size
-								}
+							  }
 							: transfer
 					)
 				)
@@ -790,7 +795,7 @@ export async function uploadDirectory(
 									...transfer,
 									bytes: transfer.bytes + transferred,
 									progressTimestamp: now
-								}
+							  }
 							: transfer
 					)
 				)
@@ -831,7 +836,7 @@ export async function uploadDirectory(
 									...transfer,
 									state: "error",
 									errorTimestamp: now
-								}
+							  }
 							: transfer
 					)
 				)
@@ -913,7 +918,7 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 									state: "started",
 									startedTimestamp: now,
 									size: params.size
-								}
+							  }
 							: transfer
 					)
 				)
@@ -930,7 +935,7 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 									...transfer,
 									bytes: transfer.bytes + transferred,
 									progressTimestamp: now
-								}
+							  }
 							: transfer
 					)
 				)
@@ -971,7 +976,7 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 									...transfer,
 									state: "error",
 									errorTimestamp: now
-								}
+							  }
 							: transfer
 					)
 				)

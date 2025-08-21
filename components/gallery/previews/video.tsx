@@ -48,7 +48,6 @@ export const Video = memo(
 				return `http://127.0.0.1:${httpServer.port}/stream?auth=${httpServer.authToken}&file=${encodeURIComponent(
 					btoa(
 						JSON.stringify({
-							name: item.data.item.name,
 							mime: item.data.item.mime,
 							size: item.data.item.size,
 							uuid: item.data.item.uuid,

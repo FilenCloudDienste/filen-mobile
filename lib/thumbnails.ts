@@ -248,7 +248,6 @@ export class Thumbnails {
 							: `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?file=${encodeURIComponent(
 									btoa(
 										JSON.stringify({
-											name: item.name,
 											mime: item.mime,
 											size: item.size,
 											uuid: item.uuid,

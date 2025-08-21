@@ -118,7 +118,6 @@ export const Filen = memo(({ link }: { link: string }) => {
 		return `http://127.0.0.1:${httpServer.port}/stream?auth=${httpServer.authToken}&file=${encodeURIComponent(
 			btoa(
 				JSON.stringify({
-					name: query.data.data.info.name,
 					mime: query.data.data.info.mime,
 					size: query.data.data.info.size,
 					uuid: query.data.data.info.uuid,

@@ -135,32 +135,7 @@ export class NodeWorker {
 				return
 			}
 
-			const start = Date.now()
-			const promises: Promise<void | boolean>[] = []
-
-			promises.push(this.http.stop(true))
-
-			for (const id in this.transfersPauseSignals) {
-				promises.push(
-					(async () => {
-						await this.handlers.transferAction({
-							action: "stop",
-							id
-						})
-					})()
-				)
-			}
-
-			await promiseAllSettledChunked(promises)
-
-			const timeTaken = Date.now() - start
-			const sleepWait = 2500 - timeTaken
-
-			if (sleepWait > 0) {
-				// We roughly have 3-5 seconds on iOS and 5-10 seconds on Android to suspend.
-				// The pause signals do not kick in immediately, that's why we wait for another second until we tell the OS that we've paused everything.
-				await sleep(sleepWait)
-			}
+			await this.http.stop(true)
 
 			this.state = "paused"
 		} finally {
@@ -176,23 +151,15 @@ export class NodeWorker {
 				return
 			}
 
-			const promises: Promise<void>[] = []
+			const { port, authToken } = await this.http.start()
 
-			promises.push(
-				(async () => {
-					const { port, authToken } = await this.http.start()
-
-					this.bridge.channel.send({
-						type: "httpServer",
-						data: {
-							port,
-							authToken
-						}
-					})
-				})()
-			)
-
-			await promiseAllSettledChunked(promises)
+			this.bridge.channel.send({
+				type: "httpServer",
+				data: {
+					port,
+					authToken
+				}
+			})
 
 			this.state = "running"
 		} finally {
