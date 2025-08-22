@@ -1011,7 +1011,9 @@
 					"lowBattery": "低电量",
 					"lowBatteryInfo": "电量低时禁用相机上传。",
 					"compress": "压缩",
-					"compressInfo": "压缩照片以节省存储空间。这可能会降低照片质量。JPG压缩质量为80%。"
+					"compressInfo": "压缩照片以节省存储空间。这可能会降低照片质量。JPG压缩质量为80%。",
+					"permissionsError": "权限错误",
+					"permissionsErrorInfo": "请在系统设置中允许本应用访问您的照片和视频。"
 				},
 				"errors": {
 					"noPermissions": "您需要授予媒体权限才能访问您的照片。"
