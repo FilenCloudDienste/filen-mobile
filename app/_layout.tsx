@@ -32,6 +32,7 @@ import { SCREEN_OPTIONS } from "@/lib/constants"
 import alerts from "@/lib/alerts"
 import Reminders from "@/components/reminders"
 import { useAppStateStore } from "@/stores/appState.store"
+import { useKeepAwake } from "expo-keep-awake"
 
 SplashScreen.setOptions({
 	duration: 400,
@@ -41,6 +42,8 @@ SplashScreen.setOptions({
 SplashScreen.preventAutoHideAsync().catch(console.error)
 
 export default function RootLayout() {
+	useKeepAwake()
+
 	const { colorScheme, colors } = useColorScheme()
 	const [isAuthed] = useIsAuthed()
 	const [setupDone, setSetupDone] = useState<boolean>(false)
