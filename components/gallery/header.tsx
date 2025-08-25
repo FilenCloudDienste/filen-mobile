@@ -1,4 +1,4 @@
-import { memo, useRef, useLayoutEffect, useMemo } from "react"
+import { memo, useRef, useLayoutEffect, useMemo, useCallback } from "react"
 import Animated, { FadeInUp, FadeOutUp } from "react-native-reanimated"
 import { Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
@@ -12,7 +12,6 @@ import { cn } from "@/lib/cn"
 import useViewLayout from "@/hooks/useViewLayout"
 import Menu from "../drive/list/listItem/menu"
 import Container from "../Container"
-import { Paths } from "expo-file-system/next"
 import { useShallow } from "zustand/shallow"
 
 export const Header = memo(() => {
@@ -44,7 +43,7 @@ export const Header = memo(() => {
 	}, [item, showHeader, visible])
 
 	const title = useMemo(() => {
-		if (!item) {
+		if (!item || item.itemType === "remoteItem") {
 			return null
 		}
 
@@ -52,8 +51,12 @@ export const Header = memo(() => {
 			return item.data.item.name
 		}
 
-		return Paths.parse(decodeURIComponent(item.data.uri))?.name ?? "Unknown name"
+		return null
 	}, [item])
+
+	const back = useCallback(() => {
+		useGalleryStore.getState().reset()
+	}, [])
 
 	useLayoutEffect(() => {
 		useGalleryStore.getState().setHeaderHeight(layout.height)
@@ -80,9 +83,25 @@ export const Header = memo(() => {
 				}}
 			>
 				<Container className="flex-1 flex-row items-center w-full justify-between gap-4">
+					<Button
+						variant="plain"
+						size="icon"
+						className={cn("shrink-0", Platform.OS === "ios" && "-ml-4")}
+						onPress={back}
+					>
+						<Icon
+							namingScheme="sfSymbol"
+							name="arrow.left"
+							ios={{
+								name: "chevron.backward"
+							}}
+							size={24}
+							color={colors.primary}
+						/>
+					</Button>
 					<Text
 						numberOfLines={1}
-						className="flex-1 text-foreground"
+						className="text-foreground shrink"
 					>
 						{title}
 					</Text>
@@ -96,6 +115,7 @@ export const Header = memo(() => {
 							<Button
 								variant="plain"
 								size="icon"
+								className="shrink-0"
 							>
 								<Icon
 									namingScheme="sfSymbol"

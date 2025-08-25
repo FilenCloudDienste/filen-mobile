@@ -192,6 +192,10 @@ export const GalleryModal = memo(() => {
 		useGalleryStore.getState().reset()
 	}, [])
 
+	const onDismissStart = useCallback(() => {
+		useGalleryStore.getState().setShowHeader(false)
+	}, [])
+
 	useGestureViewerEvent("zoomChange", ({ scale }) => {
 		useGalleryStore.getState().setShowHeader(scale <= 1)
 	})
@@ -248,6 +252,7 @@ export const GalleryModal = memo(() => {
 					initialIndex={validatedInitialScrollIndex}
 					listProps={listProps}
 					onDismiss={onDismiss}
+					onDismissStart={onDismissStart}
 				/>
 			</Animated.View>
 		</Portal>
