@@ -13,6 +13,18 @@ import { Buffer } from "buffer"
 import { getRandomValues } from "expo-crypto"
 import mimeTypes from "mime-types"
 import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
+import * as ExpoLocalization from "expo-localization"
+
+let intlLanguage: string = "de-DE"
+
+try {
+	intlLanguage =
+		ExpoLocalization.getLocales()
+			.filter(lang => lang.languageTag)
+			.at(0)?.languageTag ?? "de-DE"
+} catch (e) {
+	console.error(e)
+}
 
 export function serializeError(error: Error): SerializedError {
 	return {
@@ -42,7 +54,7 @@ export function convertTimestampToMs(timestamp: number): number {
 	return Math.floor(timestamp * 1000)
 }
 
-export const simpleDateFormatter = new Intl.DateTimeFormat((typeof navigator !== "undefined" && navigator.language) || "de-DE", {
+export const simpleDateFormatter = new Intl.DateTimeFormat(intlLanguage, {
 	year: "numeric",
 	month: "2-digit",
 	day: "2-digit",
@@ -57,7 +69,7 @@ export function simpleDate(timestamp: number | Date): string {
 	return simpleDateFormatter.format(date)
 }
 
-export const simpleDateNoTimeFormatter = new Intl.DateTimeFormat((typeof navigator !== "undefined" && navigator.language) || "de-DE", {
+export const simpleDateNoTimeFormatter = new Intl.DateTimeFormat(intlLanguage, {
 	year: "numeric",
 	month: "2-digit",
 	day: "2-digit",
@@ -72,7 +84,7 @@ export function simpleDateNoTime(timestamp: number | Date): string {
 	return simpleDateNoTimeFormatter.format(date)
 }
 
-export const simpleDateNoDateFormatter = new Intl.DateTimeFormat((typeof navigator !== "undefined" && navigator.language) || "de-DE", {
+export const simpleDateNoDateFormatter = new Intl.DateTimeFormat(intlLanguage, {
 	year: undefined,
 	month: undefined,
 	day: undefined,
