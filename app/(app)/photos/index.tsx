@@ -110,6 +110,10 @@ export const Photo = memo(
 			}
 		}, [colors.card, itemSize, spacing])
 
+		const previewType = useMemo(() => {
+			return getPreviewType(info.item.name)
+		}, [info.item.name])
+
 		return (
 			<Menu
 				item={info.item}
@@ -134,6 +138,15 @@ export const Photo = memo(
 									name="heart"
 									size={10}
 									color="white"
+								/>
+							</View>
+						)}
+						{previewType === "video" && (
+							<View className="w-[16px] h-[16px] absolute top-1 right-1 bg-white rounded-full z-50 flex-row items-center justify-center">
+								<Icon
+									name="play"
+									size={10}
+									color="black"
 								/>
 							</View>
 						)}
