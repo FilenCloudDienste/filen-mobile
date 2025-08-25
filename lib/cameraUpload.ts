@@ -525,7 +525,7 @@ export class CameraUpload {
 	public async run(params?: { abortController: AbortController }): Promise<void> {
 		const now = Date.now()
 
-		if (runMutex.count() > 0) {
+		if (runMutex.count() > 0 && this.type === "foreground") {
 			return
 		}
 
@@ -535,11 +535,13 @@ export class CameraUpload {
 			throw new Error("Aborted")
 		}
 
-		if (nextRunTimeout > now) {
+		if (nextRunTimeout > now && this.type === "foreground") {
 			return
 		}
 
-		await runMutex.acquire()
+		if (this.type === "foreground") {
+			await runMutex.acquire()
+		}
 
 		this.useCameraUploadStore.setRunning(true)
 
@@ -668,9 +670,11 @@ export class CameraUpload {
 
 			this.useCameraUploadStore.setRunning(false)
 
-			runMutex.release()
+			if (this.type === "foreground") {
+				runMutex.release()
 
-			nextRunTimeout = Date.now() + 1000 * 15
+				nextRunTimeout = Date.now() + 1000 * 15
+			}
 		}
 	}
 }
