@@ -27,7 +27,8 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 	const options = useMemo(() => {
 		return [
 			t("drive.header.rightView.actionSheet.upload.files"),
-			...(Platform.OS === "android" ? [t("drive.header.rightView.actionSheet.upload.directory")] : []),
+			// Disable directory upload on Android for now as it's not well supported. Need to figure out a better way to handle it.
+			// ...(Platform.OS === "android" ? [t("drive.header.rightView.actionSheet.upload.directory")] : []),
 			t("drive.header.rightView.actionSheet.upload.media"),
 			t("drive.header.rightView.actionSheet.create.textFile"),
 			t("drive.header.rightView.actionSheet.create.directory"),
@@ -41,14 +42,15 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 			options,
 			cancelIndex: options.length - 1,
 			indexToType: Platform.select({
-				android: {
+				// Disable directory upload on Android for now as it's not well supported. Need to figure out a better way to handle it.
+				/*android: {
 					0: "uploadFiles",
 					1: "uploadDirectory",
 					2: "uploadMedia",
 					3: "createTextFile",
 					4: "createDirectory",
 					5: "createPhoto"
-				},
+				},*/
 				default: {
 					0: "uploadFiles",
 					1: "uploadMedia",
