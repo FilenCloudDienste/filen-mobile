@@ -367,8 +367,16 @@ export function getPreviewType(name: string): PreviewType {
 		case ".cobol":
 		case ".toml":
 		case ".conf":
-		case ".sh":
+		case ".ini":
+		case ".log":
+		case ".makefile":
+		case ".mk":
+		case ".gradle":
+		case ".lua":
+		case ".h":
+		case ".hpp":
 		case ".rs":
+		case ".sh":
 		case ".rb":
 		case ".ps1":
 		case ".bat":
