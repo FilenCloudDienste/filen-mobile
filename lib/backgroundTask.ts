@@ -9,7 +9,7 @@ export async function registerBackgroundTask() {
 
 	console.log("BackgroundTask status:", status)
 
-	if (status === ExpoBackgroundTask.BackgroundTaskStatus.Restricted) {
+	if (status !== ExpoBackgroundTask.BackgroundTaskStatus.Available) {
 		await ExpoBackgroundTask.unregisterTaskAsync(BACKGROUND_TASK_IDENTIFIER)
 
 		console.log("BackgroundTask is restricted, unregistered!")
@@ -31,6 +31,8 @@ export async function registerBackgroundTask() {
 registerBackgroundTask().catch(console.error)
 
 ExpoTaskManager.defineTask(BACKGROUND_TASK_IDENTIFIER, async () => {
+	console.log("BackgroundTask triggered!")
+
 	try {
 		const abortController = new AbortController()
 

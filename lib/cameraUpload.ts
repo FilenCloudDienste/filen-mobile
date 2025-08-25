@@ -43,9 +43,9 @@ export type Delta = {
 
 export type CameraUploadType = "foreground" | "background"
 
-export const runMutex: Semaphore = new Semaphore(1)
-export const processDeltaSemaphore: Semaphore = new Semaphore(8)
-export const calculateDeltaSemaphore: Semaphore = new Semaphore(16)
+const runMutex: Semaphore = new Semaphore(1)
+const processDeltaSemaphore: Semaphore = new Semaphore(8)
+let nextRunTimeout: number = 0
 
 export class CameraUpload {
 	private readonly type: CameraUploadType
@@ -181,7 +181,7 @@ export class CameraUpload {
 					const result = await MediaLibrary.getAssetsAsync({
 						mediaType: this.mediaTypes.includes("video") && !state.videos ? ["photo"] : this.mediaTypes,
 						album: album.id,
-						first: 256,
+						first: 1024,
 						after
 					})
 
@@ -523,6 +523,8 @@ export class CameraUpload {
 	}
 
 	public async run(params?: { abortController: AbortController }): Promise<void> {
+		const now = Date.now()
+
 		if (runMutex.count() > 0) {
 			return
 		}
@@ -531,6 +533,10 @@ export class CameraUpload {
 
 		if (abortController.signal.aborted) {
 			throw new Error("Aborted")
+		}
+
+		if (nextRunTimeout > now) {
+			return
 		}
 
 		await runMutex.acquire()
@@ -663,6 +669,8 @@ export class CameraUpload {
 			this.useCameraUploadStore.setRunning(false)
 
 			runMutex.release()
+
+			nextRunTimeout = Date.now() + 1000 * 15
 		}
 	}
 }

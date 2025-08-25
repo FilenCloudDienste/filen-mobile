@@ -34,6 +34,9 @@ const networkSecurityConfigContent = `<?xml version="1.0" encoding="utf-8"?>
 		<domain includeSubdomains="true">192.168.100.162</domain>
 	</domain-config>
 	<domain-config cleartextTrafficPermitted="true">
+		<domain includeSubdomains="true">192.168.100.110</domain>
+	</domain-config>
+	<domain-config cleartextTrafficPermitted="true">
 		<domain includeSubdomains="true">192.168.0.94</domain>
 	</domain-config>
 	<domain-config cleartextTrafficPermitted="true">

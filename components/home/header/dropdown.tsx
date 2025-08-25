@@ -10,6 +10,7 @@ import { useRouter } from "expo-router"
 import { Platform } from "react-native"
 import alerts from "@/lib/alerts"
 import useNetInfo from "@/hooks/useNetInfo"
+import * as BackgroundTask from "expo-background-task"
 
 export const Dropdown = memo(() => {
 	const { colors } = useColorScheme()
@@ -56,6 +57,15 @@ export const Dropdown = memo(() => {
 			})
 		)
 
+		if (__DEV__) {
+			items.push(
+				createDropdownItem({
+					actionKey: "bgTask",
+					title: "[DEV] Run Background Task"
+				})
+			)
+		}
+
 		return items
 	}, [t, hasInternet])
 
@@ -77,6 +87,12 @@ export const Dropdown = memo(() => {
 						})
 
 						return
+					}
+
+					case "bgTask": {
+						console.log("Triggering Background Task for testing...")
+						console.log(await BackgroundTask.triggerTaskWorkerForTestingAsync())
+						console.log("Triggered Background Task for testing")
 					}
 				}
 			} catch (e) {

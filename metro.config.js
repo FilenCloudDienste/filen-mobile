@@ -46,9 +46,7 @@ config.resolver = {
 		...nodeStdlibBrowser,
 		buffer: require.resolve("@craftzdog/react-native-buffer"),
 		crypto: require.resolve("react-native-quick-crypto"),
-		fs: require.resolve("memfs"),
-		util: require.resolve("util"),
-		stream: require.resolve("readable-stream")
+		fs: require.resolve("memfs")
 	}
 }
 
