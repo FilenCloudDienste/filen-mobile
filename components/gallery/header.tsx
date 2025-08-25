@@ -96,7 +96,10 @@ export const Header = memo(() => {
 								name: "chevron.backward"
 							}}
 							size={24}
-							color={colors.primary}
+							color={Platform.select({
+								ios: colors.primary,
+								default: colors.foreground
+							})}
 						/>
 					</Button>
 					<Text
