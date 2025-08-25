@@ -151,9 +151,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		[
 			"expo-localization",
 			{
+				locales: ["en"],
+				fallbackLocale: "en",
 				supportedLocales: {
-					ios: ["en", "de"],
-					android: ["en", "de"]
+					ios: ["en"],
+					android: ["en"]
 				}
 			}
 		],

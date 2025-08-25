@@ -26,7 +26,7 @@ i18n.use(initReactI18next)
 		lng: locales.at(0)?.trim().toLowerCase() ?? "en",
 		debug: __DEV__,
 		fallbackLng: "en",
-		supportedLngs: ["en", "de"]
+		supportedLngs: ["en"]
 	})
 	.then(() => {
 		initalized = true
