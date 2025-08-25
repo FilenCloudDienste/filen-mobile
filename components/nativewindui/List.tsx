@@ -300,6 +300,8 @@ export function ListItemComponent<T extends ListDataItem>(
 
 	const disabledMemo = useMemo(() => disabled || !isPressable(props), [disabled, props])
 
+	const noop = useCallback(() => {}, [])
+
 	const cn2 = useMemo(() => {
 		if (typeof item === "string") {
 			return undefined
@@ -333,6 +335,8 @@ export function ListItemComponent<T extends ListDataItem>(
 				className={cn1}
 				{...props}
 				ref={ref}
+				delayLongPress={200}
+				onLongPress={noop}
 			>
 				<TextClassContext.Provider value="font-normal leading-5">
 					{!!leftView && <View>{leftView}</View>}

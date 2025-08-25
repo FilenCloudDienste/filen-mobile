@@ -189,6 +189,8 @@ export const Button = memo(
 				[props]
 			)
 
+			const noop = useCallback(() => {}, [])
+
 			return (
 				<TextClassContext.Provider value={value}>
 					<Root className={rootClassName}>
@@ -204,6 +206,9 @@ export const Button = memo(
 							ref={ref}
 							style={style}
 							android_ripple={ANDROID_RIPPLE[colorScheme][variant]}
+							delayLongPress={200}
+							onLongPress={noop}
+							unstable_pressDelay={100}
 							{...props}
 							onPress={onPress}
 						/>
