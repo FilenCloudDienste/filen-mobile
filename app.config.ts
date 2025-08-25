@@ -148,7 +148,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 				}
 			}
 		],
-		"expo-localization",
+		[
+			"expo-localization",
+			{
+				supportedLocales: {
+					ios: ["en", "de"],
+					android: ["en", "de"]
+				}
+			}
+		],
 		[
 			"expo-screen-orientation",
 			{

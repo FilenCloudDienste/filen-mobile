@@ -4,7 +4,6 @@ import en from "@/locales/en/en.json"
 import * as ExpoLocalization from "expo-localization"
 
 let initalized: boolean = false
-
 let locales: string[] = ["en"]
 
 try {
@@ -25,12 +24,9 @@ i18n.use(initReactI18next)
 		ns: ["translation"],
 		defaultNS: "translation",
 		lng: locales.at(0)?.trim().toLowerCase() ?? "en",
-		debug: true,
+		debug: __DEV__,
 		fallbackLng: "en",
-		supportedLngs: ["en"],
-		interpolation: {
-			escapeValue: false
-		}
+		supportedLngs: ["en", "de"]
 	})
 	.then(() => {
 		initalized = true
