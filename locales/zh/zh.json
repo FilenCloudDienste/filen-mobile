@@ -1007,7 +1007,7 @@
 					"cellular": "蜂窝数据",
 					"cellularInfo": "允许通过蜂窝数据进行相机上传。这可能会导致高流量使用量。",
 					"background": "后台",
-					"backgroundInfo": "允许在后台进行相机上传。这可能会导致高电池使用量。后台上传仅包含图像。",
+					"backgroundInfo": "允许在后台进行相机上传。这可能会导致高电池使用量。后台上传仅包含图像。仅在应用程序未被强制关闭时有效。",
 					"lowBattery": "低电量",
 					"lowBatteryInfo": "电量低时禁用相机上传。",
 					"compress": "压缩",
