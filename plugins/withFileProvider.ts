@@ -12,6 +12,7 @@ export type IOSRustBuildPluginProps = {
 	libName: string
 	crateName: string
 	targets: string[]
+	cargoArgs?: string
 }
 
 // Main plugin
@@ -154,10 +155,10 @@ export const writeFileProviderFiles = async (
 }
 
 async function buildRustForIOS(projectRoot: string, props: IOSRustBuildPluginProps) {
-	const { libName, targets } = props
+	const { libName, targets, cargoArgs } = props
 	const fullRustPath = path.join(projectRoot, "filen-rs")
 
-	execSync(`cargo build --lib --release ${targets.map(t => `--target ${t}`).join(" ")} -p ${props.crateName}`, {
+	execSync(`cargo build --lib --release ${targets.map(t => `--target ${t}`).join(" ")} -p ${props.crateName} ${cargoArgs || ""}`, {
 		cwd: fullRustPath,
 		stdio: "inherit"
 	})
@@ -249,7 +250,14 @@ export const withFileProviderXcodeTarget: ConfigPlugin<FileProviderPluginProps> 
 		pbxProject.addFramework("UniformTypeIdentifiers.framework", {
 			target: target.uuid,
 			link: true,
-			embed: false // System frameworks shouldn't be embedded
+			embed: false
+		})
+
+		// for libheic
+		pbxProject.addFramework("libc++.tbd", {
+			target: target.uuid,
+			link: true,
+			embed: false
 		})
 
 		// Add the xcframework to the FileProvider target

@@ -25,6 +25,7 @@ export type AndroidRustBuildPluginProps = {
 	crateName: string
 	libName: string
 	targets: string[]
+	cargoArgs?: string
 }
 
 export const androidTargetsToRustTargets: Record<string, string> = {
@@ -106,7 +107,7 @@ android {
 export async function buildRustForAndroid(props: AndroidRustBuildPluginProps, config: ExportedConfigWithProps<unknown>) {
 	// first we set up the rust repository
 
-	const { libName, crateName, targets } = props
+	const { libName, crateName, targets, cargoArgs } = props
 	const platformRoot = config.modRequest.platformProjectRoot
 	const androidBuildDir = path.join(platformRoot, "app", "build")
 	const androidSrcDir = path.join(platformRoot, "app", "src", "main")
@@ -115,7 +116,7 @@ export async function buildRustForAndroid(props: AndroidRustBuildPluginProps, co
 	const androidProjectDir = path.join(androidSrcDir, "java", ...config.android!.package!.split("."))
 
 	// build rust library for android targets
-	execSync(`cargo ndk${targets.map(t => ` -t ${t}`).join("")} build --release -p ${crateName}`, {
+	execSync(`cargo ndk${targets.map(t => ` -t ${t}`).join("")} build --release -p ${crateName} ${cargoArgs || ""}`, {
 		cwd: fullRustPath,
 		stdio: "inherit"
 	})

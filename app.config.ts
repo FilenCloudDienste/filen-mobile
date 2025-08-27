@@ -243,6 +243,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 				crateName: "filen-mobile-native-cache",
 				libName: "filen_mobile_native_cache",
 				targets: ["aarch64-apple-ios", "aarch64-apple-ios-sim"],
+				cargoArgs: "-F heif-decoder",
 				developmentTeamId: APPLE_TEAM_ID,
 				iosAppGroupIdentifier: IOS_APP_GROUP_ID
 			}
@@ -252,7 +253,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			{
 				crateName: "filen-mobile-native-cache",
 				libName: "filen_mobile_native_cache",
-				targets: ["x86_64", "arm64-v8a"]
+				targets: ["x86_64", "arm64-v8a"],
+				cargoArgs: "-F heif-decoder"
 			}
 		],
 		"./plugins/withAndroidSigning",
