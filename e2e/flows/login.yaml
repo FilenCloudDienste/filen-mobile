@@ -1,0 +1,24 @@
+appId: io.filen.app
+env:
+  TEST_ACCOUNT_EMAIL: ${EMAIL}
+  TEST_ACCOUNT_PASSWORD: ${PASSWORD}
+---
+- launchApp:
+    clearState: true
+- tapOn: Log in
+- inputText: 
+    label: Enter the test user's email
+    text: ${TEST_ACCOUNT_EMAIL}
+- tapOn: Password
+- inputText:
+    label: Enter the test user's password
+    text: ${TEST_ACCOUNT_PASSWORD}
+- assertVisible:
+    text: Log in
+    enabled: true
+- tapOn: Log in
+- tapOn:
+    text: Later
+    optional: true
+- assertVisible:
+    text: Home

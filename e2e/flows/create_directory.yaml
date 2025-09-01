@@ -1,0 +1,20 @@
+appId: io.filen.app
+env:
+  DIRNAME: new_dir
+---
+- launchApp
+- tapOn:
+    text: Later
+    optional: true
+- tapOn: Drive
+- tapOn:
+    id: drive.plus_button
+- tapOn: Create directory
+- inputText: ${DIRNAME}
+- tapOn: OK
+- assertVisible: ${DIRNAME} created
+- tapOn:
+    rightOf: ${DIRNAME}
+- tapOn: Trash
+- tapOn: OK
+- assertNotVisible: ${DIRNAME}

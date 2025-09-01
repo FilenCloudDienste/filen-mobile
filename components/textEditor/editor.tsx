@@ -261,13 +261,17 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 
 	const toolbarRightView = useMemo(() => {
 		return (
-			<ToolbarCTA
-				disabled={item.type !== "cloud" || !didChange || query.status !== "success"}
-				onPress={save}
-				icon={{
-					name: "check"
-				}}
-			/>
+			<View
+				testID="texteditor.save_button"
+			>
+				<ToolbarCTA
+					disabled={item.type !== "cloud" || !didChange || query.status !== "success"}
+					onPress={save}
+					icon={{
+						name: "check"
+					}}
+				/>
+			</View>
 		)
 	}, [item.type, didChange, query.status, save])
 

@@ -1,0 +1,30 @@
+appId: io.filen.app
+env:
+  FILENAME: new_text
+  CONTENT: some new content here
+---
+- launchApp
+- tapOn:                                  # Dismiss export master key reminder
+    text: Later
+    optional: true
+- tapOn: Drive                            # Go to Drive tab
+- tapOn:                                  # Create new text file
+    id: drive.plus_button
+- tapOn: Create text file
+- inputText: ${FILENAME}                  # Name text file
+- tapOn: OK
+- waitForAnimationToEnd
+- inputText: ${CONTENT}                   # Add content into text file
+- hideKeyboard
+- tapOn:
+    id: texteditor.save_button
+- assertVisible: Saved successfully
+- back                                    # Go back
+- tapOn: ${FILENAME}.txt                  # Check that content was saved
+- assertVisible: ${CONTENT}
+- back
+- tapOn:                                  # Tap on "more/..." in the text file row
+    rightOf: ${FILENAME}.txt
+- tapOn: Trash                            # Bin it
+- tapOn: OK
+- assertNotVisible: ${FILENAME}.txt       # Assert it was deleted

@@ -144,6 +144,7 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 							variant="plain"
 							size="icon"
 							onPress={onPlusPress}
+							testID="drive.plus_button"
 						>
 							<Icon
 								size={24}
