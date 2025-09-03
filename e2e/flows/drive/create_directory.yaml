@@ -2,10 +2,7 @@ appId: io.filen.app
 env:
   DIRNAME: new_dir
 ---
-- launchApp
-- tapOn:
-    text: Later
-    optional: true
+- runFlow: ../login.yaml
 - tapOn: Drive
 - tapOn:
     id: drive.plus_button
@@ -13,8 +10,7 @@ env:
 - inputText: ${DIRNAME}
 - tapOn: OK
 - assertVisible: ${DIRNAME} created
-- tapOn:
-    rightOf: ${DIRNAME}
-- tapOn: Trash
-- tapOn: OK
-- assertNotVisible: ${DIRNAME}
+- runFlow:
+    file: delete_item.yaml
+    env:
+        FILENAME: ${DIRNAME}

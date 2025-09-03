@@ -1,17 +1,17 @@
 import { useRouter, Stack } from "expo-router"
 import { useState, useCallback, memo, useMemo } from "react"
-import { Platform, View } from "react-native"
+import { Platform, View, TouchableOpacity } from "react-native"
 import { KeyboardAwareScrollView, KeyboardController, KeyboardStickyView } from "react-native-keyboard-controller"
 import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context"
 import authService from "@/services/auth.service"
 import { Button } from "@/components/nativewindui/Button"
-import { Form, FormItem, FormSection } from "@/components/nativewindui/Form"
 import { Text } from "@/components/nativewindui/Text"
 import { TextField } from "@/components/nativewindui/TextField"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import alerts from "@/lib/alerts"
+import { Icon } from "@roninoss/icons"
 
 const keyboardAwareScrollViewBottomOffset = Platform.select({
 	ios: 175,
@@ -24,6 +24,8 @@ export const Login = memo(() => {
 	const [email, setEmail] = useState<string>("")
 	const [password, setPassword] = useState<string>("")
 	const { t } = useTranslation()
+	const [error, setError] = useState("")
+	const [hidePassword, setHidePassword] = useState(true)
 
 	const disabled = useMemo(() => {
 		return !email || !password
@@ -31,6 +33,7 @@ export const Login = memo(() => {
 
 	const login = useCallback(async () => {
 		KeyboardController.dismiss()
+		setError("")
 
 		try {
 			if (disabled) {
@@ -54,10 +57,9 @@ export const Login = memo(() => {
 			console.error(e)
 
 			if (e instanceof Error) {
-				alerts.error(e.message)
+				setError(e.message)
 			}
 
-			setEmail("")
 			setPassword("")
 		}
 	}, [email, password, router, disabled, t])
@@ -71,7 +73,7 @@ export const Login = memo(() => {
 			console.error(e)
 
 			if (e instanceof Error) {
-				alerts.error(e.message)
+				alerts.nativeError(e.message)
 			}
 		}
 	}, [])
@@ -178,49 +180,63 @@ export const Login = memo(() => {
 							</Text>
 							<Text className="ios:text-sm text-muted-foreground text-center">{t("auth.login.loginUsingCreds")}</Text>
 						</View>
-						<View className="ios:pt-4 pt-6">
-							<Form className="gap-2">
-								<FormSection className="ios:bg-background">
-									<FormItem>
-										<TextField
-											placeholder={t("auth.login.form.email.placeholder")}
-											label={labels.email}
-											onSubmitEditing={onSubmitEmail}
-											submitBehavior="submit"
-											autoFocus={true}
-											onChangeText={setEmail}
-											value={email}
-											keyboardType="email-address"
-											textContentType="emailAddress"
-											returnKeyType="next"
-										/>
-									</FormItem>
-									<FormItem>
-										<TextField
-											placeholder={t("auth.login.form.password.placeholder")}
-											label={labels.password}
-											secureTextEntry={true}
-											onChangeText={setPassword}
-											value={password}
-											returnKeyType="done"
-											textContentType="password"
-											onSubmitEditing={onSubmitPassword}
-										/>
-									</FormItem>
-								</FormSection>
-								<View className="flex-row">
-									<Button
-										size="sm"
-										variant="plain"
-										className="px-0.5"
-										onPress={forgotPassword}
-									>
-										<Text className="text-primary text-sm">{t("auth.login.forgotPassword")}</Text>
-									</Button>
-								</View>
-							</Form>
+						<View className="ios:pt-4 pt-6 gap-2">
+							<View testID="email">
+								<TextField
+									containerClassName="ios:border border-gray-200 rounded"
+									placeholder={t("auth.login.form.email.placeholder")}
+									label={labels.email}
+									onSubmitEditing={onSubmitEmail}
+									submitBehavior="submit"
+									autoFocus={true}
+									onChangeText={setEmail}
+									value={email}
+									keyboardType="email-address"
+									textContentType="emailAddress"
+									returnKeyType="next"
+								/>
+							</View>
+							<View testID="password">
+								<TextField
+									containerClassName="ios:border border-gray-200 rounded"
+									placeholder={t("auth.login.form.password.placeholder")}
+									label={labels.password}
+									secureTextEntry={hidePassword}
+									onChangeText={setPassword}
+									value={password}
+									returnKeyType="done"
+									textContentType="password"
+									onSubmitEditing={onSubmitPassword}
+									rightView={
+										<TouchableOpacity
+											testID="toggleHidePassword"
+											className="justify-center pr-3"
+											onPress={() => setHidePassword(prev => !prev)}
+										>
+											<Icon name={hidePassword ? "eye-outline" : "eye-off-outline"} color="#ccc" size={20}/>
+										</TouchableOpacity>
+									}
+								/>
+							</View>
+							{error && <Text
+								className="bg-red-100 rounded text-red-600 px-4 py-2 text-sm"
+							>
+								{error}
+							</Text>}
+							<View className="flex-row">
+								<Button
+									testID="forgotPassword"
+									size="sm"
+									variant="plain"
+									className="px-0.5"
+									onPress={forgotPassword}
+								>
+									<Text className="text-primary text-sm">{t("auth.login.forgotPassword")}</Text>
+								</Button>
+							</View>
 						</View>
 					</View>
+					
 				</KeyboardAwareScrollView>
 				<KeyboardStickyView
 					offset={keyboardStickyViewOffset}
@@ -229,6 +245,7 @@ export const Login = memo(() => {
 					{Platform.OS === "ios" ? (
 						<View className="px-12 py-4">
 							<Button
+								testID="login"
 								size="lg"
 								onPress={login}
 								disabled={disabled}
@@ -246,6 +263,7 @@ export const Login = memo(() => {
 								<Text className="text-primary px-0.5 text-sm">{t("auth.login.signUp")}</Text>
 							</Button>
 							<Button
+								testID="login"
 								disabled={disabled}
 								onPress={login}
 							>

@@ -137,6 +137,7 @@ export const Settings = memo(() => {
 		return [
 			{
 				id: "0",
+				testID: "settings.account",
 				title: account.data?.account.email ?? "",
 				subTitle: t("settings.index.items.used", {
 					used: formatBytes(account.data?.account.storage ?? 0),
@@ -157,6 +158,7 @@ export const Settings = memo(() => {
 			"gap-0",
 			{
 				id: "1",
+				testID: "settings.security",
 				title: t("settings.index.items.security"),
 				onPress: onPressSecurity,
 				leftView: (
@@ -168,6 +170,7 @@ export const Settings = memo(() => {
 			},
 			{
 				id: "2",
+				testID: "settings.events",
 				title: t("settings.index.items.events"),
 				onPress: onPressEvents,
 				leftView: (
@@ -180,6 +183,7 @@ export const Settings = memo(() => {
 			"gap-1",
 			{
 				id: "3",
+				testID: "settings.cameraUpload",
 				title: t("settings.index.items.cameraUpload"),
 				onPress: onPressCameraUpload,
 				leftView: (
@@ -191,6 +195,7 @@ export const Settings = memo(() => {
 			},
 			{
 				id: "4",
+				testID: "settings.fileProvider",
 				title: Platform.select({
 					ios: t("settings.index.items.fileProvider"),
 					default: t("settings.index.items.documentsProvider")
@@ -215,6 +220,7 @@ export const Settings = memo(() => {
 			"gap-2",
 			{
 				id: "5",
+				testID: "settings.contacts",
 				title: t("settings.index.items.contacts"),
 				onPress: onPressContacts,
 				leftView: (
@@ -227,6 +233,7 @@ export const Settings = memo(() => {
 			"gap-3",
 			{
 				id: "6",
+				testID: "settings.advanced",
 				title: t("settings.index.items.advanced"),
 				onPress: onPressAdvanced,
 				leftView: (

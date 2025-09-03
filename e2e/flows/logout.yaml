@@ -1,0 +1,17 @@
+appId: io.filen.app
+---
+- launchApp
+- tapOn:
+    text: Later
+    optional: true
+- tapOn: Home
+- tapOn:
+    id: home.avatar
+- tapOn:
+    id: settings.account
+- scrollUntilVisible:
+    element: Logout
+- tapOn: Logout
+- tapOn: OK
+- assertVisible: Sign up for free
+- assertVisible: Log in

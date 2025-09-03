@@ -260,6 +260,7 @@ export const Home = memo(() => {
 								variant="plain"
 								size="icon"
 								onPress={openSettings}
+								testID="home.avatar"
 							>
 								<Avatar
 									source={avatarSource}

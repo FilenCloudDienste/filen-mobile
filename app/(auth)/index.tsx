@@ -39,6 +39,7 @@ export const Index = memo(() => {
 					asChild={true}
 				>
 					<Button
+						testID="signup_button"
 						variant="primary"
 						size={buttonSize}
 					>
@@ -50,6 +51,7 @@ export const Index = memo(() => {
 					asChild={true}
 				>
 					<Button
+						testID="login_button"
 						variant="plain"
 						size={buttonSize}
 					>

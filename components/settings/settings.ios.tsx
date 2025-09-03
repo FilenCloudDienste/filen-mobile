@@ -107,6 +107,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<SettingsItem> }) 
 					  }
 					: undefined
 			}
+			testID={info.item.testID}
 		/>
 	)
 })

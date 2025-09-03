@@ -3,28 +3,42 @@ env:
   FILENAME: new_text
   CONTENT: some new content here
 ---
-- launchApp
-- tapOn:                                  # Dismiss export master key reminder
-    text: Later
-    optional: true
-- tapOn: Drive                            # Go to Drive tab
+- runFlow: ../login.yaml
+- tapOn: Drive
 - tapOn:                                  # Create new text file
     id: drive.plus_button
 - tapOn: Create text file
 - inputText: ${FILENAME}                  # Name text file
 - tapOn: OK
 - waitForAnimationToEnd
+- tapOn:
+    point: 50%,50%
 - inputText: ${CONTENT}                   # Add content into text file
+- runFlow:                                # Dismiss keyboard on iOS
+    when:
+      platform: iOS
+    commands:
+        - tapOn: Done
 - hideKeyboard
 - tapOn:
     id: texteditor.save_button
 - assertVisible: Saved successfully
+- waitForAnimationToEnd
 - back                                    # Go back
-- tapOn: ${FILENAME}.txt                  # Check that content was saved
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Back
+- tapOn: ${FILENAME}.txt.*                # Check that content was saved
 - assertVisible: ${CONTENT}
 - back
-- tapOn:                                  # Tap on "more/..." in the text file row
-    rightOf: ${FILENAME}.txt
-- tapOn: Trash                            # Bin it
-- tapOn: OK
-- assertNotVisible: ${FILENAME}.txt       # Assert it was deleted
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Back
+- runFlow:
+    file: delete_item.yaml
+    env:
+        FILENAME: ${FILENAME}.txt

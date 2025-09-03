@@ -1,6 +1,7 @@
 export type SettingsItem =
 	| {
 			id: string
+			testID: string
 			title: string
 			subTitle?: string
 			leftView?: React.ReactNode

@@ -170,6 +170,7 @@ export class AuthService {
 		}
 	}
 
+	//TODO this should only deal with login logic not error display and ui updates
 	public async login({
 		email,
 		password,
@@ -181,7 +182,7 @@ export class AuthService {
 		twoFactorCode?: string
 		disableLoader?: boolean
 	}): Promise<boolean> {
-		if (!disableLoader) {
+		if (!disableLoader) { //TODO this should be in the display logic
 			fullScreenLoadingModal.show()
 		}
 
@@ -240,7 +241,7 @@ export class AuthService {
 					})
 				}
 
-				alerts.error(e.message)
+				throw e //TODO currently finally clause is not reached from here
 			}
 
 			return false

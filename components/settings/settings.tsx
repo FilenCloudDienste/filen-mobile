@@ -43,6 +43,7 @@ export const Item = memo(({ info, props }: { info: ListRenderItemInfo<SettingsIt
 				variant="plain"
 				className="justify-start py-5 items-center"
 				onPress={info.item.onPress}
+				testID={info.item.testID}
 				{...(props.disableAndroidRipple
 					? {
 							android_ripple: undefined
