@@ -6,7 +6,7 @@ env:
 - runFlow: ../login.yaml
 - tapOn: Drive
 - tapOn:                                  # Create new text file
-    id: drive.plus_button
+    id: drive.header.rightView.plus
 - tapOn: Create text file
 - inputText: ${FILENAME}                  # Name text file
 - tapOn: OK
@@ -39,6 +39,6 @@ env:
     commands:
       - tapOn: Back
 - runFlow:
-    file: delete_item.yaml
+    file: ../common/drive_item_delete.yaml
     env:
-        FILENAME: ${FILENAME}.txt
+      ITEM: ${FILENAME}.txt

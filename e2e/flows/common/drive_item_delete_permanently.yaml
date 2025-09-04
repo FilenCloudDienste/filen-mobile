@@ -1,0 +1,20 @@
+# Delete an item from the trash permanently
+appId: io.filen.app
+---
+- tapOn: Home
+- scrollUntilVisible:
+    element: Trash
+- tapOn: Trash
+- scrollUntilVisible:
+    element:
+      id: drive.list.listItem.${ITEM}
+- runFlow:
+    file: drive_item_open_context_menu.yaml
+    env:
+      ITEM: ${ITEM}
+- tapOn: Delete permanently
+- tapOn: OK
+- runFlow:
+    file: back.yaml
+    env:
+      IOS_BACK_BUTTON: Home

@@ -5,12 +5,12 @@ env:
 - runFlow: ../login.yaml
 - tapOn: Drive
 - tapOn:
-    id: drive.plus_button
+    id: drive.header.rightView.plus
 - tapOn: Create directory
 - inputText: ${DIRNAME}
 - tapOn: OK
 - assertVisible: ${DIRNAME} created
 - runFlow:
-    file: delete_item.yaml
+    file: ../common/drive_item_delete.yaml
     env:
         FILENAME: ${DIRNAME}

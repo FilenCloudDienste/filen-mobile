@@ -171,6 +171,7 @@ export const Toolbar = memo(() => {
 		return (
 			<Fragment>
 				<ToolbarCTA
+					testID="selectDriveItems.toolbar.submit"
 					disabled={!canSubmit}
 					icon={{
 						name: "check"

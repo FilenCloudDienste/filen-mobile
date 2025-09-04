@@ -1,0 +1,14 @@
+appId: io.filen.app
+---
+- tapOn: Drive
+- scrollUntilVisible:
+    element:
+      id: drive.list.listItem.${ITEM}
+- runFlow:
+    file: ../common/drive_item_open_context_menu.yaml
+    env:
+      ITEM: ${ITEM}
+- tapOn: Trash
+- tapOn: OK
+- waitForAnimationToEnd
+- assertNotVisible: .*${ITEM}.*

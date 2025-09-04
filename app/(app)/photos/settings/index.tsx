@@ -188,6 +188,7 @@ export const Settings = memo(() => {
 				title: t("photos.settings.index.items.enabled"),
 				rightView: (
 					<Toggle
+						testID="photos.settings.enabled"
 						value={cameraUpload.enabled}
 						onValueChange={toggleEnabled}
 					/>

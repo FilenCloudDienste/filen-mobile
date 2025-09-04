@@ -1,0 +1,18 @@
+# This flow opens the context menu
+# on Android it is three dots click
+# on iOS it is long press on item
+# where ITEM is the name of the drive item
+appId: io.filen.app
+---
+- runFlow:
+    when:
+        platform: iOS
+    commands:
+        - longPressOn:
+            id: drive.list.listItem.${ITEM}
+- runFlow:
+    when:
+        platform: Android
+    commands:
+        - tapOn:
+            id: drive.list.listItem.rightView.dropdown.${ITEM}

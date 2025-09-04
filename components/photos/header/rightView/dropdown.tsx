@@ -348,6 +348,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 			onItemPress={onItemPress}
 		>
 			<Button
+				testID="photos.header.rightView.dropdown"
 				variant="plain"
 				size="icon"
 				hitSlop={10}

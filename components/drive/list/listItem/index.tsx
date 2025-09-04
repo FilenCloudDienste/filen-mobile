@@ -5,7 +5,7 @@ import Menu from "./menu"
 import RightView from "./rightView"
 import LeftView from "./leftView"
 import { useDriveStore } from "@/stores/drive.store"
-import { Platform } from "react-native"
+import { Platform, View } from "react-native"
 import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
 import { formatBytes, getPreviewType, normalizeFilePathForExpo } from "@/lib/utils"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
@@ -412,32 +412,36 @@ export const ListItem = memo(
 		}
 
 		return (
-			<Menu
-				type="context"
-				item={info.item.item}
-				queryParams={queryParams}
-				fromHome={fromHome}
-				fromPreview={false}
-				fromPhotos={false}
-				fromSearch={fromSearch}
+			<View
+				testID={`drive.list.listItem.${info.item.item.name}`}
 			>
-				<ListItemComponent
-					{...info}
-					item={item}
-					leftView={leftView}
-					rightView={rightView}
-					subTitleClassName="text-xs pt-1 font-normal"
-					variant="full-width"
-					textNumberOfLines={1}
-					subTitleNumberOfLines={1}
-					isFirstInSection={false}
-					isLastInSection={false}
-					onPress={onPress}
-					removeSeparator={Platform.OS === "android"}
-					innerClassName="ios:py-3 py-3 android:py-3"
-					className={highlight ? "border-l-4 border-primary/80" : ""}
-				/>
-			</Menu>
+				<Menu
+					type="context"
+					item={info.item.item}
+					queryParams={queryParams}
+					fromHome={fromHome}
+					fromPreview={false}
+					fromPhotos={false}
+					fromSearch={fromSearch}
+				>
+					<ListItemComponent
+						{...info}
+						item={item}
+						leftView={leftView}
+						rightView={rightView}
+						subTitleClassName="text-xs pt-1 font-normal"
+						variant="full-width"
+						textNumberOfLines={1}
+						subTitleNumberOfLines={1}
+						isFirstInSection={false}
+						isLastInSection={false}
+						onPress={onPress}
+						removeSeparator={Platform.OS === "android"}
+						innerClassName="ios:py-3 py-3 android:py-3"
+						className={highlight ? "border-l-4 border-primary/80" : ""}
+					/>
+				</Menu>
+			</View>
 		)
 	}
 )

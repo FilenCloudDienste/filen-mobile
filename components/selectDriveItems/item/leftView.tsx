@@ -25,6 +25,7 @@ export const LeftView = memo(
 		return (
 			<View className="flex-1 flex-row items-center gap-4 justify-center px-4">
 				<Checkbox
+					testID={`selectDriveItems.item.leftView.${item.name}`}
 					checked={isSelected}
 					onPress={select}
 					disabled={!canSelect}

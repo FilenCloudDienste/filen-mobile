@@ -141,10 +141,10 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 					<Transfers />
 					{allowed.upload && (
 						<Button
+							testID="drive.header.rightView.plus"
 							variant="plain"
 							size="icon"
 							onPress={onPlusPress}
-							testID="drive.plus_button"
 						>
 							<Icon
 								size={24}

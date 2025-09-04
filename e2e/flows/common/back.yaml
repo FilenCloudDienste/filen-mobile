@@ -1,0 +1,12 @@
+appId: io.filen.app
+---
+- runFlow:
+    when:
+        platform: iOS
+    commands:
+        - tapOn: ${IOS_BACK_BUTTON}
+- runFlow:
+    when:
+        platform: Android
+    commands:
+        - back

@@ -331,6 +331,7 @@ export const Photos = memo(() => {
 					</Fragment>
 				) : (
 					<Button
+						testID="photos.settings"
 						variant="plain"
 						size="icon"
 						onPress={() => {

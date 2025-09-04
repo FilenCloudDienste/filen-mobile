@@ -1,0 +1,54 @@
+# This user flow simulates the process where a user enables the photo sync feature by creating and setting up a cloud directory for photo synchronization, selecting a photo album, and enabling the photo sync feature.
+appId: io.filen.app
+env:
+  DIRNAME: dir_for_photos
+  ALBUM: Download # Change to Android:Download on iOS:Recents
+  ITEM: ${DIRNAME}
+---
+- runFlow: ../login.yaml
+- runFlow:
+    file: ../common/create_dir.yaml
+    env:
+      DIRNAME: ${DIRNAME}
+- tapOn: Photos
+- tapOn:
+    id: photos.header.rightView.dropdown
+- tapOn: Settings
+# Select cloud directory
+- tapOn: Cloud directory.*
+- tapOn:
+    id: selectDriveItems.item.leftView.${DIRNAME}
+- tapOn:
+    id: selectDriveItems.toolbar.submit
+# Select albums
+- tapOn: Albums.*
+- tapOn:
+    id: photos.settings.albums.toggle.${ALBUM}
+- runFlow:
+    file: ../common/back.yaml
+    env:
+      IOS_BACK_BUTTON: Settings
+# Enable photos sync
+- tapOn:
+    id: photos.settings.enabled
+- runFlow:
+    file: ../common/back.yaml
+    env:
+      IOS_BACK_BUTTON: Photos
+- retry:
+    maxRetries: 3
+    commands:
+      # Swipe down to refresh
+      - swipe:
+          start: 50%, 30%
+          end: 50%, 90% 
+      - assertVisible: .* items synced
+# Cleanup
+- runFlow:
+    file: ../common/drive_item_delete.yaml
+    env:
+      ITEM: ${DIRNAME}
+- runFlow:
+    file: ../common/drive_item_delete_permanently.yaml
+    env:
+      ITEM: ${DIRNAME}

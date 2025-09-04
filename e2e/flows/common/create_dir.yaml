@@ -1,0 +1,9 @@
+appId: io.filen.app
+---
+- tapOn: Drive
+- tapOn:
+    id: drive.header.rightView.plus
+- tapOn: Create directory
+- inputText: ${DIRNAME}
+- tapOn: OK
+- assertVisible: ${DIRNAME} created

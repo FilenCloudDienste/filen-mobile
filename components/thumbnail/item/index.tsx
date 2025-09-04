@@ -81,54 +81,60 @@ export const Thumbnail = memo(
 			generate()
 		}, [generate, item])
 
-		return item.type === "directory" ? (
-			<ColoredFolderSVGIcon
-				color={item.color}
-				width={size}
-				height={size}
-			/>
-		) : (
-			<Fragment>
-				{source.uri.length > 0 ? (
-					<TurboImage
-						className={imageClassName}
-						source={source}
-						style={style}
-						resizeMode={imageResizeMode}
-						cachePolicy={imageCachePolicy}
-						onFailure={onFailure}
-						placeholder={{
-							blurhash: assets.blurhash.images.fallback
-						}}
+		return (
+			<View
+				testID={`thumbnail.item.${item.name}`}
+			>
+				{item.type === "directory" ? (
+					<ColoredFolderSVGIcon
+						color={item.color}
+						width={size}
+						height={size}
 					/>
 				) : (
 					<Fragment>
-						{type === "drive" ? (
-							<FileNameToSVGIcon
-								name={item.name}
-								width={size}
-								height={size}
+						{source.uri.length > 0 ? (
+							<TurboImage
+								className={imageClassName}
+								source={source}
+								style={style}
+								resizeMode={imageResizeMode}
+								cachePolicy={imageCachePolicy}
+								onFailure={onFailure}
+								placeholder={{
+									blurhash: assets.blurhash.images.fallback
+								}}
 							/>
 						) : (
-							<View
-								className="bg-card flex-row items-center justify-center"
-								style={{
-									width: size,
-									height: size,
-									marginRight: spacing,
-									marginBottom: spacing
-								}}
-							>
-								<FileNameToSVGIcon
-									name={item.name}
-									width={size / 2}
-									height={size / 2}
-								/>
-							</View>
+							<Fragment>
+								{type === "drive" ? (
+									<FileNameToSVGIcon
+										name={item.name}
+										width={size}
+										height={size}
+									/>
+								) : (
+									<View
+										className="bg-card flex-row items-center justify-center"
+										style={{
+											width: size,
+											height: size,
+											marginRight: spacing,
+											marginBottom: spacing
+										}}
+									>
+										<FileNameToSVGIcon
+											name={item.name}
+											width={size / 2}
+											height={size / 2}
+										/>
+									</View>
+								)}
+							</Fragment>
 						)}
 					</Fragment>
 				)}
-			</Fragment>
+			</View>
 		)
 	}
 )

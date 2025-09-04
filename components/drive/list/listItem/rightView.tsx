@@ -16,6 +16,7 @@ export const RightView = memo(({ item, queryParams }: { item: DriveCloudItem; qu
 				queryParams={queryParams}
 			>
 				<Button
+					testID={`drive.list.listItem.rightView.dropdown.${item.name}`}
 					variant="plain"
 					size="icon"
 				>

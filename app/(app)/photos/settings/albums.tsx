@@ -38,6 +38,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		return (
 			<View className="flex-1 flex-row items-center px-4">
 				<Toggle
+					testID={`photos.settings.albums.toggle.${info.item.album.title}`}
 					value={enabled}
 					onValueChange={() => {
 						setCameraUpload(prev => ({
