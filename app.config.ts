@@ -80,7 +80,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			CFBundleAllowMixedLocalizations: true,
 			CFBundleLocalizations: ["en", "de", "hu"],
 			CFBundleDevelopmentRegion: "en",
-			UIPrefersShowingLanguageSettings: true,
+			UIPrefersShowingLanguageSettings: true
 		},
 		icon: {
 			dark: "./assets/images/ios-dark.png",
@@ -281,6 +281,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 	locales: {
 		en: "./locales/en.json",
 		de: "./locales/de.json",
-		hu: "./locales/hu.json",
+		hu: "./locales/hu.json"
 	}
 })
