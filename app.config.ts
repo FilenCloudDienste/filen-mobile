@@ -74,7 +74,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 				NSAllowsArbitraryLoads: false
 			},
 			LSApplicationCategoryType: "public.app-category.productivity",
-			CFBundleDisplayName: NAME,
 			UIRequiredDeviceCapabilities: ["arm64"],
 			// Localization
 			CFBundleAllowMixedLocalizations: true,
