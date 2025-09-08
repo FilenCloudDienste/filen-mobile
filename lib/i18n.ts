@@ -1,14 +1,15 @@
 import i18n from "i18next"
 import { initReactI18next } from "react-i18next"
 import * as ExpoLocalization from "expo-localization"
-import { en, de, hu } from "@/locales"
+import { en, de, hu, zh } from "@/locales"
 
 //TODO: adapt views in the future to support textDirection for set locale (e.g. right-to-left/left-to-right), rename left/right views to leading/trailing as part of this
 
 const resources = {
 	en: { translation: en },
 	de: { translation: de },
-	hu: { translation: hu }
+	hu: { translation: hu },
+	zh: { translation: zh }
 }
 
 const DEFAULT_LANGUAGE = "en"
