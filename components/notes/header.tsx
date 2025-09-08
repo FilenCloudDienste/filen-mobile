@@ -13,11 +13,12 @@ import notesService from "@/services/notes.service"
 import HeaderDropdown from "./headerDropdown"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { View, Platform } from "react-native"
+import { View } from "react-native"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { createDropdownItem } from "../nativewindui/DropdownMenu/utils"
 import { type NoteType } from "@filen/sdk/dist/types/api/v3/notes"
 import { type DropdownItem } from "@/components/nativewindui/DropdownMenu/types"
+import { createDropdownNativeIcon } from "../nativewindui/DropdownMenu/createDropdownNativeIcon"
 
 export const Header = memo(() => {
 	const selectedNotesCount = useNotesStore(useShallow(state => state.selectedNotes.length))
@@ -58,7 +59,7 @@ export const Header = memo(() => {
 							count: selectedNotesCount
 						})}
 					</Text>
-			  )
+				)
 			: undefined
 	}, [selectedNotesCount, t])
 
@@ -67,72 +68,37 @@ export const Header = memo(() => {
 			createDropdownItem({
 				actionKey: "createNote_text",
 				title: t("notes.header.dropdown.types.text"),
-				icon:
-					Platform.OS === "ios"
-						? {
-								namingScheme: "sfSymbol",
-								name: "note.text"
-						  }
-						: {
-								namingScheme: "material",
-								name: "note-text-outline"
-						  }
+				icon: createDropdownNativeIcon({
+					name: "note-text-outline"
+				})
 			}),
 			createDropdownItem({
 				actionKey: "createNote_checklist",
 				title: t("notes.header.dropdown.types.checklist"),
-				icon:
-					Platform.OS === "ios"
-						? {
-								namingScheme: "sfSymbol",
-								name: "checklist"
-						  }
-						: {
-								namingScheme: "material",
-								name: "format-list-checks"
-						  }
+				icon: createDropdownNativeIcon({
+					name: "format-list-checks"
+				})
 			}),
 			createDropdownItem({
 				actionKey: "createNote_markdown",
 				title: t("notes.header.dropdown.types.markdown"),
-				icon:
-					Platform.OS === "ios"
-						? {
-								namingScheme: "sfSymbol",
-								name: "note.text"
-						  }
-						: {
-								namingScheme: "material",
-								name: "note-text-outline"
-						  }
+				icon: createDropdownNativeIcon({
+					name: "file-document-outline"
+				})
 			}),
 			createDropdownItem({
 				actionKey: "createNote_code",
 				title: t("notes.header.dropdown.types.code"),
-				icon:
-					Platform.OS === "ios"
-						? {
-								namingScheme: "sfSymbol",
-								name: "note.text"
-						  }
-						: {
-								namingScheme: "material",
-								name: "note-text-outline"
-						  }
+				icon: createDropdownNativeIcon({
+					name: "code-parentheses"
+				})
 			}),
 			createDropdownItem({
 				actionKey: "createNote_rich",
 				title: t("notes.header.dropdown.types.rich"),
-				icon:
-					Platform.OS === "ios"
-						? {
-								namingScheme: "sfSymbol",
-								name: "doc"
-						  }
-						: {
-								namingScheme: "material",
-								name: "file-document-outline"
-						  }
+				icon: createDropdownNativeIcon({
+					name: "image-text"
+				})
 			})
 		]
 	}, [t])
@@ -194,6 +160,7 @@ export const Header = memo(() => {
 					onItemPress={onCreateNoteDropdownPress}
 				>
 					<Button
+						testID="notes.header.rightView.plus"
 						variant="plain"
 						size="icon"
 					>

@@ -106,176 +106,180 @@ export const Item = memo(({ note }: { note: Note }) => {
 	const noop = useCallback(() => {}, [])
 
 	return (
-		<Menu
-			note={note}
-			type="context"
-			insideNote={false}
-			markdownPreview={false}
-			setMarkdownPreview={noop}
+		<View
+			testID={`notes.item.${note.title}`}
 		>
-			<Button
-				className="bg-background"
-				variant="plain"
-				size="none"
-				onPress={onPress}
+			<Menu
+				note={note}
+				type="context"
+				insideNote={false}
+				markdownPreview={false}
+				setMarkdownPreview={noop}
 			>
-				{selectedNotesCount > 0 && (
-					<Animated.View
-						entering={SlideInLeft}
-						exiting={SlideOutLeft}
-						className="pl-4"
-					>
-						<Checkbox
-							checked={isSelected}
-							onPress={onPress}
-						/>
-					</Animated.View>
-				)}
-				<View className="flex-1 flex-row gap-4 pt-3">
-					<View className="flex-col gap-2 pt-0.5 pb-2 pl-4">
-						{!note.isOwner ? (
-							<Fragment>
-								{hasWriteAccess ? (
-									<Icon
-										name="person-outline"
-										color={colors.foreground}
-										size={ICON_SIZE}
-									/>
-								) : (
-									<Icon
-										name="eye-outline"
-										color={colors.foreground}
-										size={ICON_SIZE}
-									/>
-								)}
-							</Fragment>
-						) : note.trash ? (
-							<Ionicons
-								name="trash-outline"
-								color="#ef4444"
-								size={ICON_SIZE}
+				<Button
+					className="bg-background"
+					variant="plain"
+					size="none"
+					onPress={onPress}
+				>
+					{selectedNotesCount > 0 && (
+						<Animated.View
+							entering={SlideInLeft}
+							exiting={SlideOutLeft}
+							className="pl-4"
+						>
+							<Checkbox
+								checked={isSelected}
+								onPress={onPress}
 							/>
-						) : note.archive ? (
-							<Ionicons
-								name="archive-outline"
-								color="#eab308"
-								size={ICON_SIZE}
-							/>
-						) : note.type === "text" ? (
-							<Ionicons
-								name="text-outline"
-								color="#3b82f6"
-								size={ICON_SIZE}
-							/>
-						) : note.type === "checklist" ? (
-							<Ionicons
-								name="checkbox-outline"
-								color="#a855f7"
-								size={ICON_SIZE}
-							/>
-						) : note.type === "code" ? (
-							<Ionicons
-								name="code-outline"
-								color="#ef4444"
-								size={ICON_SIZE}
-							/>
-						) : note.type === "md" ? (
-							<Ionicons
-								name="logo-markdown"
-								color="#6366f1"
-								size={ICON_SIZE}
-							/>
-						) : note.type === "rich" ? (
-							<Ionicons
-								name="document-text-outline"
-								color="#06b6d4"
-								size={ICON_SIZE}
-							/>
-						) : null}
-						{note.pinned && (
-							<Icon
-								name="pin-outline"
-								color={colors.grey}
-								size={ICON_SIZE}
-							/>
-						)}
-						{note.favorite && (
-							<Icon
-								name="heart"
-								color="#ef4444"
-								size={ICON_SIZE}
-							/>
-						)}
-					</View>
-					<View className={cn("flex-row gap-4 flex-1 pb-4 pr-4", Platform.OS === "ios" && "border-b border-border/80")}>
-						<View className="flex-1 flex-col gap-0">
-							<Text
-								numberOfLines={1}
-								ellipsizeMode="middle"
-								className="font-normal text-base"
-							>
-								{note.title}
-							</Text>
-							{note.preview.length > 0 && (
-								<Text
-									numberOfLines={2}
-									ellipsizeMode="tail"
-									variant="subhead"
-									className="text-muted-foreground py-0.5 font-normal text-sm"
-								>
-									{note.preview}
-								</Text>
-							)}
-							<Text
-								numberOfLines={1}
-								ellipsizeMode="middle"
-								variant="footnote"
-								className="text-muted-foreground mt-0.5 font-normal text-xs"
-							>
-								{simpleDate(note.editedTimestamp)}
-							</Text>
-							{tags.length > 0 && (
-								<View className="flex-row gap-2 mt-2 flex-wrap">
-									{tags.map((tag, index) => (
-										<Tag
-											key={getMappingKey(tag.uuid, index)}
-											tag={tag}
-											name={tag.name}
-											id={tag.uuid}
+						</Animated.View>
+					)}
+					<View className="flex-1 flex-row gap-4 pt-3">
+						<View className="flex-col gap-2 pt-0.5 pb-2 pl-4">
+							{!note.isOwner ? (
+								<Fragment>
+									{hasWriteAccess ? (
+										<Icon
+											name="person-outline"
+											color={colors.foreground}
+											size={ICON_SIZE}
 										/>
-									))}
+									) : (
+										<Icon
+											name="eye-outline"
+											color={colors.foreground}
+											size={ICON_SIZE}
+										/>
+									)}
+								</Fragment>
+							) : note.trash ? (
+								<Ionicons
+									name="trash-outline"
+									color="#ef4444"
+									size={ICON_SIZE}
+								/>
+							) : note.archive ? (
+								<Ionicons
+									name="archive-outline"
+									color="#eab308"
+									size={ICON_SIZE}
+								/>
+							) : note.type === "text" ? (
+								<Ionicons
+									name="text-outline"
+									color="#3b82f6"
+									size={ICON_SIZE}
+								/>
+							) : note.type === "checklist" ? (
+								<Ionicons
+									name="checkbox-outline"
+									color="#a855f7"
+									size={ICON_SIZE}
+								/>
+							) : note.type === "code" ? (
+								<Ionicons
+									name="code-outline"
+									color="#ef4444"
+									size={ICON_SIZE}
+								/>
+							) : note.type === "md" ? (
+								<Ionicons
+									name="logo-markdown"
+									color="#6366f1"
+									size={ICON_SIZE}
+								/>
+							) : note.type === "rich" ? (
+								<Ionicons
+									name="document-text-outline"
+									color="#06b6d4"
+									size={ICON_SIZE}
+								/>
+							) : null}
+							{note.pinned && (
+								<Icon
+									name="pin-outline"
+									color={colors.grey}
+									size={ICON_SIZE}
+								/>
+							)}
+							{note.favorite && (
+								<Icon
+									name="heart"
+									color="#ef4444"
+									size={ICON_SIZE}
+								/>
+							)}
+						</View>
+						<View className={cn("flex-row gap-4 flex-1 pb-4 pr-4", Platform.OS === "ios" && "border-b border-border/80")}>
+							<View className="flex-1 flex-col gap-0">
+								<Text
+									numberOfLines={1}
+									ellipsizeMode="middle"
+									className="font-normal text-base"
+								>
+									{note.title}
+								</Text>
+								{note.preview.length > 0 && (
+									<Text
+										numberOfLines={2}
+										ellipsizeMode="tail"
+										variant="subhead"
+										className="text-muted-foreground py-0.5 font-normal text-sm"
+									>
+										{note.preview}
+									</Text>
+								)}
+								<Text
+									numberOfLines={1}
+									ellipsizeMode="middle"
+									variant="footnote"
+									className="text-muted-foreground mt-0.5 font-normal text-xs"
+								>
+									{simpleDate(note.editedTimestamp)}
+								</Text>
+								{tags.length > 0 && (
+									<View className="flex-row gap-2 mt-2 flex-wrap">
+										{tags.map((tag, index) => (
+											<Tag
+												key={getMappingKey(tag.uuid, index)}
+												tag={tag}
+												name={tag.name}
+												id={tag.uuid}
+											/>
+										))}
+									</View>
+								)}
+							</View>
+							{participants.length > 0 && (
+								<View className="flex-row items-center">
+									{participants.map((participant, index) => {
+										return (
+											<Avatar
+												key={getMappingKey(participant.userId, index)}
+												className={cn("h-7 w-7", index > 0 && "-ml-3")}
+												source={
+													participant.avatar?.startsWith("https")
+														? {
+																uri: participant.avatar
+															}
+														: {
+																uri: assets.uri.images.avatar_fallback()
+															}
+												}
+												style={{
+													width: 36,
+													height: 36
+												}}
+											/>
+										)
+									})}
 								</View>
 							)}
 						</View>
-						{participants.length > 0 && (
-							<View className="flex-row items-center">
-								{participants.map((participant, index) => {
-									return (
-										<Avatar
-											key={getMappingKey(participant.userId, index)}
-											className={cn("h-7 w-7", index > 0 && "-ml-3")}
-											source={
-												participant.avatar?.startsWith("https")
-													? {
-															uri: participant.avatar
-													  }
-													: {
-															uri: assets.uri.images.avatar_fallback()
-													  }
-											}
-											style={{
-												width: 36,
-												height: 36
-											}}
-										/>
-									)
-								})}
-							</View>
-						)}
 					</View>
-				</View>
-			</Button>
-		</Menu>
+				</Button>
+			</Menu>
+		</View>
 	)
 })
 

@@ -1,0 +1,9 @@
+appId: io.filen.app
+---
+# - runFlow: ../login.yaml
+- tapOn: Notes
+- tapOn:
+    id: notes.header.rightView.plus
+- tapOn: ${NOTE_TYPE}
+- inputText: ${NOTE_NAME}
+- tapOn: OK

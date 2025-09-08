@@ -1,0 +1,18 @@
+appId: io.filen.app
+env:
+  NOTE_TYPE: Text
+  NOTE_NAME: new_note
+---
+- runFlow:
+    file: ./create_note.yaml
+    env:
+      NOTE_TYPE: ${NOTE_TYPE}
+      NOTE_NAME: ${NOTE_NAME}
+- runFlow:
+    file: ../common/back.yaml
+    env:
+      IOS_BACK_BUTTON: Notes
+- runFlow:
+    file: ./delete_note.yaml
+    env:
+      NOTE_NAME: ${NOTE_NAME}
