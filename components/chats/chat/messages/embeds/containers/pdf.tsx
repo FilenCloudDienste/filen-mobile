@@ -32,7 +32,7 @@ export const PDF = memo(({ name, source, size }: { name: string; source: string;
 		<Button
 			variant="plain"
 			size="none"
-			className="flex-1 bg-background border border-border rounded-md flex-col justify-start items-start p-3 active:opacity-70 basis-full w-full"
+			className="flex-1 bg-card rounded-md flex-col justify-start items-start p-3 active:opacity-70 basis-full w-full"
 			onPress={onPress}
 			unstable_pressDelay={100}
 			style={chatEmbedContainerStyle}

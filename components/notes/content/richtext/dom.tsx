@@ -250,6 +250,9 @@ const RichTextEditor = memo(
 				<div
 					ref={editorRef}
 					className="quill-editor"
+					style={{
+						paddingBottom: "500px"
+					}}
 				/>
 			</div>
 		)

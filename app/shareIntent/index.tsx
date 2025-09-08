@@ -3,10 +3,9 @@ import { Stack } from "expo-router"
 import { useShareIntentContext, type ShareIntentFile } from "expo-share-intent"
 import { useMemo, useCallback, memo } from "react"
 import { Text } from "@/components/nativewindui/Text"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import { getPreviewType, formatBytes } from "@/lib/utils"
-import { selectDriveItems } from "@/app/selectDriveItems/[parent]"
-import nodeWorker from "@/lib/nodeWorker"
+import driveService from "@/services/drive.service"
 import { randomUUID } from "expo-crypto"
 import * as FileSystem from "expo-file-system/next"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
@@ -18,9 +17,10 @@ import { List, type ListRenderItemInfo, ListItem } from "@/components/nativewind
 import { useColorScheme } from "@/lib/useColorScheme"
 import Container from "@/components/Container"
 import paths from "@/lib/paths"
-import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
+import upload from "@/lib/upload"
+import assets from "@/lib/assets"
 
 export type ListItemInfo = {
 	title: string
@@ -31,11 +31,6 @@ export type ListItemInfo = {
 
 export const ICON_HEIGHT: number = 42
 
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
-
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const { colors } = useColorScheme()
 
@@ -43,17 +38,21 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		return (
 			<View className="flex-row items-center px-4">
 				{getPreviewType(info.item.item.fileName) === "image" ? (
-					<Image
+					<TurboImage
 						source={{
 							uri: info.item.item.path
 						}}
 						className="w-full h-full rounded-md"
-						contentFit="contain"
+						resizeMode="contain"
+						cachePolicy="dataCache"
 						style={{
 							width: ICON_HEIGHT,
 							height: ICON_HEIGHT,
 							borderRadius: 6,
 							backgroundColor: colors.background
+						}}
+						placeholder={{
+							blurhash: assets.blurhash.images.fallback
 						}}
 					/>
 				) : (
@@ -79,7 +78,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 			isFirstInSection={false}
 			isLastInSection={false}
 			removeSeparator={Platform.OS === "android"}
-			innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+			innerClassName="ios:py-3 py-3 android:py-3"
 		/>
 	)
 })
@@ -88,7 +87,6 @@ Item.displayName = "Item"
 
 export default function ShareIntent() {
 	const { shareIntent, resetShareIntent } = useShareIntentContext()
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 
 	const items = useMemo(() => {
@@ -102,12 +100,12 @@ export default function ShareIntent() {
 		)
 	}, [shareIntent.files])
 
-	const upload = useCallback(async () => {
+	const onPress = useCallback(async () => {
 		if (!shareIntent.files || items.length === 0) {
 			return
 		}
 
-		const selectDriveItemsResponse = await selectDriveItems({
+		const selectDriveItemsResponse = await driveService.selectDriveItems({
 			type: "directory",
 			max: 1,
 			dismissHref: "/shareIntent"
@@ -134,30 +132,35 @@ export default function ShareIntent() {
 						return
 					}
 
-					let source: FileSystem.File = fsFile
+					const tmpFile = new FileSystem.File(
+						FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(file.fileName)}`)
+					)
 
-					// Android requires a temporary copy of the file to be uploaded, on iOS the Share Intent provides a temporary file
-					if (Platform.OS === "android") {
-						const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
-
+					try {
 						fsFile.copy(tmpFile)
 
 						if (!tmpFile.exists) {
 							throw new Error("Failed to copy file to temporary location.")
 						}
 
-						source = tmpFile
-					}
+						await upload.file.foreground({
+							parent,
+							localPath: tmpFile.uri,
+							name: file.fileName,
+							id: randomUUID(),
+							size: tmpFile.size ?? 0,
+							isShared: false,
+							deleteAfterUpload: true
+						})
+					} finally {
+						if (tmpFile.exists) {
+							tmpFile.delete()
+						}
 
-					await nodeWorker.proxy("uploadFile", {
-						parent,
-						localPath: source.uri,
-						name: file.fileName,
-						id: randomUUID(),
-						size: source.size ?? 0,
-						isShared: false,
-						deleteAfterUpload: true
-					})
+						if (Platform.OS === "ios" && fsFile.exists) {
+							fsFile.delete()
+						}
+					}
 				})
 			)
 		} catch (e) {
@@ -169,12 +172,12 @@ export default function ShareIntent() {
 		} finally {
 			fullScreenLoadingModal.hide()
 
-			resetShareIntent()
+			resetShareIntent(true)
 		}
 	}, [shareIntent.files, resetShareIntent, items.length])
 
 	const cancel = useCallback(() => {
-		resetShareIntent()
+		resetShareIntent(true)
 	}, [resetShareIntent])
 
 	const headerRight = useCallback(() => {
@@ -186,12 +189,12 @@ export default function ShareIntent() {
 			<Button
 				size="none"
 				variant="plain"
-				onPress={upload}
+				onPress={onPress}
 			>
 				<Text className="text-primary font-normal">{t("shareIntent.header.upload")}</Text>
 			</Button>
 		)
-	}, [upload, t, items.length])
+	}, [onPress, t, items.length])
 
 	const headerLeft = useCallback(() => {
 		return (
@@ -238,21 +241,6 @@ export default function ShareIntent() {
 		return item.id
 	}, [])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
 	return (
 		<RequireInternet>
 			{header}
@@ -263,12 +251,6 @@ export default function ShareIntent() {
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
 					contentInsetAdjustmentBehavior="automatic"
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

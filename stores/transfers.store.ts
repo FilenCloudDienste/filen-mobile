@@ -6,6 +6,8 @@ export type TransfersStore = {
 	speed: number
 	remaining: number
 	progress: number
+	hiddenTransfers: Record<string, string>
+	setHiddenTransfers: (fn: Record<string, string> | ((prev: Record<string, string>) => Record<string, string>)) => void
 	setTransfers: (fn: Transfer[] | ((prev: Transfer[]) => Transfer[])) => void
 	setFinishedTransfers: (fn: Transfer[] | ((prev: Transfer[]) => Transfer[])) => void
 	setSpeed: (fn: number | ((prev: number) => number)) => void
@@ -19,6 +21,12 @@ export const useTransfersStore = create<TransfersStore>()(set => ({
 	speed: 0,
 	remaining: 0,
 	progress: 0,
+	hiddenTransfers: {},
+	setHiddenTransfers(fn) {
+		set(state => ({
+			hiddenTransfers: typeof fn === "function" ? fn(state.hiddenTransfers) : fn
+		}))
+	},
 	setTransfers(fn) {
 		set(state => ({
 			transfers: typeof fn === "function" ? fn(state.transfers) : fn

@@ -9,12 +9,12 @@ import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import Container from "@/components/Container"
-import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/trackPlayer/item"
+import Item, { type ListItemInfo } from "@/components/trackPlayer/item"
 import { formatMessageDate } from "@/lib/utils"
-import useDimensions from "@/hooks/useDimensions"
 import ListEmpty from "@/components/listEmpty"
 import { useTranslation } from "react-i18next"
 import alerts from "@/lib/alerts"
+import useNetInfo from "@/hooks/useNetInfo"
 
 const contentContainerStyle = {
 	paddingTop: 8
@@ -24,8 +24,8 @@ export const TrackPlayer = memo(() => {
 	const [trackPlayerToolbarHeight] = useMMKVNumber("trackPlayerToolbarHeight", mmkvInstance)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const playlistsSearchTerm = useTrackPlayerStore(useShallow(state => state.playlistsSearchTerm))
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const playlistsQuery = usePlaylistsQuery({})
 
@@ -47,7 +47,7 @@ export const TrackPlayer = memo(() => {
 				title: playlist.name,
 				subTitle: t("trackPlayer.item.subTitle", {
 					count: playlist.files.length,
-					updated: formatMessageDate(playlist.updated)
+					date: formatMessageDate(playlist.updated)
 				}),
 				playlist
 			})) satisfies ListItemInfo[]
@@ -70,7 +70,7 @@ export const TrackPlayer = memo(() => {
 		}
 	}, [trackPlayerToolbarHeight])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		return (
 			<View
 				style={{
@@ -81,7 +81,7 @@ export const TrackPlayer = memo(() => {
 		)
 	}, [trackPlayerToolbarHeight])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={playlistsQuery.status}
@@ -123,28 +123,17 @@ export const TrackPlayer = memo(() => {
 	}, [playlistsQuery])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
-
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
+	}, [refreshing, onRefresh, hasInternet])
 
 	return (
 		<RequireInternet>
@@ -159,16 +148,10 @@ export const TrackPlayer = memo(() => {
 					contentInsetAdjustmentBehavior="automatic"
 					scrollIndicatorInsets={scrollIndicatorInsets}
 					contentContainerStyle={contentContainerStyle}
-					ListFooterComponent={listFooter}
-					ListEmptyComponent={listEmpty}
+					ListFooterComponent={ListFooterComponent}
+					ListEmptyComponent={ListEmptyComponent}
 					refreshing={refreshing}
 					refreshControl={refreshControl}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

@@ -4,7 +4,7 @@ import { Text } from "@/components/nativewindui/Text"
 import { View } from "react-native"
 import axios from "axios"
 import { useQuery } from "@tanstack/react-query"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import { Button } from "@/components/nativewindui/Button"
 import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
@@ -12,6 +12,7 @@ import { Icon } from "@roninoss/icons"
 import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import useNetInfo from "@/hooks/useNetInfo"
+import assets from "@/lib/assets"
 
 export type YouTubeInfo = {
 	title?: string
@@ -64,6 +65,11 @@ export const YouTube = memo(({ link }: { link: string }) => {
 			}
 
 			return request.data as YouTubeInfo
+		},
+		throwOnError(err) {
+			console.error(err)
+
+			return false
 		},
 		refetchOnMount: DEFAULT_QUERY_OPTIONS.refetchOnMount,
 		refetchOnReconnect: DEFAULT_QUERY_OPTIONS.refetchOnReconnect,
@@ -127,18 +133,24 @@ export const YouTube = memo(({ link }: { link: string }) => {
 							color="white"
 						/>
 					</View>
-					<Image
-						source={{
-							uri: query.data.thumbnail_url
-						}}
-						priority="low"
-						cachePolicy="disk"
-						contentFit="contain"
-						style={{
-							width: "100%",
-							height: "100%"
-						}}
-					/>
+					{query.data.thumbnail_url ? (
+						<TurboImage
+							source={{
+								uri: query.data.thumbnail_url
+							}}
+							cachePolicy="dataCache"
+							resizeMode="contain"
+							style={{
+								width: "100%",
+								height: "100%"
+							}}
+							placeholder={{
+								blurhash: assets.blurhash.images.fallback
+							}}
+						/>
+					) : (
+						<View className="w-full h-full bg-black" />
+					)}
 				</View>
 			</View>
 		</Button>

@@ -7,7 +7,7 @@ import { ThemeProvider as NavThemeProvider } from "@react-navigation/native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { NAV_THEME } from "@/theme"
 import useIsAuthed from "@/hooks/useIsAuthed"
-import setup from "@/lib/setup"
+import authService from "@/services/auth.service"
 import { PortalHost } from "@rn-primitives/portal"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { KeyboardProvider } from "react-native-keyboard-controller"
@@ -29,6 +29,10 @@ import { NotifierWrapper } from "react-native-notifier"
 import Biometric from "@/components/biometric"
 import * as SplashScreen from "expo-splash-screen"
 import { SCREEN_OPTIONS } from "@/lib/constants"
+import alerts from "@/lib/alerts"
+import Reminders from "@/components/reminders"
+import { useAppStateStore } from "@/stores/appState.store"
+import { useKeepAwake } from "expo-keep-awake"
 
 SplashScreen.setOptions({
 	duration: 400,
@@ -38,6 +42,8 @@ SplashScreen.setOptions({
 SplashScreen.preventAutoHideAsync().catch(console.error)
 
 export default function RootLayout() {
+	useKeepAwake()
+
 	const { colorScheme, colors } = useColorScheme()
 	const [isAuthed] = useIsAuthed()
 	const [setupDone, setSetupDone] = useState<boolean>(false)
@@ -62,15 +68,23 @@ export default function RootLayout() {
 	}, [isAuthed])
 
 	useEffect(() => {
-		Promise.all([setup(), restoreQueries()])
+		useAppStateStore.getState().setSetupDone(setupDone)
+	}, [setupDone])
+
+	useEffect(() => {
+		Promise.all([authService.setup(), restoreQueries()])
 			.then(() => {
 				setSetupDone(true)
 
-				setTimeout(() => {
-					SplashScreen.hideAsync().catch(console.error)
-				}, 1000)
+				SplashScreen.hideAsync().catch(console.error)
 			})
-			.catch(console.error)
+			.catch(err => {
+				console.error(err)
+
+				if (err instanceof Error) {
+					alerts.error(err.message)
+				}
+			})
 	}, [])
 
 	return (
@@ -121,6 +135,10 @@ export default function RootLayout() {
 														options={SCREEN_OPTIONS.modal}
 													/>
 													<Stack.Screen
+														name="noteParticipants"
+														options={SCREEN_OPTIONS.modal}
+													/>
+													<Stack.Screen
 														name="textEditor"
 														options={SCREEN_OPTIONS.base}
 													/>
@@ -141,7 +159,7 @@ export default function RootLayout() {
 														options={SCREEN_OPTIONS.modal}
 													/>
 													<Stack.Screen
-														name="chat"
+														name="chat/[uuid]"
 														options={SCREEN_OPTIONS.base}
 													/>
 													<Stack.Screen
@@ -160,6 +178,7 @@ export default function RootLayout() {
 														<AuthedListeners />
 														<SocketEvents />
 														<Biometric />
+														<Reminders />
 													</Fragment>
 												)}
 												<InputPrompt />
@@ -167,9 +186,9 @@ export default function RootLayout() {
 												<ColorPickerSheet />
 												<GalleryModal />
 												<PortalHost />
-												<FullScreenLoadingModal />
 											</ShareIntentProvider>
 										)}
+										<FullScreenLoadingModal />
 									</NotifierWrapper>
 								</NavThemeProvider>
 							</BottomSheetModalProvider>

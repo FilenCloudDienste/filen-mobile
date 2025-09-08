@@ -215,7 +215,6 @@ export const Container = memo(
 					snapToOffsets={snapToOffsets}
 					snapToAlignment="start"
 					contentInsetAdjustmentBehavior="automatic"
-					removeClippedSubviews={true}
 				>
 					{scrollItems.length > 0 ? (
 						scrollItems

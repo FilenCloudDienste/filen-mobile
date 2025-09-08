@@ -4,6 +4,7 @@ import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import axios from "axios"
 import { Buffer } from "buffer"
 import useNetInfo from "@/hooks/useNetInfo"
+import alerts from "@/lib/alerts"
 
 export type UseTextEditorItemContentQuery = {
 	item: DriveCloudItem
@@ -42,6 +43,12 @@ export default function useTextEditorItemContentQuery({
 			}
 
 			return Buffer.from(request.data).toString("utf-8")
+		},
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
 		},
 		notifyOnChangeProps,
 		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,

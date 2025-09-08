@@ -1,11 +1,9 @@
 import { memo, useState, useCallback, useMemo, useRef, Fragment } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
-import { createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator, type ListRenderItemInfo, FlatList } from "react-native"
+import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator, type ViewabilityConfig } from "react-native"
 import Thumbnail from "@/components/thumbnail/item"
 import { cn } from "@/lib/cn"
 import { Container } from "@/components/Container"
@@ -19,18 +17,22 @@ import { THUMBNAILS_SUPPORTED_FORMATS } from "@/lib/thumbnails"
 import { Paths } from "expo-file-system/next"
 import useCameraUpload from "@/hooks/useCameraUpload"
 import { useCameraUploadStore } from "@/stores/cameraUpload.store"
-import { useRouter } from "expo-router"
+import { useRouter, useFocusEffect } from "expo-router"
 import { validate as validateUUID } from "uuid"
 import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { useShallow } from "zustand/shallow"
 import Menu from "@/components/drive/list/listItem/menu"
-import Transfers from "@/components/drive/header/transfers"
-import useDimensions from "@/hooks/useDimensions"
 import OfflineListHeader from "@/components/offlineListHeader"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
+import { usePhotosStore } from "@/stores/photos.store"
+import Dropdown from "@/components/photos/header/rightView/dropdown"
+import { Checkbox } from "@/components/nativewindui/Checkbox"
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
+import { FlashList, type ListRenderItemInfo, type ViewToken, type FlashListRef } from "@shopify/flash-list"
+import { useDriveStore } from "@/stores/drive.store"
 
 const contentContainerStyle = {
 	paddingBottom: 100,
@@ -53,6 +55,8 @@ export const Photo = memo(
 		spacing: number
 	}) => {
 		const { colors } = useColorScheme()
+		const isSelected = usePhotosStore(useShallow(state => state.selectedItems.some(i => i.uuid === info.item.uuid)))
+		const selectedItemsCount = usePhotosStore(useShallow(state => state.selectedItems.length))
 
 		const fileOfflineStatus = useFileOfflineStatusQuery({
 			uuid: info.item.uuid
@@ -63,8 +67,20 @@ export const Photo = memo(
 		}, [fileOfflineStatus.status, fileOfflineStatus.data])
 
 		const onPress = useCallback(() => {
-			useGalleryStore.getState().setItems(
-				items
+			if (selectedItemsCount > 0) {
+				usePhotosStore
+					.getState()
+					.setSelectedItems(prev =>
+						isSelected
+							? prev.filter(i => i.uuid !== info.item.uuid)
+							: [...prev.filter(i => i.uuid !== info.item.uuid), info.item]
+					)
+
+				return
+			}
+
+			useGalleryStore.getState().open({
+				items: items
 					.map(item => {
 						const previewType = getPreviewType(item.name)
 
@@ -79,12 +95,10 @@ export const Photo = memo(
 							  }
 							: null
 					})
-					.filter(item => item !== null)
-			)
-
-			useGalleryStore.getState().setInitialUUID(info.item.uuid)
-			useGalleryStore.getState().setVisible(true)
-		}, [items, info.item.uuid, queryParams])
+					.filter(item => item !== null),
+				initialUUIDOrURI: info.item.uuid
+			})
+		}, [items, info.item, queryParams, isSelected, selectedItemsCount])
 
 		const imageStyle = useMemo(() => {
 			return {
@@ -95,6 +109,10 @@ export const Photo = memo(
 				backgroundColor: colors.card
 			}
 		}, [colors.card, itemSize, spacing])
+
+		const previewType = useMemo(() => {
+			return getPreviewType(info.item.name)
+		}, [info.item.name])
 
 		return (
 			<Menu
@@ -123,12 +141,33 @@ export const Photo = memo(
 								/>
 							</View>
 						)}
+						{previewType === "video" && (
+							<View className="w-[16px] h-[16px] absolute top-1 right-1 bg-white rounded-full z-50 flex-row items-center justify-center">
+								<Icon
+									name="play"
+									size={10}
+									color="black"
+								/>
+							</View>
+						)}
+						{selectedItemsCount > 0 && (
+							<Animated.View
+								entering={FadeIn}
+								exiting={FadeOut}
+								className="absolute top-1 left-1 z-50 flex-row items-center justify-center"
+							>
+								<Checkbox
+									checked={isSelected}
+									onPress={onPress}
+								/>
+							</Animated.View>
+						)}
 						<Thumbnail
 							item={info.item}
 							size={itemSize}
 							imageClassName="bg-card"
-							imageContentFit="cover"
-							imageCachePolicy="none"
+							imageResizeMode="cover"
+							imageCachePolicy="dataCache"
 							imageStyle={imageStyle}
 							spacing={spacing}
 							type="photos"
@@ -152,8 +191,10 @@ export const Photos = memo(() => {
 	const [cameraUpload] = useCameraUpload()
 	const router = useRouter()
 	const syncState = useCameraUploadStore(useShallow(state => state.syncState))
-	const { screen } = useDimensions()
+	const running = useCameraUploadStore(useShallow(state => state.running))
 	const { t } = useTranslation()
+	const selectedItemsCount = usePhotosStore(useShallow(state => state.selectedItems.length))
+	const listRef = useRef<FlashListRef<DriveCloudItem>>(null)
 
 	const queryParams = useMemo(
 		(): FetchCloudItemsParams => ({
@@ -164,13 +205,13 @@ export const Photos = memo(() => {
 		[cameraUpload.remote]
 	)
 
-	const queryEnabled = useMemo(() => {
+	const cameraUploadRemoteSetup = useMemo(() => {
 		return cameraUpload.remote && validateUUID(cameraUpload.remote.uuid) ? true : false
 	}, [cameraUpload.remote])
 
 	const query = useCloudItemsQuery({
 		...queryParams,
-		enabled: queryEnabled
+		enabled: cameraUploadRemoteSetup
 	})
 
 	const items = useMemo((): DriveCloudItem[] => {
@@ -184,8 +225,14 @@ export const Photos = memo(() => {
 					return false
 				}
 
-				const previewType = getPreviewType(item.name)
-				const extname = Paths.extname(item.name).toLowerCase()
+				const nameNormalized = item.name.toLowerCase().trim()
+
+				if (nameNormalized.startsWith("cannot_decrypt_") && nameNormalized.endsWith(`_${item.uuid}`)) {
+					return false
+				}
+
+				const previewType = getPreviewType(nameNormalized)
+				const extname = Paths.extname(nameNormalized).toLowerCase()
 
 				if (
 					(previewType === "image" || previewType === "video") &&
@@ -202,7 +249,11 @@ export const Photos = memo(() => {
 	}, [query.status, query.data, cameraUpload.remote])
 
 	const { itemSize, numColumns, spacing } = useMemo(() => {
-		const numColumns = 5
+		const numColumns = Platform.select({
+			ios: 5,
+			default: 4
+		})
+
 		const spacing = 2
 		const totalSpacing = spacing * (numColumns - 1)
 
@@ -239,18 +290,15 @@ export const Photos = memo(() => {
 
 		return (
 			<View className={cn("flex flex-row items-center pl-2", Platform.OS === "ios" && "pl-0")}>
-				{cameraUpload.enabled ? (
+				{selectedItemsCount > 0 ? (
+					<Text className="text-primary">
+						{t("photos.header.selected", {
+							count: selectedItemsCount
+						})}
+					</Text>
+				) : cameraUpload.enabled ? (
 					<Fragment>
-						{syncState.count === 0 ? (
-							<View className="flex-row items-center gap-2">
-								<Icon
-									name="check-circle-outline"
-									color={colors.primary}
-									size={24}
-								/>
-								<Text>{t("photos.state.synced")}</Text>
-							</View>
-						) : (
+						{syncState.count > 0 ? (
 							<View className="flex-row items-center gap-2">
 								<ActivityIndicator
 									size="small"
@@ -262,6 +310,22 @@ export const Photos = memo(() => {
 										total: syncState.count
 									})}
 								</Text>
+							</View>
+						) : running ? (
+							<View className="flex-row items-center gap-2">
+								<ActivityIndicator
+									size="small"
+									color={colors.foreground}
+								/>
+							</View>
+						) : (
+							<View className="flex-row items-center gap-2">
+								<Icon
+									name="check-circle-outline"
+									color={colors.primary}
+									size={24}
+								/>
+								<Text>{t("photos.state.synced")}</Text>
 							</View>
 						)}
 					</Fragment>
@@ -284,7 +348,18 @@ export const Photos = memo(() => {
 				)}
 			</View>
 		)
-	}, [cameraUpload.enabled, colors.primary, t, colors.foreground, router, syncState.count, syncState.done, hasInternet])
+	}, [
+		cameraUpload.enabled,
+		colors.primary,
+		t,
+		colors.foreground,
+		router,
+		syncState.count,
+		syncState.done,
+		hasInternet,
+		selectedItemsCount,
+		running
+	])
 
 	const headerRightView = useCallback(() => {
 		if (!hasInternet) {
@@ -292,52 +367,12 @@ export const Photos = memo(() => {
 		}
 
 		return (
-			<View className="flex-row items-center">
-				<Transfers />
-				<DropdownMenu
-					items={[
-						createDropdownItem({
-							actionKey: "settings",
-							title: t("photos.menu.settings"),
-							icon:
-								Platform.OS === "ios"
-									? {
-											name: "gearshape",
-											namingScheme: "sfSymbol"
-									  }
-									: {
-											namingScheme: "material",
-											name: "cog-outline"
-									  }
-						})
-					]}
-					onItemPress={item => {
-						switch (item.actionKey) {
-							case "settings": {
-								router.push({
-									pathname: "/photos/settings"
-								})
-
-								break
-							}
-						}
-					}}
-				>
-					<Button
-						variant="plain"
-						size="icon"
-						hitSlop={10}
-					>
-						<Icon
-							size={24}
-							name="dots-horizontal-circle-outline"
-							color={colors.primary}
-						/>
-					</Button>
-				</DropdownMenu>
-			</View>
+			<Dropdown
+				photos={items}
+				queryParams={queryParams}
+			/>
 		)
-	}, [colors.primary, hasInternet, router, t])
+	}, [hasInternet, items, queryParams])
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true)
@@ -358,18 +393,22 @@ export const Photos = memo(() => {
 	}, [query])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
-				queryStatus={query.status}
+				queryStatus={cameraUploadRemoteSetup ? query.status : "success"}
 				itemCount={items.length}
 				texts={{
 					error: t("photos.list.error"),
@@ -389,36 +428,47 @@ export const Photos = memo(() => {
 				}}
 			/>
 		)
-	}, [query.status, items.length, t])
+	}, [query.status, items.length, t, cameraUploadRemoteSetup])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / (itemSize + spacing)),
-			maxToRenderPerBatch: Math.round(screen.height / (itemSize + spacing) / 2)
-		}
-	}, [screen.height, itemSize, spacing])
-
-	const getItemLayout = useCallback(
-		(_: ArrayLike<DriveCloudItem> | null | undefined, index: number) => {
-			return {
-				length: itemSize + spacing,
-				offset: (itemSize + spacing) * index,
-				index
-			}
-		},
-		[itemSize, spacing]
-	)
-
-	const listHeader = useMemo(() => {
+	const ListHeaderComponent = useCallback(() => {
 		return !hasInternet ? <OfflineListHeader /> : undefined
 	}, [hasInternet])
 
-	const extraData = useMemo(() => {
+	const viewabilityConfig = useMemo(() => {
 		return {
-			numColumns,
-			itemSize
+			itemVisiblePercentThreshold: 75
+		} satisfies ViewabilityConfig
+	}, [])
+
+	const onViewableItemsChanged = useCallback(
+		(e: { viewableItems: ViewToken<DriveCloudItem>[]; changed: ViewToken<DriveCloudItem>[] }) => {
+			useDriveStore.getState().setVisibleItemUuids(e.viewableItems.map(item => item.item.uuid))
+		},
+		[]
+	)
+
+	const calculateVisibleItemsOnFocus = useCallback(() => {
+		if (!listRef?.current) {
+			return
 		}
-	}, [numColumns, itemSize])
+
+		const visibleIndices = listRef.current.computeVisibleIndices()
+		const uuids = items
+			.slice(visibleIndices.startIndex <= 0 ? 0 : visibleIndices.startIndex, visibleIndices.endIndex + 1)
+			.map(item => item.uuid)
+
+		useDriveStore.getState().setVisibleItemUuids(uuids)
+	}, [items])
+
+	useFocusEffect(
+		useCallback(() => {
+			usePhotosStore.getState().setSelectedItems([])
+
+			calculateVisibleItemsOnFocus()
+
+			foregroundCameraUpload.run().catch(console.error)
+		}, [calculateVisibleItemsOnFocus])
+	)
 
 	return (
 		<Fragment>
@@ -435,7 +485,8 @@ export const Photos = memo(() => {
 					onLayout={onLayout}
 					className="flex-1"
 				>
-					<FlatList
+					<FlashList
+						ref={listRef}
 						data={items}
 						renderItem={renderItem}
 						numColumns={numColumns}
@@ -443,17 +494,12 @@ export const Photos = memo(() => {
 						contentInsetAdjustmentBehavior="automatic"
 						showsVerticalScrollIndicator={true}
 						showsHorizontalScrollIndicator={false}
-						extraData={extraData}
-						getItemLayout={getItemLayout}
-						removeClippedSubviews={true}
-						maxToRenderPerBatch={maxToRenderPerBatch}
-						initialNumToRender={initialNumToRender}
-						updateCellsBatchingPeriod={100}
-						windowSize={3}
-						ListHeaderComponent={listHeader}
-						ListEmptyComponent={listEmpty}
+						ListHeaderComponent={ListHeaderComponent}
+						ListEmptyComponent={ListEmptyComponent}
 						contentContainerStyle={contentContainerStyle}
 						refreshControl={refreshControl}
+						viewabilityConfig={viewabilityConfig}
+						onViewableItemsChanged={onViewableItemsChanged}
 					/>
 				</View>
 			</Container>

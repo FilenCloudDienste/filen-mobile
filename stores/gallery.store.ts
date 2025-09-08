@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { validate as validateUUID } from "uuid"
 
 export type PreviewType = "image" | "video" | "unknown" | "pdf" | "text" | "code" | "audio" | "docx"
 
@@ -23,22 +24,47 @@ export type GalleryStore = {
 	visible: boolean
 	initialUUID: string | null
 	items: GalleryItem[]
+	initialIndex: number | null
 	currentVisibleIndex: number | null
 	zoomedIn: boolean
+	headerHeight: number
+	showHeader: boolean
+	setShowHeader: (fn: boolean | ((prev: boolean) => boolean)) => void
+	setHeaderHeight: (fn: number | ((prev: number) => number)) => void
 	setVisible: (fn: boolean | ((prev: boolean) => boolean)) => void
 	setInitialUUID: (fn: string | null | ((prev: string | null) => string | null)) => void
 	setItems: (fn: GalleryItem[] | ((prev: GalleryItem[]) => GalleryItem[])) => void
-	setCurrentVisibleIndex: (fn: (number | null) | ((prev: number | null) => number | null)) => void
+	setInitialIndex: (fn: (number | null) | ((prev: number | null) => number | null)) => void
+	setCurrentVisibleIndex: (fn: number | null | ((prev: number | null) => number | null)) => void
 	setZoomedIn: (fn: boolean | ((prev: boolean) => boolean)) => void
 	reset: () => void
+	open: ({ items, initialUUIDOrURI }: { items: GalleryItem[]; initialUUIDOrURI: string }) => void
 }
 
 export const useGalleryStore = create<GalleryStore>(set => ({
 	visible: false,
 	initialUUID: null,
 	items: [],
-	currentVisibleIndex: -1,
+	currentVisibleIndex: null,
+	initialIndex: null,
 	zoomedIn: false,
+	headerHeight: 0,
+	showHeader: false,
+	setShowHeader(fn) {
+		set(state => ({
+			showHeader: typeof fn === "function" ? fn(state.showHeader) : fn
+		}))
+	},
+	setHeaderHeight(fn) {
+		set(state => ({
+			headerHeight: typeof fn === "function" ? fn(state.headerHeight) : fn
+		}))
+	},
+	setInitialIndex(fn) {
+		set(state => ({
+			initialIndex: typeof fn === "function" ? fn(state.initialIndex) : fn
+		}))
+	},
 	setVisible(fn) {
 		set(state => ({
 			visible: typeof fn === "function" ? fn(state.visible) : fn
@@ -69,7 +95,36 @@ export const useGalleryStore = create<GalleryStore>(set => ({
 			visible: false,
 			initialUUID: null,
 			items: [],
-			currentVisibleIndex: -1,
+			currentVisibleIndex: null,
+			initialIndex: null,
+			zoomedIn: false
+		}))
+	},
+	open({ items, initialUUIDOrURI }) {
+		if (items.length === 0) {
+			return
+		}
+
+		const foundIndex = items.findIndex(item => {
+			if (item.itemType === "cloudItem" && item.data.item.uuid === initialUUIDOrURI) {
+				return true
+			}
+
+			if (item.itemType === "remoteItem" && item.data.uri === initialUUIDOrURI) {
+				return true
+			}
+
+			return false
+		})
+
+		const index = foundIndex === -1 ? 0 : foundIndex
+
+		set(() => ({
+			visible: true,
+			initialUUIDOrURI: validateUUID(initialUUIDOrURI) ? initialUUIDOrURI : null,
+			items: items,
+			initialIndex: index,
+			currentVisibleIndex: index,
 			zoomedIn: false
 		}))
 	}

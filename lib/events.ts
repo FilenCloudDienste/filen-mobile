@@ -4,10 +4,10 @@ import { type InputPromptEvent } from "@/components/prompts/inputPrompt"
 import { type ColorPickerEvent } from "@/components/sheets/colorPickerSheet"
 import { type ItemInfoEvent } from "@/components/sheets/itemInfoSheet"
 import { type FullScreenLoadingModalEvent } from "@/components/modals/fullScreenLoadingModal"
-import { type SelectContactsEvent } from "@/app/selectContacts"
-import { type SelectDriveItemsEvent } from "@/app/selectDriveItems/[parent]"
+import { type SelectContactsEvent } from "@/services/contacts.service"
+import { type SelectDriveItemsEvent } from "@/services/drive.service"
 import { type AlertPromptEvent } from "@/components/prompts/alertPrompt"
-import { type SelectTrackPlayerPlaylistsEvent } from "@/app/selectTrackPlayerPlaylists"
+import { type SelectTrackPlayerPlaylistsEvent } from "@/services/trackPlayer.service"
 
 export type Events = {
 	socketEvent: SocketEvent

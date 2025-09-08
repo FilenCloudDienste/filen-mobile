@@ -17,6 +17,9 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/trackPlayer/playlist/item"
 import { type ListDataItem } from "@/components/nativewindui/List"
 import useDimensions from "@/hooks/useDimensions"
+import { useTranslation } from "react-i18next"
+import ListEmpty from "@/components/listEmpty"
+import useNetInfo from "@/hooks/useNetInfo"
 
 const contentContainerStyle = {
 	paddingTop: 8
@@ -29,6 +32,8 @@ export const Playlist = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const playlistSearchTerm = useTrackPlayerStore(useShallow(state => state.playlistSearchTerm))
 	const { screen } = useDimensions()
+	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const playlistsQuery = usePlaylistsQuery({
 		enabled: false
@@ -64,7 +69,7 @@ export const Playlist = memo(() => {
 
 	const handleReorder = useCallback(
 		async (e: ReorderableListReorderEvent) => {
-			if (!playlist) {
+			if (!playlist || !hasInternet) {
 				return
 			}
 
@@ -98,7 +103,7 @@ export const Playlist = memo(() => {
 				updatePlaylistRemoteMutex.current.release()
 			}
 		},
-		[playlist]
+		[playlist, hasInternet]
 	)
 
 	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
@@ -118,7 +123,7 @@ export const Playlist = memo(() => {
 		}
 	}, [trackPlayerToolbarHeight])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		return (
 			<View
 				style={{
@@ -146,13 +151,17 @@ export const Playlist = memo(() => {
 	}, [playlistsQuery])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return Platform.OS === "ios" ? (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		) : undefined
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
 		return {
@@ -169,6 +178,31 @@ export const Playlist = memo(() => {
 		}
 	}, [])
 
+	const ListEmptyComponent = useCallback(() => {
+		return (
+			<ListEmpty
+				queryStatus={playlistsQuery.status}
+				itemCount={files.length}
+				texts={{
+					error: t("trackPlayer.playlist.list.error"),
+					empty: t("trackPlayer.playlist.list.empty"),
+					emptySearch: t("trackPlayer.playlist.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "music-note"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
+		)
+	}, [playlistsQuery.status, files.length, t])
+
 	return (
 		<RequireInternet>
 			<Header />
@@ -180,11 +214,12 @@ export const Playlist = memo(() => {
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
 						contentContainerStyle={contentContainerStyle}
+						ListEmptyComponent={ListEmptyComponent}
 						showsVerticalScrollIndicator={true}
 						showsHorizontalScrollIndicator={false}
 						contentInsetAdjustmentBehavior="automatic"
 						scrollIndicatorInsets={scrollIndicatorInsets}
-						ListFooterComponent={listFooter}
+						ListFooterComponent={ListFooterComponent}
 						refreshing={Platform.OS === "ios" ? refreshing : false}
 						refreshControl={refreshControl}
 						initialNumToRender={initialNumToRender}

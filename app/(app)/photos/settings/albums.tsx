@@ -8,26 +8,19 @@ import { View, Platform } from "react-native"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import { cn } from "@/lib/cn"
 import useCameraUpload from "@/hooks/useCameraUpload"
-import { Image } from "expo-image"
-import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
+import { useColorScheme } from "@/lib/useColorScheme"
+import { foregroundCameraUpload } from "@/lib/cameraUpload"
+import { useFocusEffect } from "expo-router"
 
 export type ListItemInfo = {
 	title: string
 	subTitle: string
 	id: string
-	album: {
-		album: MediaLibrary.Album
-		lastAssetURI?: string
-	}
+	album: MediaLibrary.Album
 }
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 61
-})
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -35,32 +28,11 @@ const contentContainerStyle = {
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const [cameraUpload, setCameraUpload] = useCameraUpload()
+	const { colors, isDarkColorScheme } = useColorScheme()
 
 	const enabled = useMemo(() => {
 		return cameraUpload.albums.some(album => album.id === info.item.id)
 	}, [cameraUpload.albums, info.item.id])
-
-	const leftView = useMemo(() => {
-		return (
-			<View className="flex-row items-center px-4">
-				{info.item.album.lastAssetURI ? (
-					<Image
-						source={{
-							uri: info.item.album.lastAssetURI
-						}}
-						contentFit="cover"
-						style={{
-							borderRadius: 6,
-							width: 38,
-							height: 38
-						}}
-					/>
-				) : (
-					<View className="bg-background rounded-md w-[38px] h-[38px]" />
-				)}
-			</View>
-		)
-	}, [info.item.album.lastAssetURI])
 
 	const rightView = useMemo(() => {
 		return (
@@ -70,25 +42,44 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 					onValueChange={() => {
 						setCameraUpload(prev => ({
 							...prev,
+							// We do not need to increase the version here, local album changes do not require aborting uploads
+							// version: (prev.version ?? 0) + 1,
 							albums: [
-								...prev.albums.filter(album => album.id !== info.item.album.album.id),
-								...(!prev.albums.some(album => album.id === info.item.album.album.id) ? [info.item.album.album] : [])
+								...prev.albums.filter(album => album.id !== info.item.album.id),
+								...(!prev.albums.some(album => album.id === info.item.album.id) ? [info.item.album] : [])
 							]
 						}))
+
+						setTimeout(() => {
+							foregroundCameraUpload.run().catch(console.error)
+						}, 1000)
 					}}
 				/>
 			</View>
 		)
-	}, [enabled, info.item.album.album, setCameraUpload])
+	}, [enabled, info.item.album, setCameraUpload])
 
 	return (
 		<ListItem
-			className={cn("ios:pl-0 pl-2", info.index === 0 && "ios:border-t-0 border-border/25 dark:border-border/80 border-t")}
+			className={cn(
+				"ios:pl-0 pl-2",
+				info.index === 0 && "ios:border-t-0 border-border/25 dark:border-border/80 border-t",
+				Platform.OS === "android" && "bg-transparent border-none border-0"
+			)}
+			style={Platform.select({
+				android: {
+					backgroundColor: "transparent"
+				},
+				default: !isDarkColorScheme
+					? {
+							backgroundColor: colors.grey5
+					  }
+					: undefined
+			})}
 			titleClassName="text-lg"
-			innerClassName="py-1.5 ios:py-1.5 android:py-1.5"
+			innerClassName={cn("py-3 ios:py-3 android:py-3", Platform.OS === "android" && "bg-transparent")}
 			textNumberOfLines={1}
 			subTitleNumberOfLines={1}
-			leftView={leftView}
 			rightView={rightView}
 			{...info}
 		/>
@@ -98,7 +89,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 Item.displayName = "Item"
 
 export const Albums = memo(() => {
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 
 	const localAlbumsQuery = useLocalAlbumsQuery({})
@@ -109,12 +99,12 @@ export const Albums = memo(() => {
 		}
 
 		return localAlbumsQuery.data
-			.sort((a, b) => b.album.assetCount - a.album.assetCount)
+			.sort((a, b) => b.assetCount - a.assetCount)
 			.map(album => ({
-				id: album.album.id,
-				title: album.album.title,
+				id: album.id,
+				title: album.title,
 				subTitle: t("photos.settings.albums.item.subTitle", {
-					count: album.album.assetCount
+					count: album.assetCount
 				}),
 				album
 			}))
@@ -128,22 +118,7 @@ export const Albums = memo(() => {
 		return <Item info={info} />
 	}, [])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={localAlbumsQuery.status}
@@ -168,6 +143,14 @@ export const Albums = memo(() => {
 		)
 	}, [localAlbumsQuery.status, items.length, t])
 
+	useFocusEffect(
+		useCallback(() => {
+			setTimeout(() => {
+				foregroundCameraUpload.run().catch(console.error)
+			}, 1000)
+		}, [])
+	)
+
 	return (
 		<RequireInternet>
 			<LargeTitleHeader title={t("photos.settings.albums.title")} />
@@ -180,14 +163,8 @@ export const Albums = memo(() => {
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
 					sectionHeaderAsGap={true}
-					ListEmptyComponent={listEmpty}
+					ListEmptyComponent={ListEmptyComponent}
 					contentContainerStyle={contentContainerStyle}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

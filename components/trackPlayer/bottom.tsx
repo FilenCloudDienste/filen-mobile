@@ -6,18 +6,17 @@ import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-rean
 import useBottomTabsHeight from "@/hooks/useBottomTabsHeight"
 import { View, ActivityIndicator, Platform, type ViewStyle, type StyleProp } from "react-native"
 import { ProgressIndicator } from "../nativewindui/ProgressIndicator"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import { Icon } from "@roninoss/icons"
 import { useRouter, usePathname } from "expo-router"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Button } from "../nativewindui/Button"
-import { formatBytes, normalizeFilePathForExpo } from "@/lib/utils"
+import { formatBytes } from "@/lib/utils"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { cn } from "@/lib/cn"
 import Container from "../Container"
-import paths from "@/lib/paths"
-import { Paths } from "expo-file-system/next"
 import { useTranslation } from "react-i18next"
+import assets from "@/lib/assets"
 
 export const Bottom = memo(() => {
 	const trackPlayerState = useTrackPlayerState()
@@ -65,22 +64,6 @@ export const Bottom = memo(() => {
 		})
 	}, [router])
 
-	const imageSource = useMemo(() => {
-		return {
-			uri: normalizeFilePathForExpo(
-				Paths.join(
-					paths.trackPlayerPictures(),
-					Paths.basename(
-						typeof trackPlayerState.playingTrack?.artwork === "string" &&
-							!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png")
-							? trackPlayerState.playingTrack.artwork
-							: "audio_fallback.png"
-					)
-				)
-			)
-		}
-	}, [trackPlayerState.playingTrack])
-
 	const imageStyle = useMemo(() => {
 		return {
 			width: 36,
@@ -124,12 +107,15 @@ export const Bottom = memo(() => {
 					>
 						<View className="flex-row gap-4 p-2 justify-between items-center">
 							<View className="flex-1 flex-row gap-3 items-center">
-								{typeof trackPlayerState.playingTrack?.artwork === "string" &&
-								!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png") ? (
-									<Image
-										source={imageSource}
-										contentFit="cover"
+								{trackPlayerState.isPlayingTrackArtworkValid && trackPlayerState.playingTrackArtworkSource ? (
+									<TurboImage
+										source={trackPlayerState.playingTrackArtworkSource}
+										resizeMode="cover"
+										cachePolicy="dataCache"
 										style={imageStyle}
+										placeholder={{
+											blurhash: assets.blurhash.images.fallback
+										}}
 									/>
 								) : (
 									<View

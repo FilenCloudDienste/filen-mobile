@@ -1,24 +1,26 @@
 import { memo, useCallback, useEffect, useState, useMemo } from "react"
 import nodeWorker from "@/lib/nodeWorker"
-import { View } from "react-native"
+import { View, type ViewabilityConfig } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
+import { type ViewToken } from "@shopify/flash-list"
 import alerts from "@/lib/alerts"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
-import ListItem, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/drive/list/listItem"
+import ListItem, { type ListItemInfo } from "@/components/drive/list/listItem"
 import { orderItemsByType, simpleDate, formatBytes } from "@/lib/utils"
 import { useDebouncedCallback } from "use-debounce"
 import cache from "@/lib/cache"
 import { type SearchFindItemDecrypted } from "@filen/sdk/dist/types/api/v3/search/find"
-import useDimensions from "@/hooks/useDimensions"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
+import { useDriveStore } from "@/stores/drive.store"
+import { useShallow } from "zustand/shallow"
 
-export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; queryParams: FetchCloudItemsParams }) => {
+export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const [result, setResults] = useState<SearchFindItemDecrypted[]>([])
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const searchTerm = useDriveStore(useShallow(state => state.searchTerm))
 
 	const query = useCloudItemsQuery({
 		...queryParams,
@@ -119,10 +121,6 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 		return sorted
 	}, [query.status, query.data, searchTerm, result, isLoading])
 
-	const driveItems = useMemo(() => {
-		return items.map(item => item.item)
-	}, [items])
-
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
 		return typeof item === "string" ? item : item.id
 	}, [])
@@ -133,18 +131,18 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 				<ListItem
 					info={info}
 					queryParams={queryParams}
-					items={driveItems}
+					items={items}
 					itemSize={0}
 					spacing={0}
 					fromSearch={true}
 				/>
 			)
 		},
-		[queryParams, driveItems]
+		[queryParams, items]
 	)
 
 	const debouncedSearch = useDebouncedCallback(async (searchValue: string) => {
-		if (searchValue.trim().length === 0) {
+		if (searchValue.trim().length === 0 || queryParams.of !== "drive" || searchValue.length < 3) {
 			setResults([])
 
 			return
@@ -169,7 +167,7 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 		}
 	}, 1000)
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		if (isLoading || items.length === 0) {
 			return undefined
 		}
@@ -185,7 +183,7 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 		)
 	}, [items.length, t, isLoading])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={isLoading ? "pending" : "success"}
@@ -210,31 +208,28 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 		)
 	}, [t, items.length, isLoading])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
+	const viewabilityConfig = useMemo(() => {
 		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
+			itemVisiblePercentThreshold: 75
+		} satisfies ViewabilityConfig
+	}, [])
 
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
+	const onViewableItemsChanged = useCallback((e: { viewableItems: ViewToken<ListItemInfo>[]; changed: ViewToken<ListItemInfo>[] }) => {
+		useDriveStore.getState().setVisibleItemUuids(e.viewableItems.map(item => item.item.item.uuid))
 	}, [])
 
 	useEffect(() => {
-		if (searchTerm.length === 0) {
+		if (searchTerm.length < 3 || queryParams.of !== "drive") {
 			setResults([])
 			setIsLoading(false)
-		} else {
-			setIsLoading(true)
 
-			debouncedSearch(searchTerm)
+			return
 		}
-	}, [searchTerm, debouncedSearch])
+
+		setIsLoading(true)
+
+		debouncedSearch(searchTerm)
+	}, [searchTerm, debouncedSearch, queryParams.of])
 
 	return (
 		<List
@@ -246,14 +241,10 @@ export const Search = memo(({ searchTerm, queryParams }: { searchTerm: string; q
 			keyboardDismissMode="none"
 			keyboardShouldPersistTaps="never"
 			refreshing={isLoading}
-			ListEmptyComponent={listEmpty}
-			ListFooterComponent={listFooter}
-			removeClippedSubviews={true}
-			initialNumToRender={initialNumToRender}
-			maxToRenderPerBatch={maxToRenderPerBatch}
-			updateCellsBatchingPeriod={100}
-			windowSize={3}
-			getItemLayout={getItemLayout}
+			ListEmptyComponent={ListEmptyComponent}
+			ListFooterComponent={ListFooterComponent}
+			viewabilityConfig={viewabilityConfig}
+			onViewableItemsChanged={onViewableItemsChanged}
 		/>
 	)
 })

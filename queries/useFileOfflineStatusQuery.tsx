@@ -6,6 +6,10 @@ import { DEFAULT_QUERY_OPTIONS } from "./client"
 import sqlite from "@/lib/sqlite"
 import * as FileSystem from "expo-file-system/next"
 import paths from "@/lib/paths"
+import alerts from "@/lib/alerts"
+import Semaphore from "@/lib/semaphore"
+
+export const offlineFilesSemaphore = new Semaphore(1)
 
 export type UseFileOfflineStatusQuery =
 	| {
@@ -15,6 +19,27 @@ export type UseFileOfflineStatusQuery =
 			exists: true
 			path: string
 	  }
+
+export async function fetchFileOfflineStatus(uuid: string): Promise<UseFileOfflineStatusQuery> {
+	await offlineFilesSemaphore.acquire()
+
+	try {
+		const item = await sqlite.offlineFiles.get(uuid)
+
+		if (!item) {
+			return {
+				exists: false
+			}
+		}
+
+		return {
+			exists: true,
+			path: FileSystem.Paths.join(paths.offlineFiles(), `${uuid}${FileSystem.Paths.extname(item.name)}`)
+		}
+	} finally {
+		offlineFilesSemaphore.release()
+	}
+}
 
 export default function useFileOfflineStatusQuery({
 	uuid,
@@ -36,26 +61,13 @@ export default function useFileOfflineStatusQuery({
 	const notifyOnChangeProps = useFocusNotifyOnChangeProps()
 	const query = useQuery({
 		queryKey: ["useFileOfflineStatusQuery", uuid],
-		queryFn: () =>
-			new Promise<UseFileOfflineStatusQuery>((resolve, reject) => {
-				sqlite.offlineFiles
-					.contains(uuid)
-					.then(exists => {
-						if (!exists) {
-							resolve({
-								exists: false
-							})
+		queryFn: () => fetchFileOfflineStatus(uuid),
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
 
-							return
-						}
-
-						resolve({
-							exists: true,
-							path: FileSystem.Paths.join(paths.offlineFiles(), uuid)
-						})
-					})
-					.catch(reject)
-			}),
+			return false
+		},
 		notifyOnChangeProps,
 		enabled: typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,

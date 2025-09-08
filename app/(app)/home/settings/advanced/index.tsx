@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo } from "react"
-import { Settings as SettingsComponent } from "@/components/settings"
+import { Settings as SettingsComponent, IconView } from "@/components/settings"
 import alerts from "@/lib/alerts"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { formatBytes } from "@/lib/utils"
@@ -9,8 +9,9 @@ import { useQuery } from "@tanstack/react-query"
 import paths from "@/lib/paths"
 import * as FileSystem from "expo-file-system/next"
 import sqlite from "@/lib/sqlite"
-import trackPlayerService from "@/lib/trackPlayer"
+import trackPlayer from "@/lib/trackPlayer"
 import { useTranslation } from "react-i18next"
+import TurboImage from "react-native-turbo-image"
 
 export const Advanced = memo(() => {
 	const { t } = useTranslation()
@@ -62,6 +63,12 @@ export const Advanced = memo(() => {
 				trackPlayerSize,
 				trackPlayerPicturesSize
 			}
+		},
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
 		}
 	})
 
@@ -95,6 +102,8 @@ export const Advanced = memo(() => {
 
 		try {
 			paths.clearTempDirectories()
+
+			await Promise.all([TurboImage.clearDiskCache(), TurboImage.clearMemoryCache()])
 
 			await refetch()
 		} catch (e) {
@@ -149,7 +158,7 @@ export const Advanced = memo(() => {
 
 		try {
 			paths.clearTrackPlayer()
-			trackPlayerService.clearState()
+			trackPlayer.clearState()
 
 			await refetch()
 		} catch (e) {
@@ -199,28 +208,52 @@ export const Advanced = memo(() => {
 				title: t("settings.advanced.items.clearCache"),
 				rightText: formatBytes(cacheSize),
 				subTitle: Platform.OS === "android" ? formatBytes(cacheSize) : undefined,
-				onPress: clearCache
+				onPress: clearCache,
+				leftView: (
+					<IconView
+						name="cog-outline"
+						className="bg-gray-500"
+					/>
+				)
 			},
 			{
 				id: "1",
 				title: t("settings.advanced.items.clearThumbnails"),
 				rightText: formatBytes(thumbnailsSize),
 				subTitle: Platform.OS === "android" ? formatBytes(thumbnailsSize) : undefined,
-				onPress: clearThumbnails
+				onPress: clearThumbnails,
+				leftView: (
+					<IconView
+						name="image-outline"
+						className="bg-gray-500"
+					/>
+				)
 			},
 			{
 				id: "2",
 				title: t("settings.advanced.items.clearTrackPlayer"),
 				rightText: formatBytes(trackPlayerSize),
 				subTitle: Platform.OS === "android" ? formatBytes(trackPlayerSize) : undefined,
-				onPress: clearTrackPlayer
+				onPress: clearTrackPlayer,
+				leftView: (
+					<IconView
+						name="music-note"
+						className="bg-gray-500"
+					/>
+				)
 			},
 			{
 				id: "3",
 				title: t("settings.advanced.items.clearOfflineFiles"),
 				rightText: formatBytes(offlineFilesSize),
 				subTitle: Platform.OS === "android" ? formatBytes(offlineFilesSize) : undefined,
-				onPress: clearOfflineFiles
+				onPress: clearOfflineFiles,
+				leftView: (
+					<IconView
+						name="folder-open"
+						className="bg-gray-500"
+					/>
+				)
 			}
 		]
 	}, [cacheSize, t, thumbnailsSize, trackPlayerSize, offlineFilesSize, clearCache, clearThumbnails, clearTrackPlayer, clearOfflineFiles])

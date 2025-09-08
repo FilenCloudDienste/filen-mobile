@@ -1,6 +1,6 @@
 import { useRouter, Stack } from "expo-router"
 import { useState, memo, useMemo, useCallback } from "react"
-import { Image, Platform, View } from "react-native"
+import { Platform, View } from "react-native"
 import { KeyboardAwareScrollView, KeyboardController, KeyboardStickyView } from "react-native-keyboard-controller"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import Container from "@/components/Container"
@@ -8,7 +8,6 @@ import { Button } from "@/components/nativewindui/Button"
 import { Form, FormItem, FormSection } from "@/components/nativewindui/Form"
 import { Text } from "@/components/nativewindui/Text"
 import { TextField } from "@/components/nativewindui/TextField"
-import { useColorScheme } from "@/lib/useColorScheme"
 import { ratePasswordStrength } from "@/lib/utils"
 import authService from "@/services/auth.service"
 import { cn } from "@/lib/cn"
@@ -16,6 +15,8 @@ import { Icon } from "@roninoss/icons"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
+import alerts from "@/lib/alerts"
+import { useColorScheme } from "@/lib/useColorScheme"
 
 function onSubmitEditing() {
 	KeyboardController.setFocusTo("next")
@@ -28,13 +29,13 @@ const keyboardAwareScrollViewBottomOffset = Platform.select({
 export const Register = memo(() => {
 	const insets = useSafeAreaInsets()
 	const [focusedTextField, setFocusedTextField] = useState<"email" | "password" | "confirmPassword" | "confirmEmail" | null>(null)
-	const { isDarkColorScheme, colors } = useColorScheme()
 	const [email, setEmail] = useState<string>("")
 	const [confirmEmail, setConfirmEmail] = useState<string>("")
 	const [password, setPassword] = useState<string>("")
 	const [confirmPassword, setConfirmPassword] = useState<string>("")
 	const router = useRouter()
 	const { t } = useTranslation()
+	const { colors } = useColorScheme()
 
 	const passwordStrength = useMemo(() => {
 		return ratePasswordStrength(password)
@@ -85,21 +86,29 @@ export const Register = memo(() => {
 		} catch (e) {
 			console.error(e)
 
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+
 			setFocusedTextField("email")
 			setConfirmEmail("")
 			setConfirmPassword("")
 			setPassword("")
-
-			if (e instanceof Error) {
-				console.error(e.message)
-			}
 		}
 	}, [email, password, router, disabled, confirmEmail, confirmPassword, t, passwordStrength.strength])
 
-	const resend = useCallback(() => {
+	const resend = useCallback(async () => {
 		KeyboardController.dismiss()
 
-		authService.resendConfirmation()
+		try {
+			await authService.resendConfirmation({})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
 	}, [])
 
 	const goBack = useCallback(() => {
@@ -203,10 +212,6 @@ export const Register = memo(() => {
 		register()
 	}, [focusedTextField, register])
 
-	const logoSource = useMemo(() => {
-		return isDarkColorScheme ? require("../../assets/images/logo_light.png") : require("../../assets/images/logo_dark.png")
-	}, [isDarkColorScheme])
-
 	const labels = useMemo(() => {
 		return {
 			email: Platform.select({
@@ -241,11 +246,6 @@ export const Register = memo(() => {
 				>
 					<View className="ios:px-12 flex-1 px-8">
 						<View className="items-center pb-1">
-							<Image
-								source={logoSource}
-								className="h-14 w-14"
-								resizeMode="contain"
-							/>
 							<Text
 								variant="title1"
 								className="ios:font-bold pb-1 pt-4 text-center"

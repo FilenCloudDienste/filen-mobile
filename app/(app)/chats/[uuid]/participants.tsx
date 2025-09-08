@@ -11,7 +11,7 @@ import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { selectContacts } from "@/app/selectContacts"
+import contactsService from "@/services/contacts.service"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import Menu from "@/components/chats/chat/participants/menu"
 import useChatsQuery from "@/queries/useChatsQuery"
@@ -20,14 +20,10 @@ import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import queryUtils from "@/queries/utils"
-import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
+import useNetInfo from "@/hooks/useNetInfo"
+import assets from "@/lib/assets"
 
 export type ListItemInfo = {
 	title: string
@@ -42,7 +38,7 @@ export const Participant = memo(({ info, chat }: { info: ListRenderItemInfo<List
 
 	const avatarSource = useMemo(() => {
 		return {
-			uri: info.item.participant.avatar?.startsWith("https") ? info.item.participant.avatar : "avatar_fallback"
+			uri: info.item.participant.avatar?.startsWith("https") ? info.item.participant.avatar : assets.uri.images.avatar_fallback()
 		}
 	}, [info.item.participant.avatar])
 
@@ -73,7 +69,8 @@ export const Participant = memo(({ info, chat }: { info: ListRenderItemInfo<List
 						size="icon"
 					>
 						<Icon
-							name="dots-horizontal"
+							namingScheme="sfSymbol"
+							name="ellipsis"
 							size={24}
 							color={colors.foreground}
 						/>
@@ -90,10 +87,15 @@ export const Participant = memo(({ info, chat }: { info: ListRenderItemInfo<List
 			participant={info.item.participant}
 		>
 			<ListItem
+				className="overflow-hidden"
+				subTitleClassName="text-xs pt-1 font-normal"
 				variant="full-width"
-				removeSeparator={Platform.OS === "android"}
-				isLastInSection={false}
+				textNumberOfLines={1}
+				subTitleNumberOfLines={1}
 				isFirstInSection={false}
+				isLastInSection={false}
+				removeSeparator={Platform.OS === "android"}
+				innerClassName="ios:py-3 py-3 android:py-3"
 				leftView={leftView}
 				rightView={rightView}
 				{...info}
@@ -109,8 +111,8 @@ export default function Participants() {
 	const { colors } = useColorScheme()
 	const [{ userId }] = useSDKConfig()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const chatUUIDParsed = useMemo((): string | null => {
 		try {
@@ -184,7 +186,7 @@ export default function Participants() {
 			return
 		}
 
-		const selectContactsResponse = await selectContacts({
+		const selectContactsResponse = await contactsService.selectContacts({
 			type: "all",
 			max: 9999
 		})
@@ -262,7 +264,7 @@ export default function Participants() {
 		)
 	}, [addParticipant, colors.primary])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		return (
 			<View className="h-16 flex-row items-center justify-center">
 				<Text className="text-sm">
@@ -290,28 +292,17 @@ export default function Participants() {
 	}, [chatsQuery])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
-
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
+	}, [refreshing, onRefresh, hasInternet])
 
 	if (!chat) {
 		return <Redirect href="/chats" />
@@ -332,14 +323,8 @@ export default function Participants() {
 					data={participants}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
-					ListFooterComponent={listFooter}
+					ListFooterComponent={ListFooterComponent}
 					refreshControl={refreshControl}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

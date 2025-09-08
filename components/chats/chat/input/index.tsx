@@ -4,22 +4,17 @@ import {
 	View,
 	TextInput,
 	Platform,
-	type LayoutChangeEvent,
 	type NativeSyntheticEvent,
 	type TextInputKeyPressEventData,
-	type ViewStyle,
 	type StyleProp,
 	type TextStyle
 } from "react-native"
 import useDimensions from "@/hooks/useDimensions"
 import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
-import { KeyboardStickyView } from "react-native-keyboard-controller"
 import { contactName, findClosestIndexString } from "@/lib/utils"
 import { Button } from "@/components/nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { BlurView } from "expo-blur"
-import { cn } from "@/lib/cn"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import Semaphore from "@/lib/semaphore"
@@ -31,15 +26,21 @@ import { useChatsStore } from "@/stores/chats.store"
 import useChatsLastFocusQuery from "@/queries/useChatsLastFocusQuery"
 import useChatUnreadQuery from "@/queries/useChatUnreadQuery"
 import useChatUnreadCountQuery from "@/queries/useChatUnreadCountQuery"
-import Container from "@/components/Container"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { customEmojis } from "../messages/customEmojis"
-import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-reanimated"
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 import { useShallow } from "zustand/shallow"
 import useIsProUser from "@/hooks/useIsProUser"
 import useNetInfo from "@/hooks/useNetInfo"
 import { useTranslation } from "react-i18next"
+import { useActionSheet } from "@expo/react-native-action-sheet"
+import chatsService from "@/services/chats.service"
+import useViewLayout from "@/hooks/useViewLayout"
+import ReplyTo from "./suggestions/replyTo"
+import Emojis from "./suggestions/emojis"
+import Typing from "../messages/typing"
+import Mention from "./suggestions/mention"
 
 export const Input = memo(
 	({ chat, setInputHeight }: { chat: ChatConversation; setInputHeight: React.Dispatch<React.SetStateAction<number>> }) => {
@@ -50,16 +51,7 @@ export const Input = memo(
 		const nextTypingEventDownTimestamp = useRef<number>(0)
 		const sendTypingEventMutex = useRef<Semaphore>(new Semaphore(1))
 		const [{ userId, email }] = useSDKConfig()
-		const sendMutex = useRef<Semaphore>(new Semaphore(1))
-		const setPendingMessages = useChatsStore(useShallow(state => state.setPendingMessages))
-		const setShowEmojis = useChatsStore(useShallow(state => state.setShowEmojis))
-		const setShowMention = useChatsStore(useShallow(state => state.setShowMention))
-		const setEmojisSuggestions = useChatsStore(useShallow(state => state.setEmojisSuggestions))
-		const setMentionSuggestions = useChatsStore(useShallow(state => state.setMentionSuggestions))
-		const setEmojisText = useChatsStore(useShallow(state => state.setEmojisText))
-		const setMentionText = useChatsStore(useShallow(state => state.setMentionText))
 		const replyToMessage = useChatsStore(useShallow(state => state.replyToMessage[chat.uuid] ?? null))
-		const setReplyToMessage = useChatsStore(useShallow(state => state.setReplyToMessage))
 		const didTriggerValueEffectOnMount = useRef<boolean>(false)
 		const showEmojis = useChatsStore(useShallow(state => state.showEmojis[chat.uuid] ?? false))
 		const showMention = useChatsStore(useShallow(state => state.showMention[chat.uuid] ?? false))
@@ -69,10 +61,12 @@ export const Input = memo(
 		const mentionSuggestions = useChatsStore(useShallow(state => state.mentionSuggestions[chat.uuid] ?? []))
 		const textInputRef = useRef<TextInput>(null)
 		const isProUser = useIsProUser()
-		const setEditMessage = useChatsStore(useShallow(state => state.setEditMessage))
 		const editMessage = useChatsStore(useShallow(state => state.editMessage[chat.uuid] ?? null))
 		const { hasInternet } = useNetInfo()
 		const { t } = useTranslation()
+		const { showActionSheetWithOptions } = useActionSheet()
+		const viewRef = useRef<View>(null)
+		const { layout, onLayout } = useViewLayout(viewRef)
 
 		const suggestionsOrReplyOrEditVisible = useMemo(() => {
 			return (
@@ -112,15 +106,6 @@ export const Input = memo(
 			return chatsLastFocusQuery.data
 		}, [chatsLastFocusQuery.data, chatsLastFocusQuery.status])
 
-		const onLayout = useCallback(
-			(e: LayoutChangeEvent) => {
-				const { height } = e.nativeEvent.layout
-
-				setInputHeight(height)
-			},
-			[setInputHeight]
-		)
-
 		const onChangeText = useCallback(
 			(text: string) => {
 				setValue(text)
@@ -128,7 +113,7 @@ export const Input = memo(
 				if (text.length === 0) {
 					resetSuggestions()
 
-					setEditMessage(prev => ({
+					useChatsStore.getState().setEditMessage(prev => ({
 						...prev,
 						[chat.uuid]: null
 					}))
@@ -160,17 +145,17 @@ export const Input = memo(
 				if (emojisOpen) {
 					const normalized = emojisSliced.slice(1).toLowerCase().trim()
 
-					setShowEmojis(prev => ({
+					useChatsStore.getState().setShowEmojis(prev => ({
 						...prev,
 						[chat.uuid]: true
 					}))
 
-					setEmojisText(prev => ({
+					useChatsStore.getState().setEmojisText(prev => ({
 						...prev,
 						[chat.uuid]: emojisSliced
 					}))
 
-					setEmojisSuggestions(prev => ({
+					useChatsStore.getState().setEmojisSuggestions(prev => ({
 						...prev,
 						[chat.uuid]: customEmojis.filter(emoji => emoji.name.toLowerCase().includes(normalized)).slice(0, 100)
 					}))
@@ -181,17 +166,17 @@ export const Input = memo(
 				if (mentionOpen) {
 					const normalized = mentionSliced.slice(1).toLowerCase().trim()
 
-					setShowMention(prev => ({
+					useChatsStore.getState().setShowMention(prev => ({
 						...prev,
 						[chat.uuid]: true
 					}))
 
-					setMentionText(prev => ({
+					useChatsStore.getState().setMentionText(prev => ({
 						...prev,
 						[chat.uuid]: mentionSliced
 					}))
 
-					setMentionSuggestions(prev => ({
+					useChatsStore.getState().setMentionSuggestions(prev => ({
 						...prev,
 						[chat.uuid]: chat.participants
 							.filter(participant => {
@@ -208,20 +193,134 @@ export const Input = memo(
 					return
 				}
 			},
-			[
-				chat.participants,
-				chat.uuid,
-				resetSuggestions,
-				setValue,
-				setShowEmojis,
-				setShowMention,
-				setEmojisSuggestions,
-				setMentionSuggestions,
-				setEmojisText,
-				setMentionText,
-				setEditMessage
-			]
+			[chat.participants, chat.uuid, resetSuggestions, setValue]
 		)
+
+		const actionSheetOptions = useMemo(() => {
+			const options = [
+				t("chats.input.attachment.options.addPhotos"),
+				t("chats.input.attachment.options.addMedia"),
+				t("chats.input.attachment.options.addFiles"),
+				t("chats.input.attachment.options.addDriveItems"),
+				t("chats.input.attachment.options.cancel")
+			]
+
+			return {
+				options,
+				cancelIndex: options.length - 1,
+				desctructiveIndex: options.length - 1,
+				indexToType: {
+					0: "addPhotos",
+					1: "addMedia",
+					2: "addFiles",
+					3: "addDriveItems"
+				} as Record<number, "addPhotos" | "addMedia" | "addFiles" | "addDriveItems">
+			}
+		}, [t])
+
+		const onPlus = useCallback(() => {
+			if (!isProUser || !hasInternet) {
+				return
+			}
+
+			showActionSheetWithOptions(
+				{
+					options: actionSheetOptions.options,
+					cancelButtonIndex: actionSheetOptions.cancelIndex,
+					destructiveButtonIndex: actionSheetOptions.desctructiveIndex,
+					...(Platform.OS === "android"
+						? {
+								containerStyle: {
+									paddingBottom: insets.bottom,
+									backgroundColor: colors.card
+								},
+								textStyle: {
+									color: colors.foreground
+								}
+						  }
+						: {})
+				},
+				async (selectedIndex?: number) => {
+					const type = actionSheetOptions.indexToType[selectedIndex ?? -1]
+
+					try {
+						switch (type) {
+							case "addFiles": {
+								const links = await chatsService.uploadFilesForAttachment({})
+
+								if (links.length === 0) {
+									return
+								}
+
+								const prevText = value ?? ""
+
+								onChangeText(`${prevText ? `${prevText}\n` : ""}${links.map(link => link.link).join("\n")}`)
+
+								break
+							}
+
+							case "addMedia": {
+								const links = await chatsService.uploadMediaForAttachment({})
+
+								if (links.length === 0) {
+									return
+								}
+
+								const prevText = value ?? ""
+
+								onChangeText(`${prevText ? `${prevText}\n` : ""}${links.map(link => link.link).join("\n")}`)
+
+								break
+							}
+
+							case "addPhotos": {
+								const links = await chatsService.createPhotosForAttachment({})
+
+								if (links.length === 0) {
+									return
+								}
+
+								const prevText = value ?? ""
+
+								onChangeText(`${prevText ? `${prevText}\n` : ""}${links.map(link => link.link).join("\n")}`)
+
+								break
+							}
+
+							case "addDriveItems": {
+								const links = await chatsService.selectDriveItemsForAttachment({})
+
+								if (links.length === 0) {
+									return
+								}
+
+								const prevText = value ?? ""
+
+								onChangeText(`${prevText ? `${prevText}\n` : ""}${links.map(link => link.link).join("\n")}`)
+
+								break
+							}
+						}
+					} catch (e) {
+						console.error(e)
+
+						if (e instanceof Error) {
+							alerts.error(e.message)
+						}
+					}
+				}
+			)
+		}, [
+			isProUser,
+			hasInternet,
+			showActionSheetWithOptions,
+			actionSheetOptions,
+			onChangeText,
+			colors.card,
+			colors.foreground,
+			value,
+			insets.bottom
+		])
 
 		const onTextInputPress = useCallback(() => {
 			if (!value || value.length === 0) {
@@ -286,21 +385,21 @@ export const Input = memo(
 
 			setValue("")
 			resetSuggestions()
-			setReplyToMessage(prev => ({
+
+			useChatsStore.getState().setReplyToMessage(prev => ({
 				...prev,
 				[chat.uuid]: null
 			}))
-			setEditMessage(prev => ({
+
+			useChatsStore.getState().setEditMessage(prev => ({
 				...prev,
 				[chat.uuid]: null
 			}))
 
 			const uuid = editMessageCopied ? editMessageCopied.uuid : randomUUID()
 
-			await sendMutex.current.acquire()
-
 			try {
-				setPendingMessages(prev => ({
+				useChatsStore.getState().setPendingMessages(prev => ({
 					...prev,
 					[uuid]: {
 						uuid,
@@ -408,20 +507,28 @@ export const Input = memo(
 						conversation: chat.uuid
 					}),
 					nodeWorker.proxy("updateChatsLastFocus", {
-						values: lastFocus.map(v =>
-							v.uuid === chat.uuid
-								? {
-										...v,
+						values: lastFocus.some(v => v.uuid === chat.uuid)
+							? lastFocus.map(v =>
+									v.uuid === chat.uuid
+										? {
+												...v,
+												lastFocus: lastFocusTimestamp
+										  }
+										: v
+							  )
+							: [
+									...lastFocus,
+									{
+										uuid: chat.uuid,
 										lastFocus: lastFocusTimestamp
-								  }
-								: v
-						)
+									}
+							  ]
 					}),
 					chatUnreadQuery.refetch(),
 					chatUnreadCountQuery.refetch()
 				])
 
-				setPendingMessages(prev => ({
+				useChatsStore.getState().setPendingMessages(prev => ({
 					...prev,
 					[uuid]: {
 						uuid,
@@ -435,7 +542,7 @@ export const Input = memo(
 					alerts.error(e.message)
 				}
 
-				setPendingMessages(prev => ({
+				useChatsStore.getState().setPendingMessages(prev => ({
 					...prev,
 					[uuid]: {
 						uuid,
@@ -443,39 +550,24 @@ export const Input = memo(
 					}
 				}))
 			} finally {
-				sendMutex.current.release()
+				setValue("")
 			}
 		}, [
 			value,
 			chat.uuid,
 			replyToMessage,
-			setReplyToMessage,
 			sendTypingEvent,
 			userId,
 			accountQuery.status,
 			email,
 			accountQuery.data,
-			setPendingMessages,
 			lastFocus,
 			chatUnreadQuery,
 			chatUnreadCountQuery,
 			setValue,
-			setEditMessage,
 			editMessage,
 			resetSuggestions
 		])
-
-		const keyboardStickyViewOffset = useMemo(() => {
-			return {
-				opened: insets.bottom
-			}
-		}, [insets.bottom])
-
-		const blurViewStyle = useMemo(() => {
-			return {
-				paddingBottom: insets.bottom
-			}
-		}, [insets.bottom])
 
 		const textInputStyle = useMemo(() => {
 			return {
@@ -483,14 +575,6 @@ export const Input = memo(
 				borderCurve: "continuous"
 			} satisfies StyleProp<TextStyle>
 		}, [screen.height])
-
-		const viewStyle = useMemo(() => {
-			return {
-				bottom: 18,
-				right: 24,
-				position: "absolute"
-			} satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
-		}, [])
 
 		const textValue = useMemo(() => {
 			return value ?? ""
@@ -520,74 +604,90 @@ export const Input = memo(
 			onChangeText(value)
 		}, [value, onChangeText])
 
+		useEffect(() => {
+			setInputHeight(layout.height)
+		}, [layout.height, setInputHeight])
+
 		return (
-			<KeyboardStickyView offset={keyboardStickyViewOffset}>
-				<BlurView
-					onLayout={onLayout}
-					className={cn(
-						"flex-1 absolute bottom-0 flex-row",
-						(Platform.OS === "android" || suggestionsOrReplyOrEditVisible) && "bg-card"
-					)}
-					intensity={Platform.OS === "ios" && !suggestionsOrReplyOrEditVisible ? 100 : 0}
-					tint={Platform.OS === "ios" && !suggestionsOrReplyOrEditVisible ? "systemChromeMaterial" : undefined}
-					style={blurViewStyle}
+			<View
+				ref={viewRef}
+				className="shrink-0"
+				onLayout={onLayout}
+			>
+				<View
+					className="z-10"
+					style={{
+						bottom: layout.height,
+						flex: 1,
+						position: "absolute",
+						right: 0,
+						left: 0,
+						width: "100%",
+						height: "auto"
+					}}
 				>
-					<Container>
-						<View className="flex-col flex-1">
-							<View className="flex-1 flex-row items-end gap-0 px-4 py-3">
-								{isProUser && hasInternet && (
-									<Button
-										size="icon"
-										variant="plain"
-									>
-										<Icon
-											name="plus"
-											size={24}
-											color={colors.foreground}
-										/>
-									</Button>
-								)}
-								<TextInput
-									ref={textInputRef}
-									value={textValue}
-									onChangeText={onChangeText}
-									onPress={onTextInputPress}
-									placeholder={t("chats.input.placeholder")}
-									multiline={true}
-									scrollEnabled={true}
-									autoFocus={false}
-									readOnly={!hasInternet}
-									keyboardType="default"
-									returnKeyType="default"
-									className="ios:pt-[8px] ios:pb-2 border-border bg-card text-foreground min-h-10 flex-1 rounded-[18px] border py-1 pl-3 pr-12 text-base leading-5"
-									placeholderTextColor={colors.grey2}
-									onKeyPress={onKeyPress}
-									style={textInputStyle}
-								/>
-								<Animated.View
-									entering={FadeIn}
-									exiting={FadeOut}
-									style={viewStyle}
-								>
-									<Button
-										size="icon"
-										className="ios:rounded-full rounded-full h-7 w-7"
-										disabled={disabled}
-										onPress={send}
-										hitSlop={15}
-									>
-										<Icon
-											name="arrow-up"
-											size={18}
-											color="white"
-										/>
-									</Button>
-								</Animated.View>
-							</View>
-						</View>
-					</Container>
-				</BlurView>
-			</KeyboardStickyView>
+					<Emojis chat={chat} />
+					<Typing chat={chat} />
+					<Mention chat={chat} />
+					<ReplyTo chat={chat} />
+				</View>
+				<View className="flex-row items-end gap-2 px-4 py-3 bg-card z-50">
+					{isProUser && hasInternet && (
+						<Button
+							size="icon"
+							variant="plain"
+							onPress={onPlus}
+							className="pb-0.5"
+						>
+							<Icon
+								name="plus"
+								size={24}
+								color={colors.foreground}
+							/>
+						</Button>
+					)}
+					<TextInput
+						ref={textInputRef}
+						value={textValue}
+						onChangeText={onChangeText}
+						onPress={onTextInputPress}
+						placeholder={t("chats.input.placeholder")}
+						multiline={true}
+						scrollEnabled={true}
+						autoFocus={false}
+						readOnly={!hasInternet}
+						keyboardType="default"
+						returnKeyType="default"
+						className="ios:pt-[8px] ios:pb-2 border-border bg-card text-foreground min-h-10 flex-1 rounded-[18px] border py-1 pl-3 pr-12 text-base leading-5"
+						placeholderTextColor={colors.grey2}
+						onKeyPress={onKeyPress}
+						style={textInputStyle}
+					/>
+					<Animated.View
+						entering={FadeIn}
+						exiting={FadeOut}
+						style={{
+							bottom: 18,
+							right: 24,
+							position: "absolute"
+						}}
+					>
+						<Button
+							size="icon"
+							className="ios:rounded-full rounded-full h-7 w-7"
+							disabled={disabled}
+							onPress={send}
+							hitSlop={15}
+						>
+							<Icon
+								name="arrow-up"
+								size={18}
+								color="white"
+							/>
+						</Button>
+					</Animated.View>
+				</View>
+			</View>
 		)
 	}
 )

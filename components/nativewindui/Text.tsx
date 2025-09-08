@@ -2,10 +2,9 @@ import { VariantProps, cva } from "class-variance-authority"
 import { cssInterop } from "nativewind"
 import { useContext, createContext, memo } from "react"
 import { cn } from "@/lib/cn"
-import { NativeText } from "react-native-boost/runtime"
-import { type Text as RNTextType } from "react-native"
+import { Text as RNText } from "react-native"
 
-cssInterop(NativeText, {
+cssInterop(RNText, {
 	className: "style"
 })
 
@@ -40,11 +39,11 @@ export const textVariants = cva("text-foreground", {
 export const TextClassContext = createContext<string | undefined>(undefined)
 
 export const Text = memo(
-	({ className, variant, color, ...props }: React.ComponentPropsWithoutRef<typeof RNTextType> & VariantProps<typeof textVariants>) => {
+	({ className, variant, color, ...props }: React.ComponentPropsWithoutRef<typeof RNText> & VariantProps<typeof textVariants>) => {
 		const textClassName = useContext(TextClassContext)
 
 		return (
-			<NativeText
+			<RNText
 				className={cn(
 					textVariants({
 						variant,

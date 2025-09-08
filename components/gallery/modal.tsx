@@ -1,15 +1,23 @@
-import GalleryComponent from "@/components/gallery"
-import { useEffect, useMemo, memo, useRef } from "react"
-import { BackHandler, type StyleProp, type ViewStyle } from "react-native"
-import { useGalleryStore } from "@/stores/gallery.store"
-import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-reanimated"
+import { useEffect, memo, useCallback, useMemo } from "react"
+import { BackHandler, View, Pressable, type StyleProp, type ViewStyle, FlatList } from "react-native"
+import { useGalleryStore, type GalleryItem } from "@/stores/gallery.store"
 import { useShallow } from "zustand/shallow"
-import { Portal } from "@rn-primitives/portal"
-import * as ScreenOrientation from "expo-screen-orientation"
-import Semaphore from "@/lib/semaphore"
 import { KeyboardController } from "react-native-keyboard-controller"
+import { GestureViewer, useGestureViewerEvent, type GestureViewerProps } from "react-native-gesture-image-viewer"
+import Image from "./previews/image"
+import Video from "./previews/video"
+import Audio from "./previews/audio"
+import useDimensions from "@/hooks/useDimensions"
+import Header from "./header"
+import { useTranslation } from "react-i18next"
+import { Text } from "../nativewindui/Text"
+import { Portal } from "@rn-primitives/portal"
+import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-reanimated"
+import { ActivityIndicator } from "../nativewindui/ActivityIndicator"
+import { useColorScheme } from "@/lib/useColorScheme"
+import { cn } from "@/lib/cn"
 
-const animatedStyle = {
+export const animatedStyle = {
 	flex: 1,
 	backgroundColor: "transparent",
 	position: "absolute",
@@ -19,77 +27,184 @@ const animatedStyle = {
 	bottom: 0
 } satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
 
+export const Item = memo(({ item, index }: { item: GalleryItem; index: number }) => {
+	const { t } = useTranslation()
+	const { colors, isDarkColorScheme } = useColorScheme()
+	const currentVisibleIndex = useGalleryStore(useShallow(state => state.currentVisibleIndex))
+	const { screen } = useDimensions()
+
+	const visible = useMemo(() => {
+		return (currentVisibleIndex ?? -1) === index
+	}, [currentVisibleIndex, index])
+
+	const layout = useMemo(() => {
+		return {
+			width: screen.width,
+			height: screen.height
+		}
+	}, [screen.width, screen.height])
+
+	const onPress = useCallback(() => {
+		if (item.previewType !== "image") {
+			return
+		}
+
+		useGalleryStore.getState().setShowHeader(prev => !prev)
+	}, [item.previewType])
+
+	const onLongPress = useCallback(() => {
+		if (item.previewType !== "image") {
+			return
+		}
+
+		useGalleryStore.getState().setShowHeader(false)
+	}, [item.previewType])
+
+	return (
+		<Animated.View
+			className="flex-1 flex-row items-center justify-center overflow-hidden"
+			entering={FadeIn}
+			exiting={FadeOut}
+		>
+			<Pressable
+				className="flex-1"
+				onPress={onPress}
+				onLongPress={onLongPress}
+			>
+				{!visible ? (
+					<Animated.View
+						exiting={FadeOut}
+						className={cn(
+							"flex-1 items-center justify-center",
+							item.previewType === "image" || item.previewType === "video"
+								? isDarkColorScheme
+									? "bg-black"
+									: "bg-white"
+								: "bg-background"
+						)}
+						style={layout}
+					>
+						<ActivityIndicator
+							color={colors.foreground}
+							size="small"
+						/>
+					</Animated.View>
+				) : item.previewType === "image" ? (
+					<Image
+						layout={layout}
+						item={item}
+					/>
+				) : item.previewType === "video" ? (
+					<Video
+						layout={layout}
+						item={item}
+					/>
+				) : item.previewType === "audio" ? (
+					<Audio
+						layout={layout}
+						item={item}
+					/>
+				) : item.previewType === "unknown" ? (
+					<View
+						className="flex-1 flex-row items-center justify-center"
+						style={layout}
+					>
+						<Text className="text-white">{t("gallery.noPreviewAvailable")}</Text>
+					</View>
+				) : (
+					<View
+						className="flex-1 flex-row items-center justify-center"
+						style={layout}
+					>
+						<Text className="text-white">{t("gallery.noPreviewAvailable")}</Text>
+					</View>
+				)}
+			</Pressable>
+		</Animated.View>
+	)
+})
+
+Item.displayName = "Item"
+
 export const GalleryModal = memo(() => {
 	const visible = useGalleryStore(useShallow(state => state.visible))
 	const items = useGalleryStore(useShallow(state => state.items))
-	const initialUUID = useGalleryStore(useShallow(state => state.initialUUID))
-	const setCurrentVisibleIndex = useGalleryStore(useShallow(state => state.setCurrentVisibleIndex))
-	const beforeOrientationRef = useRef<ScreenOrientation.OrientationLock | null>(null)
-	const orientationMutex = useRef<Semaphore>(new Semaphore(1))
+	const { screen } = useDimensions()
+	const initialIndex = useGalleryStore(useShallow(state => state.initialIndex))
 
-	const initialScrollIndex = useMemo((): number => {
-		if (!visible || items.length === 0) {
-			return 0
+	const layout = useMemo(() => {
+		return {
+			width: screen.width,
+			height: screen.height
+		}
+	}, [screen.width, screen.height])
+
+	const renderItem = useCallback((item: GalleryItem, index: number) => {
+		return (
+			<Item
+				item={item}
+				index={index}
+			/>
+		)
+	}, [])
+
+	const keyExtractor = useCallback((item: GalleryItem) => {
+		return item.itemType === "cloudItem" ? item.data.item.uuid : item.data.uri
+	}, [])
+
+	const validatedInitialScrollIndex = useMemo(() => {
+		if (!initialIndex) {
+			return undefined
 		}
 
-		const uuid = typeof initialUUID === "string" ? initialUUID : ""
-		const foundIndex = items.findIndex(item => {
-			if (item.itemType === "cloudItem" && item.data.item.uuid === uuid) {
-				return true
-			}
+		return items.at(initialIndex) ? initialIndex : undefined
+	}, [items, initialIndex])
 
-			if (item.itemType === "cloudItem" && item.data.item.uuid === uuid) {
-				return true
-			}
+	const getItemLayout = useCallback(
+		(_: unknown, index: number) => ({
+			length: layout.width,
+			offset: layout.width * index,
+			index
+		}),
+		[layout.width]
+	)
 
-			if (item.itemType === "remoteItem" && item.data.uri === uuid) {
-				return true
-			}
+	const onIndexChange = useCallback((index: number) => {
+		useGalleryStore.getState().setCurrentVisibleIndex(index)
+	}, [])
 
-			return false
-		})
-		const index = foundIndex === -1 ? 0 : foundIndex
+	const listProps = useMemo(() => {
+		return {
+			keyExtractor: keyExtractor as (item: unknown) => string,
+			windowSize: 3,
+			initialNumToRender: 3,
+			updateCellsBatchingPeriod: 100,
+			showsVerticalScrollIndicator: false,
+			showsHorizontalScrollIndicator: false,
+			maxToRenderPerBatch: 3,
+			getItemLayout,
+			removeClippedSubviews: false,
+			initialScrollIndex: validatedInitialScrollIndex
+		} satisfies GestureViewerProps<GalleryItem, typeof FlatList>["listProps"]
+	}, [keyExtractor, getItemLayout, validatedInitialScrollIndex])
 
-		return index
-	}, [items, initialUUID, visible])
+	const onDismiss = useCallback(() => {
+		useGalleryStore.getState().reset()
+	}, [])
+
+	const onDismissStart = useCallback(() => {
+		useGalleryStore.getState().setShowHeader(false)
+	}, [])
+
+	useGestureViewerEvent("zoomChange", ({ scale }) => {
+		useGalleryStore.getState().setShowHeader(scale <= 1)
+	})
 
 	useEffect(() => {
-		if (visible && initialScrollIndex >= 0 && items.length > 0) {
-			setCurrentVisibleIndex(initialScrollIndex)
-
-			if (KeyboardController.isVisible()) {
-				KeyboardController.dismiss().catch(console.error)
-			}
+		if (visible && items.length > 0 && KeyboardController.isVisible()) {
+			KeyboardController.dismiss().catch(console.error)
 		}
-	}, [visible, initialScrollIndex, items.length, setCurrentVisibleIndex])
-
-	useEffect(() => {
-		;(async () => {
-			await orientationMutex.current.acquire()
-
-			try {
-				if (visible) {
-					beforeOrientationRef.current = await ScreenOrientation.getOrientationLockAsync()
-
-					await ScreenOrientation.unlockAsync()
-
-					return
-				}
-
-				if (!beforeOrientationRef.current) {
-					return
-				}
-
-				await ScreenOrientation.lockAsync(beforeOrientationRef.current)
-
-				beforeOrientationRef.current = null
-			} catch (e) {
-				console.error(e)
-			} finally {
-				orientationMutex.current.release()
-			}
-		})()
-	}, [visible])
+	}, [visible, items.length])
 
 	useEffect(() => {
 		const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
@@ -113,18 +228,31 @@ export const GalleryModal = memo(() => {
 
 	return (
 		<Portal name="gallery-modal">
+			<Header />
 			<Animated.View
+				className="flex-1"
 				entering={FadeIn}
 				exiting={FadeOut}
 				style={animatedStyle}
 			>
-				<GalleryComponent
-					initialScrollIndex={initialScrollIndex}
-					panEnabled={true}
-					pinchEnabled={true}
-					doubleTapEnabled={true}
-					swipeToCloseEnabled={true}
-					items={items}
+				<GestureViewer
+					data={items}
+					width={screen.width}
+					enableLoop={false}
+					dismissThreshold={150}
+					enableDismissGesture={true}
+					enableDoubleTapGesture={true}
+					enableSwipeGesture={true}
+					enableZoomGesture={true}
+					enableZoomPanGesture={true}
+					onIndexChange={onIndexChange}
+					maxZoomScale={3}
+					renderItem={renderItem}
+					ListComponent={FlatList}
+					initialIndex={validatedInitialScrollIndex}
+					listProps={listProps}
+					onDismiss={onDismiss}
+					onDismissStart={onDismissStart}
 				/>
 			</Animated.View>
 		</Portal>

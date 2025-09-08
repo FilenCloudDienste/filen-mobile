@@ -6,36 +6,8 @@ import RNQuickCrypto from "react-native-quick-crypto"
 import { URL, URLSearchParams } from "react-native-url-polyfill"
 // @ts-expect-error Polyfills
 import { TextDecoder, TextEncoder } from "text-encoding"
-
 import "web-streams-polyfill/polyfill"
-
-if (!__DEV__) {
-	globalThis.console = {
-		...globalThis.console,
-		log: () => {},
-		info: () => {},
-		warn: () => {},
-		error: () => {},
-		debug: () => {},
-		trace: () => {},
-		group: () => {},
-		groupCollapsed: () => {},
-		groupEnd: () => {},
-		time: () => {},
-		timeEnd: () => {},
-		timeLog: () => {},
-		assert: () => {},
-		clear: () => {},
-		count: () => {},
-		countReset: () => {},
-		table: () => {},
-		dir: () => {},
-		dirxml: () => {},
-		profile: () => {},
-		profileEnd: () => {},
-		timeStamp: () => {}
-	}
-}
+import { Readable } from "stream"
 
 // @ts-expect-error For the TS SDK
 global.IS_EXPO_REACT_NATIVE = true
@@ -139,4 +111,56 @@ globalThis.crypto = {
 	// @ts-expect-error Polyfills
 	randomUUID: RNQuickCrypto.randomUUID,
 	randomBytes: RNQuickCrypto.randomBytes
+}
+
+// @ts-expect-error We need to manually polyfill this, stream-browserify doesn't do it for us
+Readable.fromWeb = function <T = Uint8Array>(webStream: ReadableStream<T>): Readable {
+	if (!(webStream instanceof ReadableStream)) {
+		throw new TypeError("Expected a ReadableStream")
+	}
+
+	const reader: ReadableStreamDefaultReader<T> = webStream.getReader()
+	let reading: boolean = false
+
+	return new Readable({
+		async read(): Promise<void> {
+			if (reading) {
+				return
+			}
+
+			reading = true
+
+			try {
+				const result: ReadableStreamReadResult<T> = await reader.read()
+
+				reading = false
+
+				if (result.done) {
+					this.push(null)
+				} else {
+					// Handle different types of data
+					if (result.value instanceof Uint8Array) {
+						this.push(Buffer.from(result.value))
+					} else if (typeof result.value === "string") {
+						this.push(Buffer.from(result.value, "utf8"))
+					} else {
+						// For other types, try to convert to string then buffer
+						this.push(Buffer.from(String(result.value), "utf8"))
+					}
+				}
+			} catch (error: unknown) {
+				reading = false
+
+				this.destroy(error instanceof Error ? error : new Error(String(error)))
+			}
+		},
+		destroy(error: Error | null, callback: (error?: Error | null) => void): void {
+			reader
+				.cancel()
+				.then(() => callback(error))
+				.catch((cancelError: unknown) => {
+					callback(error || (cancelError instanceof Error ? cancelError : new Error(String(cancelError))))
+				})
+		}
+	})
 }

@@ -12,6 +12,12 @@ export const SCREEN_OPTIONS = {
 		headerBlurEffect: "systemChromeMaterial",
 		presentation: "modal",
 		animation: "slide_from_bottom"
+	},
+	fullscreenModal: {
+		headerShown: false,
+		headerBlurEffect: "systemChromeMaterial",
+		presentation: "fullScreenModal",
+		animation: "slide_from_bottom"
 	}
 } satisfies Record<string, NonNullable<React.ComponentPropsWithoutRef<typeof Stack.Screen>["options"]>>
 
@@ -43,7 +49,6 @@ export const UNCACHED_QUERY_KEYS: string[] = [
 	"useTextEditorItemContentQuery",
 	"useItemToPathQuery",
 	"useItemPublicLinkStatusQuery",
-	"useFileBufferQuery",
 	"useFileBase64Query"
 ]
 
@@ -83,8 +88,14 @@ export const EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS = Platform.select({
 
 export const EXPO_IMAGE_SUPPORTED_EXTENSIONS = Platform.select({
 	ios: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".heic", ".heif", ".webp", ".svg"],
-	android: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg"],
+	android: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg", ".heic", ".heif"],
 	default: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg"]
+}) as string[]
+
+export const TURBO_IMAGE_SUPPORTED_EXTENSIONS = Platform.select({
+	ios: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".heic", ".heif"],
+	android: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".heic", ".heif"],
+	default: [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"]
 }) as string[]
 
 export const REACT_NATIVE_AUDIO_PRO_SUPPORTED_EXTENSIONS = Platform.select({

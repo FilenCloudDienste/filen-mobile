@@ -96,7 +96,8 @@ const TextEditor = memo(
 				extensions={extensions}
 				theme={theme}
 				style={{
-					width: "100vw"
+					width: "100vw",
+					paddingBottom: "500px"
 				}}
 			/>
 		)

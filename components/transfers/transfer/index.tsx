@@ -21,11 +21,6 @@ export type ListItemInfo = {
 
 export const ICON_HEIGHT: number = 42
 
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
-
 export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const { colors } = useColorScheme()
 	const { showActionSheetWithOptions } = useActionSheet()
@@ -66,12 +61,12 @@ export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo>
 				const progressNormalized = normalizeTransferProgress(info.item.transfer.size, info.item.transfer.bytes)
 
 				try {
-					if (buttonIndex === 0 && progressNormalized <= 95) {
+					if (buttonIndex === 0 && progressNormalized <= 99) {
 						await nodeWorker.proxy("transferAction", {
 							action: info.item.transfer.state === "paused" ? "resume" : "pause",
 							id: info.item.transfer.id
 						})
-					} else if (buttonIndex === 1 && progressNormalized <= 95) {
+					} else if (buttonIndex === 1 && progressNormalized <= 99) {
 						await nodeWorker.proxy("transferAction", {
 							action: "stop",
 							id: info.item.transfer.id
@@ -174,7 +169,7 @@ export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo>
 			isFirstInSection={false}
 			isLastInSection={false}
 			removeSeparator={Platform.OS === "android"}
-			innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+			innerClassName="ios:py-3 py-3 android:py-3"
 			leftView={leftView}
 			rightView={rightView}
 		/>

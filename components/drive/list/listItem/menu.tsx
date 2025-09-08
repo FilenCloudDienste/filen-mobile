@@ -1,4 +1,4 @@
-import { memo, useMemo, useCallback } from "react"
+import { memo, useMemo, useCallback, Fragment } from "react"
 import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextSubMenu, createContextItem } from "@/components/nativewindui/ContextMenu/utils"
 import { type ContextItem, type ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
@@ -6,40 +6,20 @@ import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { useTranslation } from "react-i18next"
 import { useRouter, usePathname } from "expo-router"
 import useDimensions from "@/hooks/useDimensions"
-import queryUtils from "@/queries/utils"
-import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
-import * as FileSystemLegacy from "expo-file-system"
-import * as Sharing from "expo-sharing"
-import paths from "@/lib/paths"
-import * as FileSystem from "expo-file-system/next"
-import * as Clipboard from "expo-clipboard"
-import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
-import { validate as validateUUID } from "uuid"
-import { alertPrompt } from "@/components/prompts/alertPrompt"
-import { getPreviewType, promiseAllChunked, sanitizeFileName, normalizeFilePathForExpo } from "@/lib/utils"
+import { getPreviewType } from "@/lib/utils"
 import { useDriveStore } from "@/stores/drive.store"
-import { randomUUID } from "expo-crypto"
-import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { Platform, View } from "react-native"
 import useIsProUser from "@/hooks/useIsProUser"
-import { type FileMetadata, type FolderMetadata } from "@filen/sdk"
-import { colorPicker } from "@/components/sheets/colorPickerSheet"
-import { DEFAULT_DIRECTORY_COLOR } from "@/assets/fileIcons"
-import { itemInfo } from "@/components/sheets/itemInfoSheet"
-import { selectContacts } from "@/app/selectContacts"
-import { selectDriveItems } from "@/app/selectDriveItems/[parent]"
-import ReactNativeBlobUtil from "react-native-blob-util"
-import sqlite from "@/lib/sqlite"
-import * as MediaLibrary from "expo-media-library"
-import { Image } from "expo-image"
-import { FETCH_CLOUD_ITEMS_POSSIBLE_OF } from "@/queries/useCloudItemsQuery"
-import { fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatusQuery"
-import { useGalleryStore } from "@/stores/gallery.store"
+import TurboImage from "react-native-turbo-image"
 import events from "@/lib/events"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
+import driveService from "@/services/drive.service"
+import { useShallow } from "zustand/shallow"
+import { usePhotosStore } from "@/stores/photos.store"
+import assets from "@/lib/assets"
 
 export const Menu = memo(
 	({
@@ -49,7 +29,8 @@ export const Menu = memo(
 		fromPreview,
 		queryParams,
 		fromPhotos,
-		fromSearch
+		fromSearch,
+		fromHome
 	}: {
 		item: DriveCloudItem
 		type: "context" | "dropdown"
@@ -58,6 +39,7 @@ export const Menu = memo(
 		queryParams: FetchCloudItemsParams
 		fromPhotos?: boolean
 		fromSearch?: boolean
+		fromHome?: boolean
 	}) => {
 		const { t } = useTranslation()
 		const router = useRouter()
@@ -66,6 +48,8 @@ export const Menu = memo(
 		const pathname = usePathname()
 		const { colors } = useColorScheme()
 		const { hasInternet } = useNetInfo()
+		const isSelectedDrive = useDriveStore(useShallow(state => state.selectedItems.some(i => i.uuid === item.uuid)))
+		const isSelectedPhotos = usePhotosStore(useShallow(state => state.selectedItems.some(i => i.uuid === item.uuid)))
 
 		const fileOfflineStatus = useFileOfflineStatusQuery({
 			uuid: item.uuid,
@@ -76,15 +60,20 @@ export const Menu = memo(
 			return item.type === "file" && fileOfflineStatus.status === "success" ? fileOfflineStatus.data : null
 		}, [item.type, fileOfflineStatus.status, fileOfflineStatus.data])
 
+		const isUndecryptable = useMemo(() => {
+			const nameNormalized = item.name.toLowerCase().trim()
+
+			return nameNormalized.startsWith("cannot_decrypt_") && nameNormalized.endsWith(`_${item.uuid}`)
+		}, [item.name, item.uuid])
+
 		const menuItems = useMemo(() => {
 			const items: (ContextItem | ContextSubMenu)[] = []
-			const isValidParentUUID = validateUUID(queryParams.parent)
 
-			if ((isValidParentUUID || queryParams.of === "drive") && !fromPreview && !fromPhotos && !fromSearch) {
+			if (!fromPreview && !fromSearch && !fromHome && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "select",
-						title: t("drive.list.item.menu.select"),
+						title: isSelectedDrive || isSelectedPhotos ? t("drive.list.item.menu.deselect") : t("drive.list.item.menu.select"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -99,7 +88,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (item.type === "directory" && queryParams.of !== "trash" && !fromPreview) {
+			if (item.type === "directory" && queryParams.of !== "trash" && !fromPreview && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "openDirectory",
@@ -118,7 +107,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (Platform.OS === "ios" ? item.type === "file" && item.size > 0 : item.size > 0) {
+			if ((Platform.OS === "ios" ? item.type === "file" && item.size > 0 : item.size > 0) && !isUndecryptable) {
 				items.push(
 					createContextSubMenu(
 						{
@@ -179,7 +168,7 @@ export const Menu = memo(
 							...(item.type === "file" && queryParams.of !== "offline" && (hasInternet || offlineStatus?.exists)
 								? [
 										createContextItem({
-											actionKey: "toggleOffline",
+											actionKey: offlineStatus?.exists ? "removeOffline" : "makeOffline",
 											title: t("drive.list.item.menu.availableOffline"),
 											state: {
 												checked: offlineStatus?.exists ?? false
@@ -202,7 +191,13 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			if (
+				queryParams.of !== "sharedIn" &&
+				queryParams.of !== "offline" &&
+				queryParams.of !== "trash" &&
+				hasInternet &&
+				!isUndecryptable
+			) {
 				if (isProUser && (item.type === "directory" || item.size > 0)) {
 					items.push(
 						createContextSubMenu(
@@ -262,11 +257,17 @@ export const Menu = memo(
 				}
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			if (
+				queryParams.of !== "sharedIn" &&
+				queryParams.of !== "offline" &&
+				queryParams.of !== "trash" &&
+				hasInternet &&
+				!isUndecryptable
+			) {
 				items.push(
 					createContextItem({
 						actionKey: item.favorited ? "unfavorite" : "favorite",
-						title: t("notes.menu.favorited"),
+						title: t("drive.list.item.menu.favorite"),
 						state: {
 							checked: item.favorited
 						},
@@ -284,7 +285,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			if (queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet && !isUndecryptable) {
 				if (item.type === "directory") {
 					items.push(
 						createContextItem({
@@ -368,7 +369,8 @@ export const Menu = memo(
 				queryParams.of !== "sharedIn" &&
 				queryParams.of !== "offline" &&
 				queryParams.of !== "trash" &&
-				hasInternet
+				hasInternet &&
+				!isUndecryptable
 			) {
 				items.push(
 					createContextItem({
@@ -388,7 +390,13 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			if (
+				queryParams.of !== "sharedIn" &&
+				queryParams.of !== "offline" &&
+				queryParams.of !== "trash" &&
+				hasInternet &&
+				!isUndecryptable
+			) {
 				items.push(
 					createContextItem({
 						actionKey: "rename",
@@ -407,7 +415,13 @@ export const Menu = memo(
 				)
 			}
 
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			if (
+				queryParams.of !== "sharedIn" &&
+				queryParams.of !== "offline" &&
+				queryParams.of !== "trash" &&
+				hasInternet &&
+				!isUndecryptable
+			) {
 				items.push(
 					createContextItem({
 						actionKey: "move",
@@ -425,29 +439,6 @@ export const Menu = memo(
 					})
 				)
 			}
-
-			/*items.push(
-				createContextSubMenu(
-					{
-						title: t("drive.list.item.menu.clipboard"),
-						iOSItemSize: "large"
-					},
-					[
-						...(queryParams.of !== "offline"
-							? [
-									createContextItem({
-										actionKey: "copyPath",
-										title: t("drive.list.item.menu.location")
-									})
-							  ]
-							: []),
-						createContextItem({
-							actionKey: "copyId",
-							title: t("drive.list.item.menu.id")
-						})
-					]
-				)
-			)*/
 
 			if (queryParams.of === "sharedOut" && hasInternet) {
 				items.push(
@@ -537,7 +528,7 @@ export const Menu = memo(
 				}
 			}
 
-			if (queryParams.of === "offline" && offlineStatus?.exists) {
+			if (queryParams.of === "offline") {
 				items.push(
 					createContextItem({
 						actionKey: "removeOffline",
@@ -560,22 +551,24 @@ export const Menu = memo(
 			}
 
 			if (queryParams.of === "trash" && hasInternet) {
-				items.push(
-					createContextItem({
-						actionKey: "restore",
-						title: t("drive.list.item.menu.restore"),
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "repeat"
-								  }
-								: {
-										namingScheme: "material",
-										name: "repeat"
-								  }
-					})
-				)
+				if (!isUndecryptable) {
+					items.push(
+						createContextItem({
+							actionKey: "restore",
+							title: t("drive.list.item.menu.restore"),
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "repeat"
+									  }
+									: {
+											namingScheme: "material",
+											name: "repeat"
+									  }
+						})
+					)
+				}
 
 				items.push(
 					createContextItem({
@@ -599,9 +592,35 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [offlineStatus, item, queryParams, t, isProUser, fromPreview, fromPhotos, fromSearch, colors.destructive, hasInternet])
+		}, [
+			offlineStatus,
+			item,
+			queryParams,
+			t,
+			isProUser,
+			fromPreview,
+			fromSearch,
+			colors.destructive,
+			hasInternet,
+			isSelectedDrive,
+			isSelectedPhotos,
+			fromHome,
+			isUndecryptable
+		])
 
 		const select = useCallback(() => {
+			if (fromPhotos) {
+				const isSelected = usePhotosStore.getState().selectedItems.some(i => i.uuid === item.uuid)
+
+				usePhotosStore
+					.getState()
+					.setSelectedItems(prev =>
+						isSelected ? prev.filter(i => i.uuid !== item.uuid) : [...prev.filter(i => i.uuid !== item.uuid), item]
+					)
+
+				return
+			}
+
 			const isSelected = useDriveStore.getState().selectedItems.some(i => i.uuid === item.uuid)
 
 			useDriveStore
@@ -609,7 +628,7 @@ export const Menu = memo(
 				.setSelectedItems(prev =>
 					isSelected ? prev.filter(i => i.uuid !== item.uuid) : [...prev.filter(i => i.uuid !== item.uuid), item]
 				)
-		}, [item])
+		}, [item, fromPhotos])
 
 		const openDirectory = useCallback(() => {
 			if (item.type !== "directory") {
@@ -628,559 +647,6 @@ export const Menu = memo(
 			})
 		}, [item.uuid, item.type, router])
 
-		const copyId = useCallback(async () => {
-			await Clipboard.setStringAsync(item.uuid)
-
-			alerts.normal(t("copiedToClipboard"))
-		}, [item.uuid, t])
-
-		const copyPath = useCallback(async () => {
-			fullScreenLoadingModal.show()
-
-			try {
-				const path =
-					item.type === "directory"
-						? await nodeWorker.proxy("directoryUUIDToPath", {
-								uuid: item.uuid
-						  })
-						: await nodeWorker.proxy("fileUUIDToPath", {
-								uuid: item.uuid
-						  })
-
-				await Clipboard.setStringAsync(path)
-
-				alerts.normal(t("copiedToClipboard"))
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-		}, [item.uuid, item.type, t])
-
-		const rename = useCallback(async () => {
-			const itemNameParsed = FileSystem.Paths.parse(item.name)
-			const itemName = item.type === "file" && item.name.includes(".") ? itemNameParsed?.name ?? item.name : item.name
-			const itemExt = item.type === "file" && item.name.includes(".") ? itemNameParsed?.ext ?? "" : ""
-
-			const inputPromptResponse = await inputPrompt({
-				title: t("drive.prompts.renameItem.title"),
-				materialIcon: {
-					name: "pencil"
-				},
-				prompt: {
-					type: "plain-text",
-					keyboardType: "default",
-					defaultValue: itemName,
-					placeholder: t("drive.prompts.renameItem.placeholder")
-				}
-			})
-
-			if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
-				return
-			}
-
-			const newName = `${inputPromptResponse.text.trim()}${itemExt}`
-
-			if (!newName || newName.length === 0) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				if (item.type === "directory") {
-					await nodeWorker.proxy("renameDirectory", {
-						uuid: item.uuid,
-						name: newName
-					})
-				} else {
-					await nodeWorker.proxy("renameFile", {
-						uuid: item.uuid,
-						name: newName,
-						metadata: {
-							name: newName,
-							size: item.size,
-							mime: item.mime,
-							lastModified: item.lastModified,
-							hash: item.hash,
-							creation: item.creation,
-							key: item.key
-						} satisfies FileMetadata
-					})
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-
-			queryUtils.useCloudItemsQuerySet({
-				...queryParams,
-				updater: prev =>
-					prev.map(prevItem =>
-						prevItem.uuid === item.uuid
-							? {
-									...prevItem,
-									name: newName
-							  }
-							: prevItem
-					)
-			})
-
-			// Update home screen queries aswell
-			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
-				queryUtils.useCloudItemsQuerySet({
-					of: ofValue as FetchCloudItemsParams["of"],
-					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
-					receiverId: 0,
-					updater: prev =>
-						prev.map(prevItem =>
-							prevItem.uuid === item.uuid
-								? {
-										...prevItem,
-										name: newName
-								  }
-								: prevItem
-						)
-				})
-			}
-
-			// Update gallery store aswell
-			useGalleryStore.getState().setItems(prev =>
-				prev.map(prevItem =>
-					prevItem.itemType === "cloudItem" && prevItem.data.item.uuid === item.uuid
-						? {
-								...prevItem,
-								data: {
-									...prevItem.data,
-									item: {
-										...prevItem.data.item,
-										name: newName
-									}
-								}
-						  }
-						: prevItem
-				)
-			)
-		}, [item, queryParams, t])
-
-		const color = useCallback(async () => {
-			if (item.type !== "directory") {
-				return
-			}
-
-			const colorPickerResponse = await colorPicker({
-				currentColor: item.color ?? DEFAULT_DIRECTORY_COLOR
-			})
-
-			if (colorPickerResponse.cancelled) {
-				return
-			}
-
-			const newColor = colorPickerResponse.color.trim().toLowerCase()
-
-			if (!newColor || newColor.length === 0 || newColor === item.color?.toLowerCase()) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("changeDirectoryColor", {
-					uuid: item.uuid,
-					color: newColor
-				})
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-
-			queryUtils.useCloudItemsQuerySet({
-				...queryParams,
-				updater: prev =>
-					prev.map(prevItem =>
-						prevItem.uuid === item.uuid
-							? {
-									...prevItem,
-									color: newColor
-							  }
-							: prevItem
-					)
-			})
-
-			// Update home screen queries aswell
-			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
-				queryUtils.useCloudItemsQuerySet({
-					of: ofValue as FetchCloudItemsParams["of"],
-					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
-					receiverId: 0,
-					updater: prev =>
-						prev.map(prevItem =>
-							prevItem.uuid === item.uuid
-								? {
-										...prevItem,
-										color: newColor
-								  }
-								: prevItem
-						)
-				})
-			}
-		}, [item, queryParams])
-
-		const info = useCallback(() => {
-			itemInfo(item)
-		}, [item])
-
-		const favorite = useCallback(
-			async (favorite: boolean) => {
-				fullScreenLoadingModal.show()
-
-				try {
-					if (item.type === "directory") {
-						await nodeWorker.proxy("favoriteDirectory", {
-							uuid: item.uuid,
-							favorite
-						})
-					} else {
-						await nodeWorker.proxy("favoriteFile", {
-							uuid: item.uuid,
-							favorite
-						})
-					}
-				} finally {
-					fullScreenLoadingModal.hide()
-				}
-
-				if (queryParams.of === "favorites" && !favorite) {
-					queryUtils.useCloudItemsQuerySet({
-						...queryParams,
-						updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-					})
-				}
-
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
-					updater: prev =>
-						prev.map(prevItem =>
-							prevItem.uuid === item.uuid
-								? {
-										...prevItem,
-										favorited: favorite
-								  }
-								: prevItem
-						)
-				})
-
-				// Update favorites home screen, add if not already there, otherwise remove it
-				if (favorite) {
-					queryUtils.useCloudItemsQuerySet({
-						of: "favorites",
-						parent: "favorites",
-						receiverId: 0,
-						updater: prev => [...prev.filter(prevItem => prevItem.uuid !== item.uuid), item]
-					})
-				} else {
-					queryUtils.useCloudItemsQuerySet({
-						of: "favorites",
-						parent: "favorites",
-						receiverId: 0,
-						updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-					})
-				}
-
-				// Update home screen queries aswell
-				for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
-					queryUtils.useCloudItemsQuerySet({
-						of: ofValue as FetchCloudItemsParams["of"],
-						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
-						receiverId: 0,
-						updater: prev =>
-							prev.map(prevItem =>
-								prevItem.uuid === item.uuid
-									? {
-											...prevItem,
-											favorited: favorite
-									  }
-									: prevItem
-							)
-					})
-				}
-
-				// Update gallery store aswell
-				useGalleryStore.getState().setItems(prev =>
-					prev.map(prevItem =>
-						prevItem.itemType === "cloudItem" && prevItem.data.item.uuid === item.uuid
-							? {
-									...prevItem,
-									data: {
-										...prevItem.data,
-										item: {
-											...prevItem.data.item,
-											favorited: favorite
-										}
-									}
-							  }
-							: prevItem
-					)
-				)
-			},
-			[item, queryParams]
-		)
-
-		const share = useCallback(async () => {
-			const selectContactsResponse = await selectContacts({
-				type: "all",
-				max: 9999
-			})
-
-			if (selectContactsResponse.cancelled) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await promiseAllChunked(
-					selectContactsResponse.contacts.map(contact =>
-						nodeWorker.proxy("shareItems", {
-							files:
-								item.type === "file"
-									? [
-											{
-												uuid: item.uuid,
-												parent: item.parent,
-												metadata: {
-													name: item.name,
-													size: item.size,
-													mime: item.mime,
-													lastModified: item.lastModified,
-													hash: item.hash,
-													creation: item.creation,
-													key: item.key
-												}
-											}
-									  ]
-									: [],
-							directories:
-								item.type === "directory"
-									? [
-											{
-												uuid: item.uuid,
-												parent: item.parent,
-												metadata: {
-													name: item.name
-												}
-											}
-									  ]
-									: [],
-							email: contact.email
-						})
-					)
-				)
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-
-			alerts.normal(
-				t("drive.itemShared", {
-					name: item.name
-				})
-			)
-		}, [item, t])
-
-		const exportItem = useCallback(async () => {
-			if (item.type !== "file" || !(await Sharing.isAvailableAsync())) {
-				return
-			}
-
-			const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
-
-			if (freeDiskSpace <= item.size + 1024 * 1024) {
-				throw new Error(t("errors.notEnoughDiskSpace"))
-			}
-
-			fullScreenLoadingModal.show()
-
-			const tempLocation = new FileSystem.File(FileSystem.Paths.join(paths.exports(), sanitizeFileName(item.name)))
-
-			try {
-				if (tempLocation.exists) {
-					tempLocation.delete()
-				}
-
-				if (offlineStatus?.exists) {
-					const offlineFile = new FileSystem.File(offlineStatus.path)
-
-					if (!offlineFile.exists) {
-						throw new Error("Offline file does not exist.")
-					}
-
-					offlineFile.copy(tempLocation)
-				} else {
-					await nodeWorker.proxy("downloadFile", {
-						id: randomUUID(),
-						uuid: item.uuid,
-						bucket: item.bucket,
-						region: item.region,
-						chunks: item.chunks,
-						version: item.version,
-						key: item.key,
-						destination: tempLocation.uri,
-						size: item.size,
-						name: item.name,
-						dontEmitProgress: true
-					})
-				}
-
-				await new Promise<void>(resolve => setTimeout(resolve, 250))
-
-				await Sharing.shareAsync(tempLocation.uri, {
-					mimeType: item.mime,
-					dialogTitle: item.name
-				})
-			} finally {
-				fullScreenLoadingModal.hide()
-
-				if (tempLocation.exists) {
-					tempLocation.delete()
-				}
-			}
-		}, [item, offlineStatus, t])
-
-		const trash = useCallback(async () => {
-			const alertPromptResponse = await alertPrompt({
-				title: t("drive.prompts.trashItem.title"),
-				message: t("drive.prompts.trashItem.message")
-			})
-
-			if (alertPromptResponse.cancelled) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				if (item.type === "directory") {
-					await nodeWorker.proxy("trashDirectory", {
-						uuid: item.uuid
-					})
-				} else {
-					await nodeWorker.proxy("trashFile", {
-						uuid: item.uuid
-					})
-				}
-
-				// Close gallery modal if item is currently being previewed
-				if (fromPreview) {
-					useGalleryStore.getState().reset()
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-
-			queryUtils.useCloudItemsQuerySet({
-				...queryParams,
-				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-			})
-
-			// Update home screen queries aswell
-			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
-				queryUtils.useCloudItemsQuerySet({
-					of: ofValue as FetchCloudItemsParams["of"],
-					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
-					receiverId: 0,
-					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-				})
-			}
-		}, [item, queryParams, fromPreview, t])
-
-		const move = useCallback(async () => {
-			const selectDriveItemsResponse = await selectDriveItems({
-				type: "directory",
-				max: 1,
-				dismissHref: pathname,
-				toMove: [item.uuid]
-			})
-
-			if (selectDriveItemsResponse.cancelled || selectDriveItemsResponse.items.length !== 1) {
-				return
-			}
-
-			const parent = selectDriveItemsResponse.items.at(0)?.uuid
-
-			if (!parent) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				if (item.type === "directory") {
-					await nodeWorker.proxy("moveDirectory", {
-						uuid: item.uuid,
-						to: parent,
-						metadata: {
-							name: item.name
-						} satisfies FolderMetadata
-					})
-				} else {
-					await nodeWorker.proxy("moveFile", {
-						uuid: item.uuid,
-						to: parent,
-						metadata: {
-							name: item.name,
-							size: item.size,
-							mime: item.mime,
-							lastModified: item.lastModified,
-							hash: item.hash,
-							creation: item.creation,
-							key: item.key
-						} satisfies FileMetadata
-					})
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-
-			if (item.parent === queryParams.parent) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
-					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-				})
-			}
-
-			// Update home screen queries aswell
-			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
-				queryUtils.useCloudItemsQuerySet({
-					of: ofValue as FetchCloudItemsParams["of"],
-					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
-					receiverId: 0,
-					updater: prev =>
-						prev.map(prevItem =>
-							prevItem.uuid === item.uuid
-								? {
-										...prevItem,
-										parent
-								  }
-								: prevItem
-						)
-				})
-			}
-
-			// Update gallery store aswell
-			useGalleryStore.getState().setItems(prev =>
-				prev.map(prevItem =>
-					prevItem.itemType === "cloudItem" && prevItem.data.item.uuid === item.uuid
-						? {
-								...prevItem,
-								data: {
-									...prevItem.data,
-									item: {
-										...prevItem.data.item,
-										parent
-									}
-								}
-						  }
-						: prevItem
-				)
-			)
-		}, [item, queryParams, pathname])
-
 		const publicLink = useCallback(() => {
 			router.push({
 				pathname: "/editPublicLink",
@@ -1189,288 +655,6 @@ export const Menu = memo(
 				}
 			})
 		}, [router, item])
-
-		const download = useCallback(async () => {
-			if (Platform.OS !== "android") {
-				throw new Error("Direct downloads are only available on Android.")
-			}
-
-			if (item.type === "directory") {
-				const tmpDir = new FileSystem.Directory(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID()))
-
-				fullScreenLoadingModal.show()
-
-				try {
-					if (!tmpDir.exists) {
-						tmpDir.create()
-					}
-
-					const size = Object.entries(
-						await nodeWorker.proxy("getDirectoryTree", {
-							uuid: item.uuid,
-							type: "normal"
-						})
-					).reduce((acc, [_, value]) => acc + value.size, 0)
-
-					const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
-
-					if (freeDiskSpace <= size + 1024 * 1024) {
-						throw new Error(t("errors.notEnoughDiskSpace"))
-					}
-
-					fullScreenLoadingModal.hide()
-
-					await nodeWorker.proxy("downloadDirectory", {
-						uuid: item.uuid,
-						destination: tmpDir.uri,
-						size,
-						name: item.name,
-						id: randomUUID()
-					})
-
-					const files: {
-						name: string
-						path: string
-						mime: string
-					}[] = []
-
-					const readDir = async (uri: string) => {
-						const dir = new FileSystem.Directory(uri)
-
-						if (!dir.exists) {
-							return
-						}
-
-						const entries = dir.listAsRecords()
-
-						await promiseAllChunked(
-							entries.map(async entry => {
-								if (entry.isDirectory) {
-									await readDir(entry.uri)
-
-									return
-								}
-
-								const file = new FileSystem.File(entry.uri)
-
-								if (!file.exists) {
-									return
-								}
-
-								files.push({
-									name: file.name,
-									path: entry.uri,
-									mime: file.type ?? "application/octet-stream"
-								})
-							})
-						)
-					}
-
-					await readDir(tmpDir.uri)
-
-					if (files.length === 0) {
-						return
-					}
-
-					await promiseAllChunked(
-						files
-							.sort((a, b) => a.path.split("/").length - b.path.split("/").length)
-							.map(async file => {
-								await ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
-									{
-										name: file.name,
-										parentFolder: FileSystem.Paths.join(
-											"Filen",
-											item.name,
-											FileSystem.Paths.dirname(file.path.replace(tmpDir.uri.replace("file://", ""), ""))
-										),
-										mimeType: file.mime
-									},
-									"Download",
-									file.path
-								)
-							})
-					)
-				} finally {
-					if (tmpDir.exists) {
-						tmpDir.delete()
-					}
-
-					fullScreenLoadingModal.hide()
-				}
-			} else {
-				const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
-
-				if (freeDiskSpace <= item.size + 1024 * 1024) {
-					throw new Error(t("errors.notEnoughDiskSpace"))
-				}
-
-				const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID()))
-
-				fullScreenLoadingModal.show()
-
-				try {
-					await nodeWorker.proxy("downloadFile", {
-						id: randomUUID(),
-						uuid: item.uuid,
-						bucket: item.bucket,
-						region: item.region,
-						chunks: item.chunks,
-						version: item.version,
-						key: item.key,
-						destination: tmpFile.uri,
-						size: item.size,
-						name: item.name
-					})
-
-					await ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
-						{
-							name: item.name,
-							parentFolder: "Filen",
-							mimeType: item.mime
-						},
-						"Download",
-						tmpFile.uri
-					)
-				} finally {
-					if (tmpFile.exists) {
-						tmpFile.delete()
-					}
-
-					fullScreenLoadingModal.hide()
-				}
-			}
-		}, [item, t])
-
-		const makeAvailableOffline = useCallback(async () => {
-			if (item.type !== "file") {
-				return
-			}
-
-			if (await sqlite.offlineFiles.contains(item.uuid)) {
-				return
-			}
-
-			const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
-
-			if (freeDiskSpace <= item.size + 1024 * 1024) {
-				throw new Error(t("errors.notEnoughDiskSpace"))
-			}
-
-			const offlineFileDestination = new FileSystem.File(FileSystem.Paths.join(paths.offlineFiles(), item.uuid))
-
-			await nodeWorker.proxy("downloadFile", {
-				id: randomUUID(),
-				uuid: item.uuid,
-				bucket: item.bucket,
-				region: item.region,
-				chunks: item.chunks,
-				version: item.version,
-				key: item.key,
-				destination: offlineFileDestination.uri,
-				size: item.size,
-				name: item.name,
-				dontEmitProgress: false
-			})
-
-			await sqlite.offlineFiles.add(item)
-
-			queryUtils.useFileOfflineStatusQuerySet({
-				uuid: item.uuid,
-				updater: () => ({
-					exists: true,
-					path: offlineFileDestination.uri
-				})
-			})
-
-			// Update home screen queries aswell
-			queryUtils.useCloudItemsQuerySet({
-				of: "offline",
-				parent: "offline",
-				receiverId: 0,
-				updater: prev => [...prev.filter(prevItem => prevItem.uuid !== item.uuid), item]
-			})
-		}, [item, t])
-
-		const removeOffline = useCallback(async () => {
-			if (item.type !== "file") {
-				return
-			}
-
-			const offlineFile = new FileSystem.File(FileSystem.Paths.join(paths.offlineFiles(), item.uuid))
-
-			if (offlineFile.exists) {
-				offlineFile.delete()
-			}
-
-			await sqlite.offlineFiles.remove(item)
-
-			queryUtils.useFileOfflineStatusQuerySet({
-				uuid: item.uuid,
-				updater: () => ({
-					exists: false
-				})
-			})
-		}, [item])
-
-		const saveToGallery = useCallback(async () => {
-			if (item.type !== "file") {
-				return
-			}
-
-			const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
-
-			if (freeDiskSpace <= item.size + 1024 * 1024) {
-				throw new Error(t("errors.notEnoughDiskSpace"))
-			}
-
-			const permissions = await MediaLibrary.requestPermissionsAsync(false)
-
-			if (!permissions.granted) {
-				return
-			}
-
-			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID(), item.name))
-
-			fullScreenLoadingModal.show()
-
-			try {
-				if (!tmpFile.parentDirectory.exists) {
-					tmpFile.parentDirectory.create()
-				}
-
-				if (offlineStatus?.exists) {
-					const offlineFile = new FileSystem.File(offlineStatus.path)
-
-					if (!offlineFile.exists) {
-						throw new Error("Offline file does not exist.")
-					}
-
-					offlineFile.copy(tmpFile)
-				} else {
-					await nodeWorker.proxy("downloadFile", {
-						id: randomUUID(),
-						uuid: item.uuid,
-						bucket: item.bucket,
-						region: item.region,
-						chunks: item.chunks,
-						version: item.version,
-						key: item.key,
-						destination: tmpFile.uri,
-						size: item.size,
-						name: item.name
-					})
-				}
-
-				await MediaLibrary.saveToLibraryAsync(normalizeFilePathForExpo(tmpFile.uri))
-			} finally {
-				if (tmpFile.parentDirectory.exists) {
-					tmpFile.parentDirectory.delete()
-				}
-
-				fullScreenLoadingModal.hide()
-			}
-		}, [item, offlineStatus, t])
 
 		const versionHistory = useCallback(() => {
 			router.push({
@@ -1481,175 +665,10 @@ export const Menu = memo(
 			})
 		}, [item, router])
 
-		const removeSharedIn = useCallback(async () => {
-			if (!item.isShared) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("removeSharedItem", {
-					uuid: item.uuid
-				})
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-
-			queryUtils.useCloudItemsQuerySet({
-				...queryParams,
-				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-			})
-
-			// Update home screen queries aswell
-			queryUtils.useCloudItemsQuerySet({
-				of: "sharedIn",
-				parent: "sharedIn",
-				receiverId: 0,
-				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-			})
-		}, [item, queryParams])
-
-		const removeSharedOut = useCallback(async () => {
-			if (!item.isShared) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("stopSharingItem", {
-					uuid: item.uuid,
-					receiverId: item.receiverId
-				})
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-
-			queryUtils.useCloudItemsQuerySet({
-				...queryParams,
-				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-			})
-
-			// Update home screen queries aswell
-			queryUtils.useCloudItemsQuerySet({
-				of: "sharedOut",
-				parent: "sharedOut",
-				receiverId: 0,
-				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-			})
-		}, [item, queryParams])
-
-		const deletePermanently = useCallback(async () => {
-			const alertPromptResponse = await alertPrompt({
-				title: t("drive.prompts.deletePermanently.title"),
-				message: t("drive.prompts.deletePermanently.message")
-			})
-
-			if (alertPromptResponse.cancelled) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				if (item.type === "directory") {
-					await nodeWorker.proxy("deleteDirectory", {
-						uuid: item.uuid
-					})
-				} else {
-					await nodeWorker.proxy("deleteFile", {
-						uuid: item.uuid
-					})
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-
-			queryUtils.useCloudItemsQuerySet({
-				...queryParams,
-				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-			})
-
-			// Update home screen queries aswell
-			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
-				queryUtils.useCloudItemsQuerySet({
-					of: ofValue as FetchCloudItemsParams["of"],
-					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
-					receiverId: 0,
-					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-				})
-			}
-		}, [item, queryParams, t])
-
-		const restore = useCallback(async () => {
-			fullScreenLoadingModal.show()
-
-			try {
-				if (item.type === "directory") {
-					await nodeWorker.proxy("restoreDirectory", {
-						uuid: item.uuid
-					})
-				} else {
-					await nodeWorker.proxy("restoreFile", {
-						uuid: item.uuid
-					})
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-
-			queryUtils.useCloudItemsQuerySet({
-				...queryParams,
-				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-			})
-
-			// Update home screen queries aswell
-			queryUtils.useCloudItemsQuerySet({
-				of: "trash",
-				parent: "trash",
-				receiverId: 0,
-				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-			})
-		}, [item, queryParams])
-
-		const disablePublicLink = useCallback(async () => {
-			fullScreenLoadingModal.show()
-
-			try {
-				const status = await fetchItemPublicLinkStatus(item)
-
-				if (!status.enabled) {
-					return
-				}
-
-				await nodeWorker.proxy("toggleItemPublicLink", {
-					item,
-					enable: false,
-					linkUUID: status.uuid
-				})
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-
-			queryUtils.useCloudItemsQuerySet({
-				...queryParams,
-				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-			})
-
-			// Update home screen queries aswell
-			queryUtils.useCloudItemsQuerySet({
-				of: "links",
-				parent: "links",
-				receiverId: 0,
-				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
-			})
-		}, [item, queryParams])
-
 		const onItemPress = useCallback(
-			async (item: Omit<ContextItem, "icon">, _?: boolean) => {
+			async (contextItem: Omit<ContextItem, "icon">, _?: boolean) => {
 				try {
-					switch (item.actionKey) {
+					switch (contextItem.actionKey) {
 						case "select": {
 							select()
 
@@ -1663,67 +682,95 @@ export const Menu = memo(
 						}
 
 						case "copyId": {
-							await copyId()
+							await driveService.copyItemUUID({
+								item
+							})
 
 							break
 						}
 
 						case "copyPath": {
-							await copyPath()
+							await driveService.copyItemPath({
+								item
+							})
 
 							break
 						}
 
 						case "rename": {
-							await rename()
+							await driveService.renameItem({
+								item,
+								queryParams
+							})
 
 							break
 						}
 
 						case "color": {
-							await color()
+							await driveService.changeDirectoryColor({
+								item,
+								queryParams
+							})
 
 							break
 						}
 
 						case "info": {
-							info()
+							await driveService.showItemInfo(item)
 
 							break
 						}
 
 						case "favorite": {
-							await favorite(true)
+							await driveService.toggleItemFavorite({
+								item,
+								queryParams
+							})
 
 							break
 						}
 
 						case "unfavorite": {
-							await favorite(false)
+							await driveService.toggleItemFavorite({
+								item,
+								queryParams
+							})
 
 							break
 						}
 
 						case "share": {
-							await share()
+							await driveService.shareItem({
+								item
+							})
 
 							break
 						}
 
 						case "export": {
-							await exportItem()
+							await driveService.exportItem({
+								item
+							})
 
 							break
 						}
 
 						case "trash": {
-							await trash()
+							await driveService.trashItem({
+								item,
+								queryParams,
+								fromPreview
+							})
 
 							break
 						}
 
 						case "move": {
-							await move()
+							await driveService.moveItem({
+								item,
+								queryParams,
+								dismissHref: pathname
+							})
 
 							break
 						}
@@ -1735,23 +782,37 @@ export const Menu = memo(
 						}
 
 						case "download": {
-							await download()
+							await driveService.downloadItem({
+								item,
+								disableLoader: true
+							})
 
 							break
 						}
 
-						case "toggleOffline": {
-							if (offlineStatus?.exists) {
-								await removeOffline()
-							} else {
-								await makeAvailableOffline()
-							}
+						case "makeOffline": {
+							await driveService.toggleItemOffline({
+								item,
+								disableLoader: true,
+								offline: true
+							})
+
+							break
+						}
+
+						case "removeOffline": {
+							await driveService.toggleItemOffline({
+								item,
+								offline: false
+							})
 
 							break
 						}
 
 						case "saveToGallery": {
-							await saveToGallery()
+							await driveService.saveItemToGallery({
+								item
+							})
 
 							break
 						}
@@ -1763,31 +824,46 @@ export const Menu = memo(
 						}
 
 						case "removeSharedIn": {
-							await removeSharedIn()
+							await driveService.removeItemSharedIn({
+								item,
+								queryParams
+							})
 
 							break
 						}
 
 						case "removeSharedOut": {
-							await removeSharedOut()
+							await driveService.removeItemSharedOut({
+								item,
+								queryParams
+							})
 
 							break
 						}
 
 						case "deletePermanently": {
-							await deletePermanently()
+							await driveService.deleteItemPermanently({
+								item,
+								queryParams
+							})
 
 							break
 						}
 
 						case "restore": {
-							await restore()
+							await driveService.restoreItem({
+								item,
+								queryParams
+							})
 
 							break
 						}
 
 						case "disablePublicLink": {
-							await disablePublicLink()
+							await driveService.disableItemPublicLink({
+								item,
+								queryParams
+							})
 
 							break
 						}
@@ -1800,35 +876,14 @@ export const Menu = memo(
 					}
 				}
 			},
-			[
-				select,
-				openDirectory,
-				copyId,
-				copyPath,
-				rename,
-				color,
-				info,
-				favorite,
-				share,
-				exportItem,
-				trash,
-				move,
-				publicLink,
-				download,
-				makeAvailableOffline,
-				removeOffline,
-				saveToGallery,
-				versionHistory,
-				removeSharedIn,
-				removeSharedOut,
-				deletePermanently,
-				restore,
-				disablePublicLink,
-				offlineStatus
-			]
+			[select, openDirectory, item, queryParams, fromPreview, pathname, publicLink, versionHistory]
 		)
 
 		const iosRenderPreview = useCallback(() => {
+			if (!item.thumbnail) {
+				return <Fragment />
+			}
+
 			return (
 				<View
 					className="flex-row items-center justify-center bg-background"
@@ -1837,24 +892,23 @@ export const Menu = memo(
 						height: Math.floor(screen.height / 3)
 					}}
 				>
-					<Image
+					<TurboImage
 						className="rounded-lg"
 						source={{
 							uri: item.thumbnail
 						}}
-						contentFit="contain"
+						resizeMode="contain"
 						style={{
 							width: "100%",
 							height: "100%"
+						}}
+						placeholder={{
+							blurhash: assets.blurhash.images.fallback
 						}}
 					/>
 				</View>
 			)
 		}, [item.thumbnail, screen])
-
-		const renderPreview = useMemo(() => {
-			return !fromPreview && item.thumbnail && (isPortrait || isTablet) && hasInternet ? iosRenderPreview : undefined
-		}, [fromPreview, item.thumbnail, isPortrait, isTablet, hasInternet, iosRenderPreview])
 
 		const contextKey = useMemo(() => {
 			return hasInternet ? `${isPortrait}:${isTablet}` : undefined
@@ -1870,7 +924,11 @@ export const Menu = memo(
 					items={menuItems}
 					onItemPress={onItemPress}
 					key={contextKey}
-					iosRenderPreview={renderPreview}
+					iosRenderPreview={
+						!fromPreview && item.type === "file" && item.thumbnail && (isPortrait || isTablet) && hasInternet
+							? iosRenderPreview
+							: undefined
+					}
 				>
 					{children}
 				</ContextMenu>

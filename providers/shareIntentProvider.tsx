@@ -28,15 +28,19 @@ export const ShareIntentProvider = memo(({ children }: { children: React.ReactNo
 	const isAuthed = useIsAuthed()
 
 	const onResetShareIntent = useCallback(() => {
-		if (pathname.startsWith("/shareIntent") && isAuthed) {
-			if (canGoBack()) {
-				back()
-			} else {
-				replace({
-					pathname: "/(app)/home"
-				})
-			}
+		if (!pathname.startsWith("/shareIntent")) {
+			return
 		}
+
+		if (isAuthed && canGoBack()) {
+			back()
+
+			return
+		}
+
+		replace({
+			pathname: "/"
+		})
 	}, [pathname, canGoBack, back, replace, isAuthed])
 
 	return (

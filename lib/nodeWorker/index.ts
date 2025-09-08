@@ -149,7 +149,6 @@ export class NodeWorker {
 		return `http://127.0.0.1:${this.httpServerPort}/stream?auth=${this.httpAuthToken}&file=${encodeURIComponent(
 			btoa(
 				JSON.stringify({
-					name: file.name,
 					mime: file.mime,
 					size: file.size,
 					uuid: file.uuid,

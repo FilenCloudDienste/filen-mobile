@@ -9,6 +9,7 @@ import { getCameraUploadState } from "@/hooks/useCameraUpload"
 import { validate as validateUUID } from "uuid"
 import cache from "@/lib/cache"
 import useNetInfo from "@/hooks/useNetInfo"
+import alerts from "@/lib/alerts"
 
 export const FETCH_CLOUD_ITEMS_POSSIBLE_OF: string[] = [
 	"drive",
@@ -96,6 +97,12 @@ export default function useCloudItemsQuery({
 			}
 
 			return items
+		},
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
 		},
 		notifyOnChangeProps,
 		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,

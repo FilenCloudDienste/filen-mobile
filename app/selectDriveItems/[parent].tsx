@@ -1,12 +1,11 @@
-import { randomUUID } from "expo-crypto"
-import { useCallback, useState, useMemo, useEffect } from "react"
+import { useCallback, useState, useMemo, useEffect, useRef } from "react"
 import events from "@/lib/events"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
-import { RefreshControl, View, Platform } from "react-native"
+import { RefreshControl, View, Platform, type ViewabilityConfig } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { useLocalSearchParams, useRouter } from "expo-router"
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router"
 import Container from "@/components/Container"
 import { useSelectDriveItemsStore } from "@/stores/selectDriveItems.store"
 import { simpleDate, formatBytes, orderItemsByType } from "@/lib/utils"
@@ -14,15 +13,17 @@ import useSDKConfig from "@/hooks/useSDKConfig"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import cache from "@/lib/cache"
-import Item, { LIST_ITEM_HEIGHT } from "@/components/selectDriveItems/item"
+import Item from "@/components/selectDriveItems/item"
 import { Button } from "@/components/nativewindui/Button"
 import { useShallow } from "zustand/shallow"
 import { type PreviewType } from "@/stores/gallery.store"
-import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
+import useNetInfo from "@/hooks/useNetInfo"
+import { type ViewToken, type FlashListRef } from "@shopify/flash-list"
+import { useDriveStore } from "@/stores/drive.store"
 
 export type ListItemInfo = {
 	title: string
@@ -31,71 +32,17 @@ export type ListItemInfo = {
 	item: DriveCloudItem
 }
 
-export type SelectDriveItemsResponse =
-	| {
-			cancelled: false
-			items: DriveCloudItem[]
-	  }
-	| {
-			cancelled: true
-	  }
-
-export type SelectDriveItemsParams = {
-	type: "file" | "directory"
-	max: number
-	dismissHref: string
-	toMove?: string[]
-	extensions?: string[]
-	previewTypes?: PreviewType[]
-	multiScreen?: boolean
-}
-
-export type SelectDriveItemsEvent =
-	| {
-			type: "request"
-			data: {
-				id: string
-			} & SelectDriveItemsParams
-	  }
-	| {
-			type: "response"
-			data: {
-				id: string
-			} & SelectDriveItemsResponse
-	  }
-
-export function selectDriveItems(params: SelectDriveItemsParams): Promise<SelectDriveItemsResponse> {
-	return new Promise<SelectDriveItemsResponse>(resolve => {
-		const id = randomUUID()
-
-		const sub = events.subscribe("selectDriveItems", e => {
-			if (e.type === "response" && e.data.id === id) {
-				sub.remove()
-
-				resolve(e.data)
-			}
-		})
-
-		events.emit("selectDriveItems", {
-			type: "request",
-			data: {
-				...params,
-				id
-			}
-		})
-	})
-}
-
 export default function SelectDriveItems() {
 	const { colors } = useColorScheme()
 	const { id, type, max, parent, dismissHref, toMove, previewTypes, extensions, multiScreen } = useLocalSearchParams()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const [searchTerm, setSearchTerm] = useState<string>("")
-	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo } = useRouter()
+	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo, back: routerBack } = useRouter()
 	const setSelectedItems = useSelectDriveItemsStore(useShallow(state => state.setSelectedItems))
 	const [{ baseFolderUUID }] = useSDKConfig()
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
+	const listRef = useRef<FlashListRef<ListItemInfo>>(null)
 
 	const maxParsed = useMemo(() => {
 		return typeof max === "string" ? parseInt(max) : 1
@@ -133,7 +80,7 @@ export default function SelectDriveItems() {
 	const query = useCloudItemsQuery(queryParams)
 
 	const items = useMemo((): ListItemInfo[] => {
-		if (!query.isSuccess) {
+		if (query.status !== "success") {
 			return []
 		}
 
@@ -159,7 +106,7 @@ export default function SelectDriveItems() {
 		}
 
 		return queryItems
-	}, [query.isSuccess, query.data, searchTerm])
+	}, [query.status, query.data, searchTerm])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
 		return typeof item === "string" ? item : item.id
@@ -207,8 +154,12 @@ export default function SelectDriveItems() {
 			}
 		})
 
-		routerDismissTo(typeof dismissHref === "string" ? dismissHref : "/drive")
-	}, [id, routerCanGoBack, routerDismissTo, dismissHref])
+		if (typeof dismissHref === "string") {
+			routerDismissTo(dismissHref)
+		} else {
+			routerBack()
+		}
+	}, [id, routerCanGoBack, routerDismissTo, dismissHref, routerBack])
 
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
@@ -259,7 +210,7 @@ export default function SelectDriveItems() {
 		)
 	}, [baseFolderUUID, colors.card, headerTitle, parent, cancel, t])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={query.status}
@@ -284,7 +235,11 @@ export default function SelectDriveItems() {
 		)
 	}, [query.status, items.length, t])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
+		if (items.length === 0) {
+			return undefined
+		}
+
 		return (
 			<View className="flex flex-row items-center justify-center h-16 p-4">
 				<Text className="text-sm">
@@ -313,28 +268,48 @@ export default function SelectDriveItems() {
 	}, [query])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
+	const viewabilityConfig = useMemo(() => {
 		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
+			itemVisiblePercentThreshold: 75
+		} satisfies ViewabilityConfig
 	}, [])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+	const onViewableItemsChanged = useCallback((e: { viewableItems: ViewToken<ListItemInfo>[]; changed: ViewToken<ListItemInfo>[] }) => {
+		useDriveStore.getState().setVisibleItemUuids(e.viewableItems.map(item => item.item.item.uuid))
+	}, [])
+
+	const calculateVisibleItemsOnFocus = useCallback(() => {
+		if (!listRef?.current) {
+			return
 		}
-	}, [screen.height])
+
+		const visibleIndices = listRef.current.computeVisibleIndices()
+		const uuids = items
+			.slice(visibleIndices.startIndex <= 0 ? 0 : visibleIndices.startIndex, visibleIndices.endIndex + 1)
+			.map(item => item.item.uuid)
+
+		useDriveStore.getState().setVisibleItemUuids(uuids)
+	}, [items])
+
+	useFocusEffect(
+		useCallback(() => {
+			useDriveStore.getState().setSelectedItems([])
+
+			calculateVisibleItemsOnFocus()
+		}, [calculateVisibleItemsOnFocus])
+	)
 
 	useEffect(() => {
 		if (!multiScreenParsed) {
@@ -359,6 +334,7 @@ export default function SelectDriveItems() {
 			{header}
 			<Container>
 				<List
+					ref={listRef}
 					variant="full-width"
 					data={items}
 					renderItem={renderItem}
@@ -366,15 +342,11 @@ export default function SelectDriveItems() {
 					refreshing={refreshing}
 					contentInsetAdjustmentBehavior="automatic"
 					contentContainerClassName="pb-16"
-					ListEmptyComponent={listEmpty}
-					ListFooterComponent={listFooter}
+					ListEmptyComponent={ListEmptyComponent}
+					ListFooterComponent={ListFooterComponent}
 					refreshControl={refreshControl}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
+					viewabilityConfig={viewabilityConfig}
+					onViewableItemsChanged={onViewableItemsChanged}
 				/>
 			</Container>
 		</RequireInternet>

@@ -3,39 +3,26 @@ import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
 import { Button } from "@/components/nativewindui/Button"
 import { useTransfersStore } from "@/stores/transfers.store"
 import { useRouter } from "expo-router"
-import { Platform } from "react-native"
 import { useShallow } from "zustand/shallow"
 
 export const Transfers = memo(() => {
-	const activeTransfersCount = useTransfersStore(useShallow(state => state.transfers.length))
+	const transfers = useTransfersStore(useShallow(state => state.transfers))
+	const hiddenTransfers = useTransfersStore(useShallow(state => state.hiddenTransfers))
 	const { push: routerPush } = useRouter()
+
+	const ongoingTransfersLength = useMemo(() => {
+		return transfers.filter(
+			transfer =>
+				!hiddenTransfers[transfer.id] &&
+				(transfer.state === "queued" || transfer.state === "started" || transfer.state === "paused")
+		).length
+	}, [transfers, hiddenTransfers])
 
 	const onPress = useCallback(() => {
 		routerPush({
 			pathname: "/transfers"
 		})
 	}, [routerPush])
-
-	const empty = useMemo(() => {
-		return Platform.select({
-			ios: (
-				<Button
-					variant="plain"
-					size="icon"
-				>
-					<ActivityIndicator
-						size="small"
-						className="text-transparent"
-					/>
-				</Button>
-			),
-			default: null
-		})
-	}, [])
-
-	if (activeTransfersCount === 0) {
-		return empty
-	}
 
 	return (
 		<Button
@@ -44,7 +31,14 @@ export const Transfers = memo(() => {
 			onPress={onPress}
 			hitSlop={10}
 		>
-			<ActivityIndicator size="small" />
+			{ongoingTransfersLength > 0 ? (
+				<ActivityIndicator size="small" />
+			) : (
+				<ActivityIndicator
+					size="small"
+					color="transparent"
+				/>
+			)}
 		</Button>
 	)
 })

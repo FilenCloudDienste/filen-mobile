@@ -13,7 +13,7 @@ import { randomUUID } from "expo-crypto"
 import queryUtils from "@/queries/utils"
 
 export const Toolbar = memo(() => {
-	const { canGoBack, dismissTo } = useRouter()
+	const { canGoBack, dismissTo, back } = useRouter()
 	const selectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.selectedPlaylists))
 	const { id, max, dismissHref } = useLocalSearchParams()
 	const { t } = useTranslation()
@@ -68,8 +68,12 @@ export const Toolbar = memo(() => {
 			}
 		})
 
-		dismissTo(typeof dismissHref === "string" ? dismissHref : "/drive")
-	}, [id, canSubmit, dismissTo, selectedPlaylists, dismissHref])
+		if (typeof dismissHref === "string") {
+			dismissTo(dismissHref)
+		} else {
+			back()
+		}
+	}, [id, canSubmit, dismissTo, selectedPlaylists, dismissHref, back])
 
 	const createPlaylist = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
@@ -144,7 +148,7 @@ export const Toolbar = memo(() => {
 			<ToolbarCTA
 				disabled={!canSubmit}
 				icon={{
-					name: "check-circle-outline"
+					name: "check"
 				}}
 				onPress={submit}
 			/>

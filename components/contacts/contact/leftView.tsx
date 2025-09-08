@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/nativewindui/Checkbox"
 import { convertTimestampToMs } from "@/lib/utils"
 import { cn } from "@/lib/cn"
 import { CONTACTS_ONLINE_TIMEOUT } from "@/lib/constants"
+import assets from "@/lib/assets"
 
 const avatarStyle = {
 	width: 36,
@@ -42,7 +43,7 @@ export const LeftView = memo(
 								uri: info.item.contact.avatar
 						  }
 						: {
-								uri: "avatar_fallback"
+								uri: assets.uri.images.avatar_fallback()
 						  }
 				}
 
@@ -53,7 +54,7 @@ export const LeftView = memo(
 								uri: info.item.request.avatar
 						  }
 						: {
-								uri: "avatar_fallback"
+								uri: assets.uri.images.avatar_fallback()
 						  }
 				}
 			}

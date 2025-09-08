@@ -37,6 +37,8 @@ export const IconView = memo(({ className, name }: { className?: string; name: M
 IconView.displayName = "IconView"
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<SettingsItem> }) => {
+	const { colors, isDarkColorScheme } = useColorScheme()
+
 	const rightView = useMemo(() => {
 		if (typeof info.item === "string") {
 			return undefined
@@ -76,7 +78,11 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<SettingsItem> }) 
 			return undefined
 		}
 
-		return info.item.leftView ? <View className="flex-1 flex-row items-center px-4">{info.item.leftView}</View> : undefined
+		return info.item.leftView ? (
+			<View className={cn("flex-1 flex-row px-4 justify-start", info.item.subTitle ? "pt-4" : "items-center")}>
+				{info.item.leftView}
+			</View>
+		) : undefined
 	}, [info.item])
 
 	if (typeof info.item === "string") {
@@ -89,9 +95,18 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<SettingsItem> }) 
 			className={cn("ios:pl-0 pl-2", info.index === 0 && "ios:border-t-0 border-border/25 dark:border-border/80 border-t")}
 			innerClassName={cn("py-2 ios:py-2 android:py-2", info.item.destructive && "text-destructive")}
 			titleClassName={cn("text-lg", info.item.destructive && "text-destructive")}
+			titleEllipsizeMode="middle"
+			textNumberOfLines={1}
 			leftView={leftView}
 			rightView={rightView}
 			onPress={info.item.onPress}
+			style={
+				!isDarkColorScheme
+					? {
+							backgroundColor: colors.grey5
+					  }
+					: undefined
+			}
 		/>
 	)
 })
@@ -129,7 +144,7 @@ export const Settings = memo((props: SettingsProps) => {
 		return __DEV__ ? (props.loading ? [] : props.items) : undefined
 	}, [props.loading, props.items])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<View className="flex-1 items-center justify-center">
 				<ActivityIndicator
@@ -157,15 +172,12 @@ export const Settings = memo((props: SettingsProps) => {
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
 				sectionHeaderAsGap={true}
+				showsHorizontalScrollIndicator={false}
+				showsVerticalScrollIndicator={false}
 				refreshing={props.loading}
-				ListEmptyComponent={listEmpty}
+				ListEmptyComponent={ListEmptyComponent}
 				ListHeaderComponent={props.listHeader ? () => props.listHeader : undefined}
 				ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
-				windowSize={3}
-				maxToRenderPerBatch={16}
-				initialNumToRender={32}
-				removeClippedSubviews={true}
-				updateCellsBatchingPeriod={100}
 			/>
 		</Fragment>
 	)

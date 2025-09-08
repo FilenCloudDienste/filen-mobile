@@ -56,8 +56,7 @@ export default function PDFPreview() {
 				<Stack.Screen
 					options={{
 						headerShown: true,
-						headerTitle: itemName,
-						headerBackTitle: "Back"
+						headerTitle: itemName
 					}}
 				/>
 			),

@@ -1,25 +1,21 @@
 import { cva } from "class-variance-authority"
 import { cssInterop } from "nativewind"
 import { memo, forwardRef, useMemo, useCallback, Fragment } from "react"
-import {
-	Platform,
-	PressableProps,
-	StyleProp,
-	TextStyle,
-	View,
-	ViewProps,
-	ViewStyle,
-	type ListRenderItem as FlatlistListRenderItem,
-	type ListRenderItemInfo,
-	type FlatListProps,
-	FlatList
-} from "react-native"
+import { Platform, PressableProps, StyleProp, TextStyle, View, ViewProps, ViewStyle } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { Text, TextClassContext } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
 import { cn } from "@/lib/cn"
 
-cssInterop(FlatList, {
+import {
+	FlashList,
+	type ListRenderItem as FlashListListRenderItem,
+	type ListRenderItemInfo,
+	type FlashListProps,
+	type FlashListRef
+} from "@shopify/flash-list"
+
+cssInterop(FlashList, {
 	className: "style",
 	contentContainerClassName: "contentContainerStyle"
 })
@@ -33,7 +29,7 @@ export type ListDataItem =
 
 export type ListVariant = "insets" | "full-width"
 
-export type ListRef<T extends ListDataItem> = React.Ref<FlatList<T>>
+export type ListRef<T extends ListDataItem> = React.Ref<FlashListRef<T>>
 
 export type ListRenderItemProps<T extends ListDataItem> = ListRenderItemInfo<T> & {
 	variant?: ListVariant
@@ -42,15 +38,15 @@ export type ListRenderItemProps<T extends ListDataItem> = ListRenderItemInfo<T> 
 	sectionHeaderAsGap?: boolean
 }
 
-export type ListProps<T extends ListDataItem> = Omit<FlatListProps<T>, "renderItem"> & {
+export type ListProps<T extends ListDataItem> = Omit<FlashListProps<T>, "renderItem"> & {
 	renderItem?: ListRenderItem<T>
 	variant?: ListVariant
 	sectionHeaderAsGap?: boolean
 	rootClassName?: string
-	rootStyle?: StyleProp<ViewStyle>
+	rootStyle?: ViewStyle
 }
 
-export type ListRenderItem<T extends ListDataItem> = (props: ListRenderItemProps<T>) => ReturnType<FlatlistListRenderItem<T>>
+export type ListRenderItem<T extends ListDataItem> = (props: ListRenderItemProps<T>) => ReturnType<FlashListListRenderItem<T>>
 
 export const rootVariants = cva("min-h-2 flex-1", {
 	variants: {
@@ -112,7 +108,7 @@ export function ListComponent<T extends ListDataItem>(
 	}, [contentInsetAdjustmentBehavior, insets.bottom])
 
 	return (
-		<FlatList
+		<FlashList
 			className={cn(
 				"flex-1",
 				rootVariants({
@@ -304,6 +300,8 @@ export function ListItemComponent<T extends ListDataItem>(
 
 	const disabledMemo = useMemo(() => disabled || !isPressable(props), [disabled, props])
 
+	const noop = useCallback(() => {}, [])
+
 	const cn2 = useMemo(() => {
 		if (typeof item === "string") {
 			return undefined
@@ -337,6 +335,8 @@ export function ListItemComponent<T extends ListDataItem>(
 				className={cn1}
 				{...props}
 				ref={ref}
+				delayLongPress={200}
+				onLongPress={noop}
 			>
 				<TextClassContext.Provider value="font-normal leading-5">
 					{!!leftView && <View>{leftView}</View>}

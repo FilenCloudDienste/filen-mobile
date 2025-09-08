@@ -3,7 +3,7 @@ import { getCameraUploadState } from "@/hooks/useCameraUpload"
 import { validate as validateUUID } from "uuid"
 import Semaphore from "./semaphore"
 import nodeWorker from "./nodeWorker"
-import { convertTimestampToMs, normalizeFilePathForExpo } from "./utils"
+import { convertTimestampToMs, normalizeFilePathForExpo, promiseAllChunked } from "./utils"
 import { useAppStateStore } from "@/stores/appState.store"
 import { randomUUID } from "expo-crypto"
 import * as FileSystem from "expo-file-system/next"
@@ -15,7 +15,8 @@ import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS } from "./constants"
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator"
 import { type FileMetadata } from "@filen/sdk"
 import { getSDK } from "./sdk"
-import uploadService from "@/services/upload.service"
+import upload from "@/lib/upload"
+import queryUtils from "@/queries/utils"
 
 export type TreeItem = (
 	| {
@@ -24,6 +25,7 @@ export type TreeItem = (
 	  }
 	| {
 			type: "remote"
+			uuid: string
 	  }
 ) & {
 	name: string
@@ -42,7 +44,8 @@ export type Delta = {
 export type CameraUploadType = "foreground" | "background"
 
 const runMutex: Semaphore = new Semaphore(1)
-const processDeltaSemaphore: Semaphore = new Semaphore(10)
+const processDeltaSemaphore: Semaphore = new Semaphore(8)
+let nextRunTimeout: number = 0
 
 export class CameraUpload {
 	private readonly type: CameraUploadType
@@ -50,7 +53,8 @@ export class CameraUpload {
 	private readonly mediaTypes: MediaLibrary.MediaTypeValue[]
 	private readonly maxSize: number
 	private readonly useCameraUploadStore = {
-		setSyncState: useCameraUploadStore.getState().setSyncState
+		setSyncState: useCameraUploadStore.getState().setSyncState,
+		setRunning: useCameraUploadStore.getState().setRunning
 	}
 	private readonly deltaErrors: Record<string, number> = {}
 
@@ -166,17 +170,6 @@ export class CameraUpload {
 	}
 
 	public async fetchLocalItems(): Promise<Tree> {
-		if (
-			!(await this.canRun({
-				checkPermissions: true,
-				checkBattery: false,
-				checkNetwork: false,
-				checkAppState: true
-			}))
-		) {
-			return {}
-		}
-
 		const state = getCameraUploadState()
 		const items: Tree = {}
 
@@ -188,7 +181,7 @@ export class CameraUpload {
 					const result = await MediaLibrary.getAssetsAsync({
 						mediaType: this.mediaTypes.includes("video") && !state.videos ? ["photo"] : this.mediaTypes,
 						album: album.id,
-						first: 256,
+						first: 1024,
 						after
 					})
 
@@ -220,17 +213,6 @@ export class CameraUpload {
 	}
 
 	public async fetchRemoteItems(): Promise<Tree> {
-		if (
-			!(await this.canRun({
-				checkPermissions: false,
-				checkBattery: false,
-				checkNetwork: false,
-				checkAppState: true
-			}))
-		) {
-			return {}
-		}
-
 		const state = getCameraUploadState()
 
 		if (!state.remote || !validateUUID(state.remote.uuid)) {
@@ -261,6 +243,7 @@ export class CameraUpload {
 			items[pathNormalized] = {
 				type: "remote",
 				name: file.name,
+				uuid: file.uuid,
 				creation: file.creation ?? file.lastModified ?? file.timestamp,
 				lastModified: file.lastModified,
 				path: pathNormalized
@@ -270,7 +253,7 @@ export class CameraUpload {
 		return items
 	}
 
-	public deltas({ localItems, remoteItems }: { localItems: Tree; remoteItems: Tree }): Delta[] {
+	public async deltas({ localItems, remoteItems }: { localItems: Tree; remoteItems: Tree }): Promise<Delta[]> {
 		const deltas: Delta[] = []
 
 		for (const path in localItems) {
@@ -278,18 +261,21 @@ export class CameraUpload {
 			const remoteItem = remoteItems[path]
 
 			/*
-			||
-				(localItem &&
-					remoteItem &&
-					this.normalizeModificationTimestampForComparison(localItem.lastModified) >
-						this.normalizeModificationTimestampForComparison(remoteItem.lastModified))
-			*/
+					||
+						(localItem &&
+							remoteItem &&
+							this.normalizeModificationTimestampForComparison(localItem.lastModified) >
+								this.normalizeModificationTimestampForComparison(remoteItem.lastModified))
+					*/
 
+			// If the local item exists and the remote item does not, we need to upload it
 			if (localItem && !remoteItem) {
-				deltas.push({
+				const delta: Delta = {
 					type: "upload",
 					item: localItem
-				})
+				}
+
+				deltas.push(delta)
 			}
 		}
 
@@ -302,17 +288,6 @@ export class CameraUpload {
 		const extname = FileSystem.Paths.extname(item.name.trim().toLowerCase())
 
 		if (!EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS.includes(extname)) {
-			return
-		}
-
-		if (
-			!(await this.canRun({
-				checkPermissions: false,
-				checkBattery: true,
-				checkNetwork: true,
-				checkAppState: true
-			}))
-		) {
 			return
 		}
 
@@ -352,21 +327,6 @@ export class CameraUpload {
 			const errorKey = `${delta.type}:${delta.item.path}`
 
 			if (this.deltaErrors[errorKey] && this.deltaErrors[errorKey] >= 3) {
-				return
-			}
-
-			if (abortSignal?.aborted) {
-				throw new Error("Aborted")
-			}
-
-			if (
-				!(await this.canRun({
-					checkPermissions: false,
-					checkBattery: true,
-					checkNetwork: true,
-					checkAppState: true
-				}))
-			) {
 				return
 			}
 
@@ -414,25 +374,9 @@ export class CameraUpload {
 						throw new Error("Aborted")
 					}
 
-					const stat = await MediaLibrary.getAssetInfoAsync(delta.item.asset, {
-						shouldDownloadFromNetwork: true
-					})
-
-					if (abortSignal?.aborted) {
-						throw new Error("Aborted")
-					}
-
-					if (!stat.localUri) {
-						return
-					}
-
-					const localFile = new FileSystem.File(stat.localUri)
-
-					if (!localFile.exists || (localFile.size && localFile.size > this.maxSize)) {
-						return
-					}
-
-					const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+					const tmpFile = new FileSystem.File(
+						FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(delta.item.name)}`)
+					)
 
 					if (abortSignal?.aborted) {
 						throw new Error("Aborted")
@@ -441,6 +385,28 @@ export class CameraUpload {
 					try {
 						if (tmpFile.exists) {
 							tmpFile.delete()
+						}
+
+						if (abortSignal?.aborted) {
+							throw new Error("Aborted")
+						}
+
+						const stat = await MediaLibrary.getAssetInfoAsync(delta.item.asset, {
+							shouldDownloadFromNetwork: true
+						})
+
+						if (!stat.localUri) {
+							return
+						}
+
+						if (abortSignal?.aborted) {
+							throw new Error("Aborted")
+						}
+
+						const localFile = new FileSystem.File(stat.localUri)
+
+						if (!localFile.exists || !localFile.size || localFile.size > this.maxSize) {
+							return
 						}
 
 						if (abortSignal?.aborted) {
@@ -470,7 +436,7 @@ export class CameraUpload {
 
 						const item =
 							this.type === "foreground"
-								? await uploadService.file.foreground({
+								? await upload.file.foreground({
 										parent: parentUUID,
 										localPath: tmpFile.uri,
 										name: delta.item.name,
@@ -481,7 +447,7 @@ export class CameraUpload {
 										creation: delta.item.creation,
 										lastModified: delta.item.lastModified
 								  })
-								: await uploadService.file.background({
+								: await upload.file.background({
 										parent: parentUUID,
 										localPath: tmpFile.uri,
 										name: delta.item.name,
@@ -498,34 +464,41 @@ export class CameraUpload {
 							throw new Error("Invalid response from uploadFile.")
 						}
 
+						const newFileMetadata: FileMetadata = {
+							name: item.name,
+							creation: delta.item.creation,
+							lastModified: delta.item.lastModified,
+							mime: item.mime,
+							size: item.size,
+							hash: item.hash,
+							key: item.key
+						} satisfies FileMetadata
+
 						if (this.type === "foreground") {
 							await nodeWorker.proxy("editFileMetadata", {
 								uuid: item.uuid,
-								metadata: {
-									name: item.name,
-									creation: delta.item.creation,
-									lastModified: delta.item.lastModified,
-									mime: item.mime,
-									size: item.size,
-									hash: item.hash,
-									key: item.key
-								} satisfies FileMetadata
+								metadata: newFileMetadata
 							})
 						} else {
-							await getSDK()
-								.cloud()
-								.editFileMetadata({
-									uuid: item.uuid,
-									metadata: {
-										name: item.name,
-										creation: delta.item.creation,
-										lastModified: delta.item.lastModified,
-										mime: item.mime,
-										size: item.size,
-										hash: item.hash,
-										key: item.key
-									} satisfies FileMetadata
-								})
+							await getSDK().cloud().editFileMetadata({
+								uuid: item.uuid,
+								metadata: newFileMetadata
+							})
+						}
+
+						if (this.type === "foreground") {
+							queryUtils.useCloudItemsQuerySet({
+								receiverId: 0,
+								of: "photos",
+								parent: state.remote.uuid,
+								updater: prev => [
+									...prev.filter(i => i.uuid !== item.uuid),
+									{
+										...item,
+										...newFileMetadata
+									}
+								]
+							})
 						}
 					} finally {
 						if (tmpFile.exists) {
@@ -549,19 +522,50 @@ export class CameraUpload {
 		}
 	}
 
-	public async run(params?: { abortSignal: AbortSignal }): Promise<void> {
-		if (runMutex.count() > 0) {
+	public async run(params?: { abortController: AbortController }): Promise<void> {
+		const now = Date.now()
+
+		if (runMutex.count() > 0 && this.type === "foreground") {
 			return
 		}
 
-		if (params?.abortSignal?.aborted) {
+		const abortController = params?.abortController ?? new AbortController()
+
+		if (abortController.signal.aborted) {
 			throw new Error("Aborted")
 		}
 
-		await runMutex.acquire()
+		if (nextRunTimeout > now && this.type === "foreground") {
+			return
+		}
+
+		if (this.type === "foreground") {
+			await runMutex.acquire()
+		}
+
+		this.useCameraUploadStore.setRunning(true)
+
+		let stateCheckInterval: ReturnType<typeof setInterval> | undefined = undefined
+
+		if (this.type === "foreground") {
+			// Copy instead of referencing to avoid issues with stale state
+			const startingState = JSON.parse(JSON.stringify(getCameraUploadState())) as ReturnType<typeof getCameraUploadState>
+
+			stateCheckInterval = setInterval(() => {
+				const currentState = getCameraUploadState()
+
+				if (currentState.version !== startingState.version) {
+					if (!abortController.signal.aborted) {
+						abortController.abort()
+					}
+
+					clearInterval(stateCheckInterval)
+				}
+			}, 1000)
+		}
 
 		try {
-			if (params?.abortSignal?.aborted) {
+			if (abortController.signal.aborted) {
 				throw new Error("Aborted")
 			}
 
@@ -576,7 +580,7 @@ export class CameraUpload {
 				return
 			}
 
-			if (params?.abortSignal?.aborted) {
+			if (abortController.signal.aborted) {
 				throw new Error("Aborted")
 			}
 
@@ -586,7 +590,7 @@ export class CameraUpload {
 				return
 			}
 
-			if (params?.abortSignal?.aborted) {
+			if (abortController.signal.aborted) {
 				throw new Error("Aborted")
 			}
 
@@ -605,17 +609,17 @@ export class CameraUpload {
 				return
 			}
 
-			if (params?.abortSignal?.aborted) {
+			if (abortController.signal.aborted) {
 				throw new Error("Aborted")
 			}
 
 			const [localItems, remoteItems] = await Promise.all([this.fetchLocalItems(), this.fetchRemoteItems()])
 
-			if (params?.abortSignal?.aborted) {
+			if (abortController.signal.aborted) {
 				throw new Error("Aborted")
 			}
 
-			const deltas = this.deltas({
+			const deltas = await this.deltas({
 				localItems,
 				remoteItems
 			})
@@ -624,7 +628,7 @@ export class CameraUpload {
 				return
 			}
 
-			if (params?.abortSignal?.aborted) {
+			if (abortController.signal.aborted) {
 				throw new Error("Aborted")
 			}
 
@@ -637,22 +641,24 @@ export class CameraUpload {
 				let added = 0
 				let done = 0
 
-				for (const delta of deltas) {
-					if (added >= this.maxUploads) {
-						break
-					}
+				await promiseAllChunked(
+					deltas.map(async delta => {
+						if (added >= this.maxUploads) {
+							return
+						}
 
-					added++
+						added++
 
-					await this.processDelta(delta, params?.abortSignal)
+						await this.processDelta(delta, abortController.signal)
 
-					done++
+						done++
 
-					this.useCameraUploadStore.setSyncState({
-						done,
-						count: deltas.length
+						this.useCameraUploadStore.setSyncState({
+							done,
+							count: deltas.length
+						})
 					})
-				}
+				)
 			} finally {
 				this.useCameraUploadStore.setSyncState({
 					done: 0,
@@ -660,7 +666,15 @@ export class CameraUpload {
 				})
 			}
 		} finally {
-			runMutex.release()
+			clearInterval(stateCheckInterval)
+
+			this.useCameraUploadStore.setRunning(false)
+
+			if (this.type === "foreground") {
+				runMutex.release()
+
+				nextRunTimeout = Date.now() + 1000 * 15
+			}
 		}
 	}
 }

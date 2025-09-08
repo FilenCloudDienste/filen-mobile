@@ -265,7 +265,7 @@ export const ContextMenuInnerContent = memo(({ items }: { items: (ContextItem | 
 								androidRootClassName="rounded-none "
 							>
 								<Text className="font-normal opacity-60">{materialLoadingText}</Text>
-								<ActivityIndicator />
+								<ActivityIndicator size="small" />
 							</Button>
 						</ContextMenuPrimitive.Item>
 					)

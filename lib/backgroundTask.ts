@@ -2,12 +2,20 @@ import * as ExpoBackgroundTask from "expo-background-task"
 import * as ExpoTaskManager from "expo-task-manager"
 import { backgroundCameraUpload } from "./cameraUpload"
 import { BACKGROUND_TASK_IDENTIFIER } from "./constants"
-import setup from "./setup"
+import authService from "@/services/auth.service"
 
 export async function registerBackgroundTask() {
 	const status = await ExpoBackgroundTask.getStatusAsync()
 
 	console.log("BackgroundTask status:", status)
+
+	if (status !== ExpoBackgroundTask.BackgroundTaskStatus.Available) {
+		await ExpoBackgroundTask.unregisterTaskAsync(BACKGROUND_TASK_IDENTIFIER)
+
+		console.log("BackgroundTask is restricted, unregistered!")
+
+		return
+	}
 
 	if (status !== ExpoBackgroundTask.BackgroundTaskStatus.Available) {
 		return
@@ -20,9 +28,11 @@ export async function registerBackgroundTask() {
 	console.log("BackgroundTask registered!")
 }
 
-registerBackgroundTask()
+registerBackgroundTask().catch(console.error)
 
 ExpoTaskManager.defineTask(BACKGROUND_TASK_IDENTIFIER, async () => {
+	console.log("BackgroundTask triggered!")
+
 	try {
 		const abortController = new AbortController()
 
@@ -33,7 +43,7 @@ ExpoTaskManager.defineTask(BACKGROUND_TASK_IDENTIFIER, async () => {
 		}, 1000 * 25)
 
 		try {
-			const { isAuthed } = await setup({
+			const { isAuthed } = await authService.setup({
 				background: true
 			})
 
@@ -42,7 +52,7 @@ ExpoTaskManager.defineTask(BACKGROUND_TASK_IDENTIFIER, async () => {
 			}
 
 			await backgroundCameraUpload.run({
-				abortSignal: abortController.signal
+				abortController
 			})
 		} finally {
 			clearTimeout(abortTimeout)

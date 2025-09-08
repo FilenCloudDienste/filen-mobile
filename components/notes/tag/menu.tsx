@@ -19,6 +19,12 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 	const { colors } = useColorScheme()
 	const { hasInternet } = useNetInfo()
 
+	const isUndecryptable = useMemo(() => {
+		const nameNormalized = tag.name.toLowerCase().trim()
+
+		return nameNormalized.startsWith("cannot_decrypt_") && nameNormalized.endsWith(`_${tag.uuid}`)
+	}, [tag.name, tag.uuid])
+
 	const menuItems = useMemo(() => {
 		if (!hasInternet) {
 			return []
@@ -26,42 +32,44 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 
 		const items: ContextItem[] = []
 
-		items.push(
-			createContextItem({
-				actionKey: tag.favorite ? "unfavorite" : "favorite",
-				title: t("notes.tags.menu.favorited"),
-				state: {
-					checked: tag.favorite
-				},
-				icon:
-					Platform.OS === "ios"
-						? {
-								namingScheme: "sfSymbol",
-								name: "heart"
-						  }
-						: {
-								namingScheme: "material",
-								name: "heart-outline"
-						  }
-			})
-		)
+		if (!isUndecryptable) {
+			items.push(
+				createContextItem({
+					actionKey: tag.favorite ? "unfavorite" : "favorite",
+					title: t("notes.tags.menu.favorited"),
+					state: {
+						checked: tag.favorite
+					},
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "heart"
+							  }
+							: {
+									namingScheme: "material",
+									name: "heart-outline"
+							  }
+				})
+			)
 
-		items.push(
-			createContextItem({
-				actionKey: "rename",
-				title: t("notes.tags.menu.rename"),
-				icon:
-					Platform.OS === "ios"
-						? {
-								namingScheme: "sfSymbol",
-								name: "pencil"
-						  }
-						: {
-								namingScheme: "material",
-								name: "pencil"
-						  }
-			})
-		)
+			items.push(
+				createContextItem({
+					actionKey: "rename",
+					title: t("notes.tags.menu.rename"),
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "pencil"
+							  }
+							: {
+									namingScheme: "material",
+									name: "pencil"
+							  }
+				})
+			)
+		}
 
 		items.push(
 			createContextItem({
@@ -84,7 +92,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 		)
 
 		return items
-	}, [t, tag.favorite, colors.destructive, hasInternet])
+	}, [t, tag.favorite, colors.destructive, hasInternet, isUndecryptable])
 
 	const deleteTag = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({

@@ -18,14 +18,9 @@ import { type TextEditorItem } from "@/components/textEditor/editor"
 import { type PDFPreviewItem } from "@/app/pdfPreview"
 import { type DOCXPreviewItem } from "@/app/docxPreview"
 import { useTranslation } from "react-i18next"
+import queryUtils from "@/queries/utils"
 
 export const ICON_HEIGHT: number = 44
-
-const separators = {
-	highlight: () => {},
-	unhighlight: () => {},
-	updateProps: () => {}
-}
 
 export const Item = memo(
 	({
@@ -71,6 +66,46 @@ export const Item = memo(
 
 		const onPress = useCallback(() => {
 			if (item.type === "directory") {
+				if (!hasInternet) {
+					const cachedContent = queryUtils.useCloudItemsQueryGet(
+						type === "links"
+							? {
+									of: "links",
+									parent: item.uuid,
+									receiverId: item.isShared ? item.receiverId : 0
+							  }
+							: type === "sharedOut"
+							? {
+									of: "sharedOut",
+									parent: item.uuid,
+									receiverId: item.isShared ? item.receiverId : 0
+							  }
+							: type === "sharedIn"
+							? {
+									of: "sharedIn",
+									parent: item.uuid,
+									receiverId: item.isShared ? item.receiverId : 0
+							  }
+							: type === "offline"
+							? {
+									of: "offline",
+									parent: item.uuid,
+									receiverId: item.isShared ? item.receiverId : 0
+							  }
+							: {
+									of: "drive",
+									parent: item.uuid,
+									receiverId: item.isShared ? item.receiverId : 0
+							  }
+					)
+
+					if (!cachedContent) {
+						alerts.error(t("errors.youAreOffline"))
+
+						return
+					}
+				}
+
 				if (type === "links") {
 					routerPush({
 						pathname: "/(app)/home/links/[uuid]",
@@ -78,6 +113,8 @@ export const Item = memo(
 							uuid: item.uuid
 						}
 					})
+
+					return
 				}
 
 				if (type === "sharedIn") {
@@ -87,6 +124,8 @@ export const Item = memo(
 							uuid: item.uuid
 						}
 					})
+
+					return
 				}
 
 				if (type === "sharedOut" && item.isShared) {
@@ -97,6 +136,8 @@ export const Item = memo(
 							receiverId: item.receiverId
 						}
 					})
+
+					return
 				}
 
 				if (type === "offline") {
@@ -106,6 +147,8 @@ export const Item = memo(
 							uuid: item.uuid
 						}
 					})
+
+					return
 				}
 
 				return
@@ -138,8 +181,8 @@ export const Item = memo(
 			}
 
 			if ((previewType === "image" || previewType === "video" || previewType === "audio") && item.size > 0) {
-				useGalleryStore.getState().setItems(
-					items
+				useGalleryStore.getState().open({
+					items: items
 						.map(item => {
 							const previewType = getPreviewType(item.name)
 
@@ -154,11 +197,11 @@ export const Item = memo(
 								  }
 								: null
 						})
-						.filter(item => item !== null)
-				)
+						.filter(item => item !== null),
+					initialUUIDOrURI: item.uuid
+				})
 
-				useGalleryStore.getState().setInitialUUID(item.uuid)
-				useGalleryStore.getState().setVisible(true)
+				return
 			}
 
 			if (previewType === "text" || previewType === "code") {
@@ -171,6 +214,8 @@ export const Item = memo(
 						} satisfies TextEditorItem)
 					}
 				})
+
+				return
 			}
 
 			if (previewType === "pdf" && item.size > 0) {
@@ -183,6 +228,8 @@ export const Item = memo(
 						} satisfies PDFPreviewItem)
 					}
 				})
+
+				return
 			}
 
 			if (previewType === "docx" && item.size > 0) {
@@ -195,6 +242,8 @@ export const Item = memo(
 						} satisfies DOCXPreviewItem)
 					}
 				})
+
+				return
 			}
 		}, [routerPush, item, hasInternet, offlineStatus, items, type, queryParams, t])
 
@@ -232,8 +281,8 @@ export const Item = memo(
 						<Thumbnail
 							item={item}
 							size={ICON_HEIGHT}
-							imageContentFit="contain"
-							imageCachePolicy="none"
+							imageResizeMode="contain"
+							imageCachePolicy="dataCache"
 							imageStyle={{
 								width: ICON_HEIGHT,
 								height: ICON_HEIGHT,
@@ -278,10 +327,11 @@ export const Item = memo(
 				type="context"
 				item={item}
 				queryParams={queryParams}
+				fromHome={true}
 			>
 				<ListItem
+					target="Cell"
 					item={itemInfo}
-					separators={separators}
 					index={index}
 					className="overflow-hidden bg-background"
 					leftView={leftView}
@@ -294,7 +344,7 @@ export const Item = memo(
 					isLastInSection={false}
 					onPress={onPress}
 					removeSeparator={Platform.OS === "android"}
-					innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+					innerClassName="ios:py-3 py-3 android:py-3"
 				/>
 			</Menu>
 		)

@@ -1,9 +1,9 @@
 import { memo, useMemo } from "react"
-import { ListItem } from "@/components/nativewindui/List"
+import { ListItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import { type FileVersion } from "@filen/sdk/dist/types/api/v3/file/versions"
 import { formatMessageDate } from "@/lib/utils"
 import RightView from "./rightView"
-import { Platform, type ListRenderItemInfo } from "react-native"
+import { Platform } from "react-native"
 
 export type ListItemInfo = {
 	title: string
@@ -12,11 +12,6 @@ export type ListItemInfo = {
 	item: DriveCloudItem
 	version: FileVersion
 }
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const infoAdjusted = useMemo((): ListRenderItemInfo<ListItemInfo> => {
@@ -49,7 +44,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 			isFirstInSection={false}
 			isLastInSection={false}
 			removeSeparator={Platform.OS === "android"}
-			innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+			innerClassName="ios:py-3 py-3 android:py-3"
 			rightView={rightView}
 		/>
 	)

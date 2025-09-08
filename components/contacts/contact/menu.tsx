@@ -3,12 +3,13 @@ import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextItem } from "@/components/nativewindui/ContextMenu/utils"
 import { type ContextItem, type ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
-import { Platform, type ListRenderItemInfo } from "react-native"
+import { Platform } from "react-native"
 import alerts from "@/lib/alerts"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { type ListItemInfo } from "."
 import contactsService from "@/services/contacts.service"
 import { useTranslation } from "react-i18next"
+import { type ListRenderItemInfo } from "@shopify/flash-list"
 
 export const Menu = memo(
 	({ info, type, children }: { info: ListRenderItemInfo<ListItemInfo>; type: "context" | "dropdown"; children: React.ReactNode }) => {
@@ -165,7 +166,7 @@ export const Menu = memo(
 								return
 							}
 
-							await contactsService.remove({
+							await contactsService.removeContact({
 								uuid: info.item.contact.uuid
 							})
 
@@ -177,7 +178,7 @@ export const Menu = memo(
 								return
 							}
 
-							await contactsService.block({
+							await contactsService.blockContact({
 								email: info.item.contact.email
 							})
 
@@ -189,7 +190,7 @@ export const Menu = memo(
 								return
 							}
 
-							await contactsService.unblock({
+							await contactsService.unblockContact({
 								uuid: info.item.contact.uuid
 							})
 

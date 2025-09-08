@@ -4,15 +4,18 @@ import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import useFocusNotifyOnChangeProps from "@/hooks/useFocusNotifyOnChangeProps"
 import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import { DEFAULT_QUERY_OPTIONS } from "./client"
-import { orderItemsByType, promiseAllChunked } from "@/lib/utils"
+import { promiseAllChunked } from "@/lib/utils"
 import { validate as validateUUID } from "uuid"
 import { Type, type Static } from "@sinclair/typebox"
 import { Value } from "@sinclair/typebox/value"
-import { getSDKConfig } from "@/lib/auth"
+import authService from "@/services/auth.service"
 import * as FileSystem from "expo-file-system/next"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import useNetInfo from "@/hooks/useNetInfo"
+import upload from "@/lib/upload"
+import download from "@/lib/download"
+import alerts from "@/lib/alerts"
 
 export const PlaylistFileSchema = Type.Object({
 	uuid: Type.String(),
@@ -39,7 +42,7 @@ export type Playlist = Static<typeof PlaylistSchema>
 export type PlaylistFile = Static<typeof PlaylistFileSchema>
 
 export async function findPlaylistDirectoryUUID(): Promise<string> {
-	const { baseFolderUUID } = getSDKConfig()
+	const { baseFolderUUID } = authService.getSDKConfig()
 
 	if (!baseFolderUUID) {
 		throw new Error("Base folder UUID is not set.")
@@ -51,10 +54,7 @@ export async function findPlaylistDirectoryUUID(): Promise<string> {
 		receiverId: 0
 	})
 
-	let filenDirectory = orderItemsByType({
-		items: rootFolderList.filter(item => item.type === "directory"),
-		type: "lastModifiedAsc"
-	}).find(item => item.name === ".filen")
+	let filenDirectory = rootFolderList.filter(item => item.type === "directory").find(item => item.name === ".filen")
 
 	if (!filenDirectory) {
 		await nodeWorker.proxy("createDirectory", {
@@ -68,10 +68,7 @@ export async function findPlaylistDirectoryUUID(): Promise<string> {
 			receiverId: 0
 		})
 
-		filenDirectory = orderItemsByType({
-			items: rootFolderList.filter(item => item.type === "directory"),
-			type: "lastModifiedAsc"
-		}).find(item => item.name === ".filen")
+		filenDirectory = rootFolderList.filter(item => item.type === "directory").find(item => item.name === ".filen")
 	}
 
 	if (!filenDirectory) {
@@ -84,10 +81,7 @@ export async function findPlaylistDirectoryUUID(): Promise<string> {
 		receiverId: 0
 	})
 
-	let playlistsDirectory = orderItemsByType({
-		items: filenDirectoryList.filter(item => item.type === "directory"),
-		type: "lastModifiedAsc"
-	}).find(item => item.name === "playlists")
+	let playlistsDirectory = filenDirectoryList.filter(item => item.type === "directory").find(item => item.name === "playlists")
 
 	if (!playlistsDirectory) {
 		await nodeWorker.proxy("createDirectory", {
@@ -101,10 +95,7 @@ export async function findPlaylistDirectoryUUID(): Promise<string> {
 			receiverId: 0
 		})
 
-		playlistsDirectory = orderItemsByType({
-			items: filenDirectoryList.filter(item => item.type === "directory"),
-			type: "lastModifiedAsc"
-		}).find(item => item.name === "playlists")
+		playlistsDirectory = filenDirectoryList.filter(item => item.type === "directory").find(item => item.name === "playlists")
 	}
 
 	if (!playlistsDirectory) {
@@ -119,7 +110,7 @@ export async function updatePlaylist(playlist: Playlist): Promise<void> {
 	let tmpFile: FileSystem.File | null = null
 
 	try {
-		tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+		tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}.json`))
 
 		if (tmpFile.exists) {
 			tmpFile.delete()
@@ -131,7 +122,7 @@ export async function updatePlaylist(playlist: Playlist): Promise<void> {
 			throw new Error("Temporary upload file is empty.")
 		}
 
-		await nodeWorker.proxy("uploadFile", {
+		await upload.file.foreground({
 			parent: playlistsDirectoryUUID,
 			localPath: tmpFile.uri,
 			name: `${playlist.uuid}.json`,
@@ -174,7 +165,7 @@ export async function fetchPlaylists(): Promise<(Playlist & { fileUUID: string }
 							tmpFile.delete()
 						}
 
-						await nodeWorker.proxy("downloadFile", {
+						await download.file.foreground({
 							id: randomUUID(),
 							uuid: item.uuid,
 							bucket: item.type === "file" ? item.bucket : "",
@@ -229,6 +220,12 @@ export function usePlaylistsQuery({
 	const query = useQuery({
 		queryKey: ["usePlaylistsQuery"],
 		queryFn: () => fetchPlaylists(),
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
+		},
 		notifyOnChangeProps,
 		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,
 		refetchOnMount,

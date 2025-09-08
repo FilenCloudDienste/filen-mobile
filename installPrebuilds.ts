@@ -23,10 +23,21 @@ function argon2() {
 	const destinationPath = path.join(__dirname, "nodejs-assets", "nodejs-project", "node_modules", "argon2", "prebuilds")
 
 	if (!fs.existsSync(destinationPath)) {
-		console.error("Destination directory does not exist:", destinationPath, "forgot to run npm install?")
+		fs.mkdirSync(destinationPath, {
+			recursive: true
+		})
 
-		process.exit(1)
+		console.log(`Created destination directory: ${destinationPath}`)
 	}
+
+	fs.rmSync(destinationPath, {
+		recursive: true,
+		force: true
+	})
+
+	fs.mkdirSync(destinationPath, {
+		recursive: true
+	})
 
 	prebuilds.forEach(prebuild => {
 		const source = path.join(argon2PrebuildsPath, prebuild)

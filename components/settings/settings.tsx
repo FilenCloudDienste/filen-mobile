@@ -51,7 +51,13 @@ export const Item = memo(({ info, props }: { info: ListRenderItemInfo<SettingsIt
 			>
 				{info.item.leftView && <View className="flex-row items-center">{info.item.leftView}</View>}
 				<View className={cn("flex-col flex-1", info.item.leftView && "pl-4")}>
-					<Text className={cn("text-xl font-normal", info.item.destructive && "text-destructive")}>{info.item.title}</Text>
+					<Text
+						className={cn("text-xl font-normal", info.item.destructive && "text-destructive")}
+						numberOfLines={1}
+						ellipsizeMode="middle"
+					>
+						{info.item.title}
+					</Text>
 					{info.item.subTitle && <Text className="text-muted-foreground text-base font-normal">{info.item.subTitle}</Text>}
 				</View>
 				{info.item.rightView && <View className="flex-row items-center">{info.item.rightView}</View>}
@@ -101,7 +107,7 @@ export const Settings = memo((props: SettingsProps) => {
 		return __DEV__ ? (props.loading ? [] : props.items) : undefined
 	}, [props.loading, props.items])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<View className="flex-1 items-center justify-center">
 				<ActivityIndicator
@@ -130,15 +136,12 @@ export const Settings = memo((props: SettingsProps) => {
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
 				sectionHeaderAsGap={true}
+				showsHorizontalScrollIndicator={false}
+				showsVerticalScrollIndicator={false}
 				refreshing={props.loading}
-				ListEmptyComponent={listEmpty}
+				ListEmptyComponent={ListEmptyComponent}
 				ListHeaderComponent={props.listHeader ? () => props.listHeader : undefined}
 				ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
-				removeClippedSubviews={true}
-				windowSize={3}
-				initialNumToRender={32}
-				maxToRenderPerBatch={16}
-				updateCellsBatchingPeriod={100}
 			/>
 		</Fragment>
 	)

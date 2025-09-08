@@ -1,9 +1,11 @@
 import * as FileSystem from "expo-file-system/next"
 import cache from "./cache"
+import { Platform } from "react-native"
+import ReactNativeBlobUtil from "react-native-blob-util"
 
 export const PREFIX: string = "filenv3_"
-export const THUMBNAILS_VERSION: number = 1
-export const BASE_DIR: string = FileSystem.Paths.document.uri // TODO: FileSystem.Paths.appleSharedContainers["group.io.filen.app"]?.uri
+export const THUMBNAILS_VERSION: number = 3
+export const BASE_DIR: string = FileSystem.Paths.document.uri
 export const TEMPORARY_DOWNLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}temporaryDownloads`)
 export const TEMPORARY_UPLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}temporaryUploads`)
 export const THUMBNAILS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}thumbnails_v${THUMBNAILS_VERSION}`)
@@ -14,22 +16,20 @@ export const ASSETS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFI
 export const TRACK_PLAYER_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}trackPlayer`)
 export const TRACK_PLAYER_PICTURES_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}trackPlayerPictures`)
 
-if (__DEV__) {
-	console.log({
-		PREFIX,
-		THUMBNAILS_VERSION,
-		BASE_DIR,
-		TEMPORARY_DOWNLOADS_BASE_PATH,
-		TEMPORARY_UPLOADS_BASE_PATH,
-		THUMBNAILS_BASE_PATH,
-		DB_BASE_PATH,
-		EXPORTS_BASE_PATH,
-		OFFLINE_FILES_BASE_PATH,
-		ASSETS_BASE_PATH,
-		TRACK_PLAYER_BASE_PATH,
-		TRACK_PLAYER_PICTURES_BASE_PATH
-	})
-}
+console.log({
+	PREFIX,
+	THUMBNAILS_VERSION,
+	BASE_DIR,
+	TEMPORARY_DOWNLOADS_BASE_PATH,
+	TEMPORARY_UPLOADS_BASE_PATH,
+	THUMBNAILS_BASE_PATH,
+	DB_BASE_PATH,
+	EXPORTS_BASE_PATH,
+	OFFLINE_FILES_BASE_PATH,
+	ASSETS_BASE_PATH,
+	TRACK_PLAYER_BASE_PATH,
+	TRACK_PLAYER_PICTURES_BASE_PATH
+})
 
 export class Paths {
 	private readonly created = {
@@ -42,6 +42,17 @@ export class Paths {
 		assets: false,
 		trackPlayer: false,
 		trackPlayerPictures: false
+	}
+	private fileProviderAuthFilePath: string = ""
+
+	public clearDb(): void {
+		const dbDir = new FileSystem.Directory(DB_BASE_PATH)
+
+		this.created.db = false
+
+		if (dbDir.exists) {
+			dbDir.delete()
+		}
 	}
 
 	public clearTempDirectories(): void {
@@ -246,6 +257,22 @@ export class Paths {
 		this.created.trackPlayerPictures = true
 
 		return TRACK_PLAYER_PICTURES_BASE_PATH
+	}
+
+	public async fileProviderAuthFile(): Promise<string> {
+		if (this.fileProviderAuthFilePath.length > 0) {
+			return this.fileProviderAuthFilePath
+		}
+
+		let path = FileSystem.Paths.join(BASE_DIR, "auth.json")
+
+		if (Platform.OS === "ios") {
+			path = FileSystem.Paths.join(await ReactNativeBlobUtil.fs.pathForAppGroup("group.io.filen.app"), "auth.json")
+		}
+
+		this.fileProviderAuthFilePath = path
+
+		return path
 	}
 }
 

@@ -10,9 +10,11 @@ import sqlite from "./sqlite"
 import queryUtils from "@/queries/utils"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS, EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS } from "./constants"
+import download from "./download"
+import { useDriveStore } from "@/stores/drive.store"
 
 export const THUMBNAILS_MAX_ERRORS: number = 3
-export const THUMBNAILS_SIZE: number = 256
+export const THUMBNAILS_SIZE: number = 128
 export const THUMBNAILS_COMPRESSION: number = 0.8
 
 export const THUMBNAILS_SUPPORTED_FORMATS = [...EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS, ...EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS]
@@ -85,9 +87,27 @@ export class Thumbnails {
 		}
 	}
 
-	public async generate({ item, queryParams }: { item: DriveCloudItem; queryParams?: FetchCloudItemsParams }): Promise<string> {
+	public isItemInView(uuid: string): boolean {
+		return useDriveStore.getState().visibleItemUuids.includes(uuid)
+	}
+
+	public async generate({
+		item,
+		queryParams,
+		originalFilePath,
+		disableInViewCheck
+	}: {
+		item: DriveCloudItem
+		queryParams?: FetchCloudItemsParams
+		originalFilePath?: string
+		disableInViewCheck?: boolean
+	}): Promise<string> {
 		if (item.type !== "file") {
 			throw new Error("Item is not of type file.")
+		}
+
+		if (!disableInViewCheck && !this.isItemInView(item.uuid)) {
+			throw new Error("Item is not in view.")
 		}
 
 		const extname = FileSystem.Paths.extname(item.name.trim().toLowerCase())
@@ -113,6 +133,10 @@ export class Thumbnails {
 		await Promise.all([this.semaphore.acquire(), uuidMutex?.acquire()])
 
 		try {
+			if (!disableInViewCheck && !this.isItemInView(item.uuid)) {
+				throw new Error("Item is not in view.")
+			}
+
 			const temporaryDownloadsPath = paths.temporaryDownloads()
 			const thumbnailsPath = paths.thumbnails()
 			const thumbnailDestination = normalizeFilePathForExpo(FileSystem.Paths.join(thumbnailsPath, `${item.uuid}.png`))
@@ -159,19 +183,29 @@ export class Thumbnails {
 
 			try {
 				if (EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS.includes(extname)) {
-					await nodeWorker.proxy("downloadFile", {
-						id,
-						uuid: item.uuid,
-						bucket: item.bucket,
-						region: item.region,
-						chunks: item.chunks,
-						version: item.version,
-						key: item.key,
-						destination: tempDestinationFile.uri,
-						size: item.size,
-						name: item.name,
-						dontEmitProgress: true
-					})
+					if (originalFilePath) {
+						const originalFile = new FileSystem.File(normalizeFilePathForExpo(originalFilePath))
+
+						if (!originalFile.exists || !originalFile.size) {
+							throw new Error(`Original file at ${originalFilePath} does not exist.`)
+						}
+
+						originalFile.copy(tempDestinationFile)
+					} else {
+						await download.file.foreground({
+							id,
+							uuid: item.uuid,
+							bucket: item.bucket,
+							region: item.region,
+							chunks: item.chunks,
+							version: item.version,
+							key: item.key,
+							destination: tempDestinationFile.uri,
+							size: item.size,
+							name: item.name,
+							dontEmitProgress: true
+						})
+					}
 
 					const manipulated = await ImageManipulator.manipulate(normalizeFilePathForExpo(tempDestinationFile.uri))
 						.resize({
@@ -193,26 +227,46 @@ export class Thumbnails {
 
 					manipulatedFile.move(destinationFile)
 				} else if (EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS.includes(extname)) {
+					if (!originalFilePath) {
+						const [nodeWorkerPingResponse, nodeHTTPServerAlive] = await Promise.all([
+							nodeWorker.proxy("ping", undefined),
+							nodeWorker.httpServerAlive()
+						])
+
+						if (nodeWorkerPingResponse !== "pong") {
+							throw new Error("Node worker is not responding.")
+						}
+
+						if (!nodeHTTPServerAlive) {
+							throw new Error("HTTP server is not alive.")
+						}
+					}
+
 					const videoThumbnail = await VideoThumbnails.getThumbnailAsync(
-						`http://127.0.0.1:${nodeWorker.httpServerPort}/stream?file=${encodeURIComponent(
-							btoa(
-								JSON.stringify({
-									name: item.name,
-									mime: item.mime,
-									size: item.size,
-									uuid: item.uuid,
-									bucket: item.bucket,
-									key: item.key,
-									version: item.version,
-									chunks: item.chunks,
-									region: item.region
-								})
-							)
-						)}`,
+						originalFilePath
+							? normalizeFilePathForExpo(originalFilePath)
+							: `http://127.0.0.1:${nodeWorker.httpServerPort}/stream?file=${encodeURIComponent(
+									btoa(
+										JSON.stringify({
+											mime: item.mime,
+											size: item.size,
+											uuid: item.uuid,
+											bucket: item.bucket,
+											key: item.key,
+											version: item.version,
+											chunks: item.chunks,
+											region: item.region
+										})
+									)
+							  )}`,
 						{
-							headers: {
-								Authorization: `Bearer ${nodeWorker.httpAuthToken}`
-							},
+							...(originalFilePath
+								? {}
+								: {
+										headers: {
+											Authorization: `Bearer ${nodeWorker.httpAuthToken}`
+										}
+								  }),
 							quality: THUMBNAILS_COMPRESSION,
 							time: 500
 						}

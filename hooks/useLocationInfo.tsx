@@ -7,7 +7,7 @@ export default function useLocationInfo() {
 	const params = useGlobalSearchParams()
 
 	const focusedChatUUID = useMemo(() => {
-		return pathname === "/chat" && typeof params.uuid === "string" && validateUUID(params.uuid) ? params.uuid : null
+		return pathname.startsWith("/chat/") && typeof params.uuid === "string" && validateUUID(params.uuid) ? params.uuid : null
 	}, [pathname, params.uuid])
 
 	const insideMainChatsScreen = useMemo(() => {

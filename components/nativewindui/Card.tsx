@@ -1,6 +1,6 @@
 import * as Slot from "@rn-primitives/slot"
 import { BlurView } from "expo-blur"
-import { Image, ImageProps } from "expo-image"
+import TurboImage, { type TurboImageProps } from "react-native-turbo-image"
 import { LinearGradient } from "expo-linear-gradient"
 import { cssInterop } from "nativewind"
 import { memo, forwardRef, Fragment, useMemo } from "react"
@@ -8,6 +8,7 @@ import { Platform, StyleSheet, View } from "react-native"
 import { Text, TextClassContext } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 import { useColorScheme } from "@/lib/useColorScheme"
+import assets from "@/lib/assets"
 
 cssInterop(BlurView, {
 	className: "style"
@@ -106,18 +107,9 @@ export const CardContent = memo(
 CardContent.displayName = "CardContent"
 
 export const CardImage = memo(
-	forwardRef<React.ElementRef<typeof Image>, Omit<ImageProps, "className"> & { materialRootClassName?: string }>(
-		(
-			{
-				transition = 200,
-				style = StyleSheet.absoluteFill,
-				contentPosition = Platform.select({ ios: "center", default: "top" }),
-				contentFit = "cover",
-				materialRootClassName,
-				...props
-			},
-			ref
-		) => {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	forwardRef<React.ElementRef<any>, Omit<TurboImageProps, "className"> & { materialRootClassName?: string }>(
+		({ style = StyleSheet.absoluteFill, resizeMode = "cover", materialRootClassName, ...props }, _) => {
 			const Root = useMemo(() => (Platform.OS === "ios" ? Slot.Image : View), [])
 
 			return (
@@ -127,12 +119,12 @@ export const CardImage = memo(
 						default: cn("relative flex-1 overflow-hidden rounded-2xl", materialRootClassName)
 					})}
 				>
-					<Image
-						ref={ref}
-						transition={transition}
+					<TurboImage
 						style={style}
-						contentPosition={contentPosition}
-						contentFit={contentFit}
+						resizeMode={resizeMode}
+						placeholder={{
+							blurhash: assets.blurhash.images.fallback
+						}}
 						{...props}
 					/>
 				</Root>

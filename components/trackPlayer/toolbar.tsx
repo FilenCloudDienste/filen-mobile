@@ -5,20 +5,19 @@ import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Slider } from "@/components/nativewindui/Slider"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import { BlurView } from "expo-blur"
 import useDimensions from "@/hooks/useDimensions"
 import useViewLayout from "@/hooks/useViewLayout"
 import { useMMKVNumber } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { formatSecondsToMMSS, formatBytes, normalizeFilePathForExpo } from "@/lib/utils"
+import { formatSecondsToMMSS, formatBytes } from "@/lib/utils"
 import { cn } from "@/lib/cn"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import Container from "../Container"
-import paths from "@/lib/paths"
-import { Paths } from "expo-file-system/next"
 import { useTranslation } from "react-i18next"
+import assets from "@/lib/assets"
 
 export const Toolbar = memo(() => {
 	const { colors } = useColorScheme()
@@ -47,22 +46,6 @@ export const Toolbar = memo(() => {
 			paddingBottom: insets.bottom + 16
 		}
 	}, [insets.bottom])
-
-	const imageSource = useMemo(() => {
-		return {
-			uri: normalizeFilePathForExpo(
-				Paths.join(
-					paths.trackPlayerPictures(),
-					Paths.basename(
-						typeof trackPlayerState.playingTrack?.artwork === "string" &&
-							!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png")
-							? trackPlayerState.playingTrack.artwork
-							: "audio_fallback.png"
-					)
-				)
-			)
-		}
-	}, [trackPlayerState.playingTrack])
 
 	const imageStyle = useMemo(() => {
 		return {
@@ -105,8 +88,10 @@ export const Toolbar = memo(() => {
 			return
 		}
 
-		// TODO: Implement repeat functionality
-	}, [buttonsDisabled])
+		trackPlayerControls
+			.setRepeatMode(trackPlayerState.repeatMode === "off" ? "track" : trackPlayerState.repeatMode === "track" ? "queue" : "off")
+			.catch(console.error)
+	}, [buttonsDisabled, trackPlayerControls, trackPlayerState.repeatMode])
 
 	const skipToPrevious = useCallback(() => {
 		if (buttonsDisabled) {
@@ -150,13 +135,15 @@ export const Toolbar = memo(() => {
 			>
 				<Container>
 					<View className="flex-row gap-3">
-						{active &&
-						typeof trackPlayerState.playingTrack?.artwork === "string" &&
-						!trackPlayerState.playingTrack?.artwork.endsWith("audio_fallback.png") ? (
-							<Image
-								source={imageSource}
-								contentFit="cover"
+						{active && trackPlayerState.isPlayingTrackArtworkValid && trackPlayerState.playingTrackArtworkSource ? (
+							<TurboImage
+								source={trackPlayerState.playingTrackArtworkSource}
+								resizeMode="cover"
+								cachePolicy="dataCache"
 								style={imageStyle}
+								placeholder={{
+									blurhash: assets.blurhash.images.fallback
+								}}
 							/>
 						) : (
 							<View
@@ -312,9 +299,15 @@ export const Toolbar = memo(() => {
 							onPress={repeat}
 						>
 							<Icon
-								name="repeat"
+								name={
+									trackPlayerState.repeatMode === "off"
+										? "repeat"
+										: trackPlayerState.repeatMode === "track"
+										? "repeat-once"
+										: "repeat"
+								}
 								size={32}
-								color={colors.foreground}
+								color={trackPlayerState.repeatMode === "off" ? colors.foreground : colors.primary}
 							/>
 						</Button>
 					</View>

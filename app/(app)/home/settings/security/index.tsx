@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo } from "react"
-import { Settings as SettingsComponent } from "@/components/settings"
+import { Settings as SettingsComponent, IconView } from "@/components/settings"
 import useAccountQuery from "@/queries/useAccountQuery"
 import { useRouter } from "expo-router"
 import nodeWorker from "@/lib/nodeWorker"
@@ -8,8 +8,9 @@ import { useTranslation } from "react-i18next"
 import alerts from "@/lib/alerts"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { ratePasswordStrength } from "@/lib/utils"
-import { logout } from "@/lib/auth"
+import authService from "@/services/auth.service"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
+import mmkvInstance from "@/lib/mmkv"
 
 export type BiometricAuth = {
 	enabled: boolean
@@ -24,6 +25,44 @@ export type BiometricAuth = {
 
 export const BIOMETRIC_AUTH_KEY = "biometricAuth"
 export const BIOMETRIC_MAX_TRIES = 10
+
+export function getBiometricAuth(): BiometricAuth | null {
+	try {
+		const biometricAuth = JSON.parse(mmkvInstance.getString(BIOMETRIC_AUTH_KEY) ?? "{}") as BiometricAuth
+
+		if (biometricAuth) {
+			return biometricAuth
+		}
+
+		return null
+	} catch {
+		return null
+	}
+}
+
+export function setBiometricAuth(biometricAuth: BiometricAuth): void {
+	try {
+		mmkvInstance.set(BIOMETRIC_AUTH_KEY, JSON.stringify(biometricAuth))
+	} catch (e) {
+		console.error(e)
+
+		if (e instanceof Error) {
+			alerts.error(e.message)
+		}
+	}
+}
+
+export function clearBiometricAuth(): void {
+	try {
+		mmkvInstance.delete(BIOMETRIC_AUTH_KEY)
+	} catch (e) {
+		console.error(e)
+
+		if (e instanceof Error) {
+			alerts.error(e.message)
+		}
+	}
+}
 
 export const Security = memo(() => {
 	const router = useRouter()
@@ -140,9 +179,10 @@ export const Security = memo(() => {
 				newPassword: request.newPassword
 			})
 
-			await account.refetch()
-
-			logout()
+			await authService.logout({
+				disableAlertPrompt: true,
+				disableLoader: true
+			})
 
 			router.replace({
 				pathname: "/(auth)"
@@ -156,7 +196,7 @@ export const Security = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [account, t, router])
+	}, [t, router])
 
 	const openTwoFactorAuthentication = useCallback(() => {
 		router.push({
@@ -175,17 +215,35 @@ export const Security = memo(() => {
 			{
 				id: "0",
 				title: t("settings.security.items.changePassword"),
-				onPress: changePassword
+				onPress: changePassword,
+				leftView: (
+					<IconView
+						name="lock-outline"
+						className="bg-gray-500"
+					/>
+				)
 			},
 			{
 				id: "1",
 				title: t("settings.security.items.2fa"),
-				onPress: openTwoFactorAuthentication
+				onPress: openTwoFactorAuthentication,
+				leftView: (
+					<IconView
+						name="shield-outline"
+						className="bg-gray-500"
+					/>
+				)
 			},
 			{
 				id: "2",
 				title: t("settings.security.items.biometricAuth"),
-				onPress: openBiometric
+				onPress: openBiometric,
+				leftView: (
+					<IconView
+						name="lock-open-alert-outline"
+						className="bg-gray-500"
+					/>
+				)
 			}
 		]
 	}, [changePassword, openBiometric, openTwoFactorAuthentication, t])

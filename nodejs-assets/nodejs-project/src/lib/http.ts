@@ -8,7 +8,7 @@ import { Readable, type Duplex } from "stream"
 import { type ReadableStream as ReadableStreamWebType } from "stream/web"
 import http, { type IncomingMessage, ServerResponse } from "http"
 import { type Socket } from "net"
-import { v4 as uuidv4 } from "uuid"
+import { randomUUID } from "crypto"
 import { POSSIBLE_PORTS } from "./ports"
 import crypto from "crypto"
 
@@ -43,7 +43,6 @@ export class HTTP {
 
 			const fileBase64 = decodeURIComponent(req.query.file as string)
 			const file = JSON.parse(Buffer.from(fileBase64, "base64").toString("utf-8")) as {
-				name: string
 				mime: string
 				size: number
 				uuid: string
@@ -53,7 +52,7 @@ export class HTTP {
 				chunks: number
 				region: string
 			}
-			const mimeType = file.mime.length > 0 ? file.mime : mimeTypes.lookup(file.name) || "application/octet-stream"
+			const mimeType = file.mime ?? "application/octet-stream"
 			const totalLength = file.size
 			const range = req.headers.range || req.headers["content-range"]
 			let start = 0
@@ -203,7 +202,7 @@ export class HTTP {
 						resolve()
 					})
 					.on("connection", socket => {
-						const socketId = uuidv4()
+						const socketId = randomUUID()
 
 						this.connections[socketId] = socket
 

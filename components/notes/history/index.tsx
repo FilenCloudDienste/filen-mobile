@@ -15,7 +15,6 @@ import queryUtils from "@/queries/utils"
 import useNoteHistoryQuery from "@/queries/useNoteHistoryQuery"
 import { useTranslation } from "react-i18next"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
-import useDimensions from "@/hooks/useDimensions"
 import ListEmpty from "@/components/listEmpty"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -26,11 +25,6 @@ export type ListItemInfo = {
 	id: string
 	history: NoteHistory
 }
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
 
 export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInfo>; note: Note }) => {
 	const { t } = useTranslation()
@@ -119,7 +113,7 @@ export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInf
 			isFirstInSection={false}
 			isLastInSection={false}
 			removeSeparator={Platform.OS === "android"}
-			innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+			innerClassName="ios:py-3 py-3 android:py-3"
 			rightView={rightView}
 		/>
 	)
@@ -128,7 +122,6 @@ export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInf
 Item.displayName = "Item"
 
 export const History = memo(({ note }: { note: Note }) => {
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
 	const { colors } = useColorScheme()
 
@@ -167,7 +160,7 @@ export const History = memo(({ note }: { note: Note }) => {
 		[note]
 	)
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={noteHistoryQuery.status}
@@ -192,7 +185,7 @@ export const History = memo(({ note }: { note: Note }) => {
 		)
 	}, [noteHistoryQuery.status, history.length, t])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		return (
 			<View className="h-16 flex-row items-center justify-center">
 				<Text className="text-sm">
@@ -203,21 +196,6 @@ export const History = memo(({ note }: { note: Note }) => {
 			</View>
 		)
 	}, [history.length, t])
-
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
 
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
@@ -252,14 +230,8 @@ export const History = memo(({ note }: { note: Note }) => {
 					data={history}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
-					ListFooterComponent={listFooter}
-					ListEmptyComponent={listEmpty}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
+					ListFooterComponent={ListFooterComponent}
+					ListEmptyComponent={ListEmptyComponent}
 				/>
 			</Container>
 		</Fragment>

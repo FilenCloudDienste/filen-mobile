@@ -10,7 +10,7 @@ import mimeTypes from "mime-types"
 import { AudioPro } from "./audioPro"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import assets from "./assets"
-import downloadService from "@/services/download.service"
+import download from "@/lib/download"
 import { getAudioMetadata } from "@missingcore/audio-metadata"
 
 export type AudioProTrackExtended = AudioProTrack & {
@@ -36,17 +36,98 @@ export type TrackMetadata = {
 	year?: number
 }
 
-export const TRACK_PLAYER_STATE_PREFIX = "trackPlayerState_v1_"
-export const TRACK_PLAYER_QUEUE_KEY = `${TRACK_PLAYER_STATE_PREFIX}Queue`
-export const TRACK_PLAYER_PLAYING_TRACK_KEY = `${TRACK_PLAYER_STATE_PREFIX}PlayingTrack`
-export const TRACK_PLAYER_TIMINGS_KEY = `${TRACK_PLAYER_STATE_PREFIX}Timings`
-export const TRACK_PLAYER_REPEAT_MODE_KEY = `${TRACK_PLAYER_STATE_PREFIX}RepeatMode`
-export const TRACK_PLAYER_PLAYBACK_SPEED_KEY = `${TRACK_PLAYER_STATE_PREFIX}PlaybackSpeed`
-export const TRACK_PLAYER_VOLUME_KEY = `${TRACK_PLAYER_STATE_PREFIX}>Volume`
+export type RepeatMode = "off" | "track" | "queue"
 
-export class TrackPlayerService {
+export const TRACK_PLAYER_MMKV_PREFIX = "trackPlayerState:v2:"
+export const TRACK_PLAYER_QUEUE_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Queue`
+export const TRACK_PLAYER_PLAYING_TRACK_KEY = `${TRACK_PLAYER_MMKV_PREFIX}PlayingTrack`
+export const TRACK_PLAYER_TIMINGS_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Timings`
+export const TRACK_PLAYER_REPEAT_MODE_KEY = `${TRACK_PLAYER_MMKV_PREFIX}RepeatMode`
+export const TRACK_PLAYER_PLAYBACK_SPEED_KEY = `${TRACK_PLAYER_MMKV_PREFIX}PlaybackSpeed`
+export const TRACK_PLAYER_VOLUME_KEY = `${TRACK_PLAYER_MMKV_PREFIX}>Volume`
+
+export class TrackPlayer {
 	private readonly loadFileForTrackMutex: Semaphore = new Semaphore(1)
 	private readonly controlsMutex: Semaphore = new Semaphore(1)
+
+	public constructor() {
+		AudioPro.configure({
+			contentType: AudioProContentType.MUSIC,
+			debug: false,
+			debugIncludesProgress: false,
+			progressIntervalMs: 1000,
+			showNextPrevControls: true
+		})
+
+		AudioPro.addEventListener(async event => {
+			switch (event.type) {
+				case AudioProEventType.REMOTE_NEXT: {
+					try {
+						await this.skipToNext()
+					} catch (e) {
+						console.error(e)
+					}
+
+					break
+				}
+
+				case AudioProEventType.REMOTE_PREV: {
+					try {
+						await this.skipToPrevious()
+					} catch (e) {
+						console.error(e)
+					}
+
+					break
+				}
+
+				case AudioProEventType.TRACK_ENDED: {
+					try {
+						const repeatMode = this.getRepeatMode()
+
+						if (repeatMode === "track") {
+							await this.repeatCurrentTrack()
+
+							return
+						}
+
+						if (repeatMode === "queue") {
+							await this.controlsMutex.acquire()
+
+							try {
+								const queue = this.getQueue()
+
+								if (queue.length > 0) {
+									const nextTrack = this.getNextTrackInQueue()
+
+									if (!nextTrack) {
+										const firstTrack = queue.at(0)
+
+										if (firstTrack) {
+											await this.playTrack({
+												track: firstTrack,
+												autoPlay: true
+											})
+
+											return
+										}
+									}
+								}
+							} finally {
+								this.controlsMutex.release()
+							}
+						}
+
+						await this.skipToNext()
+					} catch (e) {
+						console.error(e)
+					}
+
+					break
+				}
+			}
+		})
+	}
 
 	public clearState(): void {
 		mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify([]))
@@ -204,7 +285,7 @@ export class TrackPlayerService {
 	}
 
 	public getTrackMetadataKeyFromUUID(uuid: string): string {
-		return `trackPlayerFileMetadata:${uuid}`
+		return `${TRACK_PLAYER_MMKV_PREFIX}trackPlayerFileMetadata:${uuid}`
 	}
 
 	public async togglePlay(): Promise<void> {
@@ -246,6 +327,26 @@ export class TrackPlayerService {
 		}
 	}
 
+	public async setRepeatMode(mode: RepeatMode): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			mmkvInstance.set(TRACK_PLAYER_REPEAT_MODE_KEY, mode)
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public getRepeatMode(): RepeatMode {
+		const repeatMode = mmkvInstance.getString(TRACK_PLAYER_REPEAT_MODE_KEY)
+
+		if (!repeatMode || !["off", "track", "queue"].includes(repeatMode)) {
+			return "off" as RepeatMode
+		}
+
+		return repeatMode as RepeatMode
+	}
+
 	public async skipToNext(): Promise<void> {
 		await this.controlsMutex.acquire()
 
@@ -277,6 +378,25 @@ export class TrackPlayerService {
 
 			await this.playTrack({
 				track: previousTrack,
+				autoPlay: true
+			})
+		} finally {
+			this.controlsMutex.release()
+		}
+	}
+
+	public async repeatCurrentTrack(): Promise<void> {
+		await this.controlsMutex.acquire()
+
+		try {
+			const currentTrack = this.getCurrentTrackInQueue()
+
+			if (!currentTrack) {
+				return
+			}
+
+			await this.playTrack({
+				track: currentTrack,
 				autoPlay: true
 			})
 		} finally {
@@ -438,12 +558,8 @@ export class TrackPlayerService {
 		await this.controlsMutex.acquire()
 
 		try {
-			const silentSoundURI = assets.uri.audio.silent_1h()
+			const silentSoundURI = assets.uri.audio.silent()
 			const audioImageFallbackURI = assets.uri.images.audio_fallback()
-
-			if (!silentSoundURI || !audioImageFallbackURI) {
-				return
-			}
 
 			mmkvInstance.set(
 				TRACK_PLAYER_QUEUE_KEY,
@@ -472,6 +588,104 @@ export class TrackPlayerService {
 		}
 	}
 
+	public async parseAudioMetadata({ uri, uuid }: { uri: string; uuid: string }): Promise<TrackMetadata | null> {
+		try {
+			const existingMetadata = mmkvInstance.getString(this.getTrackMetadataKeyFromUUID(uuid))
+
+			if (existingMetadata) {
+				return JSON.parse(existingMetadata) as TrackMetadata
+			}
+
+			const file = new FileSystem.File(normalizeFilePathForExpo(uri))
+
+			if (!file.exists || !file.size) {
+				return null
+			}
+
+			const data = await getAudioMetadata(uri, ["album", "albumArtist", "artist", "name", "track", "year", "artwork"])
+			let coverURI: string | undefined = undefined
+
+			if (data?.metadata?.artwork) {
+				const [header, base64String] = data.metadata.artwork.split(",")
+
+				if (header && base64String) {
+					const mimeTypeMatch = header.match(/data:([^;]+)/)
+					const mimeType = mimeTypeMatch && mimeTypeMatch[1] ? mimeTypeMatch[1] : ""
+
+					if (mimeType.length > 0) {
+						const fileExtension = mimeTypes.extension(mimeType)
+
+						if (fileExtension) {
+							const destination = new FileSystem.File(
+								FileSystem.Paths.join(paths.trackPlayerPictures(), `${uuid}.${fileExtension}`)
+							)
+
+							if (destination.exists) {
+								destination.delete()
+							}
+
+							destination.write(new Uint8Array(Buffer.from(base64String, "base64")))
+
+							coverURI = normalizeFilePathForExpo(destination.uri)
+						}
+					}
+				}
+			}
+
+			const metadata: TrackMetadata = {
+				artist: data?.metadata?.artist,
+				album: data?.metadata?.album,
+				title: data?.metadata?.name,
+				year: data?.metadata?.year,
+				picture: coverURI
+			} satisfies TrackMetadata
+
+			mmkvInstance.set(this.getTrackMetadataKeyFromUUID(uuid), JSON.stringify(metadata))
+
+			const queue = this.getQueue()
+
+			mmkvInstance.set(
+				TRACK_PLAYER_QUEUE_KEY,
+				JSON.stringify(
+					queue.map(track => {
+						if (track.file.uuid === uuid) {
+							return {
+								...track,
+								artist: metadata.artist ?? track.artist,
+								album: metadata.album ?? track.album,
+								title: metadata.title ?? track.title,
+								artwork: metadata.picture ?? track.artwork
+							} satisfies AudioProTrackExtended
+						}
+
+						return track satisfies AudioProTrackExtended
+					})
+				)
+			)
+
+			const playingTrack = AudioPro.getPlayingTrack() as AudioProTrackExtended
+
+			if (playingTrack && playingTrack.file.uuid === uuid) {
+				mmkvInstance.set(
+					TRACK_PLAYER_PLAYING_TRACK_KEY,
+					JSON.stringify({
+						...playingTrack,
+						artist: metadata.artist ?? playingTrack.artist,
+						album: metadata.album ?? playingTrack.album,
+						title: metadata.title ?? playingTrack.title,
+						artwork: metadata.picture ?? playingTrack.artwork
+					} satisfies AudioProTrackExtended)
+				)
+			}
+
+			return metadata
+		} catch (e) {
+			console.error(e)
+
+			return null
+		}
+	}
+
 	public async playTrack({
 		track,
 		autoPlay,
@@ -482,10 +696,10 @@ export class TrackPlayerService {
 		startTimeMs?: number
 	}): Promise<void> {
 		const loadedTrack = await this.loadFileForTrack(track)
-		const newQueue = this.getQueue().map(t => (t.file.uuid === loadedTrack.file.uuid ? loadedTrack : t))
+		const queueWithLoadedTrack = this.getQueue().map(t => (t.file.uuid === loadedTrack.file.uuid ? loadedTrack : t))
 
-		mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify(newQueue))
-		mmkvInstance.set(TRACK_PLAYER_PLAYING_TRACK_KEY, JSON.stringify(track))
+		mmkvInstance.set(TRACK_PLAYER_QUEUE_KEY, JSON.stringify(queueWithLoadedTrack))
+		mmkvInstance.set(TRACK_PLAYER_PLAYING_TRACK_KEY, JSON.stringify(loadedTrack))
 
 		AudioPro.play(loadedTrack, {
 			autoPlay,
@@ -504,7 +718,7 @@ export class TrackPlayerService {
 			)
 
 			if (!destination.exists) {
-				await downloadService.file.background({
+				await download.file.background({
 					id: randomUUID(),
 					uuid: track.file.uuid,
 					bucket: track.file.bucket,
@@ -514,104 +728,33 @@ export class TrackPlayerService {
 					key: track.file.key,
 					destination: destination.uri,
 					size: track.file.size,
-					name: track.file.name,
-					dontEmitProgress: true
+					name: track.file.name
 				})
 			}
 
-			const meta = mmkvInstance.getString(this.getTrackMetadataKeyFromUUID(track.file.uuid))
-			const metadata = meta
-				? (JSON.parse(meta) as TrackMetadata)
-				: await new Promise<TrackMetadata>(resolve => {
-						getAudioMetadata(normalizeFilePathForExpo(destination.uri), ["album", "artist", "name", "track", "year", "artwork"])
-							.then(result => {
-								if (result.metadata.album || result.metadata.artist || result.metadata.name || result.metadata.year) {
-									const meta: TrackMetadata = {
-										artist: result.metadata.artist,
-										album: result.metadata.album,
-										title: result.metadata.name,
-										year: result.metadata.year,
-										picture: undefined
-									} satisfies TrackMetadata
-
-									if (result.metadata.artwork) {
-										const [header, base64String] = result.metadata.artwork.split(",")
-
-										if (header && base64String) {
-											const mimeTypeMatch = header.match(/data:([^;]+)/)
-											const mimeType = mimeTypeMatch && mimeTypeMatch[1] ? mimeTypeMatch[1] : ""
-
-											if (mimeType.length > 0) {
-												const fileExtension = mimeTypes.extension(mimeType)
-
-												if (fileExtension) {
-													const destination = new FileSystem.File(
-														FileSystem.Paths.join(
-															paths.trackPlayerPictures(),
-															`${track.file.uuid}.${fileExtension}`
-														)
-													)
-
-													if (!destination.exists) {
-														destination.write(new Uint8Array(Buffer.from(base64String, "base64")))
-													}
-
-													meta.picture = destination.uri
-												}
-											}
-										}
-									}
-
-									mmkvInstance.set(this.getTrackMetadataKeyFromUUID(track.file.uuid), JSON.stringify(meta))
-
-									resolve(meta)
-
-									return
-								}
-
-								resolve({
-									artist: undefined,
-									album: undefined,
-									title: undefined,
-									year: undefined,
-									picture: undefined
-								} satisfies TrackMetadata)
-							})
-							.catch(err => {
-								console.error(err)
-
-								resolve({
-									artist: undefined,
-									album: undefined,
-									title: undefined,
-									year: undefined,
-									picture: undefined
-								} satisfies TrackMetadata)
-							})
-				  })
+			const metadata = await this.parseAudioMetadata({
+				uri: destination.uri,
+				uuid: track.file.uuid
+			})
 
 			await this.clearActiveStorage()
 
-			const artwork =
-				metadata.picture && new FileSystem.File(metadata.picture).exists ? metadata.picture : assets.uri.images.audio_fallback()
+			const fallbackPicture = assets.uri.images.audio_fallback()
 
-			if (artwork && metadata.picture && artwork !== metadata.picture) {
-				mmkvInstance.set(
-					this.getTrackMetadataKeyFromUUID(track.file.uuid),
-					JSON.stringify({
-						...metadata,
-						picture: artwork
-					})
-				)
+			if (!fallbackPicture) {
+				throw new Error("Fallback picture URI is not available")
 			}
 
 			return {
 				...track,
 				url: normalizeFilePathForExpo(destination.uri),
-				title: metadata.title ?? track.title,
-				artist: metadata.artist ?? track.artist,
-				album: metadata.album ?? track.album,
-				artwork: artwork ? normalizeFilePathForExpo(artwork) : track.artwork
+				title: metadata?.title ?? track.title,
+				artist: metadata?.artist ?? track.artist,
+				album: metadata?.album ?? track.album,
+				artwork:
+					metadata?.picture && new FileSystem.File(normalizeFilePathForExpo(metadata.picture)).exists
+						? normalizeFilePathForExpo(metadata.picture)
+						: normalizeFilePathForExpo(fallbackPicture)
 			} satisfies AudioProTrackExtended
 		} finally {
 			this.loadFileForTrackMutex.release()
@@ -619,52 +762,8 @@ export class TrackPlayerService {
 			useTrackPlayerStore.getState().setLoadingTrack(false)
 		}
 	}
-
-	public init(): void {
-		AudioPro.configure({
-			contentType: AudioProContentType.MUSIC,
-			debug: false,
-			debugIncludesProgress: false,
-			progressIntervalMs: 1000,
-			showNextPrevControls: true
-		})
-
-		AudioPro.addEventListener(async event => {
-			switch (event.type) {
-				case AudioProEventType.REMOTE_NEXT: {
-					try {
-						await this.skipToNext()
-					} catch (e) {
-						console.error(e)
-					}
-
-					break
-				}
-
-				case AudioProEventType.REMOTE_PREV: {
-					try {
-						await this.skipToPrevious()
-					} catch (e) {
-						console.error(e)
-					}
-
-					break
-				}
-
-				case AudioProEventType.TRACK_ENDED: {
-					try {
-						await this.skipToNext()
-					} catch (e) {
-						console.error(e)
-					}
-
-					break
-				}
-			}
-		})
-	}
 }
 
-export const trackPlayerService = new TrackPlayerService()
+export const trackPlayer = new TrackPlayer()
 
-export default trackPlayerService
+export default trackPlayer

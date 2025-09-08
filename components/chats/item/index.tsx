@@ -1,5 +1,5 @@
 import { memo, useMemo, useCallback } from "react"
-import { View, Platform, type ListRenderItemInfo } from "react-native"
+import { View, Platform } from "react-native"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
@@ -11,7 +11,6 @@ import { useRouter } from "expo-router"
 import Menu from "./menu"
 import Unread from "./unread"
 import queryUtils from "@/queries/utils"
-import nodeWorker from "@/lib/nodeWorker"
 import LastMessage from "./lastMessage"
 import Date from "../chat/messages/date"
 import events from "@/lib/events"
@@ -21,11 +20,8 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 71,
-	default: 71
-})
+import { type ListRenderItemInfo } from "@shopify/flash-list"
+import assets from "@/lib/assets"
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation> }) => {
 	const [{ userId }] = useSDKConfig()
@@ -41,7 +37,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 
 		if (participants.length === 0 || participants.length >= 2) {
 			return {
-				uri: "avatar_fallback"
+				uri: assets.uri.images.avatar_fallback()
 			}
 		}
 
@@ -49,7 +45,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 
 		if (!firstParticipant || !firstParticipant.avatar || !firstParticipant.avatar.startsWith("https")) {
 			return {
-				uri: "avatar_fallback"
+				uri: assets.uri.images.avatar_fallback()
 			}
 		}
 
@@ -61,27 +57,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 	const name = useMemo(() => {
 		return getChatName(info.item, userId)
 	}, [info.item, userId])
-
-	const markAsRead = useCallback(async () => {
-		queryUtils.useChatUnreadCountQuerySet({
-			uuid: info.item.uuid,
-			updater: count => {
-				queryUtils.useChatUnreadQuerySet({
-					updater: prev => (prev - count >= 0 ? prev - count : 0)
-				})
-
-				return 0
-			}
-		})
-
-		try {
-			await nodeWorker.proxy("chatMarkAsRead", {
-				conversation: info.item.uuid
-			})
-		} catch (e) {
-			console.error(e)
-		}
-	}, [info.item.uuid])
 
 	const onPress = useCallback(() => {
 		events.emit("hideSearchBar", {
@@ -100,15 +75,13 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 			}
 		}
 
-		markAsRead().catch(console.error)
-
 		routerPush({
-			pathname: "/chat",
+			pathname: "/chat/[uuid]",
 			params: {
 				uuid: info.item.uuid
 			}
 		})
-	}, [info.item.uuid, routerPush, markAsRead, hasInternet, t])
+	}, [info.item.uuid, routerPush, hasInternet, t])
 
 	return (
 		<Menu
@@ -154,7 +127,10 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 							</View>
 							<Text className="text-muted-foreground font-normal text-xs">
 								{info.item.lastMessageTimestamp && info.item.lastMessageTimestamp > 0 ? (
-									<Date timestamp={info.item.lastMessageTimestamp} />
+									<Date
+										timestamp={info.item.lastMessageTimestamp}
+										uuid={info.item.uuid}
+									/>
 								) : (
 									""
 								)}

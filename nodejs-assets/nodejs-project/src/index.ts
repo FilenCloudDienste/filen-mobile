@@ -1,4 +1,4 @@
-import { serializeError, sleep, calcSpeed, calcTimeLeft, normalizeTransferProgress, promiseAllChunked } from "./lib/utils"
+import { serializeError, sleep, calcSpeed, calcTimeLeft, normalizeTransferProgress, promiseAllSettledChunked } from "./lib/utils"
 import * as handlers from "./handlers"
 import { PauseSignal } from "@filen/sdk"
 import transfersStore from "./stores/transfers.store"
@@ -12,7 +12,6 @@ export class NodeWorker {
 	public transfersProgressStarted: number = -1
 	public transfersAllBytes: number = 0
 	public transfersBytesSent: number = 0
-	private transfersPausedOnLock: string[] = []
 	private readonly pauseMutex = new Semaphore(1)
 	public readonly http: HTTP
 	private state: "paused" | "running" = "running"
@@ -136,43 +135,7 @@ export class NodeWorker {
 				return
 			}
 
-			const start = Date.now()
-			const promises: Promise<void>[] = []
-
-			promises.push(this.http.stop(true))
-
-			this.transfersPausedOnLock = []
-
-			for (const id in this.transfersPauseSignals) {
-				promises.push(
-					new Promise<void>((resolve, reject) => {
-						this.handlers
-							.transferAction({
-								action: "pause",
-								id
-							})
-							.then(paused => {
-								if (paused) {
-									this.transfersPausedOnLock.push(id)
-								}
-
-								resolve()
-							})
-							.catch(reject)
-					})
-				)
-			}
-
-			await promiseAllChunked(promises)
-
-			const timeTaken = Date.now() - start
-			const sleepWait = 2500 - timeTaken
-
-			if (sleepWait > 0) {
-				// We roughly have 3-5 seconds on iOS and 5-10 seconds on Android to suspend.
-				// The pause signals do not kick in immediately, that's why we wait for another second until we tell the OS that we've paused everything.
-				await sleep(sleepWait)
-			}
+			await this.http.stop(true)
 
 			this.state = "paused"
 		} finally {
@@ -188,36 +151,15 @@ export class NodeWorker {
 				return
 			}
 
-			const promises: Promise<boolean>[] = []
+			const { port, authToken } = await this.http.start()
 
-			promises.push(
-				(async () => {
-					const { port, authToken } = await this.http.start()
-
-					this.bridge.channel.send({
-						type: "httpServer",
-						data: {
-							port,
-							authToken
-						}
-					})
-
-					return true
-				})()
-			)
-
-			for (const id in this.transfersPausedOnLock) {
-				promises.push(
-					this.handlers.transferAction({
-						action: "resume",
-						id
-					})
-				)
-			}
-
-			this.transfersPausedOnLock = []
-
-			await promiseAllChunked(promises)
+			this.bridge.channel.send({
+				type: "httpServer",
+				data: {
+					port,
+					authToken
+				}
+			})
 
 			this.state = "running"
 		} finally {
@@ -293,6 +235,7 @@ export class NodeWorker {
 	}
 
 	public handlers = {
+		restartHTTPServer: handlers.restartHTTPServer.bind(this),
 		ping: handlers.ping.bind(this),
 		login: handlers.login.bind(this),
 		reinitSDK: handlers.reinitSDK.bind(this),
@@ -421,7 +364,8 @@ export class NodeWorker {
 		muteChat: handlers.muteChat.bind(this),
 		register: handlers.register.bind(this),
 		resendConfirmation: handlers.resendConfirmation.bind(this),
-		forgotPassword: handlers.forgotPassword.bind(this)
+		forgotPassword: handlers.forgotPassword.bind(this),
+		didExportMasterKeys: handlers.didExportMasterKeys.bind(this)
 	}
 }
 

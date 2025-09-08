@@ -40,6 +40,7 @@ export class SQLite {
 	private db: ExpoSQLite.SQLiteDatabase | null = null
 	private readonly dbName: string
 	private readonly openMutex = new Semaphore(1)
+	private readonly rwSemaphore = new Semaphore(3)
 
 	public constructor(dbName: string) {
 		this.dbName = dbName
@@ -64,9 +65,7 @@ export class SQLite {
 
 			await this.db.execAsync(INIT)
 
-			if (__DEV__) {
-				console.log("sqlite path", Paths.join(paths.db(), this.dbName))
-			}
+			console.log("sqlite path", Paths.join(paths.db(), this.dbName))
 
 			return this.db
 		} finally {
@@ -74,223 +73,258 @@ export class SQLite {
 		}
 	}
 
-	public openSync(): ExpoSQLite.SQLiteDatabase {
-		if (this.db) {
-			return this.db
+	public async clearAsync(): Promise<void> {
+		await this.rwSemaphore.acquire()
+
+		try {
+			const db = await this.openAsync()
+
+			await db.execAsync("DELETE FROM kv")
+			await db.execAsync("DELETE FROM thumbnails")
+			await db.execAsync("DELETE FROM offline_files")
+
+			this.db = null
+		} finally {
+			this.rwSemaphore.release()
 		}
-
-		this.db = ExpoSQLite.openDatabaseSync(
-			this.dbName,
-			{
-				enableChangeListener: false,
-				useNewConnection: true
-			},
-			paths.db()
-		)
-
-		this.db.execSync(INIT)
-
-		if (__DEV__) {
-			console.log("sqlite path", Paths.join(paths.db(), this.dbName))
-		}
-
-		return this.db
 	}
 
 	public offlineFiles = {
 		contains: async (uuid: string): Promise<boolean> => {
-			const db = await this.openAsync()
+			await this.rwSemaphore.acquire()
 
-			const result = await db.getFirstAsync<{
-				uuid: string
-			} | null>("SELECT uuid FROM offline_files WHERE uuid = ?", [uuid])
+			try {
+				const db = await this.openAsync()
 
-			return !!result
+				const result = await db.getFirstAsync<{
+					uuid: string
+				} | null>("SELECT uuid FROM offline_files WHERE uuid = ?", [uuid])
+
+				return !!result
+			} finally {
+				this.rwSemaphore.release()
+			}
 		},
 		get: async (uuid: string): Promise<DriveCloudItem | null> => {
-			const db = await this.openAsync()
+			await this.rwSemaphore.acquire()
 
-			const result = await db.getFirstAsync<{
-				item: string
-			} | null>("SELECT item FROM offline_files WHERE uuid = ?", [uuid])
+			try {
+				const db = await this.openAsync()
 
-			if (!result) {
-				return null
+				const result = await db.getFirstAsync<{
+					item: string
+				} | null>("SELECT item FROM offline_files WHERE uuid = ?", [uuid])
+
+				if (!result) {
+					return null
+				}
+
+				return JSON.parse(result.item)
+			} finally {
+				this.rwSemaphore.release()
 			}
-
-			return JSON.parse(result.item)
 		},
 		add: async (item: DriveCloudItem): Promise<number> => {
-			const db = await this.openAsync()
+			await this.rwSemaphore.acquire()
 
-			const result = await db.runAsync("INSERT OR REPLACE INTO offline_files (uuid, item) VALUES (?, ?)", [
-				item.uuid,
-				JSON.stringify(item)
-			])
+			try {
+				const db = await this.openAsync()
 
-			return result.lastInsertRowId
+				const result = await db.runAsync("INSERT OR REPLACE INTO offline_files (uuid, item) VALUES (?, ?)", [
+					item.uuid,
+					JSON.stringify(item)
+				])
+
+				return result.lastInsertRowId
+			} finally {
+				this.rwSemaphore.release()
+			}
 		},
 		remove: async (item: DriveCloudItem): Promise<void> => {
-			const db = await this.openAsync()
+			await this.rwSemaphore.acquire()
 
-			await db.runAsync("DELETE FROM offline_files WHERE uuid = ?", [item.uuid])
+			try {
+				const db = await this.openAsync()
+
+				await db.runAsync("DELETE FROM offline_files WHERE uuid = ?", [item.uuid])
+			} finally {
+				this.rwSemaphore.release()
+			}
 		},
 		list: async (): Promise<DriveCloudItem[]> => {
-			const db = await this.openAsync()
+			await this.rwSemaphore.acquire()
 
-			return (
-				await db.getAllAsync<{
-					item: string
-				}>("SELECT item FROM offline_files")
-			).map(row => JSON.parse(row.item))
+			try {
+				const db = await this.openAsync()
+
+				return (
+					await db.getAllAsync<{
+						item: string
+					}>("SELECT item FROM offline_files")
+				).map(row => JSON.parse(row.item))
+			} finally {
+				this.rwSemaphore.release()
+			}
 		},
 		clear: async (): Promise<void> => {
-			const db = await this.openAsync()
+			await this.rwSemaphore.acquire()
 
-			await db.runAsync("DELETE FROM offline_files")
+			try {
+				const db = await this.openAsync()
+
+				await db.runAsync("DELETE FROM offline_files")
+			} finally {
+				this.rwSemaphore.release()
+			}
 		},
 		find: async (input: string): Promise<DriveCloudItem[]> => {
-			const db = await this.openAsync()
-			const searchTerm = input.trim().toLowerCase()
+			await this.rwSemaphore.acquire()
 
-			return (
-				await db.getAllAsync<{
-					item: string
-				}>("SELECT item FROM offline_files WHERE json_extract(item, '$.name') LIKE ? COLLATE NOCASE", [`%${searchTerm}%`])
-			).map(row => JSON.parse(row.item))
+			try {
+				const db = await this.openAsync()
+				const searchTerm = input.trim().toLowerCase()
+
+				return (
+					await db.getAllAsync<{
+						item: string
+					}>("SELECT item FROM offline_files WHERE json_extract(item, '$.name') LIKE ? COLLATE NOCASE", [`%${searchTerm}%`])
+				).map(row => JSON.parse(row.item))
+			} finally {
+				this.rwSemaphore.release()
+			}
 		},
 		verify: async (): Promise<void> => {
-			const db = await this.openAsync()
+			await this.rwSemaphore.acquire()
 
-			const list = (
-				await db.getAllAsync<{
-					uuid: string
-				}>("SELECT uuid FROM offline_files")
-			).map(row => row.uuid)
+			try {
+				const db = await this.openAsync()
 
-			if (list.length === 0) {
-				return
-			}
+				const list = (
+					await db.getAllAsync<{
+						uuid: string
+					}>("SELECT uuid FROM offline_files")
+				).map(row => row.uuid)
 
-			const offlineFilesDir = new Directory(paths.offlineFiles())
-
-			if (!offlineFilesDir.exists) {
-				offlineFilesDir.create()
-			}
-
-			const existingOfflineFiles = offlineFilesDir.listAsRecords().map(entry => Paths.basename(entry.uri))
-
-			if (existingOfflineFiles.length === 0) {
-				await db.runAsync("DELETE FROM offline_files")
-
-				return
-			}
-
-			for (const uuid of list) {
-				if (!existingOfflineFiles.includes(uuid)) {
-					await db.runAsync("DELETE FROM offline_files WHERE uuid = ?", [uuid])
+				if (list.length === 0) {
+					return
 				}
+
+				const offlineFilesDir = new Directory(paths.offlineFiles())
+
+				if (!offlineFilesDir.exists) {
+					offlineFilesDir.create()
+
+					await db.runAsync("DELETE FROM offline_files")
+
+					return
+				}
+
+				const existingOfflineFiles = offlineFilesDir.listAsRecords().map(entry => Paths.basename(entry.uri).split(".")[0])
+
+				if (existingOfflineFiles.length === 0) {
+					await db.runAsync("DELETE FROM offline_files")
+
+					return
+				}
+
+				await Promise.all(
+					list.map(async uuid => {
+						if (existingOfflineFiles.includes(uuid)) {
+							return
+						}
+
+						await db.runAsync("DELETE FROM offline_files WHERE uuid = ?", [uuid])
+					})
+				)
+			} finally {
+				this.rwSemaphore.release()
 			}
 		}
 	}
 
 	public kvAsync = {
 		get: async <T>(key: string): Promise<T | null> => {
-			const db = await this.openAsync()
+			await this.rwSemaphore.acquire()
 
-			const result = await db.getFirstAsync<{
-				value: string
-			} | null>("SELECT value FROM kv WHERE key = ?", [key])
+			try {
+				const db = await this.openAsync()
 
-			if (!result) {
-				return null
+				const result = await db.getFirstAsync<{
+					value: string
+				} | null>("SELECT value FROM kv WHERE key = ?", [key])
+
+				if (!result) {
+					return null
+				}
+
+				return JSON.parse(result.value) as T
+			} finally {
+				this.rwSemaphore.release()
 			}
-
-			return JSON.parse(result.value) as T
 		},
 		set: async <T>(key: string, value: T): Promise<number> => {
-			const db = await this.openAsync()
-			const result = await db.runAsync("INSERT OR REPLACE INTO kv (key, value) VALUES (?, ?)", [key, JSON.stringify(value)])
+			await this.rwSemaphore.acquire()
 
-			return result.lastInsertRowId
+			try {
+				const db = await this.openAsync()
+				const result = await db.runAsync("INSERT OR REPLACE INTO kv (key, value) VALUES (?, ?)", [key, JSON.stringify(value)])
+
+				return result.lastInsertRowId
+			} finally {
+				this.rwSemaphore.release()
+			}
 		},
 		keys: async (): Promise<string[]> => {
-			const db = await this.openAsync()
+			await this.rwSemaphore.acquire()
 
-			return (
-				await db.getAllAsync<{
-					key: string
-				}>("SELECT key FROM kv")
-			).map(row => row.key)
+			try {
+				const db = await this.openAsync()
+
+				return (
+					await db.getAllAsync<{
+						key: string
+					}>("SELECT key FROM kv")
+				).map(row => row.key)
+			} finally {
+				this.rwSemaphore.release()
+			}
 		},
 		clear: async (): Promise<void> => {
-			const db = await this.openAsync()
+			await this.rwSemaphore.acquire()
 
-			await db.runAsync("DELETE FROM kv")
+			try {
+				const db = await this.openAsync()
+
+				await db.runAsync("DELETE FROM kv")
+			} finally {
+				this.rwSemaphore.release()
+			}
 		},
 		contains: async (key: string): Promise<boolean> => {
-			const db = await this.openAsync()
+			await this.rwSemaphore.acquire()
 
-			const result = await db.getFirstAsync<{
-				key: string
-			} | null>("SELECT key FROM kv WHERE key = ?", [key])
+			try {
+				const db = await this.openAsync()
 
-			return !!result
+				const result = await db.getFirstAsync<{
+					key: string
+				} | null>("SELECT key FROM kv WHERE key = ?", [key])
+
+				return !!result
+			} finally {
+				this.rwSemaphore.release()
+			}
 		},
 		remove: async (key: string): Promise<void> => {
-			const db = await this.openAsync()
+			await this.rwSemaphore.acquire()
 
-			await db.runAsync("DELETE FROM kv WHERE key = ?", [key])
-		}
-	}
+			try {
+				const db = await this.openAsync()
 
-	public kvSync = {
-		get: <T>(key: string): T | null => {
-			const db = this.openSync()
-
-			const result = db.getFirstSync<{
-				value: string
-			} | null>("SELECT value FROM kv WHERE key = ?", [key])
-
-			if (!result) {
-				return null
+				await db.runAsync("DELETE FROM kv WHERE key = ?", [key])
+			} finally {
+				this.rwSemaphore.release()
 			}
-
-			return JSON.parse(result.value) as T
-		},
-		set: <T>(key: string, value: T): number => {
-			const db = this.openSync()
-			const result = db.runSync("INSERT OR REPLACE INTO kv (key, value) VALUES (?, ?)", [key, JSON.stringify(value)])
-
-			return result.lastInsertRowId
-		},
-		keys: (): string[] => {
-			const db = this.openSync()
-
-			return db
-				.getAllSync<{
-					key: string
-				}>("SELECT key FROM kv")
-				.map(row => row.key)
-		},
-		clear: (): void => {
-			const db = this.openSync()
-
-			db.runSync("DELETE FROM kv")
-		},
-		contains: (key: string): boolean => {
-			const db = this.openSync()
-
-			const result = db.getFirstSync<{
-				key: string
-			} | null>("SELECT key FROM kv WHERE key = ?", [key])
-
-			return !!result
-		},
-		remove: (key: string): void => {
-			const db = this.openSync()
-
-			db.runSync("DELETE FROM kv WHERE key = ?", [key])
 		}
 	}
 }

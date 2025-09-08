@@ -5,9 +5,9 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useRouter } from "expo-router"
 import { Button } from "@/components/nativewindui/Button"
-import { type TrackMetadata, trackPlayerService } from "@/lib/trackPlayer"
+import { type TrackMetadata, trackPlayer, TRACK_PLAYER_MMKV_PREFIX } from "@/lib/trackPlayer"
 import mmkvInstance from "@/lib/mmkv"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import { cn } from "@/lib/cn"
 import { useActionSheet } from "@expo/react-native-action-sheet"
 import alerts from "@/lib/alerts"
@@ -22,7 +22,7 @@ import events from "@/lib/events"
 import { useSelectTrackPlayerPlaylistsStore } from "@/stores/selectTrackPlayerPlaylists.store"
 import { useShallow } from "zustand/shallow"
 import { Checkbox } from "../nativewindui/Checkbox"
-import { type SelectTrackPlayerPlaylistsParams } from "@/app/selectTrackPlayerPlaylists"
+import { type SelectTrackPlayerPlaylistsParams } from "@/services/trackPlayer.service"
 import { ListItem, type ListRenderItemInfo } from "../nativewindui/List"
 import { Paths } from "expo-file-system/next"
 import { normalizeFilePathForExpo } from "@/lib/utils"
@@ -37,11 +37,6 @@ export type ListItemInfo = {
 }
 
 export const IMAGE_SIZE = 42
-
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
 
 export const Item = memo(
 	({
@@ -79,7 +74,7 @@ export const Item = memo(
 
 			for (const file of info.item.playlist.files) {
 				try {
-					const metadata = mmkvInstance.getString(`trackPlayerFileMetadata:${file.uuid}`)
+					const metadata = mmkvInstance.getString(`${TRACK_PLAYER_MMKV_PREFIX}trackPlayerFileMetadata:${file.uuid}`)
 					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 					if (metadataParsed?.picture) {
@@ -125,17 +120,13 @@ export const Item = memo(
 			}
 
 			try {
-				const silentSoundURI = assets.uri.audio.silent_1h()
+				const silentSoundURI = assets.uri.audio.silent()
 				const audioImageFallbackURI = assets.uri.images.audio_fallback()
-
-				if (!silentSoundURI || !audioImageFallbackURI) {
-					return
-				}
 
 				await trackPlayerControls.clear()
 				await trackPlayerControls.setQueue({
 					queue: info.item.playlist.files.map(file => {
-						const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
+						const metadata = mmkvInstance.getString(trackPlayer.getTrackMetadataKeyFromUUID(file.uuid))
 						const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 						return {
@@ -169,18 +160,14 @@ export const Item = memo(
 			}
 
 			try {
-				const silentSoundURI = assets.uri.audio.silent_1h()
+				const silentSoundURI = assets.uri.audio.silent()
 				const audioImageFallbackURI = assets.uri.images.audio_fallback()
-
-				if (!silentSoundURI || !audioImageFallbackURI) {
-					return
-				}
 
 				await trackPlayerControls.setQueue({
 					queue: [
 						...(await trackPlayerControls.getQueue()),
 						...info.item.playlist.files.map(file => {
-							const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
+							const metadata = mmkvInstance.getString(trackPlayer.getTrackMetadataKeyFromUUID(file.uuid))
 							const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 							return {
@@ -365,15 +352,19 @@ export const Item = memo(
 						>
 							{playlistPictures.map((picture, index) => {
 								return (
-									<Image
+									<TurboImage
 										key={index}
 										source={{
 											uri: picture
 										}}
-										contentFit="cover"
+										resizeMode="cover"
+										cachePolicy="dataCache"
 										style={{
 											width: IMAGE_SIZE / 2 - (playing ? 1 : 0),
 											height: IMAGE_SIZE / 2 - (playing ? 1 : 0)
+										}}
+										placeholder={{
+											blurhash: assets.blurhash.images.fallback
 										}}
 									/>
 								)
@@ -429,7 +420,8 @@ export const Item = memo(
 							onPress={onDotsPress}
 						>
 							<Icon
-								name="dots-horizontal"
+								namingScheme="sfSymbol"
+								name="ellipsis"
 								size={24}
 								color={colors.foreground}
 							/>
@@ -452,7 +444,7 @@ export const Item = memo(
 				isLastInSection={false}
 				onPress={onPress}
 				removeSeparator={Platform.OS === "android"}
-				innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+				innerClassName="ios:py-3 py-3 android:py-3"
 				disabled={fromSelect && !canSelect}
 				onLongPress={fromSelect ? onPress : onDotsPress}
 			/>

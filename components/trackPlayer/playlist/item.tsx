@@ -1,15 +1,15 @@
-import { View, Platform } from "react-native"
+import { View, Platform, type ListRenderItemInfo } from "react-native"
 import { type PlaylistFile, updatePlaylist, type Playlist } from "@/queries/usePlaylistsQuery"
 import { memo, useCallback, useMemo, useRef } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { type TrackMetadata, trackPlayerService } from "@/lib/trackPlayer"
+import { type TrackMetadata, trackPlayer, TRACK_PLAYER_MMKV_PREFIX } from "@/lib/trackPlayer"
 import alerts from "@/lib/alerts"
 import assets from "@/lib/assets"
 import { useMMKVObject } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import { useReorderableDrag } from "react-native-reorderable-list"
 import { useActionSheet } from "@expo/react-native-action-sheet"
 import useDimensions from "@/hooks/useDimensions"
@@ -19,8 +19,8 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { cn } from "@/lib/cn"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
-import { selectTrackPlayerPlaylists } from "@/app/selectTrackPlayerPlaylists"
-import { ListItem, type ListRenderItemInfo } from "../../nativewindui/List"
+import trackPlayerService from "@/services/trackPlayer.service"
+import { ListItem } from "../../nativewindui/List"
 import { Paths } from "expo-file-system/next"
 import { normalizeFilePathForExpo } from "@/lib/utils"
 import paths from "@/lib/paths"
@@ -41,7 +41,10 @@ export const LIST_ITEM_HEIGHT = Platform.select({
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const { colors } = useColorScheme()
-	const [trackPlayerFileMetadata] = useMMKVObject<TrackMetadata>(`trackPlayerFileMetadata:${info.item.file.uuid}`, mmkvInstance)
+	const [trackPlayerFileMetadata] = useMMKVObject<TrackMetadata>(
+		`${TRACK_PLAYER_MMKV_PREFIX}trackPlayerFileMetadata:${info.item.file.uuid}`,
+		mmkvInstance
+	)
 	const drag = useReorderableDrag()
 	const { showActionSheetWithOptions } = useActionSheet()
 	const {
@@ -54,17 +57,13 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 
 	const onPress = useCallback(async () => {
 		try {
-			const silentSoundURI = assets.uri.audio.silent_1h()
+			const silentSoundURI = assets.uri.audio.silent()
 			const audioImageFallbackURI = assets.uri.images.audio_fallback()
-
-			if (!silentSoundURI || !audioImageFallbackURI) {
-				return
-			}
 
 			await trackPlayerControls.clear()
 			await trackPlayerControls.setQueue({
 				queue: info.item.playlist.files.map(file => {
-					const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
+					const metadata = mmkvInstance.getString(trackPlayer.getTrackMetadataKeyFromUUID(file.uuid))
 					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 					return {
@@ -145,14 +144,9 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 	}, [info.item.playlist, info.item.file.uuid])
 
 	const addToQueue = useCallback(async () => {
-		const silentSoundURI = assets.uri.audio.silent_1h()
+		const silentSoundURI = assets.uri.audio.silent()
 		const audioImageFallbackURI = assets.uri.images.audio_fallback()
-
-		if (!silentSoundURI || !audioImageFallbackURI) {
-			return
-		}
-
-		const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(info.item.file.uuid))
+		const metadata = mmkvInstance.getString(trackPlayer.getTrackMetadataKeyFromUUID(info.item.file.uuid))
 		const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 		await trackPlayerControls.setQueue({
@@ -176,7 +170,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 	}, [info.item.file, trackPlayerControls])
 
 	const addToPlaylist = useCallback(async () => {
-		const selectTrackPlayerPlaylistsResponse = await selectTrackPlayerPlaylists({
+		const selectTrackPlayerPlaylistsResponse = await trackPlayerService.selectTrackPlayerPlaylists({
 			max: 9999,
 			dismissHref: `/trackPlayer/${info.item.playlist.uuid}`
 		})
@@ -288,13 +282,14 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		return (
 			<View className="flex-row items-center px-4 gap-4">
 				{trackPlayerFileMetadata?.picture ? (
-					<Image
+					<TurboImage
 						source={{
 							uri: normalizeFilePathForExpo(
 								Paths.join(paths.trackPlayerPictures(), Paths.basename(trackPlayerFileMetadata.picture))
 							)
 						}}
-						contentFit="cover"
+						resizeMode="cover"
+						cachePolicy="dataCache"
 						style={{
 							width: 36,
 							height: 36,
@@ -302,6 +297,9 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 							backgroundColor: colors.card,
 							borderWidth: playing ? 1 : 0,
 							borderColor: playing ? colors.primary : "transparent"
+						}}
+						placeholder={{
+							blurhash: assets.blurhash.images.fallback
 						}}
 					/>
 				) : (
@@ -334,7 +332,8 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 					onPress={onDotsPress}
 				>
 					<Icon
-						name="dots-horizontal"
+						namingScheme="sfSymbol"
+						name="ellipsis"
 						size={24}
 						color={colors.foreground}
 					/>
@@ -346,6 +345,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 	return (
 		<ListItem
 			{...info}
+			target="Cell"
 			leftView={leftView}
 			rightView={rightView}
 			subTitleClassName="text-xs pt-1 font-normal"
@@ -356,7 +356,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 			isLastInSection={false}
 			onPress={onPress}
 			removeSeparator={Platform.OS === "android"}
-			innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+			innerClassName="ios:py-3 py-3 android:py-3"
 			onLongPress={drag}
 		/>
 	)

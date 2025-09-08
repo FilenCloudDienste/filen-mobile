@@ -10,9 +10,11 @@ import { useQuery } from "@tanstack/react-query"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import * as FileSystem from "expo-file-system/next"
 import { xxHash32 } from "js-xxhash"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import useNetInfo from "@/hooks/useNetInfo"
+import nodeWorker from "@/lib/nodeWorker"
+import assets from "@/lib/assets"
 
 export const Video = memo(({ source, link, name }: { source: string; link: string; name: string }) => {
 	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
@@ -30,6 +32,12 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 			)
 
 			if (!destination.exists) {
+				const nodeWorkerHTTPServerAlive = await nodeWorker.httpServerAlive()
+
+				if (!nodeWorkerHTTPServerAlive) {
+					throw new Error("Node worker HTTP server is not alive.")
+				}
+
 				const videoThumbnail = await VideoThumbnails.getThumbnailAsync(source, {
 					quality: 0.7,
 					time: 500
@@ -49,6 +57,11 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 			}
 
 			return destination.uri
+		},
+		throwOnError(err) {
+			console.error(err)
+
+			return false
 		},
 		refetchOnMount: false,
 		refetchOnReconnect: false,
@@ -77,18 +90,18 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 				}
 			}
 
-			useGalleryStore.getState().setItems([
-				{
-					itemType: "remoteItem" as const,
-					previewType: "video",
-					data: {
-						uri: source
+			useGalleryStore.getState().open({
+				items: [
+					{
+						itemType: "remoteItem" as const,
+						previewType: "video",
+						data: {
+							uri: source
+						}
 					}
-				}
-			])
-
-			useGalleryStore.getState().setInitialUUID(source)
-			useGalleryStore.getState().setVisible(true)
+				],
+				initialUUIDOrURI: source
+			})
 		},
 		[link, source, query.status]
 	)
@@ -114,16 +127,18 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 						color="white"
 					/>
 				</View>
-				<Image
+				<TurboImage
 					source={{
 						uri: query.data
 					}}
-					cachePolicy="disk"
-					priority="low"
-					contentFit="contain"
+					cachePolicy="dataCache"
+					resizeMode="contain"
 					style={{
 						width: "100%",
 						height: "100%"
+					}}
+					placeholder={{
+						blurhash: assets.blurhash.images.fallback
 					}}
 				/>
 			</View>

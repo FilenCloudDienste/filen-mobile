@@ -1,0 +1,212 @@
+name: Build iOS
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+env:
+  NODE_ENV: production
+  APP_ENV: production
+
+jobs:
+  build-ios:
+    runs-on: macos-15
+
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: 🔧 Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "16.4"
+
+      - name: 🔐 Setup distribution certificate
+        uses: apple-actions/import-codesign-certs@v2
+        with:
+          create-keychain: true
+          keychain-password: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+          p12-file-base64: ${{ secrets.APPLE_DISTRIBUTION_CERT_BASE64 }}
+          p12-password: ${{ secrets.APPLE_DISTRIBUTION_CERT_PASS }}
+
+      - name: 🔐 Setup development certificate
+        uses: apple-actions/import-codesign-certs@v2
+        with:
+          create-keychain: false
+          keychain-password: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+          p12-file-base64: ${{ secrets.APPLE_DEVELOPMENT_CERT_BASE64 }}
+          p12-password: ${{ secrets.APPLE_DEVELOPMENT_CERT_PASS }}
+
+      - name: 🔐 Setup App Store Connect API Key
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: |
+          # Create API key directory
+          mkdir -p ~/.appstoreconnect/private_keys
+
+          # Decode base64 and create API key file
+          echo "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_$APP_STORE_CONNECT_API_KEY_ID.p8
+
+          # Set permissions
+          chmod 600 ~/.appstoreconnect/private_keys/AuthKey_$APP_STORE_CONNECT_API_KEY_ID.p8
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: 🦀 Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: 🦀 Install Rust targets
+        run: |
+          rustup target add aarch64-apple-ios
+          rustup target add aarch64-apple-ios-sim
+
+      - name: 🔧 Install Expo CLI
+        run: npm install -g --include=dev @expo/cli@latest
+
+      - name: 🔧 Install patch-package
+        run: npm install -g --include=dev patch-package@latest
+
+      - name: 📦 Install nodeThread dependencies
+        run: cd nodejs-assets/nodejs-project && npm install --force --include=dev && cd .. && cd ..
+
+      - name: 📦 Install main dependencies
+        run: npm install --force --include=dev
+
+      - name: 📦 Build nodeThread
+        run: npm run buildNodeThread
+
+      - name: 🛠 Prebuild
+        run: |
+          npm run prebuild:ci:ios
+
+      - name: 📱 Build and Archive iOS App
+        run: |
+          cd ios
+          xcodebuild \
+            -workspace Filen.xcworkspace \
+            -scheme Filen \
+            -configuration Release \
+            -destination generic/platform=iOS \
+            -archivePath $RUNNER_TEMP/Filen.xcarchive \
+            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8 \
+            -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }} \
+            -allowProvisioningUpdates \
+            -allowProvisioningDeviceRegistration \
+            CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
+            archive
+
+      - name: 📱 Export IPA
+        run: |
+          # Create export options plist for automatic signing
+          cat > $RUNNER_TEMP/ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>teamID</key>
+            <string>${{ secrets.APPLE_TEAM_ID }}</string>
+            <key>uploadBitcode</key>
+            <false/>
+            <key>uploadSymbols</key>
+            <true/>
+            <key>compileBitcode</key>
+            <false/>
+            <key>manageAppVersionAndBuildNumber</key>
+            <false/>
+            <key>signingStyle</key>
+            <string>automatic</string>
+          </dict>
+          </plist>
+          EOF
+
+          # Export IPA with automatic signing
+          xcodebuild \
+            -exportArchive \
+            -archivePath $RUNNER_TEMP/Filen.xcarchive \
+            -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist \
+            -exportPath $RUNNER_TEMP/ \
+            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}.p8 \
+            -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }} \
+            -allowProvisioningUpdates
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: |
+          # Remove API key
+          rm -rf ~/.appstoreconnect
+
+          # Clear Xcode derived data and caches
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+          rm -rf ~/Library/Caches/com.apple.dt.Xcode
+
+          # Clear provisioning profiles downloaded by the action
+          rm -rf ~/Library/MobileDevice/Provisioning\ Profiles
+
+          # Clear any temporary keychains that might have been created
+          security list-keychains | grep -E "(temp|build|ci|apple-actions|signing_temp|temp)" | xargs -I {} security delete-keychain {} 2>/dev/null || true
+
+          # Reset keychain list to default
+          security list-keychains -d user -s login.keychain
+
+      - name: 📤 Upload iOS Archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-archive-${{ github.run_number }}
+          path: ${{ runner.temp }}/Filen.xcarchive
+          retention-days: 90
+
+      - name: 📤 Upload iOS IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa-${{ github.run_number }}
+          path: ${{ runner.temp }}/*.ipa
+          retention-days: 90
+
+      - name: 🚀 Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v3
+        with:
+          app-path: ${{ runner.temp }}/Filen.ipa
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+
+      - name: 📊 Build Summary
+        run: |
+          echo "## 🚀 iOS Build Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📱 Built artifacts:" >> $GITHUB_STEP_SUMMARY
+
+          if [ -d "$RUNNER_TEMP/Filen.xcarchive" ]; then
+            echo "- ✅ iOS Archive (.xcarchive)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if ls $RUNNER_TEMP/*.ipa 1> /dev/null 2>&1; then
+            IPA_FILE=$(ls $RUNNER_TEMP/*.ipa | head -n 1)
+            IPA_SIZE=$(du -h "$IPA_FILE" | cut -f1)
+            IPA_NAME=$(basename "$IPA_FILE")
+            echo "- ✅ iOS IPA: $IPA_NAME (${IPA_SIZE})" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 TestFlight Upload Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Build uploaded to App Store Connect internal beta track" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Download artifacts from the Actions tab above" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Build #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY

@@ -5,9 +5,9 @@ import Menu from "./menu"
 import RightView from "./rightView"
 import LeftView from "./leftView"
 import { useDriveStore } from "@/stores/drive.store"
-import { Platform, type ListRenderItemInfo } from "react-native"
+import { Platform } from "react-native"
 import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
-import { formatBytes, getPreviewType } from "@/lib/utils"
+import { formatBytes, getPreviewType, normalizeFilePathForExpo } from "@/lib/utils"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
 import useNetInfo from "@/hooks/useNetInfo"
 import { viewDocument } from "@react-native-documents/viewer"
@@ -25,6 +25,8 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import cache from "@/lib/cache"
 import { useTranslation } from "react-i18next"
+import queryUtils from "@/queries/utils"
+import { type ListRenderItemInfo } from "@shopify/flash-list"
 
 export type ListItemInfo = {
 	title: string
@@ -33,11 +35,6 @@ export type ListItemInfo = {
 	item: DriveCloudItem
 }
 
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
-
 export const ListItem = memo(
 	({
 		info,
@@ -45,16 +42,18 @@ export const ListItem = memo(
 		items,
 		itemSize,
 		spacing,
-		fromSearch = false,
-		highlight = false
+		fromSearch,
+		highlight,
+		fromHome
 	}: {
 		info: ListRenderItemInfo<ListItemInfo>
 		queryParams: FetchCloudItemsParams
-		items: DriveCloudItem[]
+		items: ListItemInfo[]
 		itemSize: number
 		spacing: number
 		fromSearch?: boolean
 		highlight?: boolean
+		fromHome?: boolean
 	}) => {
 		const { push: routerPush } = useRouter()
 		const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
@@ -79,7 +78,7 @@ export const ListItem = memo(
 		})
 
 		const item = useMemo(() => {
-			if (info.item.item.type !== "directory" || !directorySize.isSuccess) {
+			if (info.item.item.type !== "directory" || directorySize.status !== "success") {
 				return info.item
 			}
 
@@ -87,7 +86,7 @@ export const ListItem = memo(
 				...info.item,
 				subTitle: `${info.item.subTitle}  -  ${formatBytes(directorySize.data.size)}`
 			}
-		}, [info.item, directorySize.isSuccess, directorySize.data])
+		}, [info.item, directorySize.status, directorySize.data])
 
 		const offlineStatus = useMemo(() => {
 			return info.item.item.type === "file" && fileOfflineStatus.status === "success" ? fileOfflineStatus.data : null
@@ -192,6 +191,46 @@ export const ListItem = memo(
 					return
 				}
 
+				if (!hasInternet) {
+					const cachedContent = queryUtils.useCloudItemsQueryGet(
+						pathname.startsWith("/home/links")
+							? {
+									of: "links",
+									parent: info.item.item.uuid,
+									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
+							  }
+							: pathname.startsWith("/home/sharedOut")
+							? {
+									of: "sharedOut",
+									parent: info.item.item.uuid,
+									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
+							  }
+							: pathname.startsWith("/home/sharedIn")
+							? {
+									of: "sharedIn",
+									parent: info.item.item.uuid,
+									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
+							  }
+							: pathname.startsWith("/home/offline")
+							? {
+									of: "offline",
+									parent: info.item.item.uuid,
+									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
+							  }
+							: {
+									of: "drive",
+									parent: info.item.item.uuid,
+									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
+							  }
+					)
+
+					if (!cachedContent) {
+						alerts.error(t("errors.youAreOffline"))
+
+						return
+					}
+				}
+
 				events.emit("hideSearchBar", {
 					clearText: true
 				})
@@ -233,7 +272,7 @@ export const ListItem = memo(
 				}
 
 				viewDocument({
-					uri: offlineStatus.path,
+					uri: normalizeFilePathForExpo(offlineStatus.path),
 					grantPermissions: "read",
 					headerTitle: info.item.item.name,
 					mimeType: info.item.item.mime,
@@ -250,8 +289,9 @@ export const ListItem = memo(
 			}
 
 			if ((previewType === "image" || previewType === "video" || previewType === "audio") && info.item.item.size > 0) {
-				useGalleryStore.getState().setItems(
-					items
+				useGalleryStore.getState().open({
+					items: items
+						.map(item => item.item)
 						.map(item => {
 							const previewType = getPreviewType(item.name)
 
@@ -266,11 +306,9 @@ export const ListItem = memo(
 								  }
 								: null
 						})
-						.filter(item => item !== null)
-				)
-
-				useGalleryStore.getState().setInitialUUID(info.item.item.uuid)
-				useGalleryStore.getState().setVisible(true)
+						.filter(item => item !== null),
+					initialUUIDOrURI: info.item.item.uuid
+				})
 			}
 
 			if (previewType === "text" || previewType === "code") {
@@ -368,7 +406,7 @@ export const ListItem = memo(
 					isLastInSection={false}
 					onPress={onPress}
 					removeSeparator={Platform.OS === "android"}
-					innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+					innerClassName="ios:py-3 py-3 android:py-3"
 				/>
 			)
 		}
@@ -378,6 +416,10 @@ export const ListItem = memo(
 				type="context"
 				item={info.item.item}
 				queryParams={queryParams}
+				fromHome={fromHome}
+				fromPreview={false}
+				fromPhotos={false}
+				fromSearch={fromSearch}
 			>
 				<ListItemComponent
 					{...info}
@@ -392,7 +434,7 @@ export const ListItem = memo(
 					isLastInSection={false}
 					onPress={onPress}
 					removeSeparator={Platform.OS === "android"}
-					innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+					innerClassName="ios:py-3 py-3 android:py-3"
 					className={highlight ? "border-l-4 border-primary/80" : ""}
 				/>
 			</Menu>

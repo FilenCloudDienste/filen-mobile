@@ -9,16 +9,17 @@ import { contactName, getMessageLinkType } from "@/lib/utils"
 import { Button } from "@/components/nativewindui/Button"
 import Fallback from "./embeds/containers/fallback"
 import alerts from "@/lib/alerts"
-import { Image } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import * as Clipboard from "expo-clipboard"
 import { cn } from "@/lib/cn"
 import { Embed } from "./embeds"
 import useViewLayout from "@/hooks/useViewLayout"
 import { useChatsStore } from "@/stores/chats.store"
-import { useShallow } from "zustand/shallow"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import useNetInfo from "@/hooks/useNetInfo"
 import { useTranslation } from "react-i18next"
+import { useMappingHelper } from "@shopify/flash-list"
+import assets from "@/lib/assets"
 
 export const MENTION_REGEX = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/g
 export const customEmojisList = customEmojis.map(emoji => emoji.id)
@@ -126,7 +127,6 @@ CodeBlock.displayName = "CodeBlock"
 
 export const Link = memo(({ match, embedsDisabled }: { match: string; embedsDisabled: boolean }) => {
 	const viewRef = useRef<View>(null)
-	const setEmbedContainerWidth = useChatsStore(useShallow(state => state.setEmbedContainerWidth))
 	const { onLayout, layout } = useViewLayout(viewRef)
 	const { hasInternet } = useNetInfo()
 
@@ -143,10 +143,22 @@ export const Link = memo(({ match, embedsDisabled }: { match: string; embedsDisa
 			return
 		}
 
-		setEmbedContainerWidth(layout.width)
-	}, [layout.width, setEmbedContainerWidth])
+		const width = Math.round(layout.width)
 
-	if (embedsDisabled || !hasInternet) {
+		if (width <= 0) {
+			return
+		}
+
+		const currentWidth = Math.round(useChatsStore.getState().embedContainerWidth)
+
+		if (currentWidth === width) {
+			return
+		}
+
+		useChatsStore.getState().setEmbedContainerWidth(width)
+	}, [layout.width])
+
+	if (embedsDisabled || !hasInternet || url.length === 0 || url.startsWith("http://")) {
 		return <Fallback link={url} />
 	}
 
@@ -181,6 +193,7 @@ export const ReplacedMessageContent = memo(
 		edited: boolean
 	}) => {
 		const { t } = useTranslation()
+		const { getMappingKey } = useMappingHelper()
 
 		const replaced = useMemo(() => {
 			const emojiCount = message.message.match(emojiRegexWithSkinTones)
@@ -244,9 +257,8 @@ export const ReplacedMessageContent = memo(
 
 					if (customEmojisList.includes(customEmoji) && customEmojisListRecord[customEmoji]) {
 						return (
-							<Image
-								cachePolicy="disk"
-								priority="low"
+							<TurboImage
+								cachePolicy="dataCache"
 								style={{
 									width: size ? size : 24,
 									height: size ? size : 24
@@ -255,6 +267,9 @@ export const ReplacedMessageContent = memo(
 									uri: customEmojisListRecord[customEmoji]
 								}}
 								className="shrink-0"
+								placeholder={{
+									blurhash: assets.blurhash.images.fallback
+								}}
 							/>
 						)
 					}
@@ -262,7 +277,7 @@ export const ReplacedMessageContent = memo(
 					return match
 				},
 				input: message.message
-			}) satisfies React.ReactNode[]
+			}) as (string | React.ReactElement)[]
 
 			if (edited) {
 				regexed.push(
@@ -288,7 +303,7 @@ export const ReplacedMessageContent = memo(
 
 						return (
 							<Text
-								key={index}
+								key={getMappingKey(index, index)}
 								className="text-sm text-foreground font-normal shrink flex-wrap text-wrap items-center break-all"
 							>
 								{item}
@@ -296,7 +311,7 @@ export const ReplacedMessageContent = memo(
 						)
 					}
 
-					return <Fragment key={index}>{item}</Fragment>
+					return <Fragment key={getMappingKey(index, index)}>{item}</Fragment>
 				})}
 			</View>
 		)
@@ -375,15 +390,17 @@ export const ReplacedMessageContentInline = memo(
 
 					if (customEmojisList.includes(customEmoji) && customEmojisListRecord[customEmoji]) {
 						return (
-							<Image
-								cachePolicy="disk"
-								priority="low"
+							<TurboImage
+								cachePolicy="dataCache"
 								style={{
 									width: typeof emojiSize === "number" ? emojiSize : 14,
 									height: typeof emojiSize === "number" ? emojiSize : 14
 								}}
 								source={{
 									uri: customEmojisListRecord[customEmoji]
+								}}
+								placeholder={{
+									blurhash: assets.blurhash.images.fallback
 								}}
 							/>
 						)

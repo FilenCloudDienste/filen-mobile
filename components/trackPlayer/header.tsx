@@ -13,8 +13,8 @@ import alerts from "@/lib/alerts"
 import { randomUUID } from "expo-crypto"
 import queryUtils from "@/queries/utils"
 import { useLocalSearchParams } from "expo-router"
-import { selectDriveItems } from "@/app/selectDriveItems/[parent]"
-import { type TrackMetadata, trackPlayerService } from "@/lib/trackPlayer"
+import driveService from "@/services/drive.service"
+import { type TrackMetadata, trackPlayer } from "@/lib/trackPlayer"
 import assets from "@/lib/assets"
 import mmkvInstance from "@/lib/mmkv"
 import { useShallow } from "zustand/shallow"
@@ -49,6 +49,14 @@ export const Header = memo(() => {
 
 		return playlistsQuery.data.find(p => p.uuid === passedPlaylist) ?? null
 	}, [playlistsQuery.data, playlistsQuery.status, passedPlaylist])
+
+	const files = useMemo(() => {
+		if (!playlist) {
+			return []
+		}
+
+		return playlist.files
+	}, [playlist])
 
 	const createPlaylist = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
@@ -114,7 +122,7 @@ export const Header = memo(() => {
 			return
 		}
 
-		const selectDriveItemsResponse = await selectDriveItems({
+		const selectDriveItemsResponse = await driveService.selectDriveItems({
 			type: "file",
 			max: 9999,
 			dismissHref: `/trackPlayer/${playlist.uuid}`,
@@ -171,17 +179,13 @@ export const Header = memo(() => {
 		}
 
 		try {
-			const silentSoundURI = assets.uri.audio.silent_1h()
+			const silentSoundURI = assets.uri.audio.silent()
 			const audioImageFallbackURI = assets.uri.images.audio_fallback()
-
-			if (!silentSoundURI || !audioImageFallbackURI) {
-				return
-			}
 
 			await trackPlayerControls.clear()
 			await trackPlayerControls.setQueue({
 				queue: playlist.files.map(file => {
-					const metadata = mmkvInstance.getString(trackPlayerService.getTrackMetadataKeyFromUUID(file.uuid))
+					const metadata = mmkvInstance.getString(trackPlayer.getTrackMetadataKeyFromUUID(file.uuid))
 					const metadataParsed = metadata ? (JSON.parse(metadata) as TrackMetadata) : null
 
 					return {
@@ -213,17 +217,19 @@ export const Header = memo(() => {
 		if (playlist) {
 			return (
 				<View className="flex-row items-center">
-					<Button
-						variant="plain"
-						size="icon"
-						onPress={playPlaylist}
-					>
-						<Icon
-							name="play-circle-outline"
-							size={24}
-							color={colors.primary}
-						/>
-					</Button>
+					{files.length > 0 && (
+						<Button
+							variant="plain"
+							size="icon"
+							onPress={playPlaylist}
+						>
+							<Icon
+								name="play-circle-outline"
+								size={24}
+								color={colors.primary}
+							/>
+						</Button>
+					)}
 					<Button
 						variant="plain"
 						size="icon"
@@ -252,7 +258,7 @@ export const Header = memo(() => {
 				/>
 			</Button>
 		)
-	}, [playlist, playPlaylist, addTrackToPlaylist, createPlaylist, colors.primary])
+	}, [playlist, playPlaylist, addTrackToPlaylist, createPlaylist, colors.primary, files.length])
 
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (

@@ -1,9 +1,8 @@
 import { memo, useCallback, useState, useMemo, useRef } from "react"
-import { type GestureResponderEvent, View } from "react-native"
+import { type GestureResponderEvent, View, type NativeSyntheticEvent } from "react-native"
 import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
 import { useGalleryStore } from "@/stores/gallery.store"
-import { Image as ExpoImage, type ImageLoadEventData, type ImageErrorEventData } from "expo-image"
 import { Button } from "@/components/nativewindui/Button"
 import useDimensions from "@/hooks/useDimensions"
 import useViewLayout from "@/hooks/useViewLayout"
@@ -12,6 +11,8 @@ import { useMMKVObject } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { xxHash32 } from "js-xxhash"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
+import TurboImage, { type Success, type Failure } from "react-native-turbo-image"
+import assets from "@/lib/assets"
 
 export type ImageDimensions = {
 	width: number
@@ -36,18 +37,18 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 			e.stopPropagation()
 
 			if (loadSuccess) {
-				useGalleryStore.getState().setItems([
-					{
-						itemType: "remoteItem" as const,
-						previewType: "image",
-						data: {
-							uri: source
+				useGalleryStore.getState().open({
+					items: [
+						{
+							itemType: "remoteItem" as const,
+							previewType: "image",
+							data: {
+								uri: source
+							}
 						}
-					}
-				])
-
-				useGalleryStore.getState().setInitialUUID(source)
-				useGalleryStore.getState().setVisible(true)
+					],
+					initialUUIDOrURI: source
+				})
 
 				return
 			}
@@ -69,21 +70,21 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 		[link, loadSuccess, source]
 	)
 
-	const onLoad = useCallback(
-		(e: ImageLoadEventData) => {
+	const onSuccess = useCallback(
+		(e: NativeSyntheticEvent<Success>) => {
 			setLoadSuccess(true)
 
 			setDimensions({
-				width: e.source.width,
-				height: e.source.height
+				width: e.nativeEvent.width,
+				height: e.nativeEvent.height
 			})
 		},
 		[setDimensions]
 	)
 
-	const onError = useCallback((e: ImageErrorEventData) => {
+	const onFailure = useCallback((e: NativeSyntheticEvent<Failure>) => {
 		setLoadSuccess(false)
-		setError(e.error)
+		setError(e.nativeEvent.error)
 	}, [])
 
 	const { height, width } = useMemo(() => {
@@ -116,6 +117,28 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 		}
 	}, [dimensions, screen.height, layout.width])
 
+	const imageSource = useMemo(() => {
+		return {
+			uri: source
+		}
+	}, [source])
+
+	const imageStyle = useMemo(() => {
+		return {
+			width,
+			height,
+			borderRadius: 6
+		}
+	}, [width, height])
+
+	const viewStyle = useMemo(() => {
+		return {
+			width,
+			height,
+			flex: 1
+		}
+	}, [width, height])
+
 	if (error) {
 		return <Fallback link={link} />
 	}
@@ -132,26 +155,18 @@ export const Image = memo(({ source, link }: { source: string; link: string }) =
 			<View
 				ref={viewRef}
 				onLayout={onLayout}
-				style={{
-					width,
-					height,
-					flex: 1
-				}}
+				className="items-start justify-start"
+				style={viewStyle}
 			>
-				<ExpoImage
-					source={{
-						uri: source
-					}}
-					priority="low"
-					cachePolicy="disk"
-					contentPosition="left"
-					contentFit="contain"
-					onLoad={onLoad}
-					onError={onError}
-					style={{
-						width,
-						height,
-						borderRadius: 6
+				<TurboImage
+					source={imageSource}
+					cachePolicy="dataCache"
+					resizeMode="contain"
+					onSuccess={onSuccess}
+					onFailure={onFailure}
+					style={imageStyle}
+					placeholder={{
+						blurhash: assets.blurhash.images.fallback
 					}}
 				/>
 			</View>

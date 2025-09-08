@@ -3,30 +3,20 @@ import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextSubMenu, createContextItem } from "@/components/nativewindui/ContextMenu/utils"
 import { type ContextItem, type ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
-import { type Note, type NoteType, type NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
+import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "expo-router"
 import { View, Platform } from "react-native"
 import Content from "../content"
 import useDimensions from "@/hooks/useDimensions"
-import queryUtils from "@/queries/utils"
-import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
-import useSDKConfig from "@/hooks/useSDKConfig"
-import * as FileSystemLegacy from "expo-file-system"
-import * as Sharing from "expo-sharing"
-import paths from "@/lib/paths"
-import * as FileSystem from "expo-file-system/next"
-import * as Clipboard from "expo-clipboard"
 import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
-import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { validate as validateUUID } from "uuid"
-import { alertPrompt } from "@/components/prompts/alertPrompt"
-import { sanitizeFileName } from "@/lib/utils"
-import striptags from "striptags"
-import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
+import notesService from "@/services/notes.service"
+import { useNotesStore } from "@/stores/notes.store"
+import { useShallow } from "zustand/shallow"
 
 export const Menu = memo(
 	({
@@ -47,9 +37,9 @@ export const Menu = memo(
 		const { t } = useTranslation()
 		const router = useRouter()
 		const { screen, isPortrait, isTablet } = useDimensions()
-		const [{ userId }] = useSDKConfig()
 		const { colors } = useColorScheme()
 		const { hasInternet } = useNetInfo()
+		const isSelected = useNotesStore(useShallow(state => state.selectedNotes.some(n => n.uuid === note.uuid)))
 
 		const notesTagsQuery = useNotesTagsQuery({
 			enabled: false
@@ -67,10 +57,35 @@ export const Menu = memo(
 			)
 		}, [notesTagsQuery.data, notesTagsQuery.status])
 
+		const isUndecryptable = useMemo(() => {
+			const nameNormalized = note.title.toLowerCase().trim()
+
+			return nameNormalized.startsWith("cannot_decrypt_") && nameNormalized.endsWith(`_${note.uuid}`)
+		}, [note.title, note.uuid])
+
 		const menuItems = useMemo(() => {
 			const items: (ContextItem | ContextSubMenu)[] = []
 
-			if (note.type === "md" && insideNote) {
+			if (!insideNote && !isUndecryptable) {
+				items.push(
+					createContextItem({
+						actionKey: "select",
+						title: isSelected ? t("notes.menu.deselect") : t("notes.menu.select"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "checkmark.circle"
+								  }
+								: {
+										namingScheme: "material",
+										name: "check-circle-outline"
+								  }
+					})
+				)
+			}
+
+			if (note.type === "md" && insideNote && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "preview",
@@ -92,7 +107,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (note.isOwner && hasInternet) {
+			if (note.isOwner && hasInternet && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "history",
@@ -224,7 +239,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (hasInternet) {
+			if (hasInternet && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: note.pinned ? "unpin" : "pin",
@@ -266,7 +281,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (tags.length > 0 && hasInternet) {
+			if (tags.length > 0 && hasInternet && !isUndecryptable) {
 				items.push(
 					createContextSubMenu(
 						{
@@ -296,7 +311,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (note.isOwner && hasInternet) {
+			if (note.isOwner && hasInternet && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "rename",
@@ -333,25 +348,27 @@ export const Menu = memo(
 			}
 
 			if (hasInternet) {
-				items.push(
-					createContextItem({
-						actionKey: "export",
-						title: t("notes.menu.export"),
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "square.and.arrow.up"
-								  }
-								: {
-										namingScheme: "material",
-										name: "send-outline"
-								  }
-					})
-				)
+				if (!isUndecryptable) {
+					items.push(
+						createContextItem({
+							actionKey: "export",
+							title: t("notes.menu.export"),
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "square.and.arrow.up"
+									  }
+									: {
+											namingScheme: "material",
+											name: "send-outline"
+									  }
+						})
+					)
+				}
 
 				if (note.isOwner) {
-					if (!note.trash && !note.archive) {
+					if (!note.trash && !note.archive && !isUndecryptable) {
 						items.push(
 							createContextItem({
 								actionKey: "archive",
@@ -370,7 +387,7 @@ export const Menu = memo(
 						)
 					}
 
-					if (note.archive || note.trash) {
+					if ((note.archive || note.trash) && !isUndecryptable) {
 						items.push(
 							createContextItem({
 								actionKey: "restore",
@@ -454,541 +471,28 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [note, t, tags, markdownPreview, insideNote, colors.destructive, hasInternet])
-
-		const changeNoteType = useCallback(
-			async (type: NoteType) => {
-				fullScreenLoadingModal.show()
-
-				try {
-					await nodeWorker.proxy("changeNoteType", {
-						uuid: note.uuid,
-						newType: type
-					})
-
-					queryUtils.useNotesQuerySet({
-						updater: prev =>
-							prev.map(n =>
-								n.uuid === note.uuid
-									? {
-											...n,
-											type,
-											editedTimestamp: Date.now()
-									  }
-									: n
-							)
-					})
-
-					queryUtils.useNoteContentQuerySet({
-						uuid: note.uuid,
-						updater: prev => ({
-							...prev,
-							type,
-							editedTimestamp: Date.now(),
-							editorId: userId
-						})
-					})
-				} catch (e) {
-					console.error(e)
-
-					if (e instanceof Error) {
-						alerts.error(e.message)
-					}
-				} finally {
-					fullScreenLoadingModal.hide()
-				}
-			},
-			[note.uuid, userId]
-		)
-
-		const pin = useCallback(
-			async (pin: boolean) => {
-				fullScreenLoadingModal.show()
-
-				try {
-					await nodeWorker.proxy("pinNote", {
-						uuid: note.uuid,
-						pin
-					})
-
-					queryUtils.useNotesQuerySet({
-						updater: prev =>
-							prev.map(n =>
-								n.uuid === note.uuid
-									? {
-											...n,
-											pinned: pin,
-											editedTimestamp: Date.now()
-									  }
-									: n
-							)
-					})
-				} catch (e) {
-					console.error(e)
-
-					if (e instanceof Error) {
-						alerts.error(e.message)
-					}
-				} finally {
-					fullScreenLoadingModal.hide()
-				}
-			},
-			[note.uuid]
-		)
-
-		const favorite = useCallback(
-			async (favorite: boolean) => {
-				fullScreenLoadingModal.show()
-
-				try {
-					await nodeWorker.proxy("favoriteNote", {
-						uuid: note.uuid,
-						favorite
-					})
-
-					queryUtils.useNotesQuerySet({
-						updater: prev =>
-							prev.map(n =>
-								n.uuid === note.uuid
-									? {
-											...n,
-											favorite
-									  }
-									: n
-							)
-					})
-				} catch (e) {
-					console.error(e)
-
-					if (e instanceof Error) {
-						alerts.error(e.message)
-					}
-				} finally {
-					fullScreenLoadingModal.hide()
-				}
-			},
-			[note.uuid]
-		)
-
-		const duplicate = useCallback(async () => {
-			fullScreenLoadingModal.show()
-
-			try {
-				const newUUID = await nodeWorker.proxy("duplicateNote", {
-					uuid: note.uuid
-				})
-
-				queryUtils.useNotesQuerySet({
-					updater: prev => [
-						...prev.filter(n => n.uuid !== newUUID),
-						{
-							...note,
-							editedTimestamp: Date.now(),
-							favorite: false,
-							pinned: false,
-							trash: false,
-							archive: false,
-							participants: [],
-							tags: [],
-							ownerId: userId,
-							isOwner: true,
-							createdTimestamp: Date.now(),
-							uuid: newUUID
-						}
-					]
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-		}, [note, userId])
-
-		const exportNote = useCallback(async () => {
-			fullScreenLoadingModal.show()
-
-			try {
-				let { content } = await nodeWorker.proxy("fetchNoteContent", {
-					uuid: note.uuid
-				})
-
-				if (note.type === "rich") {
-					content = striptags(content.split("<p><br></p>").join("\n"))
-				}
-
-				if (note.type === "checklist") {
-					const list: string[] = []
-					const ex = content
-						// eslint-disable-next-line quotes
-						.split('<ul data-checked="false">')
-						.join("")
-						// eslint-disable-next-line quotes
-						.split('<ul data-checked="true">')
-						.join("")
-						.split("\n")
-						.join("")
-						.split("<li>")
-
-					for (const listPoint of ex) {
-						const listPointEx = listPoint.split("</li>")
-
-						if (listPointEx[0] && listPointEx[0].trim().length > 0) {
-							list.push(listPointEx[0].trim())
-						}
-					}
-
-					content = list.join("\n")
-				}
-
-				const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
-
-				if (freeDiskSpace <= content.length + 1024 * 1024) {
-					throw new Error(t("errors.notEnoughDiskSpace"))
-				}
-
-				const fileName = `${sanitizeFileName(note.title)}.txt`
-				const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.exports(), fileName))
-
-				try {
-					if (tmpFile.exists) {
-						tmpFile.delete()
-					}
-
-					tmpFile.write(content)
-
-					await new Promise<void>(resolve => setTimeout(resolve, 250))
-
-					fullScreenLoadingModal.hide()
-
-					await Sharing.shareAsync(tmpFile.uri, {
-						mimeType: "text/plain",
-						dialogTitle: fileName
-					})
-				} finally {
-					if (tmpFile.exists) {
-						tmpFile.delete()
-					}
-				}
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-		}, [note.uuid, note.title, note.type, t])
-
-		const copyId = useCallback(async () => {
-			try {
-				await Clipboard.setStringAsync(note.uuid)
-
-				alerts.normal(t("copiedToClipboard"))
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			}
-		}, [note.uuid, t])
-
-		const archive = useCallback(async () => {
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("archiveNote", {
-					uuid: note.uuid
-				})
-
-				queryUtils.useNotesQuerySet({
-					updater: prev =>
-						prev.map(n =>
-							n.uuid === note.uuid
-								? {
-										...n,
-										archive: true,
-										trash: false
-								  }
-								: n
-						)
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-		}, [note.uuid])
-
-		const trash = useCallback(async () => {
-			const alertPromptResponse = await alertPrompt({
-				title: t("notes.prompts.trashNote.title"),
-				message: t("notes.prompts.trashNote.message")
-			})
-
-			if (alertPromptResponse.cancelled) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("trashNote", {
-					uuid: note.uuid
-				})
-
-				queryUtils.useNotesQuerySet({
-					updater: prev =>
-						prev.map(n =>
-							n.uuid === note.uuid
-								? {
-										...n,
-										archive: false,
-										trash: true,
-										editedTimestamp: Date.now()
-								  }
-								: n
-						)
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-		}, [note.uuid, t])
-
-		const restore = useCallback(async () => {
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("restoreNote", {
-					uuid: note.uuid
-				})
-
-				queryUtils.useNotesQuerySet({
-					updater: prev =>
-						prev.map(n =>
-							n.uuid === note.uuid
-								? {
-										...n,
-										archive: false,
-										trash: false,
-										editedTimestamp: Date.now()
-								  }
-								: n
-						)
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-		}, [note.uuid])
-
-		const rename = useCallback(async () => {
-			const inputPromptResponse = await inputPrompt({
-				title: t("notes.prompts.renameNote.title"),
-				materialIcon: {
-					name: "pencil"
-				},
-				prompt: {
-					type: "plain-text",
-					keyboardType: "default",
-					defaultValue: note.title,
-					placeholder: t("notes.prompts.renameNote.placeholder")
-				}
-			})
-
-			if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
-				return
-			}
-
-			const title = inputPromptResponse.text.trim()
-
-			if (title.length === 0) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("renameNote", {
-					uuid: note.uuid,
-					title
-				})
-
-				queryUtils.useNotesQuerySet({
-					updater: prev =>
-						prev.map(n =>
-							n.uuid === note.uuid
-								? {
-										...n,
-										title,
-										editedTimestamp: Date.now()
-								  }
-								: n
-						)
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-		}, [note.uuid, t, note.title])
-
-		const deleteNote = useCallback(async () => {
-			const alertPromptResponse = await alertPrompt({
-				title: t("notes.prompts.deleteNote.title"),
-				message: t("notes.prompts.deleteNote.message")
-			})
-
-			if (alertPromptResponse.cancelled) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("deleteNote", {
-					uuid: note.uuid
-				})
-
-				queryUtils.useNotesQuerySet({
-					updater: prev => prev.filter(n => n.uuid !== note.uuid)
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-
-				if (insideNote && router.canGoBack()) {
-					router.back()
-				}
-			}
-		}, [note.uuid, insideNote, router, t])
-
-		const leave = useCallback(async () => {
-			const alertPromptResponse = await alertPrompt({
-				title: t("notes.prompts.leaveNote.title"),
-				message: t("notes.prompts.leaveNote.message")
-			})
-
-			if (alertPromptResponse.cancelled) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("removeNoteParticipant", {
-					uuid: note.uuid,
-					userId: userId
-				})
-
-				queryUtils.useNotesQuerySet({
-					updater: prev => prev.filter(n => n.uuid !== note.uuid)
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-
-				if (insideNote && router.canGoBack()) {
-					router.back()
-				}
-			}
-		}, [note.uuid, insideNote, router, userId, t])
-
-		const tagNote = useCallback(
-			async (tag: NoteTag) => {
-				fullScreenLoadingModal.show()
-
-				try {
-					const currentTags = note.tags.map(t => t.uuid)
-
-					if (currentTags.includes(tag.uuid)) {
-						await nodeWorker.proxy("untagNote", {
-							uuid: note.uuid,
-							tag: tag.uuid
-						})
-
-						queryUtils.useNotesQuerySet({
-							updater: prev =>
-								prev.map(n =>
-									n.uuid === note.uuid
-										? {
-												...n,
-												tags: n.tags.filter(t => t.uuid !== tag.uuid)
-										  }
-										: n
-								)
-						})
-
-						return
-					}
-
-					await nodeWorker.proxy("tagNote", {
-						uuid: note.uuid,
-						tag: tag.uuid
-					})
-
-					queryUtils.useNotesQuerySet({
-						updater: prev =>
-							prev.map(n =>
-								n.uuid === note.uuid
-									? {
-											...n,
-											tags: [...n.tags.filter(t => t.uuid !== tag.uuid), tag]
-									  }
-									: n
-							)
-					})
-				} catch (e) {
-					console.error(e)
-
-					if (e instanceof Error) {
-						alerts.error(e.message)
-					}
-				} finally {
-					fullScreenLoadingModal.hide()
-				}
-			},
-			[note.uuid, note.tags]
-		)
+		}, [note, t, tags, markdownPreview, insideNote, colors.destructive, hasInternet, isSelected, isUndecryptable])
+
+		const select = useCallback(() => {
+			const isSelected = useNotesStore.getState().selectedNotes.some(i => i.uuid === note.uuid)
+
+			useNotesStore
+				.getState()
+				.setSelectedNotes(prev =>
+					isSelected ? prev.filter(i => i.uuid !== note.uuid) : [...prev.filter(i => i.uuid !== note.uuid), note]
+				)
+		}, [note])
 
 		const onItemPress = useCallback(
 			async (item: Omit<ContextItem, "icon">, _?: boolean) => {
 				try {
 					switch (item.actionKey) {
+						case "select": {
+							select()
+
+							break
+						}
+
 						case "preview": {
 							if (note.type !== "md") {
 								break
@@ -1012,7 +516,7 @@ export const Menu = memo(
 
 						case "participants": {
 							router.push({
-								pathname: "/notes/participants",
+								pathname: "/noteParticipants",
 								params: {
 									uuid: note.uuid
 								}
@@ -1022,109 +526,156 @@ export const Menu = memo(
 						}
 
 						case "typeText": {
-							await changeNoteType("text")
+							await notesService.changeNoteType({
+								note,
+								newType: "text"
+							})
 
 							break
 						}
 
 						case "typeRich": {
-							await changeNoteType("rich")
+							await notesService.changeNoteType({
+								note,
+								newType: "rich"
+							})
 
 							break
 						}
 
 						case "typeChecklist": {
-							await changeNoteType("checklist")
+							await notesService.changeNoteType({
+								note,
+								newType: "checklist"
+							})
 
 							break
 						}
 
 						case "typeMd": {
-							await changeNoteType("md")
+							await notesService.changeNoteType({
+								note,
+								newType: "md"
+							})
 
 							break
 						}
 
 						case "typeCode": {
-							await changeNoteType("code")
+							await notesService.changeNoteType({
+								note,
+								newType: "code"
+							})
 
 							break
 						}
 
 						case "pin": {
-							await pin(true)
+							await notesService.toggleNotePinned({
+								note,
+								pinned: true
+							})
 
 							break
 						}
 
 						case "unpin": {
-							await pin(false)
+							await notesService.toggleNotePinned({
+								note,
+								pinned: false
+							})
 
 							break
 						}
 
 						case "favorite": {
-							await favorite(true)
+							await notesService.toggleNoteFavorite({
+								note,
+								favorite: true
+							})
 
 							break
 						}
 
 						case "unfavorite": {
-							await favorite(false)
+							await notesService.toggleNoteFavorite({
+								note,
+								favorite: false
+							})
 
 							break
 						}
 
 						case "duplicate": {
-							await duplicate()
+							await notesService.duplicateNote({
+								note
+							})
 
 							break
 						}
 
 						case "export": {
-							await exportNote()
+							await notesService.exportNote({
+								note
+							})
 
 							break
 						}
 
 						case "copyId": {
-							await copyId()
+							await notesService.copyNoteUUID({
+								note
+							})
 
 							break
 						}
 
 						case "archive": {
-							await archive()
+							await notesService.archiveNote({
+								note
+							})
 
 							break
 						}
 
 						case "restore": {
-							await restore()
+							await notesService.restoreNote({
+								note
+							})
 
 							break
 						}
 
 						case "trash": {
-							await trash()
+							await notesService.trashNote({
+								note
+							})
 
 							break
 						}
 
 						case "delete": {
-							await deleteNote()
+							await notesService.deleteNote({
+								note,
+								insideNote
+							})
 
 							break
 						}
 
 						case "leave": {
-							await leave()
+							await notesService.leaveNote({
+								note,
+								insideNote
+							})
 
 							break
 						}
 
 						case "rename": {
-							await rename()
+							await notesService.renameNote({
+								note
+							})
 
 							break
 						}
@@ -1143,10 +694,22 @@ export const Menu = memo(
 									break
 								}
 
-								await tagNote(tag)
+								const currentNoteTags = note.tags.map(t => t.uuid)
+
+								if (currentNoteTags.includes(tag.uuid)) {
+									await notesService.untagNote({
+										note,
+										tag
+									})
+								} else {
+									await notesService.tagNote({
+										note,
+										tag
+									})
+								}
 							}
 
-							console.log("Unknown action key", item.actionKey)
+							console.error("Unknown action key", item.actionKey)
 
 							break
 						}
@@ -1159,26 +722,7 @@ export const Menu = memo(
 					}
 				}
 			},
-			[
-				note,
-				router,
-				changeNoteType,
-				pin,
-				favorite,
-				duplicate,
-				exportNote,
-				copyId,
-				archive,
-				restore,
-				trash,
-				deleteNote,
-				tagNote,
-				tags,
-				leave,
-				markdownPreview,
-				setMarkdownPreview,
-				rename
-			]
+			[note, router, tags, markdownPreview, setMarkdownPreview, insideNote, select]
 		)
 
 		const noop = useCallback(() => {}, [])

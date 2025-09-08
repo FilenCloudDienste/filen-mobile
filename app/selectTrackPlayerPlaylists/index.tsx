@@ -1,5 +1,4 @@
-import { randomUUID } from "expo-crypto"
-import { type Playlist, usePlaylistsQuery } from "@/queries/usePlaylistsQuery"
+import { usePlaylistsQuery } from "@/queries/usePlaylistsQuery"
 import RequireInternet from "@/components/requireInternet"
 import { useCallback, useState, useMemo, useEffect } from "react"
 import events from "@/lib/events"
@@ -11,65 +10,15 @@ import Container from "@/components/Container"
 import { useSelectTrackPlayerPlaylistsStore } from "@/stores/selectTrackPlayerPlaylists.store"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/trackPlayer/item"
+import Item, { type ListItemInfo } from "@/components/trackPlayer/item"
 import { formatMessageDate } from "@/lib/utils"
 import { Button } from "@/components/nativewindui/Button"
 import { useShallow } from "zustand/shallow"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
-import useDimensions from "@/hooks/useDimensions"
 import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
-
-export type SelectTrackPlayerPlaylistsResponse =
-	| {
-			cancelled: false
-			playlists: Playlist[]
-	  }
-	| {
-			cancelled: true
-	  }
-
-export type SelectTrackPlayerPlaylistsParams = {
-	max: number
-	dismissHref: string
-}
-
-export type SelectTrackPlayerPlaylistsEvent =
-	| {
-			type: "request"
-			data: {
-				id: string
-			} & SelectTrackPlayerPlaylistsParams
-	  }
-	| {
-			type: "response"
-			data: {
-				id: string
-			} & SelectTrackPlayerPlaylistsResponse
-	  }
-
-export function selectTrackPlayerPlaylists(params: SelectTrackPlayerPlaylistsParams): Promise<SelectTrackPlayerPlaylistsResponse> {
-	return new Promise<SelectTrackPlayerPlaylistsResponse>(resolve => {
-		const id = randomUUID()
-
-		const sub = events.subscribe("selectTrackPlayerPlaylists", e => {
-			if (e.type === "response" && e.data.id === id) {
-				sub.remove()
-
-				resolve(e.data)
-			}
-		})
-
-		events.emit("selectTrackPlayerPlaylists", {
-			type: "request",
-			data: {
-				...params,
-				id
-			}
-		})
-	})
-}
+import useNetInfo from "@/hooks/useNetInfo"
 
 const contentContainerStyle = {
 	paddingTop: 8
@@ -80,10 +29,10 @@ export default function SelectTrackPlayerPlaylists() {
 	const { id, max, dismissHref } = useLocalSearchParams()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const [searchTerm, setSearchTerm] = useState<string>("")
-	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo } = useRouter()
+	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo, back: routerBack } = useRouter()
 	const setSelectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.setSelectedPlaylists))
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const playlistsQuery = usePlaylistsQuery({})
 
@@ -146,25 +95,14 @@ export default function SelectTrackPlayerPlaylists() {
 			}
 		})
 
-		routerDismissTo(typeof dismissHref === "string" ? dismissHref : "/drive")
-	}, [id, routerCanGoBack, routerDismissTo, dismissHref])
-
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
+		if (typeof dismissHref === "string") {
+			routerDismissTo(dismissHref)
+		} else {
+			routerBack()
 		}
-	}, [screen.height])
+	}, [id, routerCanGoBack, routerDismissTo, dismissHref, routerBack])
 
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={playlistsQuery.status}
@@ -189,7 +127,11 @@ export default function SelectTrackPlayerPlaylists() {
 		)
 	}, [playlistsQuery.status, playlists.length, t])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
+		if (playlists.length === 0) {
+			return undefined
+		}
+
 		return (
 			<View className="flex flex-row items-center justify-center h-16 p-4">
 				<Text className="text-sm">
@@ -218,13 +160,17 @@ export default function SelectTrackPlayerPlaylists() {
 	}, [playlistsQuery])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
@@ -309,16 +255,10 @@ export default function SelectTrackPlayerPlaylists() {
 					showsHorizontalScrollIndicator={false}
 					contentInsetAdjustmentBehavior="automatic"
 					contentContainerStyle={contentContainerStyle}
-					ListEmptyComponent={listEmpty}
-					ListFooterComponent={listFooter}
+					ListEmptyComponent={ListEmptyComponent}
+					ListFooterComponent={ListFooterComponent}
 					refreshing={refreshing}
 					refreshControl={refreshControl}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 			</Container>
 		</RequireInternet>

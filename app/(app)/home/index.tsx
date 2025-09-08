@@ -2,12 +2,12 @@ import { memo, useState, Fragment, useMemo, useCallback } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { Platform, RefreshControl, View, ActivityIndicator, ScrollView } from "react-native"
+import { Platform, RefreshControl, View, ScrollView } from "react-native"
 import { cn } from "@/lib/cn"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import Avatar from "@/components/avatar"
 import { Container } from "@/components/Container"
-import { useRouter } from "expo-router"
+import { useRouter, useFocusEffect } from "expo-router"
 import { orderItemsByType } from "@/lib/utils"
 import useAccountQuery from "@/queries/useAccountQuery"
 import { Icon } from "@roninoss/icons"
@@ -17,6 +17,10 @@ import useNetInfo from "@/hooks/useNetInfo"
 import OfflineListHeader from "@/components/offlineListHeader"
 import ContainerComponent from "@/components/home/container"
 import { useTranslation } from "react-i18next"
+import Dropdown from "@/components/home/header/dropdown"
+import useIsProUser from "@/hooks/useIsProUser"
+import assets from "@/lib/assets"
+import { useDriveStore } from "@/stores/drive.store"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -115,6 +119,7 @@ export const Home = memo(() => {
 	const router = useRouter()
 	const { hasInternet } = useNetInfo()
 	const { t } = useTranslation()
+	const isProUser = useIsProUser()
 
 	const recents = useCloudItemsQuery({
 		parent: "recents",
@@ -131,7 +136,8 @@ export const Home = memo(() => {
 	const links = useCloudItemsQuery({
 		parent: "links",
 		of: "links",
-		receiverId: 0
+		receiverId: 0,
+		enabled: isProUser
 	})
 
 	const sharedIn = useCloudItemsQuery({
@@ -179,13 +185,17 @@ export const Home = memo(() => {
 	}, [favorites.status, favorites.data])
 
 	const linksItems = useMemo(() => {
+		if (!isProUser) {
+			return []
+		}
+
 		return links.status === "success"
 			? orderItemsByType({
 					items: links.data.slice(0, 12),
 					type: "lastModifiedDesc"
 			  })
 			: []
-	}, [links.status, links.data])
+	}, [links.status, links.data, isProUser])
 
 	const sharedInItems = useMemo(() => {
 		return sharedIn.status === "success"
@@ -229,23 +239,10 @@ export const Home = memo(() => {
 		})
 	}, [router])
 
-	const loadDone = useMemo(() => {
-		return (
-			recents.status === "success" &&
-			links.status === "success" &&
-			account.status === "success" &&
-			trash.status === "success" &&
-			sharedIn.status === "success" &&
-			sharedOut.status === "success" &&
-			offline.status === "success" &&
-			favorites.status === "success"
-		)
-	}, [recents.status, links.status, account.status, trash.status, sharedIn.status, sharedOut.status, offline.status, favorites.status])
-
 	const avatarSource = useMemo(() => {
 		if (account.status !== "success" || !account.data.account.avatarURL || !account.data.account.avatarURL.startsWith("https://")) {
 			return {
-				uri: "avatar_fallback"
+				uri: assets.uri.images.avatar_fallback()
 			}
 		}
 
@@ -279,28 +276,29 @@ export const Home = memo(() => {
 	}, [account.status, hasInternet, avatarSource, openSettings])
 
 	const headerRightView = useCallback(() => {
-		if (!hasInternet) {
-			return undefined
-		}
-
 		return (
 			<View className="flex-row items-center">
-				<Transfers />
-				<Button
-					variant="plain"
-					size="icon"
-					onPress={() => {
-						router.push({
-							pathname: "/trackPlayer"
-						})
-					}}
-				>
-					<Icon
-						name="music-note"
-						size={24}
-						color={colors.primary}
-					/>
-				</Button>
+				{hasInternet && (
+					<Fragment>
+						<Transfers />
+						<Button
+							variant="plain"
+							size="icon"
+							onPress={() => {
+								router.push({
+									pathname: "/trackPlayer"
+								})
+							}}
+						>
+							<Icon
+								name="music-note"
+								size={24}
+								color={colors.primary}
+							/>
+						</Button>
+					</Fragment>
+				)}
+				<Dropdown />
 			</View>
 		)
 	}, [hasInternet, router, colors.primary])
@@ -312,7 +310,7 @@ export const Home = memo(() => {
 			await Promise.all([
 				recents.refetch(),
 				favorites.refetch(),
-				links.refetch(),
+				isProUser ? links.refetch() : Promise.resolve(),
 				sharedIn.refetch(),
 				sharedOut.refetch(),
 				offline.refetch(),
@@ -328,26 +326,30 @@ export const Home = memo(() => {
 		} finally {
 			setRefreshing(false)
 		}
-	}, [recents, favorites, links, sharedIn, sharedOut, offline, trash, account])
+	}, [recents, favorites, links, sharedIn, sharedOut, offline, trash, account, isProUser])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const items = useMemo(() => {
 		return [
-			"recents",
-			...(hasInternet ? ["favorites"] : []),
-			...(hasInternet ? ["links"] : []),
-			"sharedIn",
-			...(hasInternet ? ["sharedOut"] : []),
-			"offline",
-			...(hasInternet ? ["trash"] : []),
+			...(recents.status === "success" ? ["recents"] : []),
+			...(favorites.status === "success" ? ["favorites"] : []),
+			...(isProUser && links.status === "success" ? ["links"] : []),
+			...(sharedIn.status === "success" ? ["sharedIn"] : []),
+			...(sharedOut.status === "success" ? ["sharedOut"] : []),
+			...(offline.status === "success" ? ["offline"] : []),
+			...(hasInternet && trash.status === "success" ? ["trash"] : []),
 			"bottom"
 		].map(type => {
 			return (
@@ -374,7 +376,46 @@ export const Home = memo(() => {
 				/>
 			)
 		})
-	}, [hasInternet, recentsItems, favoritesItems, linksItems, sharedInItems, sharedOutItems, offlineItems, trashItems])
+	}, [
+		hasInternet,
+		recentsItems,
+		favoritesItems,
+		linksItems,
+		sharedInItems,
+		sharedOutItems,
+		offlineItems,
+		trashItems,
+		isProUser,
+		recents.status,
+		favorites.status,
+		links.status,
+		sharedIn.status,
+		sharedOut.status,
+		offline.status,
+		trash.status
+	])
+
+	const calculateVisibleItemsOnFocus = useCallback(() => {
+		useDriveStore
+			.getState()
+			.setVisibleItemUuids([
+				...recentsItems.map(item => item.uuid),
+				...favoritesItems.map(item => item.uuid),
+				...linksItems.map(item => item.uuid),
+				...sharedInItems.map(item => item.uuid),
+				...sharedOutItems.map(item => item.uuid),
+				...offlineItems.map(item => item.uuid),
+				...trashItems.map(item => item.uuid)
+			])
+	}, [recentsItems, favoritesItems, linksItems, sharedInItems, sharedOutItems, offlineItems, trashItems])
+
+	useFocusEffect(
+		useCallback(() => {
+			useDriveStore.getState().setSelectedItems([])
+
+			calculateVisibleItemsOnFocus()
+		}, [calculateVisibleItemsOnFocus])
+	)
 
 	return (
 		<Fragment>
@@ -386,23 +427,17 @@ export const Home = memo(() => {
 				rightView={headerRightView}
 			/>
 			<Container>
-				{!loadDone ? (
-					<View className="flex-1 flex-row items-center justify-center">
-						<ActivityIndicator color={colors.foreground} />
-					</View>
-				) : (
-					<ScrollView
-						contentInsetAdjustmentBehavior="automatic"
-						contentContainerClassName={cn("pt-2", Platform.OS === "ios" && "pt-4")}
-						contentContainerStyle={contentContainerStyle}
-						showsVerticalScrollIndicator={false}
-						showsHorizontalScrollIndicator={false}
-						refreshControl={refreshControl}
-					>
-						{!hasInternet && <OfflineListHeader className="mb-4" />}
-						{items}
-					</ScrollView>
-				)}
+				<ScrollView
+					contentInsetAdjustmentBehavior="automatic"
+					contentContainerClassName={cn("pt-2", Platform.OS === "ios" && "pt-4")}
+					contentContainerStyle={contentContainerStyle}
+					showsVerticalScrollIndicator={false}
+					showsHorizontalScrollIndicator={false}
+					refreshControl={refreshControl}
+				>
+					{!hasInternet && <OfflineListHeader className="mb-4" />}
+					{items}
+				</ScrollView>
 			</Container>
 		</Fragment>
 	)

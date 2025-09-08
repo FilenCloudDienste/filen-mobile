@@ -16,7 +16,6 @@ export default function useHTTPServer() {
 
 	const buildStreamURL = useCallback(
 		(file: {
-			name: string
 			mime: string
 			size: number
 			uuid: string
@@ -33,7 +32,6 @@ export default function useHTTPServer() {
 			return `http://127.0.0.1:${info.httpServerPort}/stream?auth=${info.httpAuthToken}&file=${encodeURIComponent(
 				btoa(
 					JSON.stringify({
-						name: file.name,
 						mime: file.mime,
 						size: file.size,
 						uuid: file.uuid,

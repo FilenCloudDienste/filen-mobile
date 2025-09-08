@@ -1,77 +1,44 @@
-import { memo, Fragment, useCallback, useMemo } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
-import { createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils"
 import { Text } from "@/components/nativewindui/Text"
 import { useNotesStore } from "@/stores/notes.store"
 import { Button } from "../nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { inputPrompt } from "../prompts/inputPrompt"
-import nodeWorker from "@/lib/nodeWorker"
-import fullScreenLoadingModal from "../modals/fullScreenLoadingModal"
 import { useTranslation } from "react-i18next"
-import { randomUUID } from "expo-crypto"
-import useNotesQuery from "@/queries/useNotesQuery"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
 import useNetInfo from "@/hooks/useNetInfo"
+import notesService from "@/services/notes.service"
+import HeaderDropdown from "./headerDropdown"
+import { useMMKVString } from "react-native-mmkv"
+import mmkvInstance from "@/lib/mmkv"
+import { View, Platform } from "react-native"
+import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
+import { createDropdownItem } from "../nativewindui/DropdownMenu/utils"
+import { type NoteType } from "@filen/sdk/dist/types/api/v3/notes"
+import { type DropdownItem } from "@/components/nativewindui/DropdownMenu/types"
 
-export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<React.SetStateAction<string>> }) => {
+export const Header = memo(() => {
 	const selectedNotesCount = useNotesStore(useShallow(state => state.selectedNotes.length))
 	const { colors } = useColorScheme()
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
+	const [, setSearchTerm] = useMMKVString("notesSearchTerm", mmkvInstance)
 
-	const notesQuery = useNotesQuery({
-		enabled: false
-	})
-
-	const createNote = useCallback(async () => {
-		const inputPromptResponse = await inputPrompt({
-			title: t("notes.prompts.createNote.title"),
-			materialIcon: {
-				name: "folder-plus-outline"
-			},
-			prompt: {
-				type: "plain-text",
-				keyboardType: "default",
-				defaultValue: "",
-				placeholder: t("notes.prompts.createNote.placeholder")
-			}
-		})
-
-		if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
-			return
-		}
-
-		const title = inputPromptResponse.text.trim()
-
-		if (title.length === 0) {
-			return
-		}
-
-		fullScreenLoadingModal.show()
-
+	const createNote = useCallback(async (type: NoteType) => {
 		try {
-			const uuid = randomUUID()
-
-			await nodeWorker.proxy("createNote", {
-				uuid,
-				title
+			await notesService.createNote({
+				type
 			})
-
-			await notesQuery.refetch()
 		} catch (e) {
 			console.error(e)
 
 			if (e instanceof Error) {
 				alerts.error(e.message)
 			}
-		} finally {
-			fullScreenLoadingModal.hide()
 		}
-	}, [t, notesQuery])
+	}, [])
 
 	const headerSearchBar = useMemo(() => {
 		return {
@@ -84,8 +51,136 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 	}, [setSearchTerm])
 
 	const headerLeftView = useMemo(() => {
-		return selectedNotesCount > 0 ? () => <Text>{selectedNotesCount} selected</Text> : undefined
-	}, [selectedNotesCount])
+		return selectedNotesCount > 0
+			? () => (
+					<Text className="text-primary">
+						{t("notes.header.selected", {
+							count: selectedNotesCount
+						})}
+					</Text>
+			  )
+			: undefined
+	}, [selectedNotesCount, t])
+
+	const createNoteDropdownItems = useMemo(() => {
+		return [
+			createDropdownItem({
+				actionKey: "createNote_text",
+				title: t("notes.header.dropdown.types.text"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "note.text"
+						  }
+						: {
+								namingScheme: "material",
+								name: "note-text-outline"
+						  }
+			}),
+			createDropdownItem({
+				actionKey: "createNote_checklist",
+				title: t("notes.header.dropdown.types.checklist"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "checklist"
+						  }
+						: {
+								namingScheme: "material",
+								name: "format-list-checks"
+						  }
+			}),
+			createDropdownItem({
+				actionKey: "createNote_markdown",
+				title: t("notes.header.dropdown.types.markdown"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "note.text"
+						  }
+						: {
+								namingScheme: "material",
+								name: "note-text-outline"
+						  }
+			}),
+			createDropdownItem({
+				actionKey: "createNote_code",
+				title: t("notes.header.dropdown.types.code"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "note.text"
+						  }
+						: {
+								namingScheme: "material",
+								name: "note-text-outline"
+						  }
+			}),
+			createDropdownItem({
+				actionKey: "createNote_rich",
+				title: t("notes.header.dropdown.types.rich"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "doc"
+						  }
+						: {
+								namingScheme: "material",
+								name: "file-document-outline"
+						  }
+			})
+		]
+	}, [t])
+
+	const onCreateNoteDropdownPress = useCallback(
+		async (item: Omit<DropdownItem, "icon">) => {
+			try {
+				switch (item.actionKey) {
+					case "createNote_markdown": {
+						await createNote("md")
+
+						break
+					}
+
+					case "createNote_checklist": {
+						await createNote("checklist")
+
+						break
+					}
+
+					case "createNote_text": {
+						await createNote("text")
+
+						break
+					}
+
+					case "createNote_code": {
+						await createNote("code")
+
+						break
+					}
+
+					case "createNote_rich": {
+						await createNote("rich")
+
+						break
+					}
+				}
+			} catch (e) {
+				console.error(e)
+
+				if (e instanceof Error) {
+					alerts.error(e.message)
+				}
+			}
+		},
+		[createNote]
+	)
 
 	const headerRightView = useCallback(() => {
 		if (!hasInternet) {
@@ -93,36 +188,14 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 		}
 
 		return (
-			<Fragment>
-				{selectedNotesCount > 0 ? (
-					<DropdownMenu
-						items={[
-							createDropdownItem({
-								actionKey: "settings",
-								title: "Settings"
-							})
-						]}
-						onItemPress={item => {
-							console.log(item)
-						}}
-					>
-						<Button
-							variant="plain"
-							size="icon"
-						>
-							<Icon
-								size={24}
-								namingScheme="sfSymbol"
-								name="ellipsis.circle"
-								color={colors.foreground}
-							/>
-						</Button>
-					</DropdownMenu>
-				) : (
+			<View className="flex-row items-center">
+				<DropdownMenu
+					items={createNoteDropdownItems}
+					onItemPress={onCreateNoteDropdownPress}
+				>
 					<Button
 						variant="plain"
 						size="icon"
-						onPress={createNote}
 					>
 						<Icon
 							name="plus"
@@ -130,10 +203,12 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 							color={colors.primary}
 						/>
 					</Button>
-				)}
-			</Fragment>
+				</DropdownMenu>
+
+				<HeaderDropdown />
+			</View>
 		)
-	}, [createNote, colors.foreground, colors.primary, hasInternet, selectedNotesCount])
+	}, [colors.primary, hasInternet, createNoteDropdownItems, onCreateNoteDropdownPress])
 
 	return (
 		<LargeTitleHeader

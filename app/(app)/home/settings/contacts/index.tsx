@@ -7,7 +7,7 @@ import { contactName, convertTimestampToMs } from "@/lib/utils"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import useContactsRequestsQuery from "@/queries/useContactsRequestsQuery"
-import Contact, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/contacts/contact"
+import Contact, { type ListItemInfo } from "@/components/contacts/contact"
 import ListHeader from "@/components/contacts/listHeader"
 import ListEmpty from "@/components/listEmpty"
 import { Button } from "@/components/nativewindui/Button"
@@ -15,9 +15,9 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import contactsService from "@/services/contacts.service"
 import { CONTACTS_ONLINE_TIMEOUT } from "@/lib/constants"
-import useDimensions from "@/hooks/useDimensions"
 import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
+import useNetInfo from "@/hooks/useNetInfo"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -30,8 +30,8 @@ export const Contacts = memo(() => {
 	]
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { colors } = useColorScheme()
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const allContactsQuery = useContactsQuery({
 		type: "all"
@@ -147,8 +147,16 @@ export const Contacts = memo(() => {
 		return typeof item === "string" ? item : item.id
 	}, [])
 
-	const sendRequest = useCallback(() => {
-		contactsService.sendRequest()
+	const sendRequest = useCallback(async () => {
+		try {
+			await contactsService.sendRequest({})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
 	}, [])
 
 	const headerSearchBar = useMemo(() => {
@@ -174,7 +182,7 @@ export const Contacts = memo(() => {
 		)
 	}, [sendRequest, colors.primary])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={
@@ -270,27 +278,20 @@ export const Contacts = memo(() => {
 	}, [setRefreshing, allContactsQuery, blockedContactsQuery, contactsRequestsQuery])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
+	}, [refreshing, onRefresh, hasInternet])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
+	const ListHeaderComponent = useCallback(() => {
+		return <ListHeader />
 	}, [])
 
 	return (
@@ -307,16 +308,10 @@ export const Contacts = memo(() => {
 				data={listData}
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
-				ListEmptyComponent={listEmpty}
+				ListEmptyComponent={ListEmptyComponent}
 				refreshing={queryPending}
 				refreshControl={refreshControl}
-				ListHeaderComponent={ListHeader}
-				removeClippedSubviews={true}
-				initialNumToRender={initialNumToRender}
-				maxToRenderPerBatch={maxToRenderPerBatch}
-				updateCellsBatchingPeriod={100}
-				windowSize={3}
-				getItemLayout={getItemLayout}
+				ListHeaderComponent={ListHeaderComponent}
 			/>
 		</Fragment>
 	)

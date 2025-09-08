@@ -5,6 +5,7 @@ import useFocusNotifyOnChangeProps from "@/hooks/useFocusNotifyOnChangeProps"
 import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import { DEFAULT_QUERY_OPTIONS } from "./client"
 import useNetInfo from "@/hooks/useNetInfo"
+import alerts from "@/lib/alerts"
 
 export default function useGetItemQuery({
 	item,
@@ -47,6 +48,12 @@ export default function useGetItemQuery({
 				...item,
 				...result
 			}
+		},
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
 		},
 		notifyOnChangeProps,
 		enabled: !hasInternet ? false : typeof enabled === "boolean" ? enabled : isFocused,

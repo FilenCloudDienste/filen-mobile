@@ -1,6 +1,6 @@
 import {
 	UNCACHED_QUERY_KEYS,
-	EXPO_IMAGE_SUPPORTED_EXTENSIONS,
+	TURBO_IMAGE_SUPPORTED_EXTENSIONS,
 	EXPO_VIDEO_SUPPORTED_EXTENSIONS,
 	EXPO_AUDIO_SUPPORTED_EXTENSIONS
 } from "./constants"
@@ -12,6 +12,19 @@ import { validate as validateUUID } from "uuid"
 import { Buffer } from "buffer"
 import { getRandomValues } from "expo-crypto"
 import mimeTypes from "mime-types"
+import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
+import * as ExpoLocalization from "expo-localization"
+
+let intlLanguage: string = "de-DE"
+
+try {
+	intlLanguage =
+		ExpoLocalization.getLocales()
+			.filter(lang => lang.languageTag)
+			.at(0)?.languageTag ?? "de-DE"
+} catch (e) {
+	console.error(e)
+}
 
 export function serializeError(error: Error): SerializedError {
 	return {
@@ -41,7 +54,7 @@ export function convertTimestampToMs(timestamp: number): number {
 	return Math.floor(timestamp * 1000)
 }
 
-export const simpleDateFormatter = new Intl.DateTimeFormat((typeof navigator !== "undefined" && navigator.language) || "de-DE", {
+export const simpleDateFormatter = new Intl.DateTimeFormat(intlLanguage, {
 	year: "numeric",
 	month: "2-digit",
 	day: "2-digit",
@@ -56,7 +69,7 @@ export function simpleDate(timestamp: number | Date): string {
 	return simpleDateFormatter.format(date)
 }
 
-export const simpleDateNoTimeFormatter = new Intl.DateTimeFormat((typeof navigator !== "undefined" && navigator.language) || "de-DE", {
+export const simpleDateNoTimeFormatter = new Intl.DateTimeFormat(intlLanguage, {
 	year: "numeric",
 	month: "2-digit",
 	day: "2-digit",
@@ -71,7 +84,7 @@ export function simpleDateNoTime(timestamp: number | Date): string {
 	return simpleDateNoTimeFormatter.format(date)
 }
 
-export const simpleDateNoDateFormatter = new Intl.DateTimeFormat((typeof navigator !== "undefined" && navigator.language) || "de-DE", {
+export const simpleDateNoDateFormatter = new Intl.DateTimeFormat(intlLanguage, {
 	year: undefined,
 	month: undefined,
 	day: undefined,
@@ -274,7 +287,7 @@ export function normalizeTransferProgress(size: number, bytes: number): number {
 		return 0
 	}
 
-	return result
+	return result >= 100 ? 100 : result <= 0 ? 0 : result
 }
 
 export const bpsToReadableUnits = [
@@ -306,7 +319,7 @@ export function bpsToReadable(bps: number): string {
 export function getPreviewType(name: string): PreviewType {
 	const extname = Paths.extname(name.trim().toLowerCase())
 
-	if (EXPO_IMAGE_SUPPORTED_EXTENSIONS.includes(extname)) {
+	if (TURBO_IMAGE_SUPPORTED_EXTENSIONS.includes(extname)) {
 		return "image"
 	}
 
@@ -366,8 +379,16 @@ export function getPreviewType(name: string): PreviewType {
 		case ".cobol":
 		case ".toml":
 		case ".conf":
-		case ".sh":
+		case ".ini":
+		case ".log":
+		case ".makefile":
+		case ".mk":
+		case ".gradle":
+		case ".lua":
+		case ".h":
+		case ".hpp":
 		case ".rs":
+		case ".sh":
 		case ".rb":
 		case ".ps1":
 		case ".bat":
@@ -900,5 +921,94 @@ export function ratePasswordStrength(password: string): {
 		lowercase: hasLowercase,
 		specialChars: hasSpecialChars,
 		length: length >= 10
+	}
+}
+
+export function sortAndFilterNotes({ notes, searchTerm, selectedTag }: { notes: Note[]; searchTerm: string; selectedTag: string }): Note[] {
+	const lowercaseSearchTerm = (searchTerm ?? "").toLowerCase().trim()
+	const filteredBySearchTerm =
+		lowercaseSearchTerm.length > 0
+			? notes.filter(
+					note =>
+						note.title.toLowerCase().trim().includes(lowercaseSearchTerm) ||
+						note.preview.toLowerCase().trim().includes(lowercaseSearchTerm) ||
+						note.type.toLowerCase().trim().includes(lowercaseSearchTerm) ||
+						note.tags.some(tag => tag.name.toLowerCase().trim().includes(lowercaseSearchTerm))
+			  )
+			: notes
+
+	const selectedTagIsUUID = validateUUID(selectedTag)
+
+	const filteredByTag =
+		selectedTag !== "all" && selectedTag !== undefined && selectedTag !== null
+			? filteredBySearchTerm.filter(note => {
+					if (selectedTagIsUUID) {
+						return note.tags.some(tag => tag.uuid === selectedTag)
+					}
+
+					if (selectedTag === "favorited") {
+						return note.favorite
+					}
+
+					if (selectedTag === "pinned") {
+						return note.pinned
+					}
+
+					if (selectedTag === "trash") {
+						return note.trash
+					}
+
+					if (selectedTag === "archived") {
+						return note.archive
+					}
+
+					if (selectedTag === "shared") {
+						return note.isOwner && note.participants.length > 1
+					}
+
+					return true
+			  })
+			: filteredBySearchTerm
+
+	return filteredByTag.sort((a, b) => {
+		if (a.pinned !== b.pinned) {
+			return b.pinned ? 1 : -1
+		}
+
+		if (a.trash !== b.trash && a.archive === false) {
+			return a.trash ? 1 : -1
+		}
+
+		if (a.archive !== b.archive) {
+			return a.archive ? 1 : -1
+		}
+
+		if (a.trash !== b.trash) {
+			return a.trash ? 1 : -1
+		}
+
+		return b.editedTimestamp - a.editedTimestamp
+	})
+}
+
+export function getTimeRemaining(endTimestamp: number): {
+	total: number
+	days: number
+	hours: number
+	minutes: number
+	seconds: number
+} {
+	const total = endTimestamp - Date.now()
+	const seconds = Math.floor((total / 1000) % 60)
+	const minutes = Math.floor((total / 1000 / 60) % 60)
+	const hours = Math.floor((total / (1000 * 60 * 60)) % 24)
+	const days = Math.floor(total / (1000 * 60 * 60 * 24))
+
+	return {
+		total,
+		days,
+		hours,
+		minutes,
+		seconds
 	}
 }

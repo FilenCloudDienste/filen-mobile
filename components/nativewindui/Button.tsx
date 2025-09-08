@@ -1,7 +1,7 @@
 import * as Slot from "@rn-primitives/slot"
 import { cva, type VariantProps } from "class-variance-authority"
-import { memo, forwardRef } from "react"
-import { Platform, Pressable, PressableProps, View, ViewStyle } from "react-native"
+import { memo, forwardRef, useRef, useMemo, useCallback } from "react"
+import { Platform, Pressable, PressableProps, View, ViewStyle, type GestureResponderEvent } from "react-native"
 import { TextClassContext } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -151,23 +151,49 @@ export const Button = memo(
 	forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
 		({ className, variant = "primary", size, style = BORDER_CURVE, androidRootClassName, ...props }, ref) => {
 			const { colorScheme } = useColorScheme()
+			const clickTimeoutRef = useRef<number>(0)
+
+			const value = useMemo(() => {
+				return buttonTextVariants({
+					variant,
+					size
+				})
+			}, [variant, size])
+
+			const rootClassName = useMemo(() => {
+				return Platform.select({
+					ios: undefined,
+					default: androidRootVariants({
+						size,
+						className: androidRootClassName
+					})
+				})
+			}, [androidRootClassName, size])
+
+			const onPress = useCallback(
+				(e: GestureResponderEvent) => {
+					if (props?.disabled) {
+						return
+					}
+
+					const now = Date.now()
+
+					if (clickTimeoutRef.current > now) {
+						return
+					}
+
+					clickTimeoutRef.current = now + 500 // 500ms cooldown to prevent double clicks
+
+					props?.onPress?.(e)
+				},
+				[props]
+			)
+
+			const noop = useCallback(() => {}, [])
 
 			return (
-				<TextClassContext.Provider
-					value={buttonTextVariants({
-						variant,
-						size
-					})}
-				>
-					<Root
-						className={Platform.select({
-							ios: undefined,
-							default: androidRootVariants({
-								size,
-								className: androidRootClassName
-							})
-						})}
-					>
+				<TextClassContext.Provider value={value}>
+					<Root className={rootClassName}>
 						<Pressable
 							className={cn(
 								props.disabled && "opacity-50",
@@ -180,7 +206,11 @@ export const Button = memo(
 							ref={ref}
 							style={style}
 							android_ripple={ANDROID_RIPPLE[colorScheme][variant]}
+							delayLongPress={200}
+							onLongPress={noop}
+							unstable_pressDelay={100}
 							{...props}
+							onPress={onPress}
 						/>
 					</Root>
 				</TextClassContext.Provider>

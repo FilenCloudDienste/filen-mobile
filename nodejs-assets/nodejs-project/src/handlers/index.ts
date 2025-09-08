@@ -114,7 +114,8 @@ import {
 	deleteAllVersionedFiles,
 	deleteEverything,
 	fetchAccount,
-	fetchUserPublicKey
+	fetchUserPublicKey,
+	didExportMasterKeys
 } from "./user"
 import {
 	deleteOutgoingContactRequest,
@@ -128,8 +129,10 @@ import {
 	unblockContact,
 	fetchContacts
 } from "./contacts"
+import { restartHTTPServer } from "./http"
 
 export {
+	restartHTTPServer,
 	ping,
 	login,
 	reinitSDK,
@@ -258,5 +261,6 @@ export {
 	muteChat,
 	register,
 	resendConfirmation,
-	forgotPassword
+	forgotPassword,
+	didExportMasterKeys
 }

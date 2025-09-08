@@ -4,7 +4,7 @@ import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
 import { WebpageMetadataParser } from "./parser"
 import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
-import { Image as ExpoImage } from "expo-image"
+import TurboImage from "react-native-turbo-image"
 import Video from "../containers/video"
 import Image from "../containers/image"
 import DOCX from "../containers/docx"
@@ -15,6 +15,7 @@ import Outer from "../containers/outer"
 import Fallback from "../containers/fallback"
 import * as FileSystem from "expo-file-system/next"
 import useNetInfo from "@/hooks/useNetInfo"
+import assets from "@/lib/assets"
 
 export const Fetch = memo(({ link }: { link: string }) => {
 	const { hasInternet } = useNetInfo()
@@ -22,6 +23,11 @@ export const Fetch = memo(({ link }: { link: string }) => {
 	const query = useQuery({
 		queryKey: ["chatEmbedFetchDataParsed", link],
 		queryFn: () => new WebpageMetadataParser(link).parseWebpageMetadata(),
+		throwOnError(err) {
+			console.error(err)
+
+			return false
+		},
 		refetchOnMount: DEFAULT_QUERY_OPTIONS.refetchOnMount,
 		refetchOnReconnect: DEFAULT_QUERY_OPTIONS.refetchOnReconnect,
 		refetchOnWindowFocus: DEFAULT_QUERY_OPTIONS.refetchOnWindowFocus,
@@ -130,16 +136,18 @@ export const Fetch = memo(({ link }: { link: string }) => {
 				above={<Fallback link={link} />}
 			>
 				{query.data.metadata.image && query.data.metadata.image.length > 0 ? (
-					<ExpoImage
+					<TurboImage
 						source={{
 							uri: query.data.metadata.image
 						}}
-						priority="low"
-						cachePolicy="disk"
-						contentFit="contain"
+						cachePolicy="dataCache"
+						resizeMode="contain"
 						style={{
 							width: "100%",
 							height: "100%"
+						}}
+						placeholder={{
+							blurhash: assets.blurhash.images.fallback
 						}}
 					/>
 				) : undefined}

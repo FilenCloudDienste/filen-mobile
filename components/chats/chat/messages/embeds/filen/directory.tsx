@@ -46,6 +46,11 @@ export const Directory = memo(
 					linkUUID: parsedLink.uuid
 				})
 			},
+			throwOnError(err) {
+				console.error(err)
+
+				return false
+			},
 			refetchOnMount: DEFAULT_QUERY_OPTIONS.refetchOnMount,
 			refetchOnReconnect: DEFAULT_QUERY_OPTIONS.refetchOnReconnect,
 			refetchOnWindowFocus: DEFAULT_QUERY_OPTIONS.refetchOnWindowFocus,
@@ -84,7 +89,7 @@ export const Directory = memo(
 			<Button
 				variant="plain"
 				size="none"
-				className="flex-1 bg-background border border-border rounded-md flex-col justify-start items-start p-3 active:opacity-70 basis-full w-full"
+				className="flex-1 bg-card rounded-md flex-col justify-start items-start p-3 active:opacity-70 basis-full w-full"
 				onPress={onPress}
 				unstable_pressDelay={100}
 				style={chatEmbedContainerStyle}

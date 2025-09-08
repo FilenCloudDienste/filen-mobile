@@ -353,7 +353,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 		}
 	}, [query])
 
-	if (isProUser) {
+	if (!isProUser) {
 		return (
 			<Container>
 				<View className="flex-1 flex-col gap-4 items-center justify-center px-16">
@@ -384,10 +384,12 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 					<ToolbarIcon
 						disabled={query.status !== "success" || !query.data?.enabled}
 						icon={{
+							materialIcon: {
+								name: "share-outline"
+							},
 							ios: {
 								name: "square.and.arrow.up"
-							},
-							name: "link"
+							}
 						}}
 						onPress={share}
 					/>

@@ -38,8 +38,8 @@ export const LeftView = memo(
 				<Thumbnail
 					item={item}
 					size={ICON_HEIGHT}
-					imageContentFit="contain"
-					imageCachePolicy="none"
+					imageResizeMode="contain"
+					imageCachePolicy="dataCache"
 					imageStyle={{
 						width: ICON_HEIGHT,
 						height: ICON_HEIGHT,

@@ -8,7 +8,6 @@ import { getPreviewType } from "@/lib/utils"
 import * as FileSystem from "expo-file-system/next"
 import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
-import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "../modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import { KeyboardAvoidingView } from "react-native-keyboard-controller"
@@ -18,6 +17,7 @@ import mimeTypes from "mime-types"
 import useHTTPServer from "@/hooks/useHTTPServer"
 import { type DOMProps } from "expo/dom"
 import { useTranslation } from "react-i18next"
+import upload from "@/lib/upload"
 
 export const bgColors = {
 	normal: {
@@ -75,7 +75,6 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 			return `http://127.0.0.1:${httpServer.port}/stream?auth=${httpServer.authToken}&file=${encodeURIComponent(
 				btoa(
 					JSON.stringify({
-						name: item.driveItem.name,
 						mime: item.driveItem.mime,
 						size: item.driveItem.size,
 						uuid: item.driveItem.uuid,
@@ -125,6 +124,8 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 	const exportFile = useCallback(async () => {
 		const valueCopied = `${value}`
 
+		fullScreenLoadingModal.show()
+
 		try {
 			if (!(await Sharing.isAvailableAsync())) {
 				throw new Error(t("errors.sharingNotAvailable"))
@@ -143,6 +144,8 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 
 				tmpFile.write(valueCopied)
 
+				fullScreenLoadingModal.hide()
+
 				await Sharing.shareAsync(tmpFile.uri, {
 					mimeType: itemMime,
 					dialogTitle: itemName
@@ -158,6 +161,8 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 			if (e instanceof Error) {
 				alerts.error(e.message)
 			}
+		} finally {
+			fullScreenLoadingModal.hide()
 		}
 	}, [value, itemMime, itemName, t])
 
@@ -177,7 +182,9 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 		fullScreenLoadingModal.show()
 
 		try {
-			tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+			tmpFile = new FileSystem.File(
+				FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(itemName)}`)
+			)
 
 			if (tmpFile.exists) {
 				tmpFile.delete()
@@ -189,7 +196,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				tmpFile.write(valueCopied)
 			}
 
-			await nodeWorker.proxy("uploadFile", {
+			await upload.file.foreground({
 				parent: item.driveItem.parent,
 				localPath: tmpFile.uri,
 				name: itemName,
@@ -238,14 +245,19 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 	const toolbarLeftView = useMemo(() => {
 		return (
 			<ToolbarIcon
-				disabled={query.status !== "success"}
+				disabled={query.status !== "success" || value.length === 0}
 				onPress={exportFile}
 				icon={{
-					name: "send-circle-outline"
+					materialIcon: {
+						name: "share-outline"
+					},
+					ios: {
+						name: "square.and.arrow.up"
+					}
 				}}
 			/>
 		)
-	}, [query.status, exportFile])
+	}, [query.status, exportFile, value.length])
 
 	const toolbarRightView = useMemo(() => {
 		return (
@@ -264,7 +276,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 	}, [item.type, didChange, t])
 
 	useEffect(() => {
-		if (query.isSuccess && queryDataUpdatedRef.current !== query.dataUpdatedAt) {
+		if (query.status === "success" && queryDataUpdatedRef.current !== query.dataUpdatedAt) {
 			queryDataUpdatedRef.current = query.dataUpdatedAt
 
 			setValue(query.data)
@@ -280,7 +292,10 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				>
 					{query.status !== "success" ? (
 						<View className="flex-1 items-center justify-center">
-							<ActivityIndicator color={colors.foreground} />
+							<ActivityIndicator
+								color={colors.foreground}
+								size="small"
+							/>
 						</View>
 					) : (
 						<KeyboardAvoidingView

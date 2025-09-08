@@ -4,6 +4,7 @@ import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import useFocusNotifyOnChangeProps from "@/hooks/useFocusNotifyOnChangeProps"
 import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import { DEFAULT_QUERY_OPTIONS } from "./client"
+import alerts from "@/lib/alerts"
 
 export default function useLocalAlbumsQuery({
 	refetchOnMount = DEFAULT_QUERY_OPTIONS.refetchOnMount,
@@ -25,9 +26,9 @@ export default function useLocalAlbumsQuery({
 	const query = useQuery({
 		queryKey: ["useLocalAlbumsQuery"],
 		queryFn: async () => {
-			const permissions = await MediaLibrary.getPermissionsAsync(false, ["video", "photo"])
+			const permissions = await MediaLibrary.getPermissionsAsync(false)
 
-			if (permissions.status === MediaLibrary.PermissionStatus.DENIED) {
+			if (!permissions.granted) {
 				return []
 			}
 
@@ -35,23 +36,13 @@ export default function useLocalAlbumsQuery({
 				includeSmartAlbums: true
 			})
 
-			const withLastAssetURI = await Promise.all(
-				albums.map(async album => {
-					const { assets } = await MediaLibrary.getAssetsAsync({
-						album,
-						mediaType: ["photo"],
-						first: 1,
-						sortBy: [["creationTime", false]]
-					})
+			return albums
+		},
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
 
-					return {
-						album,
-						lastAssetURI: assets[0]?.uri
-					}
-				})
-			)
-
-			return withLastAssetURI
+			return false
 		},
 		notifyOnChangeProps,
 		enabled: typeof enabled === "boolean" ? enabled : isFocused,

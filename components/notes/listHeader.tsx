@@ -1,9 +1,10 @@
-import { memo, useRef, useMemo, useCallback, Fragment } from "react"
-import { FlatList, type ListRenderItemInfo } from "react-native"
+import { memo, useRef, useMemo, useCallback } from "react"
+import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
 import { useTranslation } from "react-i18next"
 import Tag from "./tag"
 import useNetInfo from "@/hooks/useNetInfo"
+import { View } from "react-native"
 import OfflineListHeader from "../offlineListHeader"
 
 export const Item = memo((info: ListRenderItemInfo<string>) => {
@@ -62,7 +63,7 @@ export const Item = memo((info: ListRenderItemInfo<string>) => {
 Item.displayName = "Item"
 
 export const ListHeader = memo(() => {
-	const tagsListRef = useRef<FlatList<string>>(null)
+	const tagsListRef = useRef<FlashListRef<string>>(null)
 	const { hasInternet } = useNetInfo()
 
 	const notesTagsQuery = useNotesTagsQuery({
@@ -109,24 +110,19 @@ export const ListHeader = memo(() => {
 	}, [hasInternet])
 
 	return (
-		<Fragment>
+		<View className="shrink-0">
 			{!hasInternet && <OfflineListHeader />}
-			<FlatList
+			<FlashList
 				ref={tagsListRef}
 				horizontal={true}
+				data={listTags}
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 				keyExtractor={keyExtractor}
-				data={listTags}
 				renderItem={renderItem}
 				contentContainerStyle={contentContainerStyle}
-				windowSize={3}
-				removeClippedSubviews={true}
-				initialNumToRender={16}
-				maxToRenderPerBatch={8}
-				updateCellsBatchingPeriod={100}
 			/>
-		</Fragment>
+		</View>
 	)
 })
 

@@ -74,7 +74,6 @@ export const Emojis = memo(({ chat }: { chat: ChatConversation }) => {
 				showsVerticalScrollIndicator={true}
 				horizontal={false}
 				directionalLockEnabled={true}
-				removeClippedSubviews={true}
 				keyboardDismissMode="none"
 				keyboardShouldPersistTaps="always"
 			>

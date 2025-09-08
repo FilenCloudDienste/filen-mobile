@@ -1,5 +1,4 @@
 import events from "@/lib/events"
-import { randomUUID } from "expo-crypto"
 import { useCallback, useState, useMemo, useEffect } from "react"
 import useContactsQuery from "@/queries/useContactsQuery"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
@@ -11,67 +10,17 @@ import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHe
 import { useLocalSearchParams, useRouter } from "expo-router"
 import Container from "@/components/Container"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "@/components/nativewindui/Toolbar"
-import Contact, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/contacts/contact"
+import Contact, { type ListItemInfo } from "@/components/contacts/contact"
 import { useSelectContactsStore } from "@/stores/selectContacts.store"
 import { contactName } from "@/lib/utils"
 import { useShallow } from "zustand/shallow"
 import { Button } from "@/components/nativewindui/Button"
 import contactsService from "@/services/contacts.service"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import useDimensions from "@/hooks/useDimensions"
 import RequireInternet from "@/components/requireInternet"
-import { Contact as ContactType } from "@filen/sdk/dist/types/api/v3/contacts"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
-
-export type SelectContactsResponse =
-	| {
-			cancelled: false
-			contacts: ContactType[]
-	  }
-	| {
-			cancelled: true
-	  }
-
-export type SelectContactsParams = { type: "all" | "blocked" } & {
-	max: number
-}
-
-export type SelectContactsEvent =
-	| {
-			type: "request"
-			data: {
-				id: string
-			} & SelectContactsParams
-	  }
-	| {
-			type: "response"
-			data: {
-				id: string
-			} & SelectContactsResponse
-	  }
-
-export function selectContacts(params: SelectContactsParams): Promise<SelectContactsResponse> {
-	return new Promise<SelectContactsResponse>(resolve => {
-		const id = randomUUID()
-
-		const sub = events.subscribe("selectContacts", e => {
-			if (e.type === "response" && e.data.id === id) {
-				sub.remove()
-
-				resolve(e.data)
-			}
-		})
-
-		events.emit("selectContacts", {
-			type: "request",
-			data: {
-				...params,
-				id
-			}
-		})
-	})
-}
+import useNetInfo from "@/hooks/useNetInfo"
 
 export default function SelectContacts() {
 	const { colors } = useColorScheme()
@@ -81,8 +30,8 @@ export default function SelectContacts() {
 	const { back, canGoBack } = useRouter()
 	const selectedContacts = useSelectContactsStore(useShallow(state => state.selectedContacts))
 	const setSelectedContacts = useSelectContactsStore(useShallow(state => state.setSelectedContacts))
-	const { screen } = useDimensions()
 	const { t } = useTranslation()
+	const { hasInternet } = useNetInfo()
 
 	const query = useContactsQuery({
 		type: typeof type === "string" ? (type as "all" | "blocked") : "all"
@@ -93,7 +42,7 @@ export default function SelectContacts() {
 	}, [max])
 
 	const contacts = useMemo(() => {
-		if (!query.isSuccess) {
+		if (query.status !== "success") {
 			return []
 		}
 
@@ -122,7 +71,7 @@ export default function SelectContacts() {
 		}
 
 		return contacts
-	}, [query.isSuccess, query.data, searchTerm, type])
+	}, [query.status, query.data, searchTerm, type])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
 		return typeof item === "string" ? item : item.id
@@ -159,8 +108,16 @@ export default function SelectContacts() {
 		back()
 	}, [id, selectedContacts, canGoBack, back])
 
-	const add = useCallback(() => {
-		contactsService.sendRequest()
+	const add = useCallback(async () => {
+		try {
+			await contactsService.sendRequest({})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
 	}, [])
 
 	const cancel = useCallback(() => {
@@ -244,7 +201,7 @@ export default function SelectContacts() {
 		)
 	}, [cancel, colors.card, maxParsed, t])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<ListEmpty
 				queryStatus={query.status}
@@ -269,7 +226,11 @@ export default function SelectContacts() {
 		)
 	}, [query.status, contacts.length, t])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
+		if (contacts.length === 0) {
+			return undefined
+		}
+
 		return (
 			<View className="flex flex-row items-center justify-center h-16 p-4">
 				<Text className="text-sm">
@@ -298,28 +259,17 @@ export default function SelectContacts() {
 	}, [query])
 
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
 				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, onRefresh])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const toolbarLeftView = useMemo(() => {
 		return (
@@ -337,7 +287,7 @@ export default function SelectContacts() {
 			<ToolbarCTA
 				disabled={selectedContacts.length === 0}
 				icon={{
-					name: "send-outline"
+					name: "check"
 				}}
 				onPress={submit}
 			/>
@@ -370,15 +320,9 @@ export default function SelectContacts() {
 					refreshing={refreshing || query.status === "pending"}
 					contentInsetAdjustmentBehavior="automatic"
 					contentContainerClassName="pb-40 pt-2"
-					ListEmptyComponent={listEmpty}
-					ListFooterComponent={listFooter}
+					ListEmptyComponent={ListEmptyComponent}
+					ListFooterComponent={ListFooterComponent}
 					refreshControl={refreshControl}
-					removeClippedSubviews={true}
-					initialNumToRender={initialNumToRender}
-					maxToRenderPerBatch={maxToRenderPerBatch}
-					updateCellsBatchingPeriod={100}
-					windowSize={3}
-					getItemLayout={getItemLayout}
 				/>
 				<Toolbar
 					iosBlurIntensity={100}

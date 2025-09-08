@@ -7,11 +7,7 @@ import alerts from "@/lib/alerts"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
-import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
-import nodeWorker from "@/lib/nodeWorker"
-import queryUtils from "@/queries/utils"
 import * as Clipboard from "expo-clipboard"
-import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { useChatsStore } from "@/stores/chats.store"
 import { useShallow } from "zustand/shallow"
 import { useMMKVString } from "react-native-mmkv"
@@ -19,6 +15,7 @@ import mmkvInstance from "@/lib/mmkv"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Platform } from "react-native"
 import useNetInfo from "@/hooks/useNetInfo"
+import chatsService from "@/services/chats.service"
 
 export const Menu = memo(({ chat, message, children }: { chat: ChatConversation; message: ChatMessage; children: React.ReactNode }) => {
 	const [{ userId }] = useSDKConfig()
@@ -129,78 +126,6 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 		return items
 	}, [t, message.senderId, userId, colors.destructive, hasInternet])
 
-	const deleteMessage = useCallback(async () => {
-		const alertPromptResponse = await alertPrompt({
-			title: t("chats.prompts.deleteMessage.title"),
-			message: t("chats.prompts.deleteMessage.message")
-		})
-
-		if (alertPromptResponse.cancelled) {
-			return
-		}
-
-		fullScreenLoadingModal.show()
-
-		try {
-			await nodeWorker.proxy("deleteChatMessage", {
-				uuid: message.uuid
-			})
-
-			queryUtils.useChatMessagesQuerySet({
-				uuid: chat.uuid,
-				updater: prev => prev.filter(m => m.uuid !== message.uuid)
-			})
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
-		} finally {
-			fullScreenLoadingModal.hide()
-		}
-	}, [chat.uuid, message.uuid, t])
-
-	const disableEmbeds = useCallback(async () => {
-		const alertPromptResponse = await alertPrompt({
-			title: t("chats.prompts.disableEmbeds.title"),
-			message: t("chats.prompts.disableEmbeds.message")
-		})
-
-		if (alertPromptResponse.cancelled) {
-			return
-		}
-
-		fullScreenLoadingModal.show()
-
-		try {
-			await nodeWorker.proxy("disableChatMessageEmbeds", {
-				uuid: message.uuid
-			})
-
-			queryUtils.useChatMessagesQuerySet({
-				uuid: chat.uuid,
-				updater: prev =>
-					prev.map(m =>
-						m.uuid === message.uuid
-							? ({
-									...m,
-									embedDisabled: true
-							  } satisfies ChatMessage)
-							: m
-					)
-			})
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
-		} finally {
-			fullScreenLoadingModal.hide()
-		}
-	}, [chat.uuid, message.uuid, t])
-
 	const copyText = useCallback(async () => {
 		try {
 			await Clipboard.setStringAsync(message.message)
@@ -256,13 +181,19 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 					}
 
 					case "delete": {
-						await deleteMessage()
+						await chatsService.deleteMessage({
+							chat,
+							message
+						})
 
 						break
 					}
 
 					case "disableEmbeds": {
-						await disableEmbeds()
+						await chatsService.disableEmbeds({
+							chat,
+							message
+						})
 
 						break
 					}
@@ -281,7 +212,7 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 				}
 			}
 		},
-		[copyText, deleteMessage, reply, disableEmbeds, edit]
+		[copyText, message, reply, chat, edit]
 	)
 
 	if (menuItems.length === 0) {

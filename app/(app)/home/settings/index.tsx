@@ -7,6 +7,14 @@ import { useRouter } from "expo-router"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import { useTranslation } from "react-i18next"
 import { Platform } from "react-native"
+import { useQuery } from "@tanstack/react-query"
+import fileProvider from "@/lib/fileProvider"
+import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
+import alerts from "@/lib/alerts"
+import { getBiometricAuth, clearBiometricAuth } from "@/app/(app)/home/settings/security"
+import { alertPrompt } from "@/components/prompts/alertPrompt"
+import authService from "@/services/auth.service"
+import assets from "@/lib/assets"
 
 export const Settings = memo(() => {
 	const router = useRouter()
@@ -14,10 +22,21 @@ export const Settings = memo(() => {
 
 	const account = useAccountQuery({})
 
+	const { refetch: fileProviderEnabledQueryRefetch, data: fileProviderEnabledQueryData } = useQuery({
+		queryKey: ["fileProviderEnabledQuery"],
+		queryFn: () => fileProvider.enabled(),
+		throwOnError(err) {
+			console.error(err)
+			alerts.error(err.message)
+
+			return false
+		}
+	})
+
 	const avatarSource = useMemo(() => {
 		if (account.status !== "success" || !account.data.account.avatarURL || !account.data.account.avatarURL.startsWith("https://")) {
 			return {
-				uri: "avatar_fallback"
+				uri: assets.uri.images.avatar_fallback()
 			}
 		}
 
@@ -68,6 +87,52 @@ export const Settings = memo(() => {
 		}, 1)
 	}, [router])
 
+	const onChangeFileProvider = useCallback(
+		async (value: boolean) => {
+			fullScreenLoadingModal.show()
+
+			try {
+				if (value) {
+					if (getBiometricAuth()?.enabled) {
+						fullScreenLoadingModal.hide()
+
+						const fileProviderPrompt = await alertPrompt({
+							title: Platform.select({
+								ios: t("settings.index.prompts.fileProvider.title"),
+								default: t("settings.index.prompts.fileProvider.title")
+							}),
+							message: Platform.select({
+								ios: t("settings.index.prompts.documentsProvider.message"),
+								default: t("settings.index.prompts.documentsProvider.message")
+							})
+						})
+
+						if (fileProviderPrompt.cancelled) {
+							return
+						}
+					}
+
+					clearBiometricAuth()
+
+					await fileProvider.enable(authService.getSDKConfig())
+				} else {
+					await fileProvider.disable()
+				}
+
+				await fileProviderEnabledQueryRefetch()
+			} catch (e) {
+				console.error(e)
+
+				if (e instanceof Error) {
+					alerts.error(e.message)
+				}
+			} finally {
+				fullScreenLoadingModal.hide()
+			}
+		},
+		[fileProviderEnabledQueryRefetch, t]
+	)
+
 	const items = useMemo(() => {
 		return [
 			{
@@ -83,8 +148,8 @@ export const Settings = memo(() => {
 					<Avatar
 						source={avatarSource}
 						style={{
-							width: 42,
-							height: 42
+							width: 36,
+							height: 36
 						}}
 					/>
 				)
@@ -119,7 +184,7 @@ export const Settings = memo(() => {
 				onPress: onPressCameraUpload,
 				leftView: (
 					<IconView
-						name="account-multiple-outline"
+						name="image-outline"
 						className="bg-green-500"
 					/>
 				)
@@ -140,7 +205,12 @@ export const Settings = memo(() => {
 						className="bg-purple-500"
 					/>
 				),
-				rightView: <Toggle value={false} />
+				rightView: (
+					<Toggle
+						value={fileProviderEnabledQueryData ?? false}
+						onValueChange={onChangeFileProvider}
+					/>
+				)
 			},
 			"gap-2",
 			{
@@ -178,7 +248,9 @@ export const Settings = memo(() => {
 		onPressEvents,
 		onPressContacts,
 		onPressAdvanced,
-		onPressCameraUpload
+		onPressCameraUpload,
+		fileProviderEnabledQueryData,
+		onChangeFileProvider
 	])
 
 	return (

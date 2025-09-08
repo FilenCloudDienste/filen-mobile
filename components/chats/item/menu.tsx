@@ -10,15 +10,11 @@ import alerts from "@/lib/alerts"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import Messages from "../chat/messages"
 import useSDKConfig from "@/hooks/useSDKConfig"
-import nodeWorker from "@/lib/nodeWorker"
-import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
-import queryUtils from "@/queries/utils"
-import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { useRouter } from "expo-router"
-import { inputPrompt } from "@/components/prompts/inputPrompt"
 import useChatUnreadCountQuery from "@/queries/useChatUnreadCountQuery"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
+import chatsService from "@/services/chats.service"
 
 export const Menu = memo(
 	({
@@ -52,6 +48,16 @@ export const Menu = memo(
 			return chatUnreadCountQuery.data
 		}, [chatUnreadCountQuery.data, chatUnreadCountQuery.status])
 
+		const isUndecryptable = useMemo(() => {
+			const nameNormalized = chat.name?.toLowerCase().trim() ?? ""
+			const lastMessageNormalized = chat.lastMessage?.toLowerCase().trim() ?? ""
+
+			return (
+				(nameNormalized.startsWith("cannot_decrypt_") && nameNormalized.endsWith(`_${chat.uuid}`)) ||
+				(lastMessageNormalized.startsWith("cannot_decrypt_") && lastMessageNormalized.endsWith(`_${chat.lastMessageUUID}`))
+			)
+		}, [chat.name, chat.uuid, chat.lastMessage, chat.lastMessageUUID])
+
 		const menuItems = useMemo(() => {
 			if (!hasInternet) {
 				return []
@@ -59,7 +65,7 @@ export const Menu = memo(
 
 			const items: (ContextItem | ContextSubMenu)[] = []
 
-			if (unreadCount > 0 && !insideChat) {
+			if (unreadCount > 0 && !insideChat && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "markAsRead",
@@ -78,7 +84,7 @@ export const Menu = memo(
 				)
 			}
 
-			if (!insideChat) {
+			if (!insideChat && !isUndecryptable) {
 				items.push(
 					createContextItem({
 						actionKey: "participants",
@@ -97,43 +103,47 @@ export const Menu = memo(
 				)
 			}
 
-			items.push(
-				createContextItem({
-					actionKey: "mute",
-					title: t("chats.menu.muted"),
-					state: {
-						checked: chat.muted
-					},
-					icon:
-						Platform.OS === "ios"
-							? {
-									namingScheme: "sfSymbol",
-									name: "bell"
-							  }
-							: {
-									namingScheme: "material",
-									name: "bell-outline"
-							  }
-				})
-			)
-
-			if (chat.ownerId === userId) {
+			if (!isUndecryptable) {
 				items.push(
 					createContextItem({
-						actionKey: "rename",
-						title: t("chats.menu.rename"),
+						actionKey: "mute",
+						title: t("chats.menu.muted"),
+						state: {
+							checked: chat.muted
+						},
 						icon:
 							Platform.OS === "ios"
 								? {
 										namingScheme: "sfSymbol",
-										name: "pencil"
+										name: "bell"
 								  }
 								: {
 										namingScheme: "material",
-										name: "pencil"
+										name: "bell-outline"
 								  }
 					})
 				)
+			}
+
+			if (chat.ownerId === userId) {
+				if (!isUndecryptable) {
+					items.push(
+						createContextItem({
+							actionKey: "rename",
+							title: t("chats.menu.rename"),
+							icon:
+								Platform.OS === "ios"
+									? {
+											namingScheme: "sfSymbol",
+											name: "pencil"
+									  }
+									: {
+											namingScheme: "material",
+											name: "pencil"
+									  }
+						})
+					)
+				}
 
 				items.push(
 					createContextItem({
@@ -177,260 +187,51 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [t, chat.ownerId, userId, unreadCount, insideChat, colors.destructive, chat.muted, hasInternet])
-
-		const leave = useCallback(async () => {
-			const alertPromptResponse = await alertPrompt({
-				title: t("chats.prompts.leaveChat.title"),
-				message: t("chats.prompts.leaveChat.message")
-			})
-
-			if (alertPromptResponse.cancelled) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("removeChatParticipant", {
-					conversation: chat.uuid,
-					userId
-				})
-
-				queryUtils.useChatsQuerySet({
-					updater: prev => prev.filter(c => c.uuid !== chat.uuid)
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-
-				if (insideChat && router.canGoBack()) {
-					router.back()
-				}
-			}
-		}, [chat.uuid, insideChat, router, userId, t])
-
-		const deleteChat = useCallback(async () => {
-			const alertPromptResponse = await alertPrompt({
-				title: t("chats.prompts.deleteChat.title"),
-				message: t("chats.prompts.deleteChat.message")
-			})
-
-			if (alertPromptResponse.cancelled) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("deleteChat", {
-					conversation: chat.uuid
-				})
-
-				queryUtils.useChatsQuerySet({
-					updater: prev => prev.filter(c => c.uuid !== chat.uuid)
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-
-				if (insideChat && router.canGoBack()) {
-					router.back()
-				}
-			}
-		}, [chat.uuid, insideChat, router, t])
-
-		const rename = useCallback(async () => {
-			const inputPromptResponse = await inputPrompt({
-				title: t("chats.prompts.renameChat.title"),
-				materialIcon: {
-					name: "pencil"
-				},
-				prompt: {
-					type: "plain-text",
-					keyboardType: "default",
-					defaultValue: "",
-					placeholder: t("chats.prompts.renameChat.placeholder")
-				}
-			})
-
-			if (inputPromptResponse.cancelled || inputPromptResponse.type !== "text") {
-				return
-			}
-
-			const name = inputPromptResponse.text.trim()
-
-			if (name.length === 0) {
-				return
-			}
-
-			fullScreenLoadingModal.show()
-
-			try {
-				await nodeWorker.proxy("editChatName", {
-					conversation: chat.uuid,
-					name
-				})
-
-				queryUtils.useChatsQuerySet({
-					updater: prev =>
-						prev.map(c =>
-							c.uuid === chat.uuid
-								? {
-										...c,
-										name
-								  }
-								: c
-						)
-				})
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-		}, [chat.uuid, t])
-
-		const markAsRead = useCallback(async () => {
-			fullScreenLoadingModal.show()
-
-			try {
-				queryUtils.useChatUnreadCountQuerySet({
-					uuid: chat.uuid,
-					updater: count => {
-						queryUtils.useChatUnreadQuerySet({
-							updater: prev => (prev - count >= 0 ? prev - count : 0)
-						})
-
-						return 0
-					}
-				})
-
-				const lastFocusTimestamp = Date.now()
-
-				queryUtils.useChatsLastFocusQuerySet({
-					updater: prev =>
-						prev.map(v =>
-							v.uuid === chat.uuid
-								? {
-										...v,
-										lastFocus: lastFocusTimestamp
-								  }
-								: v
-						)
-				})
-
-				await Promise.all([
-					nodeWorker.proxy("chatMarkAsRead", {
-						conversation: chat.uuid
-					}),
-					(async () => {
-						const lastFocusValues = await nodeWorker.proxy("fetchChatsLastFocus", undefined)
-
-						await nodeWorker.proxy("updateChatsLastFocus", {
-							values: lastFocusValues.map(v =>
-								v.uuid === chat.uuid
-									? {
-											...v,
-											lastFocus: lastFocusTimestamp
-									  }
-									: v
-							)
-						})
-					})()
-				])
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
-			}
-		}, [chat.uuid])
-
-		const mute = useCallback(
-			async (mute: boolean) => {
-				fullScreenLoadingModal.show()
-
-				try {
-					await nodeWorker.proxy("muteChat", {
-						uuid: chat.uuid,
-						mute
-					})
-
-					queryUtils.useChatsQuerySet({
-						updater: prev =>
-							prev.map(c =>
-								c.uuid === chat.uuid
-									? {
-											...c,
-											muted: mute
-									  }
-									: c
-							)
-					})
-				} catch (e) {
-					console.error(e)
-
-					if (e instanceof Error) {
-						alerts.error(e.message)
-					}
-				} finally {
-					fullScreenLoadingModal.hide()
-
-					if (insideChat && router.canGoBack()) {
-						router.back()
-					}
-				}
-			},
-			[chat.uuid, insideChat, router]
-		)
+		}, [t, chat.ownerId, userId, unreadCount, insideChat, colors.destructive, chat.muted, hasInternet, isUndecryptable])
 
 		const onItemPress = useCallback(
 			async (item: Omit<ContextItem, "icon">, _?: boolean) => {
 				try {
 					switch (item.actionKey) {
 						case "rename": {
-							await rename()
+							await chatsService.renameChat({
+								chat
+							})
 
 							break
 						}
 
 						case "leave": {
-							await leave()
+							await chatsService.leaveChat({
+								chat,
+								insideChat
+							})
 
 							break
 						}
 
 						case "delete": {
-							await deleteChat()
+							await chatsService.deleteChat({
+								chat,
+								insideChat
+							})
 
 							break
 						}
 
 						case "markAsRead": {
-							await markAsRead()
+							await chatsService.markChatAsRead({
+								chat
+							})
 
 							break
 						}
 
 						case "mute": {
-							await mute(!chat.muted)
+							await chatsService.toggleChatMute({
+								chat,
+								mute: !chat.muted
+							})
 
 							break
 						}
@@ -454,7 +255,7 @@ export const Menu = memo(
 					}
 				}
 			},
-			[rename, leave, deleteChat, markAsRead, chat.uuid, router, mute, chat.muted]
+			[chat, router, insideChat]
 		)
 
 		const iosRenderPreview = useCallback(() => {

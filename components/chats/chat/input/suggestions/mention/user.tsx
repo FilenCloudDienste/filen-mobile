@@ -9,6 +9,7 @@ import { findClosestIndexString, contactName } from "@/lib/utils"
 import Avatar from "@/components/avatar"
 import { View } from "react-native"
 import { useShallow } from "zustand/shallow"
+import assets from "@/lib/assets"
 
 export const User = memo(({ user, chat }: { user: ChatConversationParticipant; chat: ChatConversation }) => {
 	const [value, setValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
@@ -45,7 +46,7 @@ export const User = memo(({ user, chat }: { user: ChatConversationParticipant; c
 					uri: user.avatar
 			  }
 			: {
-					uri: "avatar_fallback"
+					uri: assets.uri.images.avatar_fallback()
 			  }
 	}, [user.avatar])
 

@@ -1,13 +1,11 @@
-import { View, RefreshControl, FlatList, type ListRenderItemInfo } from "react-native"
+import { View, RefreshControl, type ViewabilityConfig } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
-import { useColorScheme } from "@/lib/useColorScheme"
 import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react"
 import { List, ListDataItem } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import { simpleDate, formatBytes, orderItemsByType, type OrderByType } from "@/lib/utils"
-import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
 import { Container } from "@/components/Container"
-import ListItem, { type ListItemInfo, LIST_ITEM_HEIGHT } from "./listItem"
+import ListItem, { type ListItemInfo } from "./listItem"
 import { useFocusEffect } from "expo-router"
 import { useDriveStore } from "@/stores/drive.store"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -17,24 +15,28 @@ import useViewLayout from "@/hooks/useViewLayout"
 import useDimensions from "@/hooks/useDimensions"
 import { useShallow } from "zustand/shallow"
 import OfflineListHeader from "@/components/offlineListHeader"
+import { useKeyboardState } from "react-native-keyboard-controller"
+import ListEmpty from "@/components/listEmpty"
+import { useTranslation } from "react-i18next"
+import alerts from "@/lib/alerts"
+import { FlashList, type ListRenderItemInfo, type FlashListRef, type ViewToken } from "@shopify/flash-list"
 
 const contentContainerStyle = {
 	paddingBottom: 100
 }
 
 export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: FetchCloudItemsParams; scrollToUUID?: string }) => {
-	const { colors } = useColorScheme()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const searchTerm = useDriveStore(useShallow(state => state.searchTerm))
-	const setSelectedItems = useDriveStore(useShallow(state => state.setSelectedItems))
 	const { hasInternet } = useNetInfo()
 	const [orderBy] = useMMKVString("orderBy", mmkvInstance) as [OrderByType | undefined, (value: OrderByType) => void]
-	const listRef = useRef<FlatList<ListItemInfo>>(null)
+	const listRef = useRef<FlashListRef<ListItemInfo>>(null)
 	const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
-	const { isTablet, isPortrait, screen } = useDimensions()
-	const setDriveItems = useDriveStore(useShallow(state => state.setItems))
+	const { isTablet, isPortrait } = useDimensions()
+	const keyboardState = useKeyboardState()
+	const { t } = useTranslation()
 
 	const cloudItemsQuery = useCloudItemsQuery(queryParams)
 
@@ -48,7 +50,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 		return orderItemsByType({
 			items:
 				searchTerm.length > 0
-					? cloudItemsQuery.data.filter(item => item.name.toLowerCase().includes(searchTermLowerCase))
+					? cloudItemsQuery.data.filter(item => item.name.toLowerCase().trim().includes(searchTermLowerCase))
 					: cloudItemsQuery.data,
 			type: queryParams.of === "recents" ? "uploadDateDesc" : orderBy ?? "nameAsc"
 		}).map(item => ({
@@ -61,10 +63,6 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 			item
 		}))
 	}, [cloudItemsQuery.status, cloudItemsQuery.data, searchTerm, orderBy, queryParams.of])
-
-	const driveItems = useMemo(() => {
-		return items.map(item => item.item)
-	}, [items])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
 		return typeof item === "string" ? item : item.id
@@ -88,30 +86,44 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 				<ListItem
 					info={info}
 					queryParams={queryParams}
-					items={driveItems}
+					items={items}
 					itemSize={itemSize}
 					spacing={spacing}
 					highlight={scrollToUUID === info.item.item.uuid}
 				/>
 			)
 		},
-		[queryParams, driveItems, itemSize, spacing, scrollToUUID]
+		[queryParams, items, itemSize, spacing, scrollToUUID]
 	)
 
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+
+		try {
+			await cloudItemsQuery.refetch()
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			setRefreshing(false)
+		}
+	}, [cloudItemsQuery])
+
 	const refreshControl = useMemo(() => {
+		if (!hasInternet) {
+			return undefined
+		}
+
 		return (
 			<RefreshControl
 				refreshing={refreshing}
-				onRefresh={async () => {
-					setRefreshing(true)
-
-					await cloudItemsQuery.refetch().catch(() => {})
-
-					setRefreshing(false)
-				}}
+				onRefresh={onRefresh}
 			/>
 		)
-	}, [refreshing, cloudItemsQuery])
+	}, [refreshing, onRefresh, hasInternet])
 
 	const initialScrollIndex = useMemo(() => {
 		if (!scrollToUUID || items.length === 0) {
@@ -127,22 +139,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 		return index
 	}, [scrollToUUID, items])
 
-	const { initialNumToRender, maxToRenderPerBatch } = useMemo(() => {
-		return {
-			initialNumToRender: Math.round(screen.height / LIST_ITEM_HEIGHT),
-			maxToRenderPerBatch: Math.round(screen.height / LIST_ITEM_HEIGHT / 2)
-		}
-	}, [screen.height])
-
-	const getItemLayout = useCallback((_: ArrayLike<ListItemInfo> | null | undefined, index: number) => {
-		return {
-			length: LIST_ITEM_HEIGHT,
-			offset: LIST_ITEM_HEIGHT * index,
-			index
-		}
-	}, [])
-
-	const listHeader = useMemo(() => {
+	const ListHeaderComponent = useCallback(() => {
 		if (hasInternet) {
 			return undefined
 		}
@@ -150,33 +147,72 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 		return <OfflineListHeader />
 	}, [hasInternet])
 
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
-			<View className="flex-1 flex-row items-center justify-center">
-				{cloudItemsQuery.status === "success" ? (
-					searchTerm.length > 0 ? (
-						<Text>Nothing found</Text>
-					) : (
-						<Text>Directory is empty</Text>
-					)
-				) : (
-					<ActivityIndicator color={colors.foreground} />
-				)}
-			</View>
+			<ListEmpty
+				queryStatus={cloudItemsQuery.status}
+				itemCount={items.length}
+				searchTermLength={searchTerm.length}
+				texts={{
+					error: t("drive.list.error"),
+					empty: t("drive.list.empty"),
+					emptySearch: t("drive.list.emptySearch")
+				}}
+				icons={{
+					error: {
+						name: "wifi-alert"
+					},
+					empty: {
+						name: "cloud-outline"
+					},
+					emptySearch: {
+						name: "magnify"
+					}
+				}}
+			/>
 		)
-	}, [cloudItemsQuery.status, searchTerm.length, colors.foreground])
+	}, [cloudItemsQuery.status, searchTerm.length, items.length, t])
 
-	const listFooter = useMemo(() => {
-		if (items.length === 0) {
-			return undefined
+	const ListFooterComponent = useCallback(() => {
+		return items.length > 0 ? (
+			<View className="flex-row items-center justify-center h-16">
+				<Text className="text-sm">
+					{t("drive.list.footer", {
+						count: items.length
+					})}
+				</Text>
+			</View>
+		) : undefined
+	}, [items.length, t])
+
+	const viewStyle = useMemo(() => {
+		return {
+			paddingBottom: keyboardState.isVisible && queryParams.of !== "drive" ? keyboardState.height : 0
+		}
+	}, [keyboardState.isVisible, keyboardState.height, queryParams.of])
+
+	const viewabilityConfig = useMemo(() => {
+		return {
+			itemVisiblePercentThreshold: 75
+		} satisfies ViewabilityConfig
+	}, [])
+
+	const onViewableItemsChanged = useCallback((e: { viewableItems: ViewToken<ListItemInfo>[]; changed: ViewToken<ListItemInfo>[] }) => {
+		useDriveStore.getState().setVisibleItemUuids(e.viewableItems.map(item => item.item.item.uuid))
+	}, [])
+
+	const calculateVisibleItemsOnFocus = useCallback(() => {
+		if (!listRef?.current) {
+			return
 		}
 
-		return (
-			<View className="h-16 flex-1 flex-row items-center justify-center">
-				<Text className="text-sm">{items.length} items</Text>
-			</View>
-		)
-	}, [items.length])
+		const visibleIndices = listRef.current.computeVisibleIndices()
+		const uuids = items
+			.slice(visibleIndices.startIndex <= 0 ? 0 : visibleIndices.startIndex, visibleIndices.endIndex + 1)
+			.map(item => item.item.uuid)
+
+		useDriveStore.getState().setVisibleItemUuids(uuids)
+	}, [items])
 
 	useLayoutEffect(() => {
 		onLayout()
@@ -184,9 +220,10 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 
 	useFocusEffect(
 		useCallback(() => {
-			setDriveItems(driveItems)
-			setSelectedItems([])
-		}, [setSelectedItems, driveItems, setDriveItems])
+			useDriveStore.getState().setSelectedItems([])
+
+			calculateVisibleItemsOnFocus()
+		}, [calculateVisibleItemsOnFocus])
 	)
 
 	return (
@@ -195,9 +232,10 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 				ref={viewRef}
 				onLayout={onLayout}
 				className="flex-1"
+				style={viewStyle}
 			>
 				{gridModeEnabled ? (
-					<FlatList
+					<FlashList
 						ref={listRef}
 						data={items}
 						numColumns={numColumns}
@@ -207,15 +245,12 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						contentInsetAdjustmentBehavior="automatic"
 						initialScrollIndex={initialScrollIndex}
 						contentContainerStyle={contentContainerStyle}
-						ListHeaderComponent={listHeader}
-						ListEmptyComponent={listEmpty}
-						ListFooterComponent={listFooter}
+						ListHeaderComponent={ListHeaderComponent}
+						ListEmptyComponent={ListEmptyComponent}
+						ListFooterComponent={ListFooterComponent}
 						refreshControl={refreshControl}
-						windowSize={3}
-						initialNumToRender={32}
-						maxToRenderPerBatch={16}
-						removeClippedSubviews={true}
-						updateCellsBatchingPeriod={100}
+						viewabilityConfig={viewabilityConfig}
+						onViewableItemsChanged={onViewableItemsChanged}
 					/>
 				) : (
 					<List
@@ -228,16 +263,12 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						contentInsetAdjustmentBehavior="automatic"
 						initialScrollIndex={initialScrollIndex}
 						contentContainerStyle={contentContainerStyle}
-						ListHeaderComponent={listHeader}
-						ListEmptyComponent={listEmpty}
-						ListFooterComponent={listFooter}
+						ListHeaderComponent={ListHeaderComponent}
+						ListEmptyComponent={ListEmptyComponent}
+						ListFooterComponent={ListFooterComponent}
 						refreshControl={refreshControl}
-						removeClippedSubviews={true}
-						initialNumToRender={initialNumToRender}
-						maxToRenderPerBatch={maxToRenderPerBatch}
-						updateCellsBatchingPeriod={100}
-						windowSize={3}
-						getItemLayout={getItemLayout}
+						viewabilityConfig={viewabilityConfig}
+						onViewableItemsChanged={onViewableItemsChanged}
 					/>
 				)}
 			</View>

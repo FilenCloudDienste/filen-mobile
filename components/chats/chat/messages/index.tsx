@@ -4,55 +4,27 @@ import useChatMessagesQuery from "@/queries/useChatMessagesQuery"
 import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import Message from "./message"
 import queryUtils from "@/queries/utils"
-import Typing from "./typing"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import useHeaderHeight from "@/hooks/useHeaderHeight"
 import useChatsLastFocusQuery from "@/queries/useChatsLastFocusQuery"
 import Top from "./top"
 import useDimensions from "@/hooks/useDimensions"
-import {
-	type ViewabilityConfig,
-	View,
-	type NativeSyntheticEvent,
-	type NativeScrollEvent,
-	type ViewToken,
-	ActivityIndicator
-} from "react-native"
-import Animated, { useAnimatedStyle, interpolate, FadeIn, FadeOut } from "react-native-reanimated"
-import { useReanimatedKeyboardAnimation } from "react-native-keyboard-controller"
-import Emojis from "../input/suggestions/emojis"
-import Mention from "../input/suggestions/mention"
+import { View, type NativeSyntheticEvent, type NativeScrollEvent, ActivityIndicator, type ViewToken } from "react-native"
+import Animated, { useAnimatedStyle, FadeIn, FadeOut } from "react-native-reanimated"
 import { useChatsStore } from "@/stores/chats.store"
-import ReplyTo from "../input/suggestions/replyTo"
 import { useShallow } from "zustand/shallow"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { FlashList, type ListRenderItemInfo } from "@shopify/flash-list"
+import { FlashList, type ListRenderItemInfo, type FlashListRef, type FlashListProps } from "@shopify/flash-list"
 import { Text } from "@/components/nativewindui/Text"
 
 export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConversation; isPreview: boolean; inputHeight: number }) => {
 	const headerHeight = useHeaderHeight()
 	const isFetchingMoreMessagesRef = useRef<boolean>(false)
-	const chatMessagesQuery = useChatMessagesQuery({
-		uuid: chat.uuid
-	})
-	const lastMessageTimestampRef = useRef<number>(
-		Math.max(
-			...(
-				chatMessagesQuery.data ?? [
-					{
-						sentTimestamp: Date.now()
-					}
-				]
-			).map(m => m.sentTimestamp)
-		)
-	)
 	const chatsLastFocusQuery = useChatsLastFocusQuery({})
-	const { isPortrait, insets, screen } = useDimensions()
-	const [initialScrollIndex, setInitialScrollIndex] = useState<number | undefined>(undefined)
-	const { progress } = useReanimatedKeyboardAnimation()
+	const { screen, insets } = useDimensions()
 	const showEmojis = useChatsStore(useShallow(state => state.showEmojis[chat.uuid] ?? false))
 	const showMention = useChatsStore(useShallow(state => state.showMention[chat.uuid] ?? false))
 	const emojisText = useChatsStore(useShallow(state => state.emojisText[chat.uuid] ?? ""))
@@ -60,9 +32,14 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const emojisSuggestions = useChatsStore(useShallow(state => state.emojisSuggestions[chat.uuid] ?? []))
 	const mentionSuggestions = useChatsStore(useShallow(state => state.mentionSuggestions[chat.uuid] ?? []))
 	const replyToMessage = useChatsStore(useShallow(state => state.replyToMessage[chat.uuid] ?? null))
-	const listRef = useRef<FlashList<ChatMessage>>(null)
+	const listRef = useRef<FlashListRef<ChatMessage>>(null)
 	const { colors } = useColorScheme()
 	const [showScrollToBottom, setShowScrollToBottom] = useState<boolean>(false)
+	const [initialScrollIndex, setInitialScrollIndex] = useState<number | null>(null)
+
+	const chatMessagesQuery = useChatMessagesQuery({
+		uuid: chat.uuid
+	})
 
 	const suggestionsVisible = useMemo(() => {
 		return (
@@ -72,40 +49,15 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 		)
 	}, [showEmojis, emojisText, emojisSuggestions, showMention, mentionText, mentionSuggestions, replyToMessage])
 
-	const headerComponentStyle = useAnimatedStyle(() => {
-		"worklet"
-
-		return {
-			height: interpolate(progress.value, [0, 1], [inputHeight + 32, insets.bottom + inputHeight - 32]),
-			flex: 1
-		}
-	}, [progress, insets.bottom, inputHeight])
-
-	const toolbarStyle = useAnimatedStyle(() => {
-		"worklet"
-
-		return {
-			bottom: interpolate(progress.value, [0, 1], [inputHeight, inputHeight - insets.bottom]),
-			flex: 1,
-			position: "absolute",
-			right: 0,
-			left: 0,
-			width: "100%",
-			height: "auto"
-		}
-	}, [progress, insets.bottom, inputHeight, isPortrait])
-
 	const scrollToBottomStyle = useAnimatedStyle(() => {
-		"worklet"
-
 		return {
-			bottom: interpolate(progress.value, [0, 1], [inputHeight + 16, inputHeight + 16 - insets.bottom]),
+			bottom: inputHeight + 16,
 			position: "absolute",
 			right: 16,
 			zIndex: 100,
-			display: showScrollToBottom ? "flex" : "none"
+			display: showScrollToBottom && !suggestionsVisible ? "flex" : "none"
 		}
-	}, [progress, insets.bottom, inputHeight, showScrollToBottom])
+	}, [showScrollToBottom, suggestionsVisible, inputHeight])
 
 	const lastFocus = useMemo(() => {
 		if (chatsLastFocusQuery.status !== "success") {
@@ -133,7 +85,6 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 				<Message
 					info={info}
 					chat={chat}
-					lastMessageTimestamp={lastMessageTimestampRef.current}
 					lastFocus={lastFocus}
 					previousMessage={messages.at(info.index + 1)}
 					nextMessage={messages.at(info.index - 1)}
@@ -155,15 +106,15 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 				return
 			}
 
-			const lastMessage = messages.at(-1)
+			const firstMessage = messages.at(-1)
 
-			if (!lastMessage) {
+			if (!firstMessage) {
 				return
 			}
 
 			const fetched = await nodeWorker.proxy("fetchChatMessages", {
 				conversation: chat.uuid,
-				timestamp: lastMessage.sentTimestamp
+				timestamp: firstMessage.sentTimestamp
 			})
 
 			const existingUUIDs = messages.map(m => m.uuid)
@@ -179,19 +130,11 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 				alerts.error(e.message)
 			}
 		} finally {
-			isFetchingMoreMessagesRef.current = false
+			setTimeout(() => {
+				isFetchingMoreMessagesRef.current = false
+			}, 3000)
 		}
 	}, [messages, chat.uuid])
-
-	const viewabilityConfig = useMemo((): ViewabilityConfig => {
-		return {
-			itemVisiblePercentThreshold: 99
-		}
-	}, [])
-
-	const onViewableItemsChanged = useCallback((info: { viewableItems: ViewToken[]; changed: ViewToken[] }) => {
-		setInitialScrollIndex(info.viewableItems?.at(0)?.index ?? undefined)
-	}, [])
 
 	const onScroll = useCallback(
 		(e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -201,15 +144,14 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	)
 
 	const scrollToBottom = useCallback(() => {
-		listRef.current?.scrollToOffset({
-			offset: 0,
-			animated: true
+		listRef?.current?.scrollToTop({
+			animated: false
 		})
 
 		setShowScrollToBottom(false)
 	}, [])
 
-	const listFooter = useMemo(() => {
+	const ListFooterComponent = useCallback(() => {
 		return isPreview ? undefined : (
 			<View
 				style={{
@@ -219,22 +161,10 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 		)
 	}, [headerHeight, isPreview])
 
-	const listHeader = useMemo(() => {
-		return isPreview ? undefined : <Animated.View style={headerComponentStyle} />
-	}, [headerComponentStyle, isPreview])
-
-	const maintainVisibleContentPosition = useMemo(() => {
-		return scrollToBottomStyle.display === "flex"
-			? {
-					minIndexForVisible: 0
-			  }
-			: undefined
-	}, [scrollToBottomStyle.display])
-
-	const listEmpty = useMemo(() => {
+	const ListEmptyComponent = useCallback(() => {
 		return (
 			<View
-				className="flex-1 flex-col gap-2 px-4"
+				className="flex-1 flex-col gap-2 py-8 px-4"
 				style={{
 					transform: [
 						{
@@ -245,15 +175,54 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 			>
 				<Text variant="heading">End-to-end encrypted chat</Text>
 				<Text variant="subhead">Filen secures every chat with zero-knowledge end-to-end encryption by default.</Text>
-				{chatMessagesQuery.status === "pending" && (
-					<ActivityIndicator
-						size="small"
-						color={colors.foreground}
-					/>
+				{chatMessagesQuery.status !== "success" && !isPreview && (
+					<View className="flex-1 justify-center p-8 items-center">
+						<ActivityIndicator
+							size="small"
+							color={colors.foreground}
+						/>
+					</View>
 				)}
 			</View>
 		)
-	}, [chatMessagesQuery.status, colors.foreground])
+	}, [chatMessagesQuery.status, colors.foreground, isPreview])
+
+	const viewabilityConfig = useMemo(() => {
+		return {
+			itemVisiblePercentThreshold: 99
+		} satisfies FlashListProps<ChatMessage>["viewabilityConfig"]
+	}, [])
+
+	const onViewableItemsChanged = useCallback((items: { viewableItems: ViewToken<ChatMessage>[]; changed: ViewToken<ChatMessage>[] }) => {
+		if (!items || !items.viewableItems || items.viewableItems.length === 0) {
+			return
+		}
+
+		const firstVisibleItem = items.viewableItems.at(0)
+
+		if (!firstVisibleItem || typeof firstVisibleItem.index !== "number") {
+			return
+		}
+
+		setInitialScrollIndex(firstVisibleItem.index)
+	}, [])
+
+	const maintainVisibleContentPosition = useMemo(() => {
+		return {
+			disabled: false,
+			startRenderingFromBottom: false,
+			animateAutoScrollToBottom: false,
+			autoscrollToTopThreshold: 1,
+			autoscrollToBottomThreshold: undefined
+		} satisfies FlashListProps<ChatMessage>["maintainVisibleContentPosition"]
+	}, [])
+
+	const scrollIndicatorInsets = useMemo(() => {
+		return {
+			top: -(inputHeight + insets.bottom),
+			bottom: headerHeight
+		} satisfies FlashListProps<ChatMessage>["scrollIndicatorInsets"]
+	}, [inputHeight, headerHeight, insets.bottom])
 
 	return (
 		<Fragment>
@@ -279,42 +248,43 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 				>
 					<Icon
 						name="arrow-down"
-						size={20}
+						size={24}
 						color={colors.foreground}
 					/>
 				</Button>
 			</Animated.View>
-			<FlashList
-				ref={listRef}
-				onScroll={onScroll}
-				onEndReached={fetchMoreMessages}
-				data={messages}
-				keyExtractor={keyExtractor}
-				renderItem={renderItem}
-				inverted={true}
-				initialScrollIndex={initialScrollIndex}
-				keyboardDismissMode={suggestionsVisible ? "none" : "on-drag"}
-				keyboardShouldPersistTaps={suggestionsVisible ? "always" : "never"}
-				showsHorizontalScrollIndicator={false}
-				showsVerticalScrollIndicator={false}
-				estimatedItemSize={150}
-				extraData={lastFocus}
-				ListFooterComponent={listFooter}
-				ListHeaderComponent={listHeader}
-				viewabilityConfig={viewabilityConfig}
-				onViewableItemsChanged={onViewableItemsChanged}
-				removeClippedSubviews={true}
-				maintainVisibleContentPosition={maintainVisibleContentPosition}
-				ListEmptyComponent={listEmpty}
-			/>
-			{!isPreview && (
-				<Animated.View style={toolbarStyle}>
-					<Typing chat={chat} />
-					<Emojis chat={chat} />
-					<Mention chat={chat} />
-					<ReplyTo chat={chat} />
-				</Animated.View>
-			)}
+			<View
+				style={{
+					flex: 1,
+					transform: [
+						{
+							scaleY: -1
+						}
+					]
+				}}
+			>
+				<FlashList
+					ref={listRef}
+					className="bg-background"
+					onScroll={onScroll}
+					onEndReached={fetchMoreMessages}
+					onEndReachedThreshold={0.2}
+					initialScrollIndex={initialScrollIndex}
+					viewabilityConfig={viewabilityConfig}
+					onViewableItemsChanged={onViewableItemsChanged}
+					data={messages}
+					keyExtractor={keyExtractor}
+					renderItem={renderItem}
+					keyboardDismissMode={suggestionsVisible ? "interactive" : "on-drag"}
+					keyboardShouldPersistTaps={suggestionsVisible ? "handled" : "always"}
+					showsHorizontalScrollIndicator={false}
+					showsVerticalScrollIndicator={true}
+					scrollIndicatorInsets={scrollIndicatorInsets}
+					ListFooterComponent={ListFooterComponent}
+					ListEmptyComponent={ListEmptyComponent}
+					maintainVisibleContentPosition={maintainVisibleContentPosition}
+				/>
+			</View>
 		</Fragment>
 	)
 })

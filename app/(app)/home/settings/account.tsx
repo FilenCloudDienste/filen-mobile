@@ -19,7 +19,8 @@ import * as FileSystem from "expo-file-system/next"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import * as Sharing from "expo-sharing"
-import { logout as logoutFn } from "@/lib/auth"
+import authService from "@/services/auth.service"
+import assets from "@/lib/assets"
 
 export const Account = memo(() => {
 	const router = useRouter()
@@ -32,7 +33,7 @@ export const Account = memo(() => {
 	const avatarSource = useMemo(() => {
 		if (account.status !== "success" || !account.data.account.avatarURL || !account.data.account.avatarURL.startsWith("https://")) {
 			return {
-				uri: "avatar_fallback"
+				uri: assets.uri.images.avatar_fallback()
 			}
 		}
 
@@ -504,21 +505,20 @@ export const Account = memo(() => {
 	}, [account, t])
 
 	const logout = useCallback(async () => {
-		const alertPromptResponse = await alertPrompt({
-			title: t("settings.account.prompts.logout.title"),
-			message: t("settings.account.prompts.logout.message")
-		})
+		try {
+			await authService.logout({})
 
-		if (alertPromptResponse.cancelled) {
-			return
+			router.replace({
+				pathname: "/(auth)"
+			})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
 		}
-
-		logoutFn()
-
-		router.replace({
-			pathname: "/(auth)"
-		})
-	}, [router, t])
+	}, [router])
 
 	const items = useMemo(() => {
 		return [
@@ -531,8 +531,8 @@ export const Account = memo(() => {
 					<Avatar
 						source={avatarSource}
 						style={{
-							width: 42,
-							height: 42
+							width: 36,
+							height: 36
 						}}
 					/>
 				)

@@ -62,6 +62,10 @@ export class QueryUtils {
 		})
 	}
 
+	public useCloudItemsQueryGet({ parent, of, receiverId }: FetchCloudItemsParams): DriveCloudItem[] | undefined {
+		return this.get<DriveCloudItem[]>(["useCloudItemsQuery", parent, of, receiverId])
+	}
+
 	public useFileOfflineStatusQuerySet({
 		uuid,
 		updater

@@ -76,10 +76,10 @@ export const ContextMenu = memo(
 						menuConfig={toConfigMenu(items, iOSItemSize, title)}
 						onPressMenuItem={toOnPressMenuItem(onItemPress)}
 						onPressMenuPreview={iosOnPressMenuPreview}
-						shouldCleanupOnComponentWillUnmountForAuxPreview
+						shouldCleanupOnComponentWillUnmountForAuxPreviews={true}
 						previewConfig={!iosRenderPreview ? undefined : PREVIEW_CONFIG}
 						renderPreview={iosRenderPreview}
-						shouldPreventLongPressGestureFromPropagating
+						shouldPreventLongPressGestureFromPropagating={true}
 						lazyPreview={!!iosRenderPreview}
 						auxiliaryPreviewConfig={!renderAuxiliaryPreview ? undefined : getAuxiliaryPreviewConfig(auxiliaryPreviewPosition)}
 						isAuxiliaryPreviewEnabled={!!renderAuxiliaryPreview}

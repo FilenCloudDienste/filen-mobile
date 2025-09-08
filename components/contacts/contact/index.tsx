@@ -39,11 +39,6 @@ export type ListItemInfo = {
 	  }
 )
 
-export const LIST_ITEM_HEIGHT = Platform.select({
-	ios: 61,
-	default: 60
-})
-
 export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<ListItemInfo>; fromSelect?: { max: number } }) => {
 	const { showActionSheetWithOptions } = useActionSheet()
 	const {
@@ -156,7 +151,7 @@ export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<Li
 								return
 							}
 
-							await contactsService.remove({
+							await contactsService.removeContact({
 								uuid: info.item.contact.uuid
 							})
 
@@ -168,7 +163,7 @@ export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<Li
 								return
 							}
 
-							await contactsService.block({
+							await contactsService.blockContact({
 								email: info.item.contact.email
 							})
 
@@ -180,7 +175,7 @@ export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<Li
 								return
 							}
 
-							await contactsService.unblock({
+							await contactsService.unblockContact({
 								uuid: info.item.contact.uuid
 							})
 
@@ -268,7 +263,7 @@ export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<Li
 				isFirstInSection={false}
 				isLastInSection={false}
 				removeSeparator={Platform.OS === "android"}
-				innerClassName="ios:py-2.5 py-2.5 android:py-2.5"
+				innerClassName="ios:py-3 py-3 android:py-3"
 				leftView={leftView}
 				rightView={rightView}
 				onPress={onPressHandler}

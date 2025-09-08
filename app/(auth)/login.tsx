@@ -1,22 +1,17 @@
 import { useRouter, Stack } from "expo-router"
 import { useState, useCallback, memo, useMemo } from "react"
-import { Image, Platform, View } from "react-native"
+import { Platform, View } from "react-native"
 import { KeyboardAwareScrollView, KeyboardController, KeyboardStickyView } from "react-native-keyboard-controller"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context"
 import authService from "@/services/auth.service"
 import { Button } from "@/components/nativewindui/Button"
 import { Form, FormItem, FormSection } from "@/components/nativewindui/Form"
 import { Text } from "@/components/nativewindui/Text"
 import { TextField } from "@/components/nativewindui/TextField"
-import Container from "@/components/Container"
-import { useColorScheme } from "@/lib/useColorScheme"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
-
-function onSubmitEditing() {
-	KeyboardController.setFocusTo("next")
-}
+import alerts from "@/lib/alerts"
 
 const keyboardAwareScrollViewBottomOffset = Platform.select({
 	ios: 175,
@@ -25,15 +20,13 @@ const keyboardAwareScrollViewBottomOffset = Platform.select({
 
 export const Login = memo(() => {
 	const insets = useSafeAreaInsets()
-	const [focusedTextField, setFocusedTextField] = useState<"email" | "password" | null>(null)
 	const router = useRouter()
 	const [email, setEmail] = useState<string>("")
 	const [password, setPassword] = useState<string>("")
-	const { isDarkColorScheme } = useColorScheme()
 	const { t } = useTranslation()
 
 	const disabled = useMemo(() => {
-		return !email || !password || email.length === 0 || password.length === 0
+		return !email || !password
 	}, [email, password])
 
 	const login = useCallback(async () => {
@@ -51,7 +44,7 @@ export const Login = memo(() => {
 
 			if (!didLogin) {
 				setPassword("")
-				setFocusedTextField("password")
+				KeyboardController.setFocusTo("current")
 
 				return
 			}
@@ -60,19 +53,27 @@ export const Login = memo(() => {
 		} catch (e) {
 			console.error(e)
 
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+
 			setEmail("")
 			setPassword("")
-
-			if (e instanceof Error) {
-				console.error(e.message)
-			}
 		}
 	}, [email, password, router, disabled, t])
 
-	const forgotPassword = useCallback(() => {
+	const forgotPassword = useCallback(async () => {
 		KeyboardController.dismiss()
 
-		authService.forgotPassword()
+		try {
+			await authService.forgotPassword({})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
 	}, [])
 
 	const goBack = useCallback(() => {
@@ -114,37 +115,24 @@ export const Login = memo(() => {
 		)
 	}, [goBack, t])
 
-	const logoSource = useMemo(() => {
-		return isDarkColorScheme ? require("../../assets/images/logo_light.png") : require("../../assets/images/logo_dark.png")
-	}, [isDarkColorScheme])
-
 	const signUp = useCallback(() => {
 		router.push({
 			pathname: "/(auth)/register"
 		})
 	}, [router])
 
-	const submit = useCallback(() => {
-		if (focusedTextField === "email") {
-			KeyboardController.setFocusTo("next")
-
+	const onSubmitEmail = useCallback(() => {
+		KeyboardController.setFocusTo("next")
+	}, [])
+	
+	const onSubmitPassword = useCallback(() => {
+		if (disabled) {
+			KeyboardController.dismiss()
 			return
 		}
 
 		login()
-	}, [focusedTextField, login])
-
-	const onFocusEmail = useCallback(() => {
-		setFocusedTextField("email")
-	}, [])
-
-	const onFocusPassword = useCallback(() => {
-		setFocusedTextField("password")
-	}, [])
-
-	const onBlur = useCallback(() => {
-		setFocusedTextField(null)
-	}, [])
+	}, [disabled, login])
 
 	const keyboardStickyViewOffset = useMemo(() => {
 		return {
@@ -172,7 +160,7 @@ export const Login = memo(() => {
 	return (
 		<RequireInternet redirectHref="/(auth)">
 			{header}
-			<Container className="ios:bg-card flex-1 py-8">
+			<SafeAreaView className="ios:bg-card flex-1">
 				<KeyboardAwareScrollView
 					bottomOffset={keyboardAwareScrollViewBottomOffset}
 					bounces={false}
@@ -182,11 +170,6 @@ export const Login = memo(() => {
 				>
 					<View className="ios:px-12 flex-1 px-8">
 						<View className="items-center pb-1">
-							<Image
-								source={logoSource}
-								className="h-14 w-14"
-								resizeMode="contain"
-							/>
 							<Text
 								variant="title1"
 								className="ios:font-bold pb-1 pt-4 text-center"
@@ -202,13 +185,11 @@ export const Login = memo(() => {
 										<TextField
 											placeholder={t("auth.login.form.email.placeholder")}
 											label={labels.email}
-											onSubmitEditing={onSubmitEditing}
+											onSubmitEditing={onSubmitEmail}
 											submitBehavior="submit"
 											autoFocus={true}
 											onChangeText={setEmail}
 											value={email}
-											onFocus={onFocusEmail}
-											onBlur={onBlur}
 											keyboardType="email-address"
 											textContentType="emailAddress"
 											returnKeyType="next"
@@ -218,14 +199,12 @@ export const Login = memo(() => {
 										<TextField
 											placeholder={t("auth.login.form.password.placeholder")}
 											label={labels.password}
-											onFocus={onFocusPassword}
-											onBlur={onBlur}
 											secureTextEntry={true}
 											onChangeText={setPassword}
 											value={password}
 											returnKeyType="done"
 											textContentType="password"
-											onSubmitEditing={login}
+											onSubmitEditing={onSubmitPassword}
 										/>
 									</FormItem>
 								</FormSection>
@@ -268,11 +247,9 @@ export const Login = memo(() => {
 							</Button>
 							<Button
 								disabled={disabled}
-								onPress={submit}
+								onPress={login}
 							>
-								<Text className="text-sm">
-									{focusedTextField === "email" ? t("auth.login.next") : t("auth.login.submit")}
-								</Text>
+								<Text className="text-sm">{t("auth.login.submit")}</Text>
 							</Button>
 						</View>
 					)}
@@ -285,7 +262,7 @@ export const Login = memo(() => {
 						<Text className="text-primary text-sm">{t("auth.login.signUp")}</Text>
 					</Button>
 				)}
-			</Container>
+			</SafeAreaView>
 		</RequireInternet>
 	)
 })

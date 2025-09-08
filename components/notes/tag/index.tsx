@@ -17,12 +17,22 @@ import { cn } from "@/lib/cn"
 
 export const Tag = memo(
 	({ tag, name, id, withRightMargin }: { tag: NoteTag | null; name: string; id: string; withRightMargin?: boolean }) => {
-		const [selectedTag, setSelectedTag] = useMMKVString("selectedTag", mmkvInstance)
+		const [selectedTag, setSelectedTag] = useMMKVString("notesSelectedTag", mmkvInstance)
 		const { t } = useTranslation()
 
 		const isValidUUID = useMemo(() => {
 			return validateUUID(id)
 		}, [id])
+
+		const isUndecryptable = useMemo(() => {
+			if (!isValidUUID) {
+				return false
+			}
+
+			const nameNormalized = name.toLowerCase().trim()
+
+			return nameNormalized.startsWith("cannot_decrypt_") && nameNormalized.endsWith(`_${id}`)
+		}, [id, name, isValidUUID])
 
 		const select = useCallback(() => {
 			setSelectedTag(id)
@@ -118,7 +128,7 @@ export const Tag = memo(
 			)
 		}
 
-		if (!tag) {
+		if (!tag || isUndecryptable) {
 			return (
 				<Button
 					variant="plain"

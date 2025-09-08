@@ -2,21 +2,26 @@ import { memo, useCallback, useMemo, useEffect } from "react"
 import { Settings as SettingsComponent, IconView } from "@/components/settings"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import useCameraUpload from "@/hooks/useCameraUpload"
-import { useRouter } from "expo-router"
-import { selectDriveItems } from "@/app/selectDriveItems/[parent]"
+import { useRouter, useFocusEffect } from "expo-router"
+import driveService from "@/services/drive.service"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import { validate as validateUUID } from "uuid"
 import * as MediaLibrary from "expo-media-library"
-import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import useCameraUploadParentQuery from "@/queries/useCameraUploadParentQuery"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
+import { foregroundCameraUpload } from "@/lib/cameraUpload"
 
 export const Settings = memo(() => {
 	const [cameraUpload, setCameraUpload] = useCameraUpload()
 	const { push: routerPush } = useRouter()
 	const { t } = useTranslation()
+
+	const [permissions] = MediaLibrary.usePermissions({
+		writeOnly: false,
+		request: false
+	})
 
 	const cameraUploadParentQuery = useCameraUploadParentQuery({
 		enabled: cameraUpload.enabled
@@ -32,40 +37,19 @@ export const Settings = memo(() => {
 
 	const toggleEnabled = useCallback(
 		async (enable: boolean) => {
-			if (enable) {
-				fullScreenLoadingModal.show()
-
-				try {
-					const permissions = await MediaLibrary.getPermissionsAsync(false, ["video", "photo"])
-
-					if (permissions.status !== MediaLibrary.PermissionStatus.GRANTED && permissions.canAskAgain) {
-						const ask = await MediaLibrary.requestPermissionsAsync(false, ["video", "photo"])
-
-						if (ask.status !== MediaLibrary.PermissionStatus.GRANTED) {
-							alerts.error(t("photos.settings.index.errors.noPermissions"))
-
-							return
-						}
-					}
-				} catch (e) {
-					console.error(e)
-
-					if (e instanceof Error) {
-						alerts.error(e.message)
-					}
-
-					return
-				} finally {
-					fullScreenLoadingModal.hide()
-				}
-			}
-
 			setCameraUpload(prev => ({
 				...prev,
-				enabled: enable
+				enabled: enable,
+				version: (prev.version ?? 0) + 1
 			}))
+
+			if (enable) {
+				setTimeout(() => {
+					foregroundCameraUpload.run().catch(console.error)
+				}, 1000)
+			}
 		},
-		[setCameraUpload, t]
+		[setCameraUpload]
 	)
 
 	const toggleCellular = useCallback(() => {
@@ -73,6 +57,10 @@ export const Settings = memo(() => {
 			...prev,
 			cellular: !prev.cellular
 		}))
+
+		setTimeout(() => {
+			foregroundCameraUpload.run().catch(console.error)
+		}, 1000)
 	}, [setCameraUpload])
 
 	const toggleCompress = useCallback(() => {
@@ -80,6 +68,10 @@ export const Settings = memo(() => {
 			...prev,
 			compress: !prev.compress
 		}))
+
+		setTimeout(() => {
+			foregroundCameraUpload.run().catch(console.error)
+		}, 1000)
 	}, [setCameraUpload])
 
 	const toggleBackground = useCallback(() => {
@@ -87,6 +79,10 @@ export const Settings = memo(() => {
 			...prev,
 			background: !prev.background
 		}))
+
+		setTimeout(() => {
+			foregroundCameraUpload.run().catch(console.error)
+		}, 1000)
 	}, [setCameraUpload])
 
 	const toggleLowBattery = useCallback(() => {
@@ -94,6 +90,10 @@ export const Settings = memo(() => {
 			...prev,
 			lowBattery: !prev.lowBattery
 		}))
+
+		setTimeout(() => {
+			foregroundCameraUpload.run().catch(console.error)
+		}, 1000)
 	}, [setCameraUpload])
 
 	const toggleVideos = useCallback(() => {
@@ -101,10 +101,14 @@ export const Settings = memo(() => {
 			...prev,
 			videos: !prev.videos
 		}))
+
+		setTimeout(() => {
+			foregroundCameraUpload.run().catch(console.error)
+		}, 1000)
 	}, [setCameraUpload])
 
 	const selectRemoteDirectory = useCallback(async () => {
-		const selectDriveItemsResponse = await selectDriveItems({
+		const selectDriveItemsResponse = await driveService.selectDriveItems({
 			type: "directory",
 			max: 1,
 			dismissHref: "/photos/settings"
@@ -127,11 +131,16 @@ export const Settings = memo(() => {
 
 			setCameraUpload(prev => ({
 				...prev,
+				version: (prev.version ?? 0) + 1,
 				remote: {
 					...directory,
 					path
 				}
 			}))
+
+			setTimeout(() => {
+				foregroundCameraUpload.run().catch(console.error)
+			}, 1000)
 		} catch (e) {
 			console.error(e)
 
@@ -142,6 +151,37 @@ export const Settings = memo(() => {
 	}, [setCameraUpload])
 
 	const items = useMemo(() => {
+		if (permissions && !permissions.granted) {
+			return [
+				{
+					id: "0",
+					title: t("photos.settings.index.items.permissionsError"),
+					subTitle: t("photos.settings.index.items.permissionsErrorInfo"),
+					leftView: (
+						<IconView
+							name="lock-alert-outline"
+							className="bg-red-500"
+						/>
+					),
+					onPress: async () => {
+						try {
+							const ask = await MediaLibrary.requestPermissionsAsync(false)
+
+							if (ask.status !== MediaLibrary.PermissionStatus.GRANTED) {
+								alerts.error(t("photos.settings.index.errors.noPermissions"))
+							}
+						} catch (e) {
+							console.error(e)
+
+							if (e instanceof Error) {
+								alerts.error(e.message)
+							}
+						}
+					}
+				}
+			]
+		}
+
 		return [
 			{
 				id: "0",
@@ -165,33 +205,7 @@ export const Settings = memo(() => {
 						className="bg-blue-500"
 					/>
 				),
-				onPress: async () => {
-					fullScreenLoadingModal.show()
-
-					try {
-						const permissions = await MediaLibrary.getPermissionsAsync(false, ["video", "photo"])
-
-						if (permissions.status !== MediaLibrary.PermissionStatus.GRANTED && permissions.canAskAgain) {
-							const ask = await MediaLibrary.requestPermissionsAsync(false, ["video", "photo"])
-
-							if (ask.status !== MediaLibrary.PermissionStatus.GRANTED) {
-								alerts.error(t("photos.settings.index.errors.noPermissions"))
-
-								return
-							}
-						}
-					} catch (e) {
-						console.error(e)
-
-						if (e instanceof Error) {
-							alerts.error(e.message)
-						}
-
-						return
-					} finally {
-						fullScreenLoadingModal.hide()
-					}
-
+				onPress: () => {
 					routerPush({
 						pathname: "/photos/settings/albums"
 					})
@@ -219,7 +233,7 @@ export const Settings = memo(() => {
 				subTitle: t("photos.settings.index.items.videosInfo"),
 				leftView: (
 					<IconView
-						name="signal-cellular-3"
+						name="video-outline"
 						className="bg-purple-500"
 					/>
 				),
@@ -253,8 +267,8 @@ export const Settings = memo(() => {
 				subTitle: t("photos.settings.index.items.backgroundInfo"),
 				leftView: (
 					<IconView
-						name="signal-cellular-3"
-						className="bg-blue-500"
+						name="backpack"
+						className="bg-gray-500"
 					/>
 				),
 				rightView: (
@@ -287,8 +301,8 @@ export const Settings = memo(() => {
 				subTitle: t("photos.settings.index.items.compressInfo"),
 				leftView: (
 					<IconView
-						name="power-plug-outline"
-						className="bg-green-500"
+						name="file-document-outline"
+						className="bg-orange-500"
 					/>
 				),
 				rightView: (
@@ -309,15 +323,25 @@ export const Settings = memo(() => {
 		toggleVideos,
 		selectRemoteDirectory,
 		routerPush,
-		t
+		t,
+		permissions
 	])
+
+	useFocusEffect(
+		useCallback(() => {
+			setTimeout(() => {
+				foregroundCameraUpload.run().catch(console.error)
+			}, 1000)
+		}, [])
+	)
 
 	useEffect(() => {
 		if (!cameraUploadParentExists) {
 			setCameraUpload(prev => ({
 				...prev,
 				enabled: false,
-				remote: null
+				remote: null,
+				version: (prev.version ?? 0) + 1
 			}))
 		}
 	}, [cameraUploadParentExists, setCameraUpload])

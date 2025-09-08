@@ -16,6 +16,9 @@ import { Platform } from "react-native"
 import * as LocalAuthentication from "expo-local-authentication"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
+import fileProvider from "@/lib/fileProvider"
+import alerts from "@/lib/alerts"
+import useLocalAuthenticationQuery from "@/queries/useLocalAuthenticationQuery"
 
 export const Biometric = memo(() => {
 	const [biometricAuth, setBiometricAuth] = useMMKVObject<BiometricAuth>(BIOMETRIC_AUTH_KEY, mmkvInstance)
@@ -25,6 +28,8 @@ export const Biometric = memo(() => {
 	const account = useAccountQuery({
 		enabled: false
 	})
+
+	const localAuthentication = useLocalAuthenticationQuery({})
 
 	const lockAppAfterDropdownItems = useMemo(() => {
 		return [0, 60, 300, 600, 900, 1800, 3600, Number.MAX_SAFE_INTEGER].map(seconds =>
@@ -44,7 +49,30 @@ export const Biometric = memo(() => {
 
 	const toggleBiometric = useCallback(
 		async (value: boolean) => {
+			if (localAuthentication.status !== "success") {
+				setBiometricAuth(undefined)
+
+				return
+			}
+
 			if (value) {
+				if (await fileProvider.enabled()) {
+					const fileProviderPrompt = await alertPrompt({
+						title: Platform.select({
+							ios: t("settings.biometric.prompts.fileProvider.title"),
+							default: t("settings.biometric.prompts.fileProvider.title")
+						}),
+						message: Platform.select({
+							ios: t("settings.biometric.prompts.documentsProvider.message"),
+							default: t("settings.biometric.prompts.documentsProvider.message")
+						})
+					})
+
+					if (fileProviderPrompt.cancelled) {
+						return
+					}
+				}
+
 				const codePrompt = await inputPrompt({
 					title: t("settings.biometric.prompts.enable.title"),
 					materialIcon: {
@@ -68,13 +96,52 @@ export const Biometric = memo(() => {
 					return
 				}
 
-				const [hasHardware, isEnrolled, supportedTypes] = await Promise.all([
-					LocalAuthentication.hasHardwareAsync(),
-					LocalAuthentication.isEnrolledAsync(),
-					LocalAuthentication.supportedAuthenticationTypesAsync()
-				])
+				if (code.length < 4) {
+					alerts.error(t("settings.biometric.errors.pinTooShort"))
 
-				if (hasHardware && isEnrolled && supportedTypes.length > 0) {
+					return
+				}
+
+				if (code.length > 128) {
+					alerts.error(t("settings.biometric.errors.pinTooLong"))
+
+					return
+				}
+
+				const confirmCodePrompt = await inputPrompt({
+					title: t("settings.biometric.prompts.enableConfirm.title"),
+					materialIcon: {
+						name: "lock-outline"
+					},
+					prompt: {
+						type: "secure-text",
+						keyboardType: "default",
+						defaultValue: "",
+						placeholder: t("settings.biometric.prompts.enableConfirm.placeholder")
+					}
+				})
+
+				if (confirmCodePrompt.cancelled || confirmCodePrompt.type !== "text") {
+					return
+				}
+
+				const confirmCode = confirmCodePrompt.text.trim()
+
+				if (confirmCode.length === 0) {
+					return
+				}
+
+				if (confirmCode !== code) {
+					alerts.error(t("settings.biometric.errors.pinNotMatching"))
+
+					return
+				}
+
+				if (
+					localAuthentication.data.hasHardware &&
+					localAuthentication.data.isEnrolled &&
+					localAuthentication.data.supportedTypes.length > 0
+				) {
 					const result = await LocalAuthentication.authenticateAsync({
 						cancelLabel: t("localAuthentication.cancelLabel"),
 						promptMessage: t("localAuthentication.promptMessage"),
@@ -86,6 +153,8 @@ export const Biometric = memo(() => {
 						return
 					}
 				}
+
+				await fileProvider.disable()
 
 				setBiometricAuth({
 					enabled: true,
@@ -110,7 +179,7 @@ export const Biometric = memo(() => {
 				setBiometricAuth(undefined)
 			}
 		},
-		[t, setBiometricAuth]
+		[t, setBiometricAuth, localAuthentication.data, localAuthentication.status]
 	)
 
 	const togglePinOnly = useCallback(

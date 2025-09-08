@@ -8,17 +8,23 @@ import Android from "./android"
 import IOS from "./ios"
 import { validate as validateUUID } from "uuid"
 import { useShallow } from "zustand/shallow"
+import useSDKConfig from "@/hooks/useSDKConfig"
 
 export const Header = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const { uuid } = useLocalSearchParams()
 	const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
 	const { t } = useTranslation()
+	const [{ baseFolderUUID }] = useSDKConfig()
 
 	const headerTitle = useMemo(() => {
 		if (selectedItemsCount > 0) {
 			return t("drive.header.title.selected", {
 				count: selectedItemsCount
 			})
+		}
+
+		if (queryParams.of === "drive" && uuid === baseFolderUUID) {
+			return t("drive.header.title.drive")
 		}
 
 		if (queryParams.of === "recents" || queryParams.parent === "recents") {
@@ -31,6 +37,10 @@ export const Header = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 
 		if (queryParams.of === "trash" || queryParams.parent === "trash") {
 			return t("drive.header.title.trash")
+		}
+
+		if (queryParams.of === "offline" || queryParams.parent === "offline") {
+			return t("drive.header.title.offline")
 		}
 
 		if ((queryParams.of === "links" || queryParams.parent === "links") && !validateUUID(uuid)) {
@@ -48,7 +58,7 @@ export const Header = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 		return typeof uuid !== "string" || !cache.directoryUUIDToName.has(uuid)
 			? t("drive.header.title.drive")
 			: cache.directoryUUIDToName.get(uuid) ?? t("drive.header.title.drive")
-	}, [uuid, selectedItemsCount, t, queryParams.of, queryParams.parent])
+	}, [uuid, selectedItemsCount, t, queryParams.of, queryParams.parent, baseFolderUUID])
 
 	if (Platform.OS === "android") {
 		return (
