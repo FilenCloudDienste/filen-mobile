@@ -1,4 +1,4 @@
-import { memo, Fragment, useMemo, useCallback } from "react"
+import { memo, useMemo, useCallback } from "react"
 import Menu from "../menu"
 import { useRouter } from "expo-router"
 import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
@@ -21,9 +21,9 @@ import { Checkbox } from "@/components/nativewindui/Checkbox"
 import Animated, { SlideInLeft, SlideOutLeft } from "react-native-reanimated"
 import { useNotesStore } from "@/stores/notes.store"
 import { useShallow } from "zustand/shallow"
-import Ionicons from "@expo/vector-icons/Ionicons"
 import assets from "@/lib/assets"
 import { useMappingHelper } from "@shopify/flash-list"
+import { NoteIcon } from "./NoteIcon"
 
 const ICON_SIZE = 24
 
@@ -36,20 +36,6 @@ export const Item = memo(({ note }: { note: Note }) => {
 	const selectedNotesCount = useNotesStore(useShallow(state => state.selectedNotes.length))
 	const isSelected = useNotesStore(useShallow(state => state.selectedNotes.some(n => n.uuid === note.uuid)))
 	const { getMappingKey } = useMappingHelper()
-
-	const hasWriteAccess = useMemo(() => {
-		if (note.isOwner) {
-			return true
-		}
-
-		return note.participants.some(participant => {
-			if (participant.userId === userId) {
-				return participant.permissionsWrite
-			}
-
-			return false
-		})
-	}, [note.isOwner, note.participants, userId])
 
 	const participants = useMemo(() => {
 		return note.participants
@@ -133,65 +119,10 @@ export const Item = memo(({ note }: { note: Note }) => {
 				)}
 				<View className="flex-1 flex-row gap-4 pt-3">
 					<View className="flex-col gap-2 pt-0.5 pb-2 pl-4">
-						{!note.isOwner ? (
-							<Fragment>
-								{hasWriteAccess ? (
-									<Icon
-										name="person-outline"
-										color={colors.foreground}
-										size={ICON_SIZE}
-									/>
-								) : (
-									<Icon
-										name="eye-outline"
-										color={colors.foreground}
-										size={ICON_SIZE}
-									/>
-								)}
-							</Fragment>
-						) : note.trash ? (
-							<Ionicons
-								name="trash-outline"
-								color="#ef4444"
-								size={ICON_SIZE}
-							/>
-						) : note.archive ? (
-							<Ionicons
-								name="archive-outline"
-								color="#eab308"
-								size={ICON_SIZE}
-							/>
-						) : note.type === "text" ? (
-							<Ionicons
-								name="text-outline"
-								color="#3b82f6"
-								size={ICON_SIZE}
-							/>
-						) : note.type === "checklist" ? (
-							<Ionicons
-								name="checkbox-outline"
-								color="#a855f7"
-								size={ICON_SIZE}
-							/>
-						) : note.type === "code" ? (
-							<Ionicons
-								name="code-outline"
-								color="#ef4444"
-								size={ICON_SIZE}
-							/>
-						) : note.type === "md" ? (
-							<Ionicons
-								name="logo-markdown"
-								color="#6366f1"
-								size={ICON_SIZE}
-							/>
-						) : note.type === "rich" ? (
-							<Ionicons
-								name="document-text-outline"
-								color="#06b6d4"
-								size={ICON_SIZE}
-							/>
-						) : null}
+						<NoteIcon
+							note={note}
+							iconSize={ICON_SIZE}
+						/>
 						{note.pinned && (
 							<Icon
 								name="pin-outline"
@@ -258,10 +189,10 @@ export const Item = memo(({ note }: { note: Note }) => {
 												participant.avatar?.startsWith("https")
 													? {
 															uri: participant.avatar
-													  }
+														}
 													: {
 															uri: assets.uri.images.avatar_fallback()
-													  }
+														}
 											}
 											style={{
 												width: 36,
