@@ -74,8 +74,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 				NSAllowsArbitraryLoads: false
 			},
 			LSApplicationCategoryType: "public.app-category.productivity",
-			CFBundleDisplayName: NAME,
-			UIRequiredDeviceCapabilities: ["arm64"]
+			UIRequiredDeviceCapabilities: ["arm64"],
+			// Localization
+			CFBundleAllowMixedLocalizations: true,
+			CFBundleLocalizations: ["en", "de", "hu", "zh"],
+			CFBundleDevelopmentRegion: "en",
+			UIPrefersShowingLanguageSettings: true
 		},
 		icon: {
 			dark: "./assets/images/ios-dark.png",
@@ -272,5 +276,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		router: {
 			origin: false
 		}
+	},
+	locales: {
+		en: "./locales/en.json",
+		de: "./locales/de.json",
+		hu: "./locales/hu.json",
+		zh: "./locales/zh.json"
 	}
 })
