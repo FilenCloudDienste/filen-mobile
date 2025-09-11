@@ -68,11 +68,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 							? {
 									namingScheme: "sfSymbol",
 									name: "wifi"
-							  }
+								}
 							: {
 									namingScheme: "material",
 									name: "wifi"
-							  }
+								}
 				})
 			)
 		}
@@ -87,11 +87,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 							? {
 									namingScheme: "sfSymbol",
 									name: "list.bullet"
-							  }
+								}
 							: {
 									namingScheme: "material",
 									name: "format-list-bulleted"
-							  }
+								}
 				})
 			)
 		} else {
@@ -104,11 +104,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 							? {
 									namingScheme: "sfSymbol",
 									name: "grid"
-							  }
+								}
 							: {
 									namingScheme: "material",
 									name: "grid"
-							  }
+								}
 				})
 			)
 		}
@@ -150,11 +150,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 											? {
 													namingScheme: "sfSymbol",
 													name: "arrow.up"
-											  }
+												}
 											: {
 													namingScheme: "material",
 													name: "arrow-up"
-											  }
+												}
 								}),
 								createDropdownItem({
 									actionKey: "sortBySizeAsc",
@@ -167,11 +167,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 											? {
 													namingScheme: "sfSymbol",
 													name: "arrow.up"
-											  }
+												}
 											: {
 													namingScheme: "material",
 													name: "arrow-up"
-											  }
+												}
 								}),
 								createDropdownItem({
 									actionKey: "sortByUploadDateAsc",
@@ -184,11 +184,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 											? {
 													namingScheme: "sfSymbol",
 													name: "arrow.up"
-											  }
+												}
 											: {
 													namingScheme: "material",
 													name: "arrow-up"
-											  }
+												}
 								}),
 								createDropdownItem({
 									actionKey: "sortByLastModifiedAsc",
@@ -201,11 +201,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 											? {
 													namingScheme: "sfSymbol",
 													name: "arrow.up"
-											  }
+												}
 											: {
 													namingScheme: "material",
 													name: "arrow-up"
-											  }
+												}
 								}),
 								createDropdownItem({
 									actionKey: "sortByTypeAsc",
@@ -218,11 +218,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 											? {
 													namingScheme: "sfSymbol",
 													name: "arrow.up"
-											  }
+												}
 											: {
 													namingScheme: "material",
 													name: "arrow-up"
-											  }
+												}
 								})
 							]
 						),
@@ -244,11 +244,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 											? {
 													namingScheme: "sfSymbol",
 													name: "arrow.down"
-											  }
+												}
 											: {
 													namingScheme: "material",
 													name: "arrow-down"
-											  }
+												}
 								}),
 								createDropdownItem({
 									actionKey: "sortBySizeDesc",
@@ -261,11 +261,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 											? {
 													namingScheme: "sfSymbol",
 													name: "arrow.down"
-											  }
+												}
 											: {
 													namingScheme: "material",
 													name: "arrow-down"
-											  }
+												}
 								}),
 								createDropdownItem({
 									actionKey: "sortByUploadDateDesc",
@@ -278,11 +278,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 											? {
 													namingScheme: "sfSymbol",
 													name: "arrow.down"
-											  }
+												}
 											: {
 													namingScheme: "material",
 													name: "arrow-down"
-											  }
+												}
 								}),
 								createDropdownItem({
 									actionKey: "sortByLastModifiedDesc",
@@ -295,11 +295,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 											? {
 													namingScheme: "sfSymbol",
 													name: "arrow.down"
-											  }
+												}
 											: {
 													namingScheme: "material",
 													name: "arrow-down"
-											  }
+												}
 								}),
 								createDropdownItem({
 									actionKey: "sortByTypeDesc",
@@ -312,11 +312,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 											? {
 													namingScheme: "sfSymbol",
 													name: "arrow.down"
-											  }
+												}
 											: {
 													namingScheme: "material",
 													name: "arrow-down"
-											  }
+												}
 								})
 							]
 						)
@@ -374,11 +374,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 									? {
 											namingScheme: "sfSymbol",
 											name: "photo"
-									  }
+										}
 									: {
 											namingScheme: "material",
 											name: "image-outline"
-									  }
+										}
 						})
 					)
 				}
@@ -393,11 +393,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 									? {
 											namingScheme: "sfSymbol",
 											name: "arrow.down.circle"
-									  }
+										}
 									: {
 											namingScheme: "material",
 											name: "arrow-down-circle-outline"
-									  }
+										}
 						})
 					)
 				}
@@ -425,11 +425,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 								? {
 										namingScheme: "sfSymbol",
 										name: "square.and.arrow.up"
-								  }
+									}
 								: {
 										namingScheme: "material",
 										name: "send-outline"
-								  }
+									}
 					})
 				)
 			}
@@ -445,11 +445,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 									? {
 											namingScheme: "sfSymbol",
 											name: "heart"
-									  }
+										}
 									: {
 											namingScheme: "material",
 											name: "heart-outline"
-									  }
+										}
 						})
 					)
 				} else {
@@ -462,11 +462,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 									? {
 											namingScheme: "sfSymbol",
 											name: "heart"
-									  }
+										}
 									: {
 											namingScheme: "material",
 											name: "heart-outline"
-									  }
+										}
 						})
 					)
 				}
@@ -488,11 +488,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 								? {
 										namingScheme: "sfSymbol",
 										name: "paintpalette"
-								  }
+									}
 								: {
 										namingScheme: "material",
 										name: "palette-outline"
-								  }
+									}
 					})
 				)
 			}
@@ -507,11 +507,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 								? {
 										namingScheme: "sfSymbol",
 										name: "folder"
-								  }
+									}
 								: {
 										namingScheme: "material",
 										name: "folder-cog-outline"
-								  }
+									}
 					})
 				)
 			}
@@ -528,12 +528,12 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 										namingScheme: "sfSymbol",
 										name: "delete.left",
 										color: colors.destructive
-								  }
+									}
 								: {
 										namingScheme: "material",
 										name: "delete-off-outline",
 										color: colors.destructive
-								  }
+									}
 					})
 				)
 			}
@@ -550,12 +550,12 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 										namingScheme: "sfSymbol",
 										name: "link",
 										color: colors.destructive
-								  }
+									}
 								: {
 										namingScheme: "material",
 										name: "link",
 										color: colors.destructive
-								  }
+									}
 					})
 				)
 			}
@@ -573,12 +573,12 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 											namingScheme: "sfSymbol",
 											name: "trash",
 											color: colors.destructive
-									  }
+										}
 									: {
 											namingScheme: "material",
 											name: "trash-can-outline",
 											color: colors.destructive
-									  }
+										}
 						})
 					)
 				} else {
@@ -593,12 +593,12 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 											namingScheme: "sfSymbol",
 											name: "delete.left",
 											color: colors.destructive
-									  }
+										}
 									: {
 											namingScheme: "material",
 											name: "delete-off-outline",
 											color: colors.destructive
-									  }
+										}
 						})
 					)
 				}
@@ -616,12 +616,12 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 										namingScheme: "sfSymbol",
 										name: "delete.left",
 										color: colors.destructive
-								  }
+									}
 								: {
 										namingScheme: "material",
 										name: "delete-off-outline",
 										color: colors.destructive
-								  }
+									}
 					})
 				)
 			}
@@ -636,11 +636,11 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 								? {
 										namingScheme: "sfSymbol",
 										name: "repeat"
-								  }
+									}
 								: {
 										namingScheme: "material",
 										name: "repeat"
-								  }
+									}
 					})
 				)
 
@@ -655,12 +655,12 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 										namingScheme: "sfSymbol",
 										name: "trash",
 										color: colors.destructive
-								  }
+									}
 								: {
 										namingScheme: "material",
 										name: "trash-can-outline",
 										color: colors.destructive
-								  }
+									}
 					})
 				)
 			}
