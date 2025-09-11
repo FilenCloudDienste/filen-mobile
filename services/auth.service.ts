@@ -241,7 +241,7 @@ export class AuthService {
 					})
 				}
 
-				throw e //TODO currently finally clause is not reached from here
+				alerts.error(e.message)
 			}
 
 			return false

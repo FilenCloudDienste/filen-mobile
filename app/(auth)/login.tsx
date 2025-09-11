@@ -126,7 +126,7 @@ export const Login = memo(() => {
 	const onSubmitEmail = useCallback(() => {
 		KeyboardController.setFocusTo("next")
 	}, [])
-	
+
 	const onSubmitPassword = useCallback(() => {
 		if (disabled) {
 			KeyboardController.dismiss()
@@ -213,16 +213,16 @@ export const Login = memo(() => {
 											className="justify-center pr-3"
 											onPress={() => setHidePassword(prev => !prev)}
 										>
-											<Icon name={hidePassword ? "eye-outline" : "eye-off-outline"} color="#ccc" size={20}/>
+											<Icon
+												name={hidePassword ? "eye-outline" : "eye-off-outline"}
+												color="#ccc"
+												size={20}
+											/>
 										</TouchableOpacity>
 									}
 								/>
 							</View>
-							{error && <Text
-								className="bg-red-100 rounded text-red-600 px-4 py-2 text-sm"
-							>
-								{error}
-							</Text>}
+							{error && <Text className="bg-red-100 rounded text-red-600 px-4 py-2 text-sm">{error}</Text>}
 							<View className="flex-row">
 								<Button
 									testID="forgotPassword"
@@ -236,7 +236,6 @@ export const Login = memo(() => {
 							</View>
 						</View>
 					</View>
-					
 				</KeyboardAwareScrollView>
 				<KeyboardStickyView
 					offset={keyboardStickyViewOffset}

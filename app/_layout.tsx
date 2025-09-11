@@ -99,7 +99,7 @@ export default function RootLayout() {
 						<ActionSheetProvider>
 							<BottomSheetModalProvider>
 								<NavThemeProvider value={NAV_THEME[colorScheme]}>
-									<NotifierWrapper>
+									<NotifierWrapper useRNScreensOverlay={true}>
 										{setupDone && (
 											<ShareIntentProvider>
 												<Stack

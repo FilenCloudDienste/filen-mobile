@@ -1,0 +1,12 @@
+flows:
+  # - 'flows/login.yaml'
+  - flows/photos/enable_photos_sync.yaml
+
+platform:
+  ios:
+    # NotifierWrapper with useRNScreensOverlay=true prop hides all UI elements and maestro can't access them unless snapshotKeyHonorModalViews is set to false
+    # when running individual flows always add `--config config.yaml` to enable this config file
+    snapshotKeyHonorModalViews: false
+    disableAnimations: true
+  android:
+    disableAnimations: true
