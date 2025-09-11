@@ -71,18 +71,38 @@
 				},
 				"dropdown": {
 					"sortBy": {
-						"sortBy": "Sort by",
+						"sortBy": "Sort By",
 						"ascending": "Ascending",
 						"descending": "Descending",
-						"name": "Name",
-						"uploadDate": "Upload date",
-						"lastModified": "Last modified",
-						"type": "Type",
-						"size": "Size"
+						"name": {
+							"title": "Name",
+							"ascendingTitle": "A to Z",
+							"descendingTitle": "Z to A"
+						},
+						"uploadDate": {
+							"title": "Upload Date",
+							"ascendingTitle": "Earliest First",
+							"descendingTitle": "Latest First"
+						},
+						"lastModified": {
+							"title": "Last Modified",
+							"ascendingTitle": "Earliest First",
+							"descendingTitle": "Latest First"
+						},
+						"type": {
+							"title": "Type",
+							"ascendingTitle": "Ascending",
+							"descendingTitle": "Descending"
+						},
+						"size": {
+							"title": "Size",
+							"ascendingTitle": "Smallest Frist",
+							"descendingTitle": "Largest First"
+						}
 					},
 					"transfers": "Transfers",
-					"listMode": "List mode",
-					"gridMode": "Grid mode",
+					"listMode": "View as List",
+					"gridMode": "View as Grid",
 					"bulkActions": "Bulk actions"
 				},
 				"selectAll": "Select all",
@@ -134,7 +154,15 @@
 					"removeSharedIn": "Remove",
 					"removeSharedOut": "Stop sharing",
 					"disablePublicLink": "Disable link",
-					"availableOffline": "Available offline"
+					"availableOffline": "Available offline",
+					"share_one": "Share Item",
+					"share_other": "Share {{count}} Items",
+					"favorite_one": "Favorite Item",
+					"favorite_other": "Favorite {{count}} Items",
+					"move_one": "Move Item",
+					"move_other": "Move {{count}} Items",
+					"trash_one": "Trash Item",
+					"trash_other": "Trash {{count}} Items"
 				}
 			}
 		},

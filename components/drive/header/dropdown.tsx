@@ -18,6 +18,75 @@ import useNetInfo from "@/hooks/useNetInfo"
 import driveBulkService from "@/services/driveBulk.service"
 import alerts from "@/lib/alerts"
 
+type UISortOption = {
+	title: string
+	ascTitle: string
+	descTitle: string
+	// Below actual OrderByType used in the business logic
+	asc: OrderByType
+	desc: OrderByType
+}
+
+const UI_SORT_OPTIONS: Record<string, UISortOption> = {
+	sortByName: {
+		title: "drive.header.rightView.dropdown.sortBy.name.title",
+		ascTitle: "drive.header.rightView.dropdown.sortBy.name.ascendingTitle",
+		descTitle: "drive.header.rightView.dropdown.sortBy.name.descendingTitle",
+		asc: "nameAsc",
+		desc: "nameDesc"
+	},
+	sortBySize: {
+		title: "drive.header.rightView.dropdown.sortBy.size.title",
+		ascTitle: "drive.header.rightView.dropdown.sortBy.size.ascendingTitle",
+		descTitle: "drive.header.rightView.dropdown.sortBy.size.descendingTitle",
+		asc: "sizeAsc",
+		desc: "sizeDesc"
+	},
+	sortByUploadDate: {
+		title: "drive.header.rightView.dropdown.sortBy.uploadDate.title",
+		ascTitle: "drive.header.rightView.dropdown.sortBy.uploadDate.ascendingTitle",
+		descTitle: "drive.header.rightView.dropdown.sortBy.uploadDate.descendingTitle",
+		asc: "uploadDateAsc",
+		desc: "uploadDateDesc"
+	},
+	sortByLastModified: {
+		title: "drive.header.rightView.dropdown.sortBy.lastModified.title",
+		ascTitle: "drive.header.rightView.dropdown.sortBy.lastModified.ascendingTitle",
+		descTitle: "drive.header.rightView.dropdown.sortBy.lastModified.descendingTitle",
+		asc: "lastModifiedAsc",
+		desc: "lastModifiedDesc"
+	},
+	sortByType: {
+		title: "drive.header.rightView.dropdown.sortBy.type.title",
+		ascTitle: "drive.header.rightView.dropdown.sortBy.type.ascendingTitle",
+		descTitle: "drive.header.rightView.dropdown.sortBy.type.descendingTitle",
+		asc: "typeAsc",
+		desc: "typeDesc"
+	}
+} as const
+
+const DEFAULT_UI_SORT = UI_SORT_OPTIONS.sortByName as UISortOption
+
+function getUISortOption(orderBy?: OrderByType): UISortOption | undefined {
+	// Remove "Asc" or "Desc" from the end of OrderByType
+	const key = orderBy?.endsWith("Asc") ? orderBy.slice(0, -3) : orderBy?.endsWith("Desc") ? orderBy.slice(0, -4) : undefined
+	switch (key) {
+		case "name":
+			return UI_SORT_OPTIONS.sortByName
+		case "size":
+			return UI_SORT_OPTIONS.sortBySize
+		case "uploadDate":
+			return UI_SORT_OPTIONS.sortByUploadDate
+		case "lastModified":
+			return UI_SORT_OPTIONS.sortByLastModified
+		case "type":
+			return UI_SORT_OPTIONS.sortByType
+		default:
+			console.warn(`Unknown order key: ${orderBy}`)
+			return undefined
+	}
+}
+
 export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const { colors } = useColorScheme()
 	const [orderBy, setOrderBy] = useMMKVString("orderBy", mmkvInstance) as [OrderByType | undefined, (value: OrderByType) => void]
@@ -55,6 +124,469 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			: cloudItemsQuery.data
 	}, [cloudItemsQuery.status, cloudItemsQuery.data, searchTerm])
 
+	const currentUISortOption = useMemo(() => {
+		console.log("uisort:", getUISortOption(orderBy))
+		return getUISortOption(orderBy)
+	}, [orderBy])
+
+	const dropdownViewModeItem = useMemo(() => {
+		if (gridModeEnabled) {
+			return createDropdownItem({
+				actionKey: "listMode",
+				title: t("drive.header.rightView.dropdown.listMode"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "list.bullet"
+							}
+						: {
+								namingScheme: "material",
+								name: "format-list-bulleted"
+							}
+			})
+		} else {
+			return createDropdownItem({
+				actionKey: "gridMode",
+				title: t("drive.header.rightView.dropdown.gridMode"),
+				icon:
+					Platform.OS === "ios"
+						? {
+								namingScheme: "sfSymbol",
+								name: "grid"
+							}
+						: {
+								namingScheme: "material",
+								name: "grid"
+							}
+			})
+		}
+	}, [gridModeEnabled, t])
+
+	const dropdownSortSubMenu = useMemo(
+		() =>
+			createDropdownSubMenu(
+				{
+					title: t("drive.header.rightView.dropdown.sortBy.sortBy"),
+					subTitle: t(currentUISortOption?.title),
+					iOSItemSize: "large",
+					iOSType: "dropdown"
+				},
+				[
+					...Object.entries(UI_SORT_OPTIONS).map(([actionKey, uiSortOption]) =>
+						createDropdownItem({
+							actionKey: actionKey,
+							title: t(uiSortOption.title),
+							keepOpenOnPress: true,
+							state: {
+								checked: orderBy !== undefined && [uiSortOption.asc, uiSortOption.desc].includes(orderBy)
+							}
+						})
+					),
+
+					createDropdownSubMenu(
+						{
+							title: "",
+							iOSItemSize: "large",
+							iOSType: "inline"
+						},
+						[
+							createDropdownItem({
+								actionKey: "sortAscending",
+								title: t([currentUISortOption?.ascTitle, "drive.header.rightView.dropdown.sortBy.ascending"]),
+								state: {
+									checked: orderBy === currentUISortOption?.asc
+								}
+							}),
+							createDropdownItem({
+								actionKey: "sortDescending",
+								title: t([currentUISortOption?.descTitle, "drive.header.rightView.dropdown.sortBy.descending"]),
+								state: {
+									checked: orderBy === currentUISortOption?.desc
+								}
+							})
+						]
+					)
+				]
+			),
+		[currentUISortOption, orderBy, t]
+	)
+
+	const dropdownSelectAllAndNoneItems = useMemo(() => {
+		let items: (DropdownItem | DropdownSubMenu)[] = []
+
+		if (selectedItemsCount < driveItems.length) {
+			items.push(
+				createDropdownItem({
+					actionKey: "selectAll",
+					title: t("drive.list.item.menu.selectAll"),
+					icon: {
+						name: "check-circle-outline"
+					}
+				})
+			)
+		}
+
+		if (selectedItemsCount > 0) {
+			items.push(
+				createDropdownItem({
+					actionKey: "deselectAll",
+					title: t("drive.list.item.menu.deselectAll"),
+					icon: {
+						name: "check-circle-outline"
+					}
+				})
+			)
+		}
+
+		if (Platform.OS === "ios") {
+			items = [
+				createDropdownSubMenu(
+					{
+						title: "",
+						iOSType: "inline"
+					},
+					items
+				)
+			]
+		}
+		return items
+	}, [driveItems.length, selectedItemsCount, t])
+
+	const dropdownSelectionItems = useMemo(() => {
+		const items: (DropdownItem | DropdownSubMenu)[] = []
+
+		if (Platform.OS === "ios" ? !selectedItemsIncludesDirectory : true) {
+			const subMenuItems: DropdownSubMenu["items"] = []
+
+			if (Platform.OS === "android" && queryParams.of !== "offline" && hasInternet && everySelectedItemIsNotEmpty) {
+				subMenuItems.push(
+					createDropdownItem({
+						actionKey: "bulkDownload",
+						title: t("drive.list.item.menu.download"),
+						icon: {
+							namingScheme: "material",
+							name: "file-download-outline"
+						}
+					})
+				)
+			}
+
+			if (everySelectedItemIsFileAndImageOrVideo && queryParams.of !== "offline" && hasInternet && everySelectedItemIsNotEmpty) {
+				subMenuItems.push(
+					createDropdownItem({
+						actionKey: "bulkSaveToGallery",
+						title: t("drive.list.item.menu.saveToGallery"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "photo"
+									}
+								: {
+										namingScheme: "material",
+										name: "image-outline"
+									}
+					})
+				)
+			}
+
+			if (queryParams.of !== "offline" && hasInternet && everySelectedItemIsNotEmpty) {
+				subMenuItems.push(
+					createDropdownItem({
+						actionKey: "bulkMakeAvailableOffline",
+						title: t("drive.list.item.menu.makeAvailableOffline"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "arrow.down.circle"
+									}
+								: {
+										namingScheme: "material",
+										name: "arrow-down-circle-outline"
+									}
+					})
+				)
+			}
+
+			if (subMenuItems.length > 0) {
+				items.push(
+					createDropdownSubMenu(
+						{
+							title: t("drive.list.item.menu.download"),
+							iOSItemSize: "large"
+						},
+						subMenuItems
+					)
+				)
+			}
+		}
+
+		if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			items.push(
+				createDropdownItem({
+					actionKey: "bulkShare",
+					title: t("drive.list.item.menu.share", { count: selectedItemsCount }),
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "square.and.arrow.up"
+								}
+							: {
+									namingScheme: "material",
+									name: "send-outline"
+								}
+				})
+			)
+		}
+
+		if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			if (selectedItemsIncludesFavoritedItem) {
+				items.push(
+					createDropdownItem({
+						actionKey: "bulkUnfavorite",
+						title: t("drive.list.item.menu.unfavorite"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "heart"
+									}
+								: {
+										namingScheme: "material",
+										name: "heart-outline"
+									}
+					})
+				)
+			} else {
+				items.push(
+					createDropdownItem({
+						actionKey: "bulkFavorite",
+						title: t("drive.list.item.menu.favorite", { count: selectedItemsCount }),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "heart"
+									}
+								: {
+										namingScheme: "material",
+										name: "heart-outline"
+									}
+					})
+				)
+			}
+		}
+
+		if (
+			queryParams.of !== "sharedIn" &&
+			queryParams.of !== "offline" &&
+			queryParams.of !== "trash" &&
+			hasInternet &&
+			everySelectedItemIsDirectory
+		) {
+			items.push(
+				createDropdownItem({
+					actionKey: "bulkColor",
+					title: t("drive.list.item.menu.color"),
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "paintpalette"
+								}
+							: {
+									namingScheme: "material",
+									name: "palette-outline"
+								}
+				})
+			)
+		}
+
+		if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			items.push(
+				createDropdownItem({
+					actionKey: "bulkMove",
+					title: t("drive.list.item.menu.move", { count: selectedItemsCount }),
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "folder"
+								}
+							: {
+									namingScheme: "material",
+									name: "folder-cog-outline"
+								}
+				})
+			)
+		}
+
+		if (queryParams.of === "sharedOut" && hasInternet) {
+			items.push(
+				createDropdownItem({
+					actionKey: "bulkRemoveSharedOut",
+					title: t("drive.list.item.menu.removeSharedOut"),
+					destructive: true,
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "delete.left",
+									color: colors.destructive
+								}
+							: {
+									namingScheme: "material",
+									name: "delete-off-outline",
+									color: colors.destructive
+								}
+				})
+			)
+		}
+
+		if (queryParams.of === "links" && hasInternet) {
+			items.push(
+				createDropdownItem({
+					actionKey: "bulkDisablePublicLink",
+					title: t("drive.list.item.menu.disablePublicLink"),
+					destructive: true,
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "link",
+									color: colors.destructive
+								}
+							: {
+									namingScheme: "material",
+									name: "link",
+									color: colors.destructive
+								}
+				})
+			)
+		}
+
+		if (queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
+			if (queryParams.of !== "sharedIn") {
+				items.push(
+					createDropdownItem({
+						actionKey: "bulkTrash",
+						title: t("drive.list.item.menu.trash", { count: selectedItemsCount }),
+						destructive: true,
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "trash",
+										color: colors.destructive
+									}
+								: {
+										namingScheme: "material",
+										name: "trash-can-outline",
+										color: colors.destructive
+									}
+					})
+				)
+			} else {
+				items.push(
+					createDropdownItem({
+						actionKey: "bulkRemoveSharedIn",
+						title: t("drive.list.item.menu.removeSharedIn"),
+						destructive: true,
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "delete.left",
+										color: colors.destructive
+									}
+								: {
+										namingScheme: "material",
+										name: "delete-off-outline",
+										color: colors.destructive
+									}
+					})
+				)
+			}
+		}
+
+		if (queryParams.of === "offline") {
+			items.push(
+				createDropdownItem({
+					actionKey: "bulkRemoveOffline",
+					title: t("drive.list.item.menu.removeOffline"),
+					destructive: true,
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "delete.left",
+									color: colors.destructive
+								}
+							: {
+									namingScheme: "material",
+									name: "delete-off-outline",
+									color: colors.destructive
+								}
+				})
+			)
+		}
+
+		if (queryParams.of === "trash" && hasInternet) {
+			items.push(
+				createDropdownItem({
+					actionKey: "bulkRestore",
+					title: t("drive.list.item.menu.restore"),
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "repeat"
+								}
+							: {
+									namingScheme: "material",
+									name: "repeat"
+								}
+				})
+			)
+
+			items.push(
+				createDropdownItem({
+					actionKey: "bulkDeletePermanently",
+					title: t("drive.list.item.menu.deletePermanently"),
+					destructive: true,
+					icon:
+						Platform.OS === "ios"
+							? {
+									namingScheme: "sfSymbol",
+									name: "trash",
+									color: colors.destructive
+								}
+							: {
+									namingScheme: "material",
+									name: "trash-can-outline",
+									color: colors.destructive
+								}
+				})
+			)
+		}
+
+		return items
+	}, [
+		colors.destructive,
+		everySelectedItemIsDirectory,
+		everySelectedItemIsFileAndImageOrVideo,
+		everySelectedItemIsNotEmpty,
+		hasInternet,
+		queryParams.of,
+		selectedItemsCount,
+		selectedItemsIncludesDirectory,
+		selectedItemsIncludesFavoritedItem,
+		t
+	])
+
 	const dropdownItems = useMemo(() => {
 		const items: (DropdownItem | DropdownSubMenu)[] = []
 
@@ -77,611 +609,50 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			)
 		}
 
-		if (gridModeEnabled) {
-			items.push(
-				createDropdownItem({
-					actionKey: "listMode",
-					title: t("drive.header.rightView.dropdown.listMode"),
-					icon:
-						Platform.OS === "ios"
-							? {
-									namingScheme: "sfSymbol",
-									name: "list.bullet"
-								}
-							: {
-									namingScheme: "material",
-									name: "format-list-bulleted"
-								}
-				})
-			)
-		} else {
-			items.push(
-				createDropdownItem({
-					actionKey: "gridMode",
-					title: t("drive.header.rightView.dropdown.gridMode"),
-					icon:
-						Platform.OS === "ios"
-							? {
-									namingScheme: "sfSymbol",
-									name: "grid"
-								}
-							: {
-									namingScheme: "material",
-									name: "grid"
-								}
-				})
-			)
-		}
+		items.push(...dropdownSelectAllAndNoneItems)
+
+		items.push(dropdownViewModeItem)
 
 		if (selectedItemsCount === 0) {
-			items.push(
-				createDropdownItem({
-					actionKey: "selectAll",
-					title: t("drive.list.item.menu.selectAll"),
-					icon: {
-						name: "check-circle-outline"
-					}
-				})
-			)
-
-			items.push(
-				createDropdownSubMenu(
-					{
-						title: t("drive.header.rightView.dropdown.sortBy.sortBy"),
-						iOSItemSize: "large",
-						iOSType: "dropdown"
-					},
-					[
-						createDropdownSubMenu(
-							{
-								title: t("drive.header.rightView.dropdown.sortBy.ascending"),
-								iOSItemSize: "large",
-								iOSType: "dropdown"
-							},
-							[
-								createDropdownItem({
-									actionKey: "sortByNameAsc",
-									title: t("drive.header.rightView.dropdown.sortBy.name"),
-									state: {
-										checked: orderBy === "nameAsc"
-									},
-									icon:
-										Platform.OS === "ios"
-											? {
-													namingScheme: "sfSymbol",
-													name: "arrow.up"
-												}
-											: {
-													namingScheme: "material",
-													name: "arrow-up"
-												}
-								}),
-								createDropdownItem({
-									actionKey: "sortBySizeAsc",
-									title: t("drive.header.rightView.dropdown.sortBy.size"),
-									state: {
-										checked: orderBy === "sizeAsc"
-									},
-									icon:
-										Platform.OS === "ios"
-											? {
-													namingScheme: "sfSymbol",
-													name: "arrow.up"
-												}
-											: {
-													namingScheme: "material",
-													name: "arrow-up"
-												}
-								}),
-								createDropdownItem({
-									actionKey: "sortByUploadDateAsc",
-									title: t("drive.header.rightView.dropdown.sortBy.uploadDate"),
-									state: {
-										checked: orderBy === "uploadDateAsc"
-									},
-									icon:
-										Platform.OS === "ios"
-											? {
-													namingScheme: "sfSymbol",
-													name: "arrow.up"
-												}
-											: {
-													namingScheme: "material",
-													name: "arrow-up"
-												}
-								}),
-								createDropdownItem({
-									actionKey: "sortByLastModifiedAsc",
-									title: t("drive.header.rightView.dropdown.sortBy.lastModified"),
-									state: {
-										checked: orderBy === "lastModifiedAsc"
-									},
-									icon:
-										Platform.OS === "ios"
-											? {
-													namingScheme: "sfSymbol",
-													name: "arrow.up"
-												}
-											: {
-													namingScheme: "material",
-													name: "arrow-up"
-												}
-								}),
-								createDropdownItem({
-									actionKey: "sortByTypeAsc",
-									title: t("drive.header.rightView.dropdown.sortBy.type"),
-									state: {
-										checked: orderBy === "typeAsc"
-									},
-									icon:
-										Platform.OS === "ios"
-											? {
-													namingScheme: "sfSymbol",
-													name: "arrow.up"
-												}
-											: {
-													namingScheme: "material",
-													name: "arrow-up"
-												}
-								})
-							]
-						),
-						createDropdownSubMenu(
-							{
-								title: t("drive.header.rightView.dropdown.sortBy.descending"),
-								iOSItemSize: "large",
-								iOSType: "dropdown"
-							},
-							[
-								createDropdownItem({
-									actionKey: "sortByNameDesc",
-									title: t("drive.header.rightView.dropdown.sortBy.name"),
-									state: {
-										checked: orderBy === "nameDesc"
-									},
-									icon:
-										Platform.OS === "ios"
-											? {
-													namingScheme: "sfSymbol",
-													name: "arrow.down"
-												}
-											: {
-													namingScheme: "material",
-													name: "arrow-down"
-												}
-								}),
-								createDropdownItem({
-									actionKey: "sortBySizeDesc",
-									title: t("drive.header.rightView.dropdown.sortBy.size"),
-									state: {
-										checked: orderBy === "sizeDesc"
-									},
-									icon:
-										Platform.OS === "ios"
-											? {
-													namingScheme: "sfSymbol",
-													name: "arrow.down"
-												}
-											: {
-													namingScheme: "material",
-													name: "arrow-down"
-												}
-								}),
-								createDropdownItem({
-									actionKey: "sortByUploadDateDesc",
-									title: t("drive.header.rightView.dropdown.sortBy.uploadDate"),
-									state: {
-										checked: orderBy === "uploadDateDesc"
-									},
-									icon:
-										Platform.OS === "ios"
-											? {
-													namingScheme: "sfSymbol",
-													name: "arrow.down"
-												}
-											: {
-													namingScheme: "material",
-													name: "arrow-down"
-												}
-								}),
-								createDropdownItem({
-									actionKey: "sortByLastModifiedDesc",
-									title: t("drive.header.rightView.dropdown.sortBy.lastModified"),
-									state: {
-										checked: orderBy === "lastModifiedDesc"
-									},
-									icon:
-										Platform.OS === "ios"
-											? {
-													namingScheme: "sfSymbol",
-													name: "arrow.down"
-												}
-											: {
-													namingScheme: "material",
-													name: "arrow-down"
-												}
-								}),
-								createDropdownItem({
-									actionKey: "sortByTypeDesc",
-									title: t("drive.header.rightView.dropdown.sortBy.type"),
-									state: {
-										checked: orderBy === "typeDesc"
-									},
-									icon:
-										Platform.OS === "ios"
-											? {
-													namingScheme: "sfSymbol",
-													name: "arrow.down"
-												}
-											: {
-													namingScheme: "material",
-													name: "arrow-down"
-												}
-								})
-							]
-						)
-					]
-				)
-			)
+			items.push(dropdownSortSubMenu)
 		}
 
 		if (selectedItemsCount > 0) {
-			if (selectedItemsCount < driveItems.length) {
+			if (Platform.OS === "ios") {
 				items.push(
-					createDropdownItem({
-						actionKey: "selectAll",
-						title: t("drive.list.item.menu.selectAll"),
-						icon: {
-							name: "check-circle-outline"
-						}
-					})
-				)
-			}
-
-			items.push(
-				createDropdownItem({
-					actionKey: "deselectAll",
-					title: t("drive.list.item.menu.deselectAll"),
-					icon: {
-						name: "check-circle-outline"
-					}
-				})
-			)
-
-			if (Platform.OS === "ios" ? !selectedItemsIncludesDirectory : true) {
-				const subMenuItems: DropdownSubMenu["items"] = []
-
-				if (Platform.OS === "android" && queryParams.of !== "offline" && hasInternet && everySelectedItemIsNotEmpty) {
-					subMenuItems.push(
-						createDropdownItem({
-							actionKey: "bulkDownload",
-							title: t("drive.list.item.menu.download"),
-							icon: {
-								namingScheme: "material",
-								name: "file-download-outline"
-							}
-						})
+					createDropdownSubMenu(
+						{
+							title: "",
+							iOSType: "inline"
+						},
+						dropdownSelectionItems
 					)
-				}
-
-				if (everySelectedItemIsFileAndImageOrVideo && queryParams.of !== "offline" && hasInternet && everySelectedItemIsNotEmpty) {
-					subMenuItems.push(
-						createDropdownItem({
-							actionKey: "bulkSaveToGallery",
-							title: t("drive.list.item.menu.saveToGallery"),
-							icon:
-								Platform.OS === "ios"
-									? {
-											namingScheme: "sfSymbol",
-											name: "photo"
-										}
-									: {
-											namingScheme: "material",
-											name: "image-outline"
-										}
-						})
-					)
-				}
-
-				if (queryParams.of !== "offline" && hasInternet && everySelectedItemIsNotEmpty) {
-					subMenuItems.push(
-						createDropdownItem({
-							actionKey: "bulkMakeAvailableOffline",
-							title: t("drive.list.item.menu.makeAvailableOffline"),
-							icon:
-								Platform.OS === "ios"
-									? {
-											namingScheme: "sfSymbol",
-											name: "arrow.down.circle"
-										}
-									: {
-											namingScheme: "material",
-											name: "arrow-down-circle-outline"
-										}
-						})
-					)
-				}
-
-				if (subMenuItems.length > 0) {
-					items.push(
-						createDropdownSubMenu(
-							{
-								title: t("drive.list.item.menu.download"),
-								iOSItemSize: "large"
-							},
-							subMenuItems
-						)
-					)
-				}
-			}
-
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
-				items.push(
-					createDropdownItem({
-						actionKey: "bulkShare",
-						title: t("drive.list.item.menu.share"),
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "square.and.arrow.up"
-									}
-								: {
-										namingScheme: "material",
-										name: "send-outline"
-									}
-					})
 				)
-			}
-
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
-				if (selectedItemsIncludesFavoritedItem) {
-					items.push(
-						createDropdownItem({
-							actionKey: "bulkUnfavorite",
-							title: t("drive.list.item.menu.unfavorite"),
-							icon:
-								Platform.OS === "ios"
-									? {
-											namingScheme: "sfSymbol",
-											name: "heart"
-										}
-									: {
-											namingScheme: "material",
-											name: "heart-outline"
-										}
-						})
-					)
-				} else {
-					items.push(
-						createDropdownItem({
-							actionKey: "bulkFavorite",
-							title: t("drive.list.item.menu.favorite"),
-							icon:
-								Platform.OS === "ios"
-									? {
-											namingScheme: "sfSymbol",
-											name: "heart"
-										}
-									: {
-											namingScheme: "material",
-											name: "heart-outline"
-										}
-						})
-					)
-				}
-			}
-
-			if (
-				queryParams.of !== "sharedIn" &&
-				queryParams.of !== "offline" &&
-				queryParams.of !== "trash" &&
-				hasInternet &&
-				everySelectedItemIsDirectory
-			) {
-				items.push(
-					createDropdownItem({
-						actionKey: "bulkColor",
-						title: t("drive.list.item.menu.color"),
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "paintpalette"
-									}
-								: {
-										namingScheme: "material",
-										name: "palette-outline"
-									}
-					})
-				)
-			}
-
-			if (queryParams.of !== "sharedIn" && queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
-				items.push(
-					createDropdownItem({
-						actionKey: "bulkMove",
-						title: t("drive.list.item.menu.move"),
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "folder"
-									}
-								: {
-										namingScheme: "material",
-										name: "folder-cog-outline"
-									}
-					})
-				)
-			}
-
-			if (queryParams.of === "sharedOut" && hasInternet) {
-				items.push(
-					createDropdownItem({
-						actionKey: "bulkRemoveSharedOut",
-						title: t("drive.list.item.menu.removeSharedOut"),
-						destructive: true,
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "delete.left",
-										color: colors.destructive
-									}
-								: {
-										namingScheme: "material",
-										name: "delete-off-outline",
-										color: colors.destructive
-									}
-					})
-				)
-			}
-
-			if (queryParams.of === "links" && hasInternet) {
-				items.push(
-					createDropdownItem({
-						actionKey: "bulkDisablePublicLink",
-						title: t("drive.list.item.menu.disablePublicLink"),
-						destructive: true,
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "link",
-										color: colors.destructive
-									}
-								: {
-										namingScheme: "material",
-										name: "link",
-										color: colors.destructive
-									}
-					})
-				)
-			}
-
-			if (queryParams.of !== "offline" && queryParams.of !== "trash" && hasInternet) {
-				if (queryParams.of !== "sharedIn") {
-					items.push(
-						createDropdownItem({
-							actionKey: "bulkTrash",
-							title: t("drive.list.item.menu.trash"),
-							destructive: true,
-							icon:
-								Platform.OS === "ios"
-									? {
-											namingScheme: "sfSymbol",
-											name: "trash",
-											color: colors.destructive
-										}
-									: {
-											namingScheme: "material",
-											name: "trash-can-outline",
-											color: colors.destructive
-										}
-						})
-					)
-				} else {
-					items.push(
-						createDropdownItem({
-							actionKey: "bulkRemoveSharedIn",
-							title: t("drive.list.item.menu.removeSharedIn"),
-							destructive: true,
-							icon:
-								Platform.OS === "ios"
-									? {
-											namingScheme: "sfSymbol",
-											name: "delete.left",
-											color: colors.destructive
-										}
-									: {
-											namingScheme: "material",
-											name: "delete-off-outline",
-											color: colors.destructive
-										}
-						})
-					)
-				}
-			}
-
-			if (queryParams.of === "offline") {
-				items.push(
-					createDropdownItem({
-						actionKey: "bulkRemoveOffline",
-						title: t("drive.list.item.menu.removeOffline"),
-						destructive: true,
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "delete.left",
-										color: colors.destructive
-									}
-								: {
-										namingScheme: "material",
-										name: "delete-off-outline",
-										color: colors.destructive
-									}
-					})
-				)
-			}
-
-			if (queryParams.of === "trash" && hasInternet) {
-				items.push(
-					createDropdownItem({
-						actionKey: "bulkRestore",
-						title: t("drive.list.item.menu.restore"),
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "repeat"
-									}
-								: {
-										namingScheme: "material",
-										name: "repeat"
-									}
-					})
-				)
-
-				items.push(
-					createDropdownItem({
-						actionKey: "bulkDeletePermanently",
-						title: t("drive.list.item.menu.deletePermanently"),
-						destructive: true,
-						icon:
-							Platform.OS === "ios"
-								? {
-										namingScheme: "sfSymbol",
-										name: "trash",
-										color: colors.destructive
-									}
-								: {
-										namingScheme: "material",
-										name: "trash-can-outline",
-										color: colors.destructive
-									}
-					})
-				)
+			} else {
+				items.push(...dropdownSelectionItems)
 			}
 		}
 
 		return items
-	}, [
-		t,
-		orderBy,
-		gridModeEnabled,
-		selectedItemsCount,
-		driveItems.length,
-		queryParams.of,
-		hasInternet,
-		everySelectedItemIsDirectory,
-		colors.destructive,
-		selectedItemsIncludesFavoritedItem,
-		everySelectedItemIsFileAndImageOrVideo,
-		selectedItemsIncludesDirectory,
-		everySelectedItemIsNotEmpty
-	])
+	}, [selectedItemsCount, dropdownSelectAllAndNoneItems, dropdownViewModeItem, t, dropdownSortSubMenu, dropdownSelectionItems])
+
+	const handleSortAction = useCallback(
+		(actionKey: string) => {
+			const selectedUISortOption = UI_SORT_OPTIONS[actionKey]
+
+			if (selectedUISortOption) {
+				// User selected a new sort option, default to ascending
+				setOrderBy(selectedUISortOption.asc)
+			} else if (actionKey === "sortAscending") {
+				setOrderBy(currentUISortOption?.asc ?? DEFAULT_UI_SORT.asc)
+			} else if (actionKey === "sortDescending") {
+				setOrderBy(currentUISortOption?.desc ?? DEFAULT_UI_SORT.desc)
+			} else {
+				console.warn(`Unhandled sort actionKey: ${actionKey}`)
+			}
+		},
+		[currentUISortOption, setOrderBy]
+	)
 
 	const onItemPress = useCallback(
 		async (item: Omit<DropdownItem, "icon">, _?: boolean) => {
@@ -812,29 +783,8 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 							return
 						}
 
-						if (item.actionKey.startsWith("sortBy")) {
-							if (item.actionKey === "sortByNameAsc") {
-								setOrderBy("nameAsc")
-							} else if (item.actionKey === "sortBySizeAsc") {
-								setOrderBy("sizeAsc")
-							} else if (item.actionKey === "sortByUploadDateAsc") {
-								setOrderBy("uploadDateAsc")
-							} else if (item.actionKey === "sortByLastModifiedAsc") {
-								setOrderBy("lastModifiedAsc")
-							} else if (item.actionKey === "sortByTypeAsc") {
-								setOrderBy("typeAsc")
-							} else if (item.actionKey === "sortByNameDesc") {
-								setOrderBy("nameDesc")
-							} else if (item.actionKey === "sortBySizeDesc") {
-								setOrderBy("sizeDesc")
-							} else if (item.actionKey === "sortByUploadDateDesc") {
-								setOrderBy("uploadDateDesc")
-							} else if (item.actionKey === "sortByLastModifiedDesc") {
-								setOrderBy("lastModifiedDesc")
-							} else if (item.actionKey === "sortByTypeDesc") {
-								setOrderBy("typeDesc")
-							}
-
+						if (item.actionKey.startsWith("sort")) {
+							handleSortAction(item.actionKey)
 							return
 						}
 					}
@@ -847,7 +797,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 				}
 			}
 		},
-		[setOrderBy, routerPush, setGridModeEnabled, driveItems, pathname, queryParams]
+		[routerPush, setGridModeEnabled, driveItems, queryParams, pathname, handleSortAction]
 	)
 
 	return (

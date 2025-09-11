@@ -74,11 +74,21 @@
 						"sortBy": "Sort by",
 						"ascending": "Ascending",
 						"descending": "Descending",
-						"name": "Name",
-						"uploadDate": "Upload date",
-						"lastModified": "Last modified",
-						"type": "Type",
-						"size": "Size"
+						"name": {
+							"title": "Name"
+						},
+						"uploadDate": {
+							"title": "Upload Date"
+						},
+						"lastModified": {
+							"title": "Last modified"
+						},
+						"type": {
+							"title": "Type"
+						},
+						"size": {
+							"title": "Size"
+						}
 					},
 					"transfers": "Transfers",
 					"listMode": "List mode",

@@ -71,14 +71,24 @@
 				},
 				"dropdown": {
 					"sortBy": {
-						"sortBy": "Sort by",
+						"sortBy": "Rendezés",
 						"ascending": "Ascending",
 						"descending": "Descending",
-						"name": "Name",
-						"uploadDate": "Upload date",
-						"lastModified": "Last modified",
-						"type": "Type",
-						"size": "Size"
+						"name": {
+							"title": "Név"
+						},
+						"uploadDate": {
+							"title": "Feltöltési Idö"
+						},
+						"lastModified": {
+							"title": "Last modified"
+						},
+						"type": {
+							"title": "Type"
+						},
+						"size": {
+							"title": "Méret"
+						}
 					},
 					"transfers": "Transfers",
 					"listMode": "List mode",

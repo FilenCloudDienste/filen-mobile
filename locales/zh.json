@@ -74,11 +74,21 @@
 						"sortBy": "排序方式",
 						"ascending": "升序",
 						"descending": "降序",
-						"name": "名称",
-						"uploadDate": "上传日期",
-						"lastModified": "修改日期",
-						"type": "类型",
-						"size": "大小"
+						"name": {
+							"title": "名称"
+						},
+						"uploadDate": {
+							"title": "上传日期"
+						},
+						"lastModified": {
+							"title": "修改日期"
+						},
+						"type": {
+							"title": "类型"
+						},
+						"size": {
+							"title": "大小"
+						}
 					},
 					"transfers": "传输",
 					"listMode": "列表模式",
