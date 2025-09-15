@@ -403,38 +403,52 @@ export class AuthService {
 			fullScreenLoadingModal.show()
 		}
 
-		const sdkConfig = this.getSDKConfig()
-		const fileName = `${sanitizeFileName(sdkConfig.email)}.masterKeys.txt`
-		const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.exports(), fileName))
-
 		try {
-			if (!(await Sharing.isAvailableAsync())) {
-				throw new Error("Sharing is not available on this device.")
+			const sdkConfig = this.getSDKConfig()
+			const fileName = `${sanitizeFileName(sdkConfig.email)}.masterKeys.txt`
+			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.exports(), fileName))
+
+			try {
+				if (!(await Sharing.isAvailableAsync())) {
+					throw new Error("Sharing is not available on this device.")
+				}
+
+				const base64 = Buffer.from(
+					sdkConfig.masterKeys
+						.map(key => "_VALID_FILEN_MASTERKEY_" + key + "@" + sdkConfig.userId + "_VALID_FILEN_MASTERKEY_")
+						.join("|"),
+					"utf-8"
+				).toString("base64")
+
+				if (tmpFile.exists) {
+					tmpFile.delete()
+				}
+
+				tmpFile.write(base64)
+
+				if (!disableSharing) {
+					fullScreenLoadingModal.hide()
+
+					await new Promise<void>(resolve => setTimeout(resolve, 250))
+
+					await Sharing.shareAsync(tmpFile.uri, {
+						mimeType: "text/plain",
+						dialogTitle: fileName
+					})
+				}
+
+				return tmpFile
+			} catch (e) {
+				console.error(e)
+
+				if (e instanceof Error) {
+					alerts.error(e.message)
+				}
+			} finally {
+				if (!disableSharing && tmpFile.exists) {
+					tmpFile.delete()
+				}
 			}
-
-			const base64 = Buffer.from(
-				sdkConfig.masterKeys
-					.map(key => "_VALID_FILEN_MASTERKEY_" + key + "@" + sdkConfig.userId + "_VALID_FILEN_MASTERKEY_")
-					.join("|"),
-				"utf-8"
-			).toString("base64")
-
-			if (tmpFile.exists) {
-				tmpFile.delete()
-			}
-
-			tmpFile.write(base64)
-
-			if (!disableSharing) {
-				await new Promise<void>(resolve => setTimeout(resolve, 250))
-
-				await Sharing.shareAsync(tmpFile.uri, {
-					mimeType: "text/plain",
-					dialogTitle: fileName
-				})
-			}
-
-			return tmpFile
 		} catch (e) {
 			console.error(e)
 
@@ -442,10 +456,6 @@ export class AuthService {
 				alerts.error(e.message)
 			}
 		} finally {
-			if (!disableSharing && tmpFile.exists) {
-				tmpFile.delete()
-			}
-
 			fullScreenLoadingModal.hide()
 		}
 
