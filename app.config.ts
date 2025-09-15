@@ -263,7 +263,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		],
 		"./plugins/withAndroidSigning",
 		"./plugins/withGradleMemory",
-		"react-native-video"
+		"react-native-video",
+		"./plugins/withAndroidLocaleConfig"
 	],
 	experiments: {
 		typedRoutes: true,
