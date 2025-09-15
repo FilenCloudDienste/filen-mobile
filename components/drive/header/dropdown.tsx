@@ -17,6 +17,7 @@ import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
 import useNetInfo from "@/hooks/useNetInfo"
 import driveBulkService from "@/services/driveBulk.service"
 import alerts from "@/lib/alerts"
+import { t } from "@/lib/i18n"
 
 type UISortOption = {
 	title: string
@@ -29,37 +30,37 @@ type UISortOption = {
 
 const UI_SORT_OPTIONS: Record<string, UISortOption> = {
 	sortByName: {
-		title: "drive.header.rightView.dropdown.sortBy.name.title",
-		ascTitle: "drive.header.rightView.dropdown.sortBy.name.ascendingTitle",
-		descTitle: "drive.header.rightView.dropdown.sortBy.name.descendingTitle",
+		title: t("drive.header.rightView.dropdown.sortBy.name.title"),
+		ascTitle: t("drive.header.rightView.dropdown.sortBy.name.ascendingTitle"),
+		descTitle: t("drive.header.rightView.dropdown.sortBy.name.descendingTitle"),
 		asc: "nameAsc",
 		desc: "nameDesc"
 	},
 	sortBySize: {
-		title: "drive.header.rightView.dropdown.sortBy.size.title",
-		ascTitle: "drive.header.rightView.dropdown.sortBy.size.ascendingTitle",
-		descTitle: "drive.header.rightView.dropdown.sortBy.size.descendingTitle",
+		title: t("drive.header.rightView.dropdown.sortBy.size.title"),
+		ascTitle: t("drive.header.rightView.dropdown.sortBy.size.ascendingTitle"),
+		descTitle: t("drive.header.rightView.dropdown.sortBy.size.descendingTitle"),
 		asc: "sizeAsc",
 		desc: "sizeDesc"
 	},
 	sortByUploadDate: {
-		title: "drive.header.rightView.dropdown.sortBy.uploadDate.title",
-		ascTitle: "drive.header.rightView.dropdown.sortBy.uploadDate.ascendingTitle",
-		descTitle: "drive.header.rightView.dropdown.sortBy.uploadDate.descendingTitle",
+		title: t("drive.header.rightView.dropdown.sortBy.uploadDate.title"),
+		ascTitle: t("drive.header.rightView.dropdown.sortBy.uploadDate.ascendingTitle"),
+		descTitle: t("drive.header.rightView.dropdown.sortBy.uploadDate.descendingTitle"),
 		asc: "uploadDateAsc",
 		desc: "uploadDateDesc"
 	},
 	sortByLastModified: {
-		title: "drive.header.rightView.dropdown.sortBy.lastModified.title",
-		ascTitle: "drive.header.rightView.dropdown.sortBy.lastModified.ascendingTitle",
-		descTitle: "drive.header.rightView.dropdown.sortBy.lastModified.descendingTitle",
+		title: t("drive.header.rightView.dropdown.sortBy.lastModified.title"),
+		ascTitle: t("drive.header.rightView.dropdown.sortBy.lastModified.ascendingTitle"),
+		descTitle: t("drive.header.rightView.dropdown.sortBy.lastModified.descendingTitle"),
 		asc: "lastModifiedAsc",
 		desc: "lastModifiedDesc"
 	},
 	sortByType: {
-		title: "drive.header.rightView.dropdown.sortBy.type.title",
-		ascTitle: "drive.header.rightView.dropdown.sortBy.type.ascendingTitle",
-		descTitle: "drive.header.rightView.dropdown.sortBy.type.descendingTitle",
+		title: t("drive.header.rightView.dropdown.sortBy.type.title"),
+		ascTitle: t("drive.header.rightView.dropdown.sortBy.type.ascendingTitle"),
+		descTitle: t("drive.header.rightView.dropdown.sortBy.type.descendingTitle"),
 		asc: "typeAsc",
 		desc: "typeDesc"
 	}
@@ -165,7 +166,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			createDropdownSubMenu(
 				{
 					title: t("drive.header.rightView.dropdown.sortBy.sortBy"),
-					subTitle: t(currentUISortOption?.title),
+					subTitle: currentUISortOption?.title,
 					iOSItemSize: "large",
 					iOSType: "dropdown"
 				},
@@ -173,7 +174,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 					...Object.entries(UI_SORT_OPTIONS).map(([actionKey, uiSortOption]) =>
 						createDropdownItem({
 							actionKey: actionKey,
-							title: t(uiSortOption.title),
+							title: uiSortOption.title,
 							keepOpenOnPress: true,
 							state: {
 								checked: orderBy !== undefined && [uiSortOption.asc, uiSortOption.desc].includes(orderBy)
@@ -190,14 +191,14 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 						[
 							createDropdownItem({
 								actionKey: "sortAscending",
-								title: t([currentUISortOption?.ascTitle, "drive.header.rightView.dropdown.sortBy.ascending"]),
+								title: currentUISortOption?.ascTitle,
 								state: {
 									checked: orderBy === currentUISortOption?.asc
 								}
 							}),
 							createDropdownItem({
 								actionKey: "sortDescending",
-								title: t([currentUISortOption?.descTitle, "drive.header.rightView.dropdown.sortBy.descending"]),
+								title: currentUISortOption?.descTitle,
 								state: {
 									checked: orderBy === currentUISortOption?.desc
 								}
