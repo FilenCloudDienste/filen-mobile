@@ -30,7 +30,13 @@ function initI18n() {
 			fallbackLng: DEFAULT_LANGUAGE,
 			ns: ["translation"],
 			defaultNS: "translation",
-			debug: __DEV__
+			debug: __DEV__,
+			interpolation: {
+				escapeValue: false // not needed for react-native as it escapes by default
+			},
+			react: {
+				useSuspense: false
+			}
 		})
 		.then(() => {
 			initalized = true
