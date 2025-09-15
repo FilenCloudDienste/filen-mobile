@@ -203,7 +203,7 @@ export class CameraUpload {
 						const ext = FileSystem.Paths.extname(asset.filename)
 						const name = FileSystem.Paths.basename(asset.filename, ext)
 
-						path = this.normalizePath(FileSystem.Paths.join(album.title, `${name} (${iteration})${ext}`))
+						path = this.normalizePath(FileSystem.Paths.join(album.title, `${name}_(${iteration})${ext}`))
 
 						iteration++
 					}
