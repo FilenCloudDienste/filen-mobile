@@ -1,4 +1,5 @@
 import { Checkbox } from "@/components/nativewindui/Checkbox"
+import { cn } from "@/lib/cn"
 import { Pressable, I18nManager } from "react-native"
 import Animated, { LinearTransition, SlideInLeft, SlideInRight, SlideOutLeft, SlideOutRight } from "react-native-reanimated"
 
@@ -14,11 +15,10 @@ type Props = {
  */
 export const SelectableListItem = ({ selectionActive, selected, onSelected, children }: Props) => {
 	const isRTL = I18nManager.isRTL
-	const flexDirection = isRTL ? "flex-row-reverse" : "flex-row"
 
 	return (
 		<Pressable
-			className={flexDirection + " items-center w-full"}
+			className={cn(isRTL ? "flex-row-reverse" : "flex-row", "items-center w-full")}
 			onPress={selectionActive ? () => onSelected(!selected) : undefined}
 			pointerEvents={selectionActive ? "auto" : "none"}
 		>
@@ -35,7 +35,7 @@ export const SelectableListItem = ({ selectionActive, selected, onSelected, chil
 				</Animated.View>
 			)}
 			<Animated.View
-				className={flexDirection + " flex-shrink"}
+				className={cn(isRTL ? "flex-row-reverse" : "flex-row", "flex-shrink")}
 				entering={isRTL ? SlideInRight : SlideInLeft}
 				layout={LinearTransition}
 			>
