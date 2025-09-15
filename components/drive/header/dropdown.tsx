@@ -124,10 +124,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			: cloudItemsQuery.data
 	}, [cloudItemsQuery.status, cloudItemsQuery.data, searchTerm])
 
-	const currentUISortOption = useMemo(() => {
-		console.log("uisort:", getUISortOption(orderBy))
-		return getUISortOption(orderBy)
-	}, [orderBy])
+	const currentUISortOption = useMemo(() => getUISortOption(orderBy), [orderBy])
 
 	const dropdownViewModeItem = useMemo(() => {
 		if (gridModeEnabled) {
