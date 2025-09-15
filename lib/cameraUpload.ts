@@ -195,7 +195,18 @@ export class CameraUpload {
 				await fetch()
 
 				for (const asset of assets) {
-					const path = this.normalizePath(FileSystem.Paths.join(album.title, asset.filename))
+					let path = this.normalizePath(FileSystem.Paths.join(album.title, asset.filename))
+
+					let iteration = 1
+
+					while (items[path]) {
+						const ext = FileSystem.Paths.extname(asset.filename)
+						const name = FileSystem.Paths.basename(asset.filename, ext)
+
+						path = this.normalizePath(FileSystem.Paths.join(album.title, `${name} (${iteration})${ext}`))
+
+						iteration++
+					}
 
 					items[path] = {
 						type: "local",
