@@ -23,6 +23,7 @@ import paths from "@/lib/paths"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import useHTTPServer from "@/hooks/useHTTPServer"
 import download from "@/lib/download"
+import alerts from "@/lib/alerts"
 
 export const Audio = memo(
 	({
@@ -141,6 +142,12 @@ export const Audio = memo(
 					name: item.data.item.name,
 					dontEmitProgress: true
 				})
+			} catch (e) {
+				console.error(e)
+
+				if (e instanceof Error && !e.message.toLowerCase().includes("aborted")) {
+					alerts.error(e.message)
+				}
 			} finally {
 				fullScreenLoadingModal.hide()
 			}

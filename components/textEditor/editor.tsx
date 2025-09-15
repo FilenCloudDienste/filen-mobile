@@ -214,7 +214,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 		} catch (e) {
 			console.error(e)
 
-			if (e instanceof Error) {
+			if (e instanceof Error && !e.message.toLowerCase().includes("aborted")) {
 				alerts.error(e.message)
 			}
 		} finally {

@@ -166,7 +166,7 @@ export default function ShareIntent() {
 		} catch (e) {
 			console.error(e)
 
-			if (e instanceof Error) {
+			if (e instanceof Error && !e.message.toLowerCase().includes("aborted")) {
 				alerts.error(e.message)
 			}
 		} finally {

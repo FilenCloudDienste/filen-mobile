@@ -511,10 +511,12 @@ export class CameraUpload {
 			} catch (e) {
 				console.error(e)
 
-				if (this.deltaErrors[errorKey]) {
-					this.deltaErrors[errorKey]++
-				} else {
-					this.deltaErrors[errorKey] = 1
+				if (e instanceof Error && !e.message.toLowerCase().includes("aborted")) {
+					if (this.deltaErrors[errorKey]) {
+						this.deltaErrors[errorKey]++
+					} else {
+						this.deltaErrors[errorKey] = 1
+					}
 				}
 			}
 		} finally {

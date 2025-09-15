@@ -1004,6 +1004,12 @@ export class DriveService {
 							)
 						})
 				)
+			} catch (e) {
+				if (e instanceof Error && e.message.toLowerCase().includes("aborted")) {
+					return
+				}
+
+				throw e
 			} finally {
 				if (tmpDir.exists) {
 					tmpDir.delete()
@@ -1049,6 +1055,12 @@ export class DriveService {
 					"Download",
 					tmpFile.uri
 				)
+			} catch (e) {
+				if (e instanceof Error && e.message.toLowerCase().includes("aborted")) {
+					return
+				}
+
+				throw e
 			} finally {
 				if (tmpFile.exists) {
 					tmpFile.delete()
@@ -1149,6 +1161,12 @@ export class DriveService {
 					updater: prev => [...prev.filter(prevItem => prevItem.uuid !== item.uuid), item]
 				})
 			}
+		} catch (e) {
+			if (e instanceof Error && e.message.toLowerCase().includes("aborted")) {
+				return
+			}
+
+			throw e
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
@@ -1218,6 +1236,12 @@ export class DriveService {
 			}
 
 			await MediaLibrary.saveToLibraryAsync(normalizeFilePathForExpo(tmpFile.uri))
+		} catch (e) {
+			if (e instanceof Error && e.message.toLowerCase().includes("aborted")) {
+				return
+			}
+
+			throw e
 		} finally {
 			if (tmpFile.parentDirectory.exists) {
 				tmpFile.parentDirectory.delete()
@@ -1538,19 +1562,29 @@ export class DriveService {
 		}
 
 		try {
-			const uploadedItems = await promiseAllChunked(
-				documentPickerAssets.map(async asset => {
-					return await upload.file.foreground({
-						parent,
-						localPath: asset.uri,
-						name: asset.name,
-						id: randomUUID(),
-						size: asset.size ?? 0,
-						isShared: false,
-						deleteAfterUpload: true
+			const uploadedItems = (
+				await promiseAllChunked(
+					documentPickerAssets.map(async asset => {
+						try {
+							return await upload.file.foreground({
+								parent,
+								localPath: asset.uri,
+								name: asset.name,
+								id: randomUUID(),
+								size: asset.size ?? 0,
+								isShared: false,
+								deleteAfterUpload: true
+							})
+						} catch (e) {
+							if (e instanceof Error && e.message.toLowerCase().includes("aborted")) {
+								return null
+							}
+
+							throw e
+						}
 					})
-				})
-			)
+				)
+			).filter(item => item !== null)
 
 			if (!disableAlert && uploadedItems.length > 0) {
 				alerts.normal(
@@ -1758,6 +1792,12 @@ export class DriveService {
 								isShared: false,
 								deleteAfterUpload: true
 							})
+						} catch (e) {
+							if (e instanceof Error && e.message.toLowerCase().includes("aborted")) {
+								return null
+							}
+
+							throw e
 						} finally {
 							if (tmpFile.exists) {
 								tmpFile.delete()
@@ -1880,6 +1920,12 @@ export class DriveService {
 								isShared: false,
 								deleteAfterUpload: true
 							})
+						} catch (e) {
+							if (e instanceof Error && e.message.toLowerCase().includes("aborted")) {
+								return null
+							}
+
+							throw e
 						} finally {
 							if (tmpFile.exists) {
 								tmpFile.delete()
@@ -2000,6 +2046,12 @@ export class DriveService {
 			}
 
 			return uploadedItem
+		} catch (e) {
+			if (e instanceof Error && e.message.toLowerCase().includes("aborted")) {
+				return null
+			}
+
+			throw e
 		} finally {
 			if (tmpFile.exists) {
 				tmpFile.delete()
@@ -2109,6 +2161,12 @@ export class DriveService {
 					queryKey: ["useCloudItemsQuery", queryParams.parent, queryParams.of, queryParams.receiverId]
 				})
 			}
+		} catch (e) {
+			if (e instanceof Error && e.message.toLowerCase().includes("aborted")) {
+				return
+			}
+
+			throw e
 		} finally {
 			if (tmpDir.exists) {
 				tmpDir.delete()

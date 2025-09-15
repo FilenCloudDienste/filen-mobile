@@ -57,18 +57,13 @@ export async function transferAction(
 			!this.transfersAbortControllers[transfer.id] ||
 			transfer.state === "stopped" ||
 			transfer.state === "error" ||
-			progressNormalized >= 99
+			progressNormalized >= 99 ||
+			this.transfersAbortControllers[transfer.id]?.signal.aborted
 		) {
 			return false
 		}
 
 		this.transfersAbortControllers[transfer.id]?.abort()
-
-		transfersStore.getState().setTransfers(prev => prev.filter(transfer => transfer.id !== transfer.id))
-
-		if (this.transfersAllBytes >= transfer.size) {
-			this.transfersAllBytes -= transfer.size
-		}
 
 		return true
 	} else if (params.action === "pause") {
