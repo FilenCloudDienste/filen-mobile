@@ -1,0 +1,1402 @@
+{
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "취소",
+            "okText": "확인",
+            "title": "제목"
+        },
+        "exportMasterKeys": {
+            "cancelText": "나중에",
+            "message": "아직 마스터 키를 내보내지 않았습니다. 지금 내보내고 안전한 장소에 보관하시길 권장합니다.",
+            "okText": "내보내기",
+            "title": "마스터 키 내보내기"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "나중에",
+            "message": "저장 용량을 초과했습니다. 데이터를 원치 않게 삭제하지 않도록 공간을 확보하거나 요금제를 업그레이드하세요.",
+            "okText": "업그레이드",
+            "title": "저장소 사용량 초과"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "종단 간 암호화",
+                "second": "클라우드 플랫폼"
+            },
+            "login": "로그인",
+            "signUp": "무료로 가입하세요"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "모든 필드를 작성하세요."
+            },
+            "forgotPassword": "암호를 잊으셨습니까?",
+            "form": {
+                "email": {
+                    "label": "이메일 주소",
+                    "placeholder": "이메일 주소를 입력하세요"
+                },
+                "password": {
+                    "label": "비밀번호",
+                    "placeholder": "비밀번호를 입력하세요"
+                }
+            },
+            "header": {
+                "cancel": "취소"
+            },
+            "login": "로그인",
+            "loginUsingCreds": "자격 증명을 사용하여 로그인",
+            "next": "다음",
+            "signUp": "무료로 가입하세요",
+            "submit": "로그인",
+            "title": "로그인",
+            "welcome": "다시 오신 것을 환영합니다!"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "코드",
+                "title": "이중 인증"
+            },
+            "forgotPassword": {
+                "placeholder": "이메일 주소",
+                "success": "이메일 주소가 등록되어 있는 경우, 비밀번호를 재설정하기 위한 지침이 포함된 이메일을 받게 됩니다.",
+                "title": "암호를 잊으셨습니까"
+            },
+            "resendConfirmation": {
+                "placeholder": "이메일 주소",
+                "success": "등록된 이메일 {{email}}로 확인 이메일이 발송되었습니다.",
+                "title": "확인 재전송"
+            }
+        },
+        "register": {
+            "createAccount": "계정 생성",
+            "errors": {
+                "emailAddressesDoNotMatch": "이메일 주소가 일치하지 않습니다.",
+                "emptyFields": "모든 필드를 작성하세요.",
+                "passwordsDoNotMatch": "비밀번호가 일치하지 않습니다.",
+                "weakPassword": "비밀번호가 너무 약합니다. 10자 이상으로 대문자, 소문자, 숫자 및 특수문자를 조합하여 더 강한 비밀번호를 선택하세요."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "이메일 주소 확인",
+                    "placeholder": "이메일 주소를 확인하세요"
+                },
+                "confirmPassword": {
+                    "label": "비밀번호 확인",
+                    "placeholder": "비밀번호를 확인하세요"
+                },
+                "email": {
+                    "label": "이메일 주소",
+                    "placeholder": "이메일 주소를 입력하세요"
+                },
+                "password": {
+                    "label": "비밀번호",
+                    "placeholder": "비밀번호를 입력하세요"
+                }
+            },
+            "header": {
+                "cancel": "취소",
+                "title": "가입"
+            },
+            "hero": {
+                "create": "무료 계정을 생성하세요",
+                "description": "Filen 계정을 시작하려면 자격 증명을 설정하세요."
+            },
+            "next": "다음",
+            "passwordStrength": {
+                "best": "최고",
+                "length": "길이",
+                "lowercase": "소문자",
+                "medium": "중간",
+                "numbers": "숫자",
+                "specialCharacters": "특수 문자",
+                "strong": "강력함",
+                "uppercase": "대문자",
+                "weak": "약함"
+            },
+            "resendConfirmationEmail": "확인 이메일 다시 보내기",
+            "title": "가입"
+        },
+        "registrationSuccessful": "등록 성공! 계정을 확인하려면 이메일을 확인하세요."
+    },
+    "biometric": {
+        "appLockedFor": "앱이 {{seconds}} 초 동안 잠겼습니다",
+        "authenticateUsingPin": "PIN을 입력하여 인증",
+        "errors": {
+            "incorrectPin": "잘못된 PIN입니다. 다시 시도해 주세요.",
+            "tooManyIncorrectAttempts": "오류 시도가 너무 많습니다. 나중에 다시 시도하십시오."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN",
+                "title": "PIN을 입력하세요"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "B/s",
+        "eib": "EiB/s",
+        "gib": "GiB/s",
+        "kib": "KiB/s",
+        "mib": "MiB/s",
+        "pib": "PiB/s",
+        "tib": "TiB/s",
+        "yib": "YiB/s",
+        "zib": "ZiB/s"
+    },
+    "chats": {
+        "chat": "채팅",
+        "chats": "채팅",
+        "header": {
+            "newMessages": "{{count}}개의 새 메시지",
+            "search": "채팅 검색...",
+            "title": "채팅"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "드라이브 항목 추가",
+                    "addFiles": "파일 추가",
+                    "addMedia": "미디어 추가",
+                    "addPhotos": "사진 추가",
+                    "cancel": "취소"
+                }
+            },
+            "placeholder": "메시지 입력",
+            "send": "보내기",
+            "suggestions": {
+                "emojis": {
+                    "matching": "{{query}}와 일치하는 이모지"
+                },
+                "mention": {
+                    "matching": "{{query}}와 일치하는 사용자"
+                },
+                "replyTo": {
+                    "replyingTo": "{{name}}에게 답장 중"
+                }
+            }
+        },
+        "item": {
+            "draft": "초안",
+            "noMessages": "아직 메시지가 없습니다",
+            "you": "당신"
+        },
+        "list": {
+            "empty": "채팅을 찾을 수 없습니다",
+            "emptySearch": "이 검색에 대한 채팅이 없습니다.",
+            "error": "채팅 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요."
+        },
+        "menu": {
+            "archive": "보관함",
+            "delete": "삭제",
+            "favorite": "즐겨찾기 추가",
+            "leave": "나가기",
+            "markAsRead": "읽지 않음으로 표시",
+            "mute": "음소거",
+            "muted": "음소거됨",
+            "participants": "참여자들",
+            "pin": "고정",
+            "rename": "이름 변경",
+            "unarchive": "보관 해제",
+            "unfavorite": "즐겨찾기 해제",
+            "unmute": "음소거 해제",
+            "unpin": "고정 해제"
+        },
+        "messages": {
+            "everyone": "모두",
+            "menu": {
+                "cancel": "취소",
+                "copyId": "ID 복사",
+                "copyText": "텍스트 복사",
+                "delete": "삭제",
+                "disableEmbeds": "임베드 비활성화",
+                "edit": "편집",
+                "reply": "답장"
+            },
+            "new": "새로운",
+            "time": {
+                "hourAgo": "{{hours}} 시간 전",
+                "hoursAgo": "{{hours}} 시간 전",
+                "minuteAgo": "{{minutes}} 분 전",
+                "minutesAgo": "{{minutes}} 분 전",
+                "now": "지금",
+                "secondAgo": "{{seconds}}초 전",
+                "secondsAgo": "{{seconds}}초 전",
+                "todayAt": "오늘 {{date}}에",
+                "yesterdayAt": "어제 {{date}}에"
+            },
+            "undecryptable": "메시지를 복호화할 수 없습니다.",
+            "unknown": "알 수 없음"
+        },
+        "participants": {
+            "menu": {
+                "remove": "삭제"
+            },
+            "participant": "참여자",
+            "participants": "참여자들",
+            "prompts": {
+                "remove": {
+                    "message": "이 참여자를 정말로 제거하시겠습니까? 이제 이 채팅에서 메시지를 볼 수도 보낼 수도 없습니다.",
+                    "success": "{{name}} 삭제됨",
+                    "title": "참가자 제거"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "정말 이 채팅을 삭제하시겠습니까? 채팅 목록에서 삭제되며, 이 채팅에서 메시지를 보거나 받을 수 없습니다.",
+                "title": "채팅 삭제"
+            },
+            "deleteChats": {
+                "message": "정말 {{count}}개의 채팅을 삭제하시겠습니까? 목록에서 채팅이 삭제되어 더 이상 메시지를 보거나 받을 수 없습니다.",
+                "title": "채팅 삭제"
+            },
+            "deleteMessage": {
+                "message": "이 메시지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!",
+                "title": "메시지 삭제"
+            },
+            "disableEmbeds": {
+                "message": "이 메시지의 임베드 기능을 비활성화하시겠습니까? 임베드된 콘텐츠가 제거됩니다.",
+                "title": "임베드 비활성화"
+            },
+            "leaveChat": {
+                "message": "이 채팅을 나가시겠습니까? 이제 이 채팅에서 메시지를 볼 수도 보낼 수도 없습니다.",
+                "title": "채팅 나가기"
+            },
+            "leaveChats": {
+                "message": "{{count}}개의 채팅을 나가시겠습니까? 이제 이 채팅들에서 메시지를 볼 수도 보낼 수도 없습니다.",
+                "title": "채팅 나가기"
+            },
+            "renameChat": {
+                "placeholder": "새 이름",
+                "title": "채팅 이름 변경"
+            }
+        },
+        "typing": "{{users}} 사용자 입력 중..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "수락",
+            "block": "차단",
+            "cancel": "취소",
+            "decline": "거절",
+            "remove": "삭제",
+            "unblock": "차단 해제"
+        }
+    },
+    "copiedToClipboard": "클립보드에 복사됨",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "취소",
+                    "create": {
+                        "created": "{{name}} 생성됨",
+                        "directory": "디렉토리 생성",
+                        "photo": "사진 찍기",
+                        "textFile": "텍스트 파일 생성"
+                    },
+                    "directoryNamePlaceholder": "디렉터리 이름",
+                    "itemsUploaded": "{{count}} 항목 업로드됨",
+                    "noMediaPermissions": "사진이나 비디오를 업로드하려면 미디어 권한을 부여해야 합니다.",
+                    "textFileNamePlaceholder": "텍스트 파일 이름",
+                    "upload": {
+                        "directory": "디렉토리 업로드",
+                        "files": "파일 업로드",
+                        "media": "미디어 업로드",
+                        "uploaded": "{{name}} 업로드됨"
+                    }
+                },
+                "deselectAll": "모두 선택 해제",
+                "dropdown": {
+                    "bulkActions": "일괄 작업",
+                    "gridMode": "그리드로 보기",
+                    "listMode": "리스트로 보기",
+                    "sortBy": {
+                        "ascending": "오름차순",
+                        "descending": "내림차순",
+                        "lastModified": {
+                            "ascendingTitle": "가장 빠른 것부터",
+                            "descendingTitle": "가장 최근 것부터",
+                            "title": "최종 수정"
+                        },
+                        "name": {
+                            "ascendingTitle": "A부터 Z까지",
+                            "descendingTitle": "Z부터 A까지",
+                            "title": "이름"
+                        },
+                        "size": {
+                            "ascendingTitle": "가장 작은 것부터",
+                            "descendingTitle": "가장 큰 것부터",
+                            "title": "크기"
+                        },
+                        "sortBy": "정렬 기준",
+                        "type": {
+                            "ascendingTitle": "오름차순",
+                            "descendingTitle": "내림차순",
+                            "title": "유형"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "가장 빠른 것부터",
+                            "descendingTitle": "가장 최근 것부터",
+                            "title": "업로드 날짜"
+                        }
+                    },
+                    "transfers": "전송"
+                },
+                "selectAll": "모두 선택"
+            },
+            "title": {
+                "drive": "드라이브",
+                "favorites": "즐겨찾기",
+                "links": "공개 링크들",
+                "offline": "오프라인 사용 가능",
+                "recents": "최근 항목",
+                "selected": "{{count}}개 선택됨",
+                "sharedIn": "공유됨",
+                "sharedOut": "다른 사람과 공유됨",
+                "trash": "휴지통"
+            }
+        },
+        "itemShared": "{{name}} 공유됨",
+        "itemSharedWith": "{{name}}이(가) {{email}}와 공유됨",
+        "list": {
+            "empty": "항목을 찾을 수 없습니다",
+            "emptySearch": "이 검색에 대한 항목이 없습니다.",
+            "error": "드라이브 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+            "footer": "{{count}} 항목",
+            "item": {
+                "menu": {
+                    "availableOffline": "오프라인 사용 가능",
+                    "clipboard": "클립보드",
+                    "color": "색상",
+                    "copy": "복사",
+                    "copyId": "ID 복사",
+                    "copyPath": "경로 복사",
+                    "delete": "삭제",
+                    "deletePermanently": "영구 삭제",
+                    "deselect": "선택 해제",
+                    "deselectAll": "모두 선택 해제",
+                    "disablePublicLink": "링크 비활성화",
+                    "download": "다운로드",
+                    "downloadFolder": "폴더 다운로드",
+                    "export": "내보내기",
+                    "favorite": "즐겨찾기 추가",
+                    "favorite_one": "즐겨찾기 항목",
+                    "favorite_other": "{{count}}개 항목 즐겨찾기",
+                    "favorited": "즐겨찾기 추가됨",
+                    "id": "ID",
+                    "info": "정보",
+                    "location": "위치",
+                    "makeAvailableOffline": "오프라인 사용 가능하게 설정",
+                    "move": "이동",
+                    "move_one": "항목 이동",
+                    "move_other": "{{count}}개 항목 이동",
+                    "open": "열기",
+                    "path": "경로",
+                    "preview": "미리보기",
+                    "properties": "속성",
+                    "publicLink": "공개 링크",
+                    "removeOffline": "오프라인 파일 제거",
+                    "removeSharedIn": "삭제",
+                    "removeSharedOut": "공유 중지",
+                    "rename": "이름 변경",
+                    "restore": "복원",
+                    "saveToGallery": "갤러리에 저장",
+                    "select": "선택",
+                    "selectAll": "모두 선택",
+                    "share": "공유",
+                    "share_one": "항목 공유",
+                    "share_other": "{{count}}개 항목 공유",
+                    "trash": "휴지통",
+                    "trash_one": "휴지통 항목",
+                    "trash_other": "{{count}}개 항목 휴지통으로 이동",
+                    "unfavorite": "즐겨찾기 해제",
+                    "versionHistory": "버전 기록",
+                    "withUser": "사용자와 함께"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "{{count}}개의 항목을 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!",
+                "title": "영구 삭제"
+            },
+            "deletePermanently": {
+                "message": "이 항목을 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!",
+                "title": "영구 삭제"
+            },
+            "disablePublicLinks": {
+                "message": "{{count}}개의 항목에 대한 공개 링크를 비활성화하시겠습니까? 링크는 더 이상 접근할 수 없습니다.",
+                "title": "공개 링크 비활성화"
+            },
+            "removeOfflineFiles": {
+                "message": "정말 {{count}}개의 오프라인 파일을 제거하시겠습니까? 더 이상 오프라인에서 사용할 수 없습니다.",
+                "title": "오프라인 파일 제거"
+            },
+            "removeSharedInItem": {
+                "message": "공유 항목에서 이 항목을 제거하시겠습니까? 더 이상 볼 수 없거나 접근할 수 없습니다.",
+                "title": "삭제"
+            },
+            "removeSharedInItems": {
+                "message": "{{count}}개의 항목을 공유 항목에서 제거하시겠습니까? 더 이상 볼 수 없거나 접근할 수 없습니다.",
+                "title": "삭제"
+            },
+            "removeSharedOutItem": {
+                "message": "이 항목의 공유를 중지하시겠습니까? 사용자는 더 이상 액세스할 수 없습니다.",
+                "title": "공유 중지"
+            },
+            "removeSharedOutItems": {
+                "message": "{{count}}개의 항목 공유를 중지하시겠습니까? 사용자들은 더 이상 액세스할 수 없습니다.",
+                "title": "공유 중지"
+            },
+            "renameItem": {
+                "placeholder": "새 이름",
+                "title": "이름 변경"
+            },
+            "trashItem": {
+                "message": "이 항목을 휴지통으로 이동하시겠습니까? 나중에 복원할 수 있습니다.",
+                "title": "휴지통으로 이동"
+            },
+            "trashItems": {
+                "message": "{{count}}개의 항목을 휴지통으로 이동하시겠습니까? 나중에 복원할 수 있습니다.",
+                "title": "휴지통으로 이동"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "항목을 찾을 수 없습니다",
+                "emptySearch": "이 검색에 대한 항목이 없습니다.",
+                "error": "검색 결과 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+                "footer": "{{count}} 항목"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "취소",
+        "items": {
+            "downloadButton": "다운로드 버튼",
+            "edit": "편집",
+            "enabled": "활성화됨",
+            "expiration": "만료",
+            "expiration12h": "12시간",
+            "expiration14d": "14일",
+            "expiration1d": "1일",
+            "expiration1h": "1시간",
+            "expiration30d": "30일",
+            "expiration3d": "3일",
+            "expiration6h": "6시간",
+            "expiration7d": "7일",
+            "expirationNever": "절대 안 함",
+            "password": "비밀번호"
+        },
+        "onlyPro": "이 기능은 Filen Pro 사용자에게만 제공됩니다. Filen 플랜에 가입하여 활성화하세요.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "암호를 제거하려면 비워 두십시오",
+                "title": "비밀번호 수정"
+            }
+        },
+        "shareDialogTile": "Filen 공개 링크",
+        "title": "공개 링크 편집",
+        "unsavedChanges": "저장되지 않은 변경 사항"
+    },
+    "errors": {
+        "cannotOpenURL": "URL을 열 수 없습니다.",
+        "notEnoughDiskSpace": "사용 가능한 로컬 디스크 공간이 부족합니다.",
+        "sharingNotAvailable": "이 장치에서는 공유할 수 없습니다.",
+        "youAreOffline": "현재 오프라인 상태입니다. 인터넷 연결을 확인하세요."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "취소",
+                "confirm": "삭제",
+                "message": "이 버전을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!",
+                "title": "버전 삭제"
+            },
+            "restore": {
+                "cancel": "취소",
+                "confirm": "복원",
+                "message": "이 버전을 복원하시겠습니까? 현재 파일이 덮어씌워집니다.",
+                "title": "버전 복원"
+            }
+        },
+        "header": {
+            "title": "버전 기록"
+        },
+        "list": {
+            "empty": "아직 버전이 없습니다.",
+            "emptySearch": "이 검색에 대한 버전이 없습니다.",
+            "error": "파일 버전 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+            "item": {
+                "current": "현재",
+                "delete": "삭제",
+                "restore": "복원"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "바이트",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiB",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "미리보기를 사용할 수 없습니다."
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "즐겨찾기"
+            },
+            "links": {
+                "title": "공개 링크들"
+            },
+            "offline": {
+                "title": "오프라인 사용 가능"
+            },
+            "recents": {
+                "title": "최근 항목"
+            },
+            "sharedIn": {
+                "title": "공유됨"
+            },
+            "sharedOut": {
+                "title": "다른 사람과 공유됨"
+            },
+            "trash": {
+                "title": "휴지통"
+            }
+        },
+        "listEmpty": {
+            "favorites": "아직 즐겨찾기 없음",
+            "links": "아직 공개 링크가 없음",
+            "offline": "아직 오프라인 항목이 없습니다",
+            "recents": "아직 최근 항목 없음",
+            "sharedIn": "아직 공유된 항목이 없습니다",
+            "sharedOut": "아직 공유된 항목이 없습니다",
+            "trash": "아직 휴지통에 항목이 없습니다"
+        },
+        "title": "홈"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "취소",
+            "okText": "확인",
+            "title": "제목"
+        }
+    },
+    "listEmpty": {
+        "empty": "검색 결과 없음",
+        "emptySearch": "이 검색에 대한 결과가 없습니다.",
+        "error": "오류가 발생했습니다. 나중에 다시 시도하세요."
+    },
+    "localAuthentication": {
+        "cancelLabel": "취소",
+        "promptMessage": "계속하려면 인증하세요"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "여기에 코드를 작성하세요...",
+                "text": "여기에 텍스트를 작성하세요..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "모두 선택 해제",
+                    "selectAll": "모두 선택"
+                },
+                "types": {
+                    "checklist": "체크리스트",
+                    "code": "코드",
+                    "markdown": "Markdown",
+                    "rich": "서식 있는 텍스트",
+                    "text": "텍스트"
+                }
+            },
+            "menu": {
+                "settings": "설정"
+            },
+            "selected": "{{count}}개 선택됨",
+            "title": "노트"
+        },
+        "history": {
+            "list": {
+                "empty": "사용 가능한 기록 없음",
+                "emptySearch": "이 검색에 대한 항목이 없습니다.",
+                "error": "히스토리 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+                "footer": "{{count}} 항목"
+            },
+            "noPreview": "미리보기를 사용할 수 없습니다.",
+            "prompts": {
+                "restore": {
+                    "message": "이 노트를 복원하시겠습니까? 현재 노트가 덮어씌워집니다.",
+                    "title": "노트 복원"
+                }
+            },
+            "restore": "복원",
+            "title": "기록"
+        },
+        "list": {
+            "empty": "메모가 아직 없습니다",
+            "emptySearch": "이 검색에 대한 메모가 없습니다.",
+            "error": "노트 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+            "footer": "{{count}} 항목"
+        },
+        "menu": {
+            "archive": "보관함",
+            "clipboard": "클립보드",
+            "copyId": "ID 복사",
+            "delete": "삭제",
+            "deselect": "선택 해제",
+            "duplicate": "중복",
+            "export": "내보내기",
+            "favorite": "즐겨찾기 추가",
+            "favorited": "즐겨찾기 추가됨",
+            "history": "기록",
+            "leave": "나가기",
+            "participants": "참여자들",
+            "pin": "고정",
+            "pinned": "고정됨",
+            "preview": "미리보기",
+            "rename": "이름 변경",
+            "restore": "복원",
+            "select": "선택",
+            "tags": "태그",
+            "trash": "휴지통",
+            "type": "유형",
+            "types": {
+                "checklist": "체크리스트",
+                "code": "코드",
+                "md": "Markdown",
+                "rich": "서식 있는 텍스트",
+                "text": "텍스트"
+            },
+            "unfavorite": "즐겨찾기 해제",
+            "unpin": "고정 해제"
+        },
+        "participants": {
+            "list": {
+                "empty": "아직 참가자가 없습니다",
+                "emptySearch": "이 검색에 대한 참가자가 없습니다.",
+                "error": "참가자 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+                "footer": "{{count}}명의 참여자들"
+            },
+            "menu": {
+                "permissionsWrite": "쓰기 권한",
+                "remove": "삭제"
+            },
+            "title": "참여자들"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "노트 제목",
+                "title": "노트 생성"
+            },
+            "createTag": {
+                "placeholder": "태그 이름",
+                "title": "태그 생성"
+            },
+            "deleteNote": {
+                "message": "이 메모를 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!",
+                "title": "노트 삭제"
+            },
+            "deleteNotes": {
+                "message": "{{count}}개의 메모를 영구 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!",
+                "title": "노트 삭제"
+            },
+            "deleteTag": {
+                "message": "이 태그를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!",
+                "title": "태그 삭제"
+            },
+            "deleteTags": {
+                "message": "{{count}}개의 태그를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!",
+                "title": "태그 삭제"
+            },
+            "leaveNote": {
+                "message": "이 메모를 떠나시겠습니까? 더 이상 볼 수 없거나 편집할 수 없습니다.",
+                "title": "노트 남기기"
+            },
+            "leaveNotes": {
+                "message": "{{count}}개의 메모를 떠나시겠습니까? 더 이상 볼 수 없거나 편집할 수 없습니다.",
+                "title": "노트 남기기"
+            },
+            "removeParticipant": {
+                "message": "이 참가자를 삭제하시겠습니까? 더 이상 이 메모를 볼 수 없거나 편집할 수 없습니다.",
+                "title": "참가자 제거"
+            },
+            "removeParticipants": {
+                "message": "{{count}}명의 참가자를 삭제하시겠습니까? 더 이상 이 메모를 볼 수 없거나 편집할 수 없습니다.",
+                "title": "참가자들 제거"
+            },
+            "renameNote": {
+                "placeholder": "새 이름",
+                "title": "노트 이름 변경"
+            },
+            "renameTag": {
+                "placeholder": "새 태그 이름",
+                "title": "태그 이름 변경"
+            },
+            "trashNote": {
+                "message": "이 노트를 휴지통으로 이동하시겠습니까? 나중에 복원할 수 있습니다.",
+                "title": "휴지통으로 이동"
+            },
+            "trashNotes": {
+                "message": "{{count}}개의 노트를 휴지통으로 이동하시겠습니까? 나중에 복원할 수 있습니다.",
+                "title": "휴지통으로 이동"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "삭제",
+                "favorited": "즐겨찾기 추가됨",
+                "rename": "이름 변경"
+            },
+            "names": {
+                "all": "전체",
+                "archived": "보관됨",
+                "favorited": "즐겨찾기 추가됨",
+                "pinned": "고정됨",
+                "shared": "공유됨",
+                "trash": "휴지통"
+            }
+        },
+        "title": "노트"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "취소",
+            "placeholder": "검색..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "오프라인 모드"
+    },
+    "photos": {
+        "header": {
+            "selected": "{{count}}개 선택됨"
+        },
+        "list": {
+            "empty": "사진이 아직 없습니다",
+            "emptySearch": "이 검색에 대한 사진이 없습니다.",
+            "error": "사진 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요."
+        },
+        "menu": {
+            "settings": "설정"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} 항목"
+                },
+                "list": {
+                    "empty": "앨범을 찾을 수 없습니다",
+                    "emptySearch": "이 검색에 대한 앨범이 없습니다.",
+                    "error": "앨범 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요."
+                },
+                "title": "앨범"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "사진에 접근하려면 미디어 권한을 부여해야 합니다."
+                },
+                "items": {
+                    "albums": "앨범",
+                    "albumsInfo": "카메라 업로드에 포함할 앨범을 선택하세요.",
+                    "background": "배경",
+                    "backgroundInfo": "백그라운드에서 카메라 업로드를 허용합니다. 이는 높은 배터리 사용량을 초래할 수 있습니다. 백그라운드 업로드는 이미지에만 포함됩니다. 앱이 강제 종료되지 않은 경우에만 작동합니다.",
+                    "cellular": "셀룰러",
+                    "cellularInfo": "셀룰러 데이터를 통해 카메라 업로드 허용. 데이터 사용량이 많아질 수 있습니다.",
+                    "cloudDirectory": "클라우드 디렉토리",
+                    "cloudDirectoryNotSet": "설정되지 않음",
+                    "compress": "압축",
+                    "compressInfo": "저장 공간 절약을 위해 사진을 압축합니다. 이는 사진의 품질을 저하할 수 있습니다. 80% 품질의 JPG 압축.",
+                    "enabled": "활성화됨",
+                    "lowBattery": "배터리 부족",
+                    "lowBatteryInfo": "배터리가 낮을 때 카메라 업로드 비활성화.",
+                    "permissionsError": "권한 오류",
+                    "permissionsErrorInfo": "앱이 시스템 설정에서 사진과 비디오에 접근할 수 있도록 허용하세요.",
+                    "videos": "비디오",
+                    "videosInfo": "카메라 업로드에 비디오 포함."
+                },
+                "title": "설정"
+            }
+        },
+        "state": {
+            "synced": "동기화됨",
+            "syncing": "동기화 중",
+            "syncingProgress": "{{total}}개의 항목 중 {{done}}개 동기화됨"
+        },
+        "title": "사진"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "취소",
+            "done": "완료",
+            "selectContact": "연락처 선택",
+            "selectContacts": "연락처들 선택"
+        },
+        "list": {
+            "empty": "아직 연락처가 없습니다",
+            "emptySearch": "이 검색에 대한 연락처가 없습니다.",
+            "error": "연락처 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+            "footer": "{{count}}개의 연락처"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} 선택됨"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "취소",
+            "done": "완료",
+            "drive": "드라이브",
+            "selectDirectories": "디렉토리 선택",
+            "selectDirectory": "디렉토리 선택",
+            "selectFile": "파일 선택",
+            "selectFiles": "파일들 선택",
+            "selectItem": "항목 선택",
+            "selectItems": "항목 선택",
+            "selectRoot": "클라우드 드라이브 선택"
+        },
+        "list": {
+            "empty": "아직 업로드된 내용이 없습니다",
+            "emptySearch": "이 검색에 대한 항목이 없습니다.",
+            "error": "파일 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+            "footer": "{{count}} 항목"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "디렉터리 이름",
+                "success": "{{name}} 생성됨",
+                "title": "디렉토리 생성"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} 선택됨"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "취소",
+            "done": "완료",
+            "selectPlaylist": "재생 목록 선택",
+            "selectPlaylists": "재생 목록 선택"
+        },
+        "item": {
+            "subTitle": "{{count}}개의 트랙, {{date}} 업데이트됨"
+        },
+        "list": {
+            "empty": "아직 재생 목록 없음",
+            "emptySearch": "이 검색에 대한 플레이리스트가 없습니다.",
+            "error": "재생목록 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+            "footer": "{{count}}개의 플레이리스트"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "재생 목록 이름",
+                "title": "재생 목록 만들기"
+            }
+        },
+        "selected": "{{countOrName}} 선택됨",
+        "toolbar": {
+            "selected": "{{countOrName}} 선택됨"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "아바타 이미지 크기가 3 MiB 제한을 초과합니다.",
+                "emailsNotMatching": "새 이메일 주소가 일치하지 않습니다."
+            },
+            "items": {
+                "changeAvatar": "아바타 변경",
+                "deleteAllFilesAndDirectories": "모든 파일과 디렉토리 삭제",
+                "deleteVersionedFiles": "버전된 파일 삭제",
+                "emailAddress": "이메일 주소",
+                "fileVersioning": "파일 버전 관리",
+                "fileVersioningInfo": "파일 버전 관리를 활성화하여 파일에 대한 변경 사항을 추적하세요.",
+                "gdpr": "GDPR 정보",
+                "loginAlerts": "로그인 알림",
+                "loginAlertsInfo": "계정 접근 시 알림을 받습니다.",
+                "logout": "로그아웃",
+                "more": "추가 계정 설정",
+                "nickname": "닉네임",
+                "personalInformation": "개인 정보",
+                "requestAccountDeletion": "계정 삭제 요청",
+                "requestAccountDeletionInfo": "계정 삭제 요청. 추가 지침이 포함된 이메일을 전송해 드리겠습니다."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "코드",
+                    "title": "이중 인증"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "새 이메일 주소 확인",
+                        "title": "새 이메일 주소 확인"
+                    },
+                    "newEmail": {
+                        "placeholder": "새 이메일 주소",
+                        "title": "새 이메일 주소"
+                    },
+                    "password": {
+                        "placeholder": "비밀번호",
+                        "title": "비밀번호"
+                    }
+                },
+                "deleteAccount": {
+                    "message": "계정 삭제를 요청하시겠습니까? 추가 지침이 포함된 이메일을 받게 됩니다.",
+                    "title": "계정 삭제 요청"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "모든 파일 및 디렉터리를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!",
+                    "title": "모든 파일과 디렉토리 삭제"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "정말 확실합니까? 이 작업은 취소할 수 없습니다!",
+                    "title": "모든 파일과 디렉토리 삭제"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "모든 버전의 파일을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!",
+                    "title": "버전된 파일 삭제"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "정말 확실합니까? 이 작업은 취소할 수 없습니다!",
+                    "title": "버전된 파일 삭제"
+                },
+                "logout": {
+                    "message": "정말 로그아웃 하시겠습니까? 계정에 접근하려면 다시 로그인해야 합니다.",
+                    "title": "로그아웃"
+                },
+                "more": {
+                    "message": "웹 앱에서 더 많은 설정이 가능합니다. 지금 열어보시겠습니까?",
+                    "title": "웹 앱 열기"
+                },
+                "updateNickname": {
+                    "placeholder": "새 별명",
+                    "title": "별명 업데이트"
+                }
+            },
+            "title": "계정"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "캐시 지우기",
+                "clearOfflineFiles": "오프라인 파일 지우기",
+                "clearThumbnails": "썸네일 지우기",
+                "clearTrackPlayer": "트랙 플레이어 초기화"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "캐시를 지우면 임시 파일이 제거됩니다. 이는 진행 중인 업로드 또는 다운로드에 영향을 줄 수 있습니다. 계속하시겠습니까?",
+                    "title": "캐시 지우기"
+                },
+                "clearOfflineFiles": {
+                    "message": "오프라인 파일을 정리하면 사용 가능한 모든 오프라인 파일이 제거됩니다. 계속하시겠습니까?",
+                    "title": "오프라인 파일 지우기"
+                },
+                "clearThumbnails": {
+                    "message": "썸네일을 정리하면 앱에서 모든 보이는 썸네일을 다시 다운로드해야 합니다. 계속하시겠습니까?",
+                    "title": "썸네일 지우기"
+                },
+                "clearTrackPlayer": {
+                    "message": "트랙 플레이어 캐시를 지우면 캐시된 트랙과 사진이 삭제됩니다. 이는 로딩 시간이 증가할 수 있습니다. 계속하시겠습니까?",
+                    "title": "트랙 플레이어 초기화"
+                }
+            },
+            "title": "고급"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "이 기기에서는 생체 인증이 지원되지 않습니다. PIN 인증만 사용하거나 생체 인증을 지원하는 기기를 사용하세요.",
+                "pinNotMatching": "대체 PIN이 일치하지 않습니다.",
+                "pinTooLong": "대체 PIN은 128자리 이하여야 합니다.",
+                "pinTooShort": "대체 PIN은 최소 4자리여야 합니다."
+            },
+            "items": {
+                "biometricAuth": "생체 인증",
+                "lockAppAfter": "잠금 후 앱 잠금",
+                "pinOnly": "PIN만 사용"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15분",
+                "fiveMinutes": "5분",
+                "immediately": "즉시",
+                "minutes": "{{minutes}} 분",
+                "never": "절대 안 함",
+                "oneHour": "1시간",
+                "oneMinute": "1분",
+                "tenMinutes": "10분",
+                "thirtyMinutes": "30분"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "생체 인증을 비활성화하시겠습니까?",
+                    "title": "생체 인증 비활성화"
+                },
+                "documentsProvider": {
+                    "message": "생체 인증을 활성화하면 문서 제공자가 비활성화됩니다. 이는 다른 앱에서 Filen 문서 제공자를 통해 파일에 액세스할 수 없음을 의미합니다. 계속하시겠습니까?",
+                    "title": "문서 제공자 사용 가능"
+                },
+                "enable": {
+                    "placeholder": "대체 PIN",
+                    "title": "대체 PIN 설정"
+                },
+                "enableConfirm": {
+                    "placeholder": "PIN 확인",
+                    "title": "백업 PIN 확인"
+                },
+                "fileProvider": {
+                    "message": "생체 인증을 활성화하면 파일 제공자가 비활성화됩니다. 이는 다른 앱에서 Filen 파일 제공자를 통해 파일에 액세스할 수 없음을 의미합니다. 계속하시겠습니까?",
+                    "title": "파일 제공자 활성화됨"
+                }
+            },
+            "title": "보안"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "연락처를 찾을 수 없습니다",
+                    "emptySearch": "이 검색에 대한 연락처가 없습니다.",
+                    "error": "연락처 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요."
+                },
+                "blocked": {
+                    "empty": "차단된 연락처를 찾을 수 없습니다",
+                    "emptySearch": "이 검색에 대한 차단된 연락처가 없습니다.",
+                    "error": "연락처 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요."
+                },
+                "offline": {
+                    "empty": "오프라인 연락처를 찾을 수 없습니다",
+                    "emptySearch": "이 검색에 대한 오프라인 연락처가 없습니다.",
+                    "error": "연락처 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요."
+                },
+                "online": {
+                    "empty": "온라인 연락처를 찾을 수 없습니다",
+                    "emptySearch": "이 검색에 대한 온라인 연락처가 없습니다.",
+                    "error": "연락처 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요."
+                },
+                "pending": {
+                    "empty": "연락처 요청을 찾을 수 없습니다",
+                    "emptySearch": "이 검색에 대한 연락처 요청이 없습니다.",
+                    "error": "연락처 요청 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요."
+                },
+                "requests": {
+                    "empty": "연락처 요청을 찾을 수 없습니다",
+                    "emptySearch": "이 검색에 대한 연락처 요청이 없습니다.",
+                    "error": "연락처 요청 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요."
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "이 연락처를 차단하시겠습니까?",
+                    "success": "{{email}} 차단됨",
+                    "title": "연락처 차단"
+                },
+                "blockContacts": {
+                    "message": "{{count}}개의 연락처를 차단하시겠습니까?",
+                    "success": "{{count}}개의 연락처가 차단되었습니다",
+                    "title": "연락처들 차단"
+                },
+                "removeContact": {
+                    "message": "이 연락처를 삭제하시겠습니까?",
+                    "success": "{{email}} 삭제됨",
+                    "title": "연락처 제거"
+                },
+                "removeContacts": {
+                    "message": "{{count}}개의 연락처를 삭제하시겠습니까?",
+                    "success": "{{count}}개의 연락처가 삭제되었습니다",
+                    "title": "연락처들 제거"
+                },
+                "sendRequest": {
+                    "placeholder": "Filen 이메일 주소",
+                    "success": "{{email}}으로 연락 요청이 전송되었습니다.",
+                    "title": "연락처 요청 보내기"
+                },
+                "unblockContact": {
+                    "message": "이 연락처의 차단을 해제하시겠습니까?",
+                    "success": "{{email}} 차단 해제됨",
+                    "title": "연락처 차단 해제"
+                },
+                "unblockContacts": {
+                    "message": "{{count}}개의 연락처의 차단을 해제하시겠습니까?",
+                    "success": "{{count}}개의 연락처가 차단 해제되었습니다",
+                    "title": "연락처들 차단 해제"
+                }
+            },
+            "tabs": {
+                "all": "전체",
+                "blocked": "차단됨",
+                "offline": "오프라인",
+                "online": "온라인",
+                "pending": "대기 중",
+                "requests": "요청"
+            },
+            "title": "연락처"
+        },
+        "events": {
+            "event": "이벤트",
+            "eventInfo": {
+                "2faDisabled": "2FA 비활성화됨",
+                "2faEnabled": "2FA 활성화됨",
+                "baseFolderCreated": "기본 폴더가 생성되었습니다.",
+                "codeRedeemed": "코드 \"{{code}}\" 사용됨",
+                "deleteAll": "모든 디렉토리와 파일이 영구 삭제되었습니다",
+                "deleteFilePermanently": "{{name}} 영구 삭제됨",
+                "deleteFolderPermanently": "{{name}} 영구 삭제됨",
+                "deleteUnfinished": "완료되지 않은 업로드 삭제됨",
+                "deleteVersioned": "모든 버전 파일 삭제됨",
+                "emailChangeAttempt": "이메일 변경 시도됨",
+                "emailChanged": "이메일이 변경되었습니다",
+                "failedLogin": "로그인 시도 실패",
+                "fileLinkEdited": "{{name}}의 공용 링크가 수정되었습니다.",
+                "fileMetadataChanged": "{{name}}의 메타데이터가 변경되었습니다.",
+                "fileMoved": "{{name}} 이동됨",
+                "fileRenamed": "{{oldName}}이(가) {{newName}}으로 변경됨",
+                "fileRestored": "{{name}} 복원됨",
+                "fileRm": "{{name}} 삭제됨",
+                "fileShared": "{{name}}이(가) {{email}}와 공유됨",
+                "fileTrash": "{{name}}가 휴지통으로 이동되었습니다.",
+                "fileUploaded": "{{name}} 업로드됨",
+                "fileVersioned": "{{name}} 버전됨",
+                "folderColorChanged": "디렉토리 {{name}}의 색상 변경됨",
+                "folderLinkEdited": "디렉토리 공개 링크 수정됨",
+                "folderMetadataChanged": "디렉토리 {{name}}의 메타데이터가 변경되었습니다.",
+                "folderMoved": "디렉토리 {{name}} 이동됨",
+                "folderRenamed": "디렉토리 {{oldName}}이(가) {{newName}}으로 변경됨",
+                "folderRestored": "디렉토리 {{name}} 복구됨",
+                "folderShared": "디렉토리 {{name}}이(가) {{email}}와 공유됨",
+                "folderTrash": "디렉토리 {{name}} 휴지통으로 이동됨",
+                "itemFavorited": "{{name}} 즐겨찾기 추가됨",
+                "itemUnfavorited": "{{name}} 즐겨찾기 해제됨",
+                "login": "로그인됨",
+                "passwordChanged": "비밀번호 변경 완료",
+                "removedSharedInItems": "{{email}}에서 공유 항목 제거됨",
+                "removedSharedOutItems": "{{email}}에서 공유 항목 제거됨",
+                "requestAccountDeletion": "계정 삭제 요청 완료",
+                "subFolderCreated": "디렉토리 {{name}} 생성됨",
+                "trashEmptied": "휴지통 비워짐",
+                "versionedFileRestored": "{{name}}의 버전이 복원되었습니다."
+            },
+            "events": "이벤트",
+            "listEmpty": {
+                "empty": "이벤트를 찾을 수 없습니다",
+                "emptySearch": "이 검색에 대한 이벤트가 없습니다.",
+                "error": "이벤트 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요."
+            },
+            "title": "이벤트"
+        },
+        "index": {
+            "items": {
+                "advanced": "고급",
+                "cameraUpload": "카메라 업로드",
+                "contacts": "연락처",
+                "documentsProvider": "문서 제공자",
+                "documentsProviderInfo": "앱 외부에서 파일에 접근하려면 Android 파일 통합을 활성화하세요.",
+                "events": "이벤트",
+                "fileProvider": "파일 제공자",
+                "fileProviderInfo": "앱 외부에서 파일에 접근하려면 iOS 파일 통합을 활성화하세요.",
+                "security": "보안",
+                "used": "{{max}} 중에서 {{used}} 사용됨 ({{percentage}}%)"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "문서 제공자를 활성화하면 생체 인식 인증이 비활성화됩니다. 이는 앱을 잠금 해제하는 데 생체 인식을 사용할 수 없음을 의미합니다. 계속하시겠습니까?",
+                    "title": "생체 인증 활성화됨"
+                },
+                "fileProvider": {
+                    "message": "파일 제공자를 활성화하면 생체 인식 인증이 비활성화됩니다. 이는 앱을 잠금 해제하는 데 생체 인식을 사용할 수 없음을 의미합니다. 계속하시겠습니까?",
+                    "title": "생체 인증 활성화됨"
+                }
+            },
+            "title": "설정"
+        },
+        "personal": {
+            "items": {
+                "city": "도시",
+                "companyName": "회사 이름",
+                "country": "국가",
+                "firstName": "이름",
+                "lastName": "성",
+                "postalCode": "우편 번호",
+                "street": "거리",
+                "streetNumber": "도로 번호",
+                "vatId": "VAT ID"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "편집"
+                }
+            },
+            "title": "개인 정보"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "새 비밀번호가 일치하지 않습니다.",
+                "weak": "새 비밀번호가 너무 약합니다. 10자 이상으로 대문자, 소문자, 숫자 및 특수문자를 조합하여 더 강한 비밀번호를 선택하세요."
+            },
+            "items": {
+                "2fa": "이중 인증",
+                "biometricAuth": "생체 인증",
+                "changePassword": "비밀번호 변경"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "비밀번호를 변경하신 후에는 로그아웃되며, 새로운 비밀번호로 다시 로그인해야 합니다.",
+                    "title": "비밀번호 변경"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "비밀번호 확인",
+                    "title": "새 비밀번호 확인"
+                },
+                "currentPassword": {
+                    "placeholder": "현재 비밀번호",
+                    "title": "현재 비밀번호"
+                },
+                "newPassword": {
+                    "placeholder": "새 비밀번호",
+                    "title": "새로운 비밀번호"
+                }
+            },
+            "title": "보안"
+        },
+        "twoFactorAuth": {
+            "copied": "키가 클립보드에 복사됨",
+            "copyKey": "키 복사",
+            "items": {
+                "2fa": "이중 인증"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "코드",
+                    "title": "코드 입력"
+                }
+            },
+            "title": "보안"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "취소",
+            "title": "Filen에 저장",
+            "upload": "업로드"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "취소",
+            "select": "선택"
+        },
+        "itemInfo": {
+            "creation": "생성됨",
+            "directories": "디렉터리",
+            "directory": "디렉토리",
+            "files": "파일",
+            "location": "위치",
+            "modified": "수정됨",
+            "name": "이름",
+            "notAvailable": "해당 없음",
+            "size": "크기",
+            "type": "유형",
+            "uploaded": "업로드됨"
+        }
+    },
+    "tabBar": {
+        "chats": "채팅",
+        "drive": "드라이브",
+        "home": "홈",
+        "notes": "노트",
+        "photos": "사진",
+        "settings": "설정"
+    },
+    "textEditor": {
+        "header": {
+            "back": "뒤로"
+        },
+        "saved": "저장됨",
+        "savedSuccess": "성공적으로 저장되었습니다.",
+        "unsavedChanges": "저장되지 않은 변경 사항"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "대기 중인 트랙 없음",
+            "unknownArtist": "알 수 없는 아티스트",
+            "unknownTitle": "알 수 없는 제목"
+        },
+        "header": {
+            "title": "플레이리스트"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "대기열에 추가",
+                "cancel": "취소",
+                "delete": "삭제",
+                "play": "재생"
+            },
+            "subTitle": "{{count}}개의 트랙, {{date}} 업데이트됨"
+        },
+        "list": {
+            "empty": "아직 재생 목록 없음",
+            "emptySearch": "이 검색에 대한 플레이리스트가 없습니다.",
+            "error": "재생목록 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+            "footer": "{{count}}개의 플레이리스트"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "플레이리스트에 추가",
+                    "addToQueue": "대기열에 추가",
+                    "cancel": "취소",
+                    "play": "재생",
+                    "removeFromPlaylist": "플레이리스트에서 제거"
+                }
+            },
+            "list": {
+                "empty": "아직 트랙이 없습니다",
+                "emptySearch": "이 검색에 대한 트랙이 없습니다.",
+                "error": "트랙 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요.",
+                "footer": "{{count}}개의 트랙"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "재생 목록 이름",
+                "title": "재생 목록 만들기"
+            },
+            "deletePlaylist": {
+                "message": "이 재생 목록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!",
+                "title": "재생 목록 삭제"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "뒤로",
+            "title": "전송"
+        },
+        "info": "{{ongoingTransfers}} 항목을 {{speed}}의 속도로 전송 중, {{remaining}} 남음",
+        "list": {
+            "empty": "아직 전송된 항목이 없습니다",
+            "emptySearch": "이 검색에 대한 전송이 없습니다.",
+            "error": "전송 로드 중 오류가 발생했습니다. 나중에 다시 시도해주세요."
+        },
+        "noOngoingTransfers": "진행 중인 전송 없음",
+        "transfer": {
+            "cancel": "취소",
+            "cancelAll": "모두 취소",
+            "pause": "일시 중지",
+            "resume": "다시 시작",
+            "stop": "중지",
+            "stopAll": "모두 중지"
+        }
+    }
+}

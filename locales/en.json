@@ -96,7 +96,7 @@
 						},
 						"size": {
 							"title": "Size",
-							"ascendingTitle": "Smallest Frist",
+							"ascendingTitle": "Smallest First",
 							"descendingTitle": "Largest First"
 						}
 					},
@@ -785,12 +785,12 @@
 			"lockAppAfter": {
 				"never": "Never",
 				"immediately": "Immediately",
-				"60": "1 minute",
-				"300": "5 minutes",
-				"600": "10 minutes",
-				"900": "15 minutes",
-				"1800": "30 minutes",
-				"3600": "1 hour",
+				"oneMinute": "1 minute",
+				"fiveMinutes": "5 minutes",
+				"tenMinutes": "10 minutes",
+				"fifteenMinutes": "15 minutes",
+				"thirtyMinutes": "30 minutes",
+				"oneHour": "1 hour",
 				"minutes": "{{minutes}} minutes"
 			},
 			"items": {
@@ -1077,8 +1077,8 @@
 		"registrationSuccessful": "Registration successful! Please check your email to confirm your account.",
 		"index": {
 			"hero": {
-				"1": "End-to-end encrypted",
-				"2": "Cloud Platform"
+				"first": "End-to-end encrypted",
+				"second": "Cloud Platform"
 			},
 			"signUp": "Sign up for free",
 			"login": "Log in"

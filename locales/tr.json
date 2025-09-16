@@ -1,0 +1,1402 @@
+{
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "İptal",
+            "okText": "Tamam",
+            "title": "Başlık"
+        },
+        "exportMasterKeys": {
+            "cancelText": "Daha sonra",
+            "message": "Anahtarlarınızı henüz dışa aktarmadınız. Şimdi dışa aktarmanız ve güvenli bir yerde saklamanız çok önerilir.",
+            "okText": "Dışa Aktar",
+            "title": "Anahtarları dışa aktar"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "Daha sonra",
+            "message": "Depolama sınırınızı aştınız. İstenmeyen veri silimini önlemek için biraz alan boşaltın veya planınızı yükseltin.",
+            "okText": "Yükselt",
+            "title": "Depolama kullanımı sınırın üzerinde"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "Uçtan uca şifreli",
+                "second": "Bulut Platformu"
+            },
+            "login": "Giriş yap",
+            "signUp": "Ücretsiz kayıt ol"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "Lütfen tüm alanları doldurun."
+            },
+            "forgotPassword": "Şifrenizi mi unuttunuz?",
+            "form": {
+                "email": {
+                    "label": "E-posta adresi",
+                    "placeholder": "E-posta adresinizi girin"
+                },
+                "password": {
+                    "label": "Şifre",
+                    "placeholder": "Şifrenizi girin"
+                }
+            },
+            "header": {
+                "cancel": "İptal"
+            },
+            "login": "Giriş yap",
+            "loginUsingCreds": "Kimlik bilgilerinizi kullanarak oturum açın",
+            "next": "Sonraki",
+            "signUp": "Ücretsiz kayıt ol",
+            "submit": "Giriş yap",
+            "title": "Giriş yap",
+            "welcome": "Tekrar hoş geldiniz!"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "Kod",
+                "title": "İki Faktörlü Kimlik Doğrulama"
+            },
+            "forgotPassword": {
+                "placeholder": "E-posta adresi",
+                "success": "E-posta adresi kayıtlıysa, şifrenizi sıfırlamak için talimat içeren bir e-posta alacaksınız.",
+                "title": "Şifreyi unuttum"
+            },
+            "resendConfirmation": {
+                "placeholder": "E-posta adresi",
+                "success": "Kayıtlı ise {{email}} adresine onay e-postası gönderildi.",
+                "title": "Doğrulamayı tekrar gönder"
+            }
+        },
+        "register": {
+            "createAccount": "Hesap oluştur",
+            "errors": {
+                "emailAddressesDoNotMatch": "E-posta adresleri eşleşmiyor.",
+                "emptyFields": "Lütfen tüm alanları doldurun.",
+                "passwordsDoNotMatch": "Parolalar eşleşmiyor.",
+                "weakPassword": "Şifreniz çok zayıf. Lütfen daha güçlü bir şifre seçin. En az 10 karakter uzunluğunda, büyük ve küçük harf karışımı, sayılar ve özel karakterler içeren bir şifre."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "E-posta adresini doğrula",
+                    "placeholder": "E-posta adresinizi doğrulayın"
+                },
+                "confirmPassword": {
+                    "label": "Şifreyi onayla",
+                    "placeholder": "Şifrenizi onaylayın"
+                },
+                "email": {
+                    "label": "E-posta adresi",
+                    "placeholder": "E-posta adresinizi girin"
+                },
+                "password": {
+                    "label": "Şifre",
+                    "placeholder": "Şifrenizi girin"
+                }
+            },
+            "header": {
+                "cancel": "İptal",
+                "title": "Kayıt ol"
+            },
+            "hero": {
+                "create": "Ücretsiz hesabınızı oluşturun",
+                "description": "Filen hesabınıza başlamak için kimlik bilgilerinizi ayarlayın."
+            },
+            "next": "Sonraki",
+            "passwordStrength": {
+                "best": "En iyi",
+                "length": "Uzunluk",
+                "lowercase": "Küçük harfler",
+                "medium": "Orta",
+                "numbers": "Sayılar",
+                "specialCharacters": "Özel karakterler",
+                "strong": "Güçlü",
+                "uppercase": "Büyük harfler",
+                "weak": "Zayıf"
+            },
+            "resendConfirmationEmail": "Doğrulama e-postasını tekrar gönder",
+            "title": "Kayıt ol"
+        },
+        "registrationSuccessful": "Kayıt başarılı! Hesabınızı onaylamak için lütfen e-postanızı kontrol edin."
+    },
+    "biometric": {
+        "appLockedFor": "Uygulama {{seconds}} saniye kilitli",
+        "authenticateUsingPin": "PIN'inizi kullanarak kimlik doğrulayın",
+        "errors": {
+            "incorrectPin": "Yanlış PIN. Lütfen tekrar deneyin.",
+            "tooManyIncorrectAttempts": "Çok fazla yanlış deneme. Lütfen daha sonra tekrar deneyin."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN",
+                "title": "PIN kodunuzu girin"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "B/s",
+        "eib": "EiB/s",
+        "gib": "GiB/s",
+        "kib": "KiB/s",
+        "mib": "MiB/s",
+        "pib": "PiB/s",
+        "tib": "TiB/s",
+        "yib": "YiB/s",
+        "zib": "ZiB/s"
+    },
+    "chats": {
+        "chat": "Sohbet",
+        "chats": "Sohbetler",
+        "header": {
+            "newMessages": "{{count}} yeni mesaj",
+            "search": "Sohbetlerde ara...",
+            "title": "Sohbetler"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "Sürücü öğeleri ekle",
+                    "addFiles": "Dosya ekle",
+                    "addMedia": "Medya ekle",
+                    "addPhotos": "Fotoğraflar ekle",
+                    "cancel": "İptal"
+                }
+            },
+            "placeholder": "Bir mesaj yaz",
+            "send": "Gönder",
+            "suggestions": {
+                "emojis": {
+                    "matching": "{{query}} ile eşleşen emojiler"
+                },
+                "mention": {
+                    "matching": "{{query}} ile eşleşen kullanıcılar"
+                },
+                "replyTo": {
+                    "replyingTo": "{{name}}'e yanıt veriliyor"
+                }
+            }
+        },
+        "item": {
+            "draft": "Taslak",
+            "noMessages": "Henüz mesaj yok",
+            "you": "Sen"
+        },
+        "list": {
+            "empty": "Sohbet bulunamadı",
+            "emptySearch": "Bu arama için sohbet bulunamadı",
+            "error": "Sohbetleriniz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin"
+        },
+        "menu": {
+            "archive": "Arşivle",
+            "delete": "Sil",
+            "favorite": "Favori",
+            "leave": "Ayrıl",
+            "markAsRead": "Okundu olarak işaretle",
+            "mute": "Sessize al",
+            "muted": "Sessize alındı",
+            "participants": "Katılımcılar",
+            "pin": "Sabitle",
+            "rename": "Yeniden adlandır",
+            "unarchive": "Arşivden çıkar",
+            "unfavorite": "Favorilerden çıkar",
+            "unmute": "Sessizlikten çıkar",
+            "unpin": "Sabitlenmeyi kaldır"
+        },
+        "messages": {
+            "everyone": "Herkes",
+            "menu": {
+                "cancel": "İptal",
+                "copyId": "Kimliği kopyala",
+                "copyText": "Metni kopyala",
+                "delete": "Sil",
+                "disableEmbeds": "Gömülüleri devre dışı bırak",
+                "edit": "Düzenle",
+                "reply": "Yanıtla"
+            },
+            "new": "Yeni",
+            "time": {
+                "hourAgo": "{{hours}} saat önce",
+                "hoursAgo": "{{hours}} saat önce",
+                "minuteAgo": "{{minutes}} dakika önce",
+                "minutesAgo": "{{minutes}} dakika önce",
+                "now": "Şimdi",
+                "secondAgo": "{{seconds}} saniye önce",
+                "secondsAgo": "{{seconds}} saniye önce",
+                "todayAt": "Bugün saat {{date}} itibarıyla",
+                "yesterdayAt": "Dün saat {{date}} itibarıyla"
+            },
+            "undecryptable": "Mesaj çözülemedi.",
+            "unknown": "Bilinmeyen"
+        },
+        "participants": {
+            "menu": {
+                "remove": "Kaldır"
+            },
+            "participant": "Katılımcı",
+            "participants": "Katılımcılar",
+            "prompts": {
+                "remove": {
+                    "message": "Bu katılımcıyı kaldırmak istediğinize emin misiniz? Artık bu sohbette mesaj göremeyecek veya gönderemeyecekler.",
+                    "success": "{{name}} kaldırıldı",
+                    "title": "Katılımcıyı kaldır"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "Bu sohbeti silmek istediğinize emin misiniz? Bu, sohbeti listenizden kaldıracak ve bu sohbette mesaj göremeyecek veya gönderemeyeceksiniz.",
+                "title": "Sohbeti sil"
+            },
+            "deleteChats": {
+                "message": "{{count}} sohbeti silmek istediğinize emin misiniz? Bu, sohbetleri listenizden kaldıracak ve bu sohbetlerde mesaj göremeyecek veya gönderemeyeceksiniz.",
+                "title": "Sohbetleri sil"
+            },
+            "deleteMessage": {
+                "message": "Bu mesajı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!",
+                "title": "Mesajı sil"
+            },
+            "disableEmbeds": {
+                "message": "Bu mesaj için gömülü içerikleri devre dışı bırakmak istediğinize emin misiniz? Bu işlem, gömülü içeriği kaldıracaktır.",
+                "title": "Gömülüleri devre dışı bırak"
+            },
+            "leaveChat": {
+                "message": "Bu sohbeti terk etmek istediğinize emin misiniz? Artık bu sohbette mesaj göremeyecek veya gönderemeyeceksiniz.",
+                "title": "Sohbetten ayrıl"
+            },
+            "leaveChats": {
+                "message": "{{count}} sohbeti terk etmek istediğinize emin misiniz? Artık bu sohbetlerde mesaj göremeyecek veya gönderemeyeceksiniz.",
+                "title": "Sohbetlerden ayrıl"
+            },
+            "renameChat": {
+                "placeholder": "Yeni adı",
+                "title": "Sohbeti yeniden adlandır"
+            }
+        },
+        "typing": "{{users}} yazıyor..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "Kabul Et",
+            "block": "Engelle",
+            "cancel": "İptal",
+            "decline": "Reddet",
+            "remove": "Kaldır",
+            "unblock": "Engellemeyi kaldır"
+        }
+    },
+    "copiedToClipboard": "Panoya kopyalandı",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "İptal",
+                    "create": {
+                        "created": "{{name}} oluşturuldu",
+                        "directory": "Dizin oluştur",
+                        "photo": "Fotoğraf çek",
+                        "textFile": "Metin dosyası oluştur"
+                    },
+                    "directoryNamePlaceholder": "Dizin adı",
+                    "itemsUploaded": "{{count}} öge yüklendi",
+                    "noMediaPermissions": "Fotoğraf veya video yüklemek için medya izinlerini vermelisiniz.",
+                    "textFileNamePlaceholder": "Metin dosyası adı",
+                    "upload": {
+                        "directory": "Dizin yükle",
+                        "files": "Dosyaları yükle",
+                        "media": "Medya yükle",
+                        "uploaded": "{{name}} yüklendi"
+                    }
+                },
+                "deselectAll": "Tüm seçimleri kaldır",
+                "dropdown": {
+                    "bulkActions": "Toplu işlemler",
+                    "gridMode": "Izgara olarak görüntüle",
+                    "listMode": "Liste olarak görüntüle",
+                    "sortBy": {
+                        "ascending": "Artan sırada",
+                        "descending": "Azalan sırada",
+                        "lastModified": {
+                            "ascendingTitle": "Önce en eskisi",
+                            "descendingTitle": "Önce en yenisi",
+                            "title": "Son Değiştirme Tarihi"
+                        },
+                        "name": {
+                            "ascendingTitle": "A'dan Z'ye",
+                            "descendingTitle": "Z'den A'ya",
+                            "title": "Ad"
+                        },
+                        "size": {
+                            "ascendingTitle": "Önce en küçüğü",
+                            "descendingTitle": "Önce en büyüğü",
+                            "title": "Boyut"
+                        },
+                        "sortBy": "Sırala",
+                        "type": {
+                            "ascendingTitle": "Artan sırada",
+                            "descendingTitle": "Azalan sırada",
+                            "title": "Tür"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "Önce en eskisi",
+                            "descendingTitle": "Önce en yenisi",
+                            "title": "Yükleme Tarihi"
+                        }
+                    },
+                    "transfers": "Transferler"
+                },
+                "selectAll": "Hepsini seç"
+            },
+            "title": {
+                "drive": "Sürücü",
+                "favorites": "Favoriler",
+                "links": "Genel bağlantılar",
+                "offline": "Çevrimdışı kullanılabilir",
+                "recents": "Son Eklenenler",
+                "selected": "{{count}} seçildi",
+                "sharedIn": "Sizinle paylaşıldı",
+                "sharedOut": "Başkalarıyla paylaşıldı",
+                "trash": "Çöp"
+            }
+        },
+        "itemShared": "{{name}} paylaşıldı",
+        "itemSharedWith": "{{name}} {{email}} ile paylaşıldı",
+        "list": {
+            "empty": "Öğe bulunamadı",
+            "emptySearch": "Bu arama için öğe bulunamadı",
+            "error": "Sürcünüz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin",
+            "footer": "{{count}} öğe",
+            "item": {
+                "menu": {
+                    "availableOffline": "Çevrimdışı kullanılabilir",
+                    "clipboard": "Panoya kopyala",
+                    "color": "Renk",
+                    "copy": "Kopyala",
+                    "copyId": "Kimliği kopyala",
+                    "copyPath": "Yolu kopyala",
+                    "delete": "Sil",
+                    "deletePermanently": "Kalıcı olarak sil",
+                    "deselect": "Seçimi kaldır",
+                    "deselectAll": "Tüm seçimleri kaldır",
+                    "disablePublicLink": "Linki devre dışı bırak",
+                    "download": "İndir",
+                    "downloadFolder": "Klasörü indir",
+                    "export": "Dışa Aktar",
+                    "favorite": "Favori",
+                    "favorite_one": "Favori Öğe",
+                    "favorite_other": "{{count}} öğeyi favorilere ekle",
+                    "favorited": "Favorilere eklendi",
+                    "id": "ID",
+                    "info": "Bilgi",
+                    "location": "Konum",
+                    "makeAvailableOffline": "Çevrimdışında kullanılabilir hale getir",
+                    "move": "Taşı",
+                    "move_one": "Öğeyi Taşı",
+                    "move_other": "{{count}} öğeyi taşı",
+                    "open": "Aç",
+                    "path": "Yol",
+                    "preview": "Önizleme",
+                    "properties": "Özellikler",
+                    "publicLink": "Genel bağlantı",
+                    "removeOffline": "Çevrimdışı dosyayı kaldır",
+                    "removeSharedIn": "Kaldır",
+                    "removeSharedOut": "Paylaşmayı durdur",
+                    "rename": "Yeniden adlandır",
+                    "restore": "Geri yükle",
+                    "saveToGallery": "Galeride kaydet",
+                    "select": "Seç",
+                    "selectAll": "Hepsini seç",
+                    "share": "Paylaş",
+                    "share_one": "Öğeyi Paylaş",
+                    "share_other": "{{count}} öğeyi paylaş",
+                    "trash": "Çöp",
+                    "trash_one": "Öğeyi çöp kutusuna at",
+                    "trash_other": "{{count}} öğeyi çöp kutusuna at",
+                    "unfavorite": "Favorilerden çıkar",
+                    "versionHistory": "Sürüm geçmişi",
+                    "withUser": "Kullanıcı ile"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "{{count}} öğeyi kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!",
+                "title": "Kalıcı olarak sil"
+            },
+            "deletePermanently": {
+                "message": "Bu öğeyi kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!",
+                "title": "Kalıcı olarak sil"
+            },
+            "disablePublicLinks": {
+                "message": "{{count}} öğe için genel bağlantıları devre dışı bırakmak istediğinizden emin misiniz? Bağlantılara artık erişilemeyecek.",
+                "title": "Genel bağlantıları devre dışı bırak"
+            },
+            "removeOfflineFiles": {
+                "message": "{{count}} çevrimdışı dosyayı kaldırmak istediğinizden emin misiniz? Çevrimdışı olarak artık kullanılamayacaklar.",
+                "title": "Çevrimdışı dosyaları kaldır"
+            },
+            "removeSharedInItem": {
+                "message": "Bu öğeyi paylaşılan öğelerinizden kaldırmak istediğinize emin misiniz? Artık bunu göremez veya erişemezsiniz.",
+                "title": "Kaldır"
+            },
+            "removeSharedInItems": {
+                "message": "{{count}} öğeyi paylaşılan öğelerinizden kaldırmak istediğinize emin misiniz? Artık onları göremez veya erişemezsiniz.",
+                "title": "Kaldır"
+            },
+            "removeSharedOutItem": {
+                "message": "Bu öğeyi paylaşmayı durdurmak istediğinizden emin misiniz? Kullanıcı artık erişemeyecek.",
+                "title": "Paylaşmayı durdur"
+            },
+            "removeSharedOutItems": {
+                "message": "{{count}} öğeyi paylaşmayı durdurmak istediğinizden emin misiniz? Kullanıcılar artık bunlara erişemeyecek.",
+                "title": "Paylaşmayı durdur"
+            },
+            "renameItem": {
+                "placeholder": "Yeni adı",
+                "title": "Yeniden adlandır"
+            },
+            "trashItem": {
+                "message": "Bu öğeyi çöp kutusuna taşımak istediğinizden emin misiniz? Daha sonra geri yükleyebilirsiniz.",
+                "title": "Çöp kutusuna taşı"
+            },
+            "trashItems": {
+                "message": "{{count}} öğeyi çöp kutusuna taşımak istediğinizden emin misiniz? Daha sonra geri yükleyebilirsiniz.",
+                "title": "Çöp kutusuna taşı"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "Öğe bulunamadı",
+                "emptySearch": "Bu arama için öğe bulunamadı",
+                "error": "Arama sonuçları yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin",
+                "footer": "{{count}} öğe"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "İptal",
+        "items": {
+            "downloadButton": "İndir butonu",
+            "edit": "Düzenle",
+            "enabled": "Etkinleştirildi",
+            "expiration": "Süresi Dolma",
+            "expiration12h": "12 saat",
+            "expiration14d": "14 gün",
+            "expiration1d": "1 gün",
+            "expiration1h": "1 saat",
+            "expiration30d": "30 gün",
+            "expiration3d": "3 gün",
+            "expiration6h": "6 saat",
+            "expiration7d": "7 gün",
+            "expirationNever": "Asla",
+            "password": "Şifre"
+        },
+        "onlyPro": "Bu özellik yalnızca Filen Pro kullanıcıları için mevcuttur. Etkinleştirmek için herhangi bir Filen planına abone olun.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "Parolayı kaldırmak için boş bırakın",
+                "title": "Şifreyi düzenle"
+            }
+        },
+        "shareDialogTile": "Filen genel bağlantısı",
+        "title": "Genel bağlantıyı düzenle",
+        "unsavedChanges": "Kaydedilmemiş değişiklikler"
+    },
+    "errors": {
+        "cannotOpenURL": "URL açılamıyor.",
+        "notEnoughDiskSpace": "Yeterli yerel disk alanı yok.",
+        "sharingNotAvailable": "Paylaşım bu cihazda kullanılamıyor.",
+        "youAreOffline": "Şu anda çevrimdışısınız. Lütfen internet bağlantınızı kontrol edin."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "İptal",
+                "confirm": "Sil",
+                "message": "Bu sürümü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!",
+                "title": "Sürümü sil"
+            },
+            "restore": {
+                "cancel": "İptal",
+                "confirm": "Geri yükle",
+                "message": "Bu sürümü geri yüklemek istediğinizden emin misiniz? Bu işlem mevcut dosyanın üzerine yazacak.",
+                "title": "Sürümü geri yükle"
+            }
+        },
+        "header": {
+            "title": "Sürüm geçmişi"
+        },
+        "list": {
+            "empty": "Henüz sürüm yok",
+            "emptySearch": "Bu arama için sürüm bulunamadı",
+            "error": "Dosya sürümleri yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin",
+            "item": {
+                "current": "Mevcut",
+                "delete": "Sil",
+                "restore": "Geri yükle"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "Bayt",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiB",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "Önizleme yok"
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "Favoriler"
+            },
+            "links": {
+                "title": "Genel bağlantılar"
+            },
+            "offline": {
+                "title": "Çevrimdışı kullanılabilir"
+            },
+            "recents": {
+                "title": "Son Eklenenler"
+            },
+            "sharedIn": {
+                "title": "Sizinle paylaşıldı"
+            },
+            "sharedOut": {
+                "title": "Başkalarıyla paylaşıldı"
+            },
+            "trash": {
+                "title": "Çöp"
+            }
+        },
+        "listEmpty": {
+            "favorites": "Henüz favoriler yok",
+            "links": "Henüz hiçbir genel bağlantı yok",
+            "offline": "Henüz çevrimdışı öğe yok",
+            "recents": "Henüz son hareket yok",
+            "sharedIn": "Henüz paylaşılan öğe yok",
+            "sharedOut": "Henüz paylaşılan öğe yok",
+            "trash": "Henüz çöp kutusunda öğe yok"
+        },
+        "title": "Ana Sayfa"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "İptal",
+            "okText": "Tamam",
+            "title": "Başlık"
+        }
+    },
+    "listEmpty": {
+        "empty": "Hiçbir şey bulunamadı",
+        "emptySearch": "Bu arama için bir şey bulunamadı",
+        "error": "Bir hata oluştu, lütfen daha sonra tekrar deneyin"
+    },
+    "localAuthentication": {
+        "cancelLabel": "İptal",
+        "promptMessage": "Devam etmek için kimlik doğrulayın"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "Kodunuzu buraya yazın...",
+                "text": "Metninizi buraya yazın..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "Tüm seçimleri kaldır",
+                    "selectAll": "Hepsini seç"
+                },
+                "types": {
+                    "checklist": "Kontrol Listesi",
+                    "code": "Kod",
+                    "markdown": "Markdown",
+                    "rich": "Zengin metin",
+                    "text": "Metin"
+                }
+            },
+            "menu": {
+                "settings": "Ayarlar"
+            },
+            "selected": "{{count}} seçildi",
+            "title": "Notlar"
+        },
+        "history": {
+            "list": {
+                "empty": "Geçmiş yok",
+                "emptySearch": "Bu arama için giriş bulunamadı",
+                "error": "Geçmiş yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin",
+                "footer": "{{count}} öğe"
+            },
+            "noPreview": "Önizleme yok",
+            "prompts": {
+                "restore": {
+                    "message": "Bu notu geri yüklemek istediğinizden emin misiniz? Bu işlem mevcut notun üzerine yazacak.",
+                    "title": "Notu geri yükle"
+                }
+            },
+            "restore": "Geri yükle",
+            "title": "Geçmiş"
+        },
+        "list": {
+            "empty": "Henüz not yok",
+            "emptySearch": "Bu arama için not bulunamadı",
+            "error": "Notlarınız yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin",
+            "footer": "{{count}} öğe"
+        },
+        "menu": {
+            "archive": "Arşivle",
+            "clipboard": "Panoya kopyala",
+            "copyId": "Kimliği kopyala",
+            "delete": "Sil",
+            "deselect": "Seçimi kaldır",
+            "duplicate": "Kopya",
+            "export": "Dışa Aktar",
+            "favorite": "Favori",
+            "favorited": "Favorilere eklendi",
+            "history": "Geçmiş",
+            "leave": "Ayrıl",
+            "participants": "Katılımcılar",
+            "pin": "Sabitle",
+            "pinned": "Sabitledi",
+            "preview": "Önizleme",
+            "rename": "Yeniden adlandır",
+            "restore": "Geri yükle",
+            "select": "Seç",
+            "tags": "Etiketler",
+            "trash": "Çöp",
+            "type": "Tür",
+            "types": {
+                "checklist": "Kontrol Listesi",
+                "code": "Kod",
+                "md": "Markdown",
+                "rich": "Zengin metin",
+                "text": "Metin"
+            },
+            "unfavorite": "Favorilerden çıkar",
+            "unpin": "Sabitlenmeyi kaldır"
+        },
+        "participants": {
+            "list": {
+                "empty": "Henüz katılımcı yok",
+                "emptySearch": "Bu arama için katılımcı bulunamadı",
+                "error": "Katılımcılar yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin",
+                "footer": "{{count}} katılımcı"
+            },
+            "menu": {
+                "permissionsWrite": "Yazma izinleri",
+                "remove": "Kaldır"
+            },
+            "title": "Katılımcılar"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "Not başlığı",
+                "title": "Not oluştur"
+            },
+            "createTag": {
+                "placeholder": "Etiket adı",
+                "title": "Etiket oluştur"
+            },
+            "deleteNote": {
+                "message": "Bu notu kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!",
+                "title": "Notu sil"
+            },
+            "deleteNotes": {
+                "message": "{{count}} notu kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!",
+                "title": "Notları sil"
+            },
+            "deleteTag": {
+                "message": "Bu etiketi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!",
+                "title": "Etiketi sil"
+            },
+            "deleteTags": {
+                "message": "{{count}} etiketi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!",
+                "title": "Etiketleri sil"
+            },
+            "leaveNote": {
+                "message": "Bu notu bırakmak istediğinizden emin misiniz? Artık bunu göremez ya da düzenleyemezsiniz.",
+                "title": "Not bırak"
+            },
+            "leaveNotes": {
+                "message": "{{count}} notu bırakmak istediğinizden emin misiniz? Artık onları göremez ya da düzenleyemezsiniz.",
+                "title": "Notları bırak"
+            },
+            "removeParticipant": {
+                "message": "Bu katılımcıyı kaldırmak istediğinize emin misiniz? Artık bu notu göremez veya düzenleyemez.",
+                "title": "Katılımcıyı kaldır"
+            },
+            "removeParticipants": {
+                "message": "{{count}} katılımcıyı kaldırmak istediğinize emin misiniz? Artık bu notları göremez veya düzenleyemezler.",
+                "title": "Katılımcıları kaldır"
+            },
+            "renameNote": {
+                "placeholder": "Yeni adı",
+                "title": "Notu yeniden adlandır"
+            },
+            "renameTag": {
+                "placeholder": "Yeni etiket adı",
+                "title": "Etiketi yeniden adlandır"
+            },
+            "trashNote": {
+                "message": "Bu notu çöp kutusuna taşımak istediğinizden emin misiniz? Daha sonra geri yükleyebilirsiniz.",
+                "title": "Çöp kutusuna taşı"
+            },
+            "trashNotes": {
+                "message": "{{count}} notu çöp kutusuna taşımak istediğinizden emin misiniz? Daha sonra geri yükleyebilirsiniz.",
+                "title": "Çöp kutusuna taşı"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "Sil",
+                "favorited": "Favorilere eklendi",
+                "rename": "Yeniden adlandır"
+            },
+            "names": {
+                "all": "Tümü",
+                "archived": "Arşivlendi",
+                "favorited": "Favorilere eklendi",
+                "pinned": "Sabitledi",
+                "shared": "Paylaşıldı",
+                "trash": "Çöp"
+            }
+        },
+        "title": "Notlar"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "İptal",
+            "placeholder": "Ara..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "Çevrimdışı modu"
+    },
+    "photos": {
+        "header": {
+            "selected": "{{count}} seçildi"
+        },
+        "list": {
+            "empty": "Henüz fotoğraf yok",
+            "emptySearch": "Bu arama için fotoğraf bulunamadı",
+            "error": "Fotoğraflarınız yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin"
+        },
+        "menu": {
+            "settings": "Ayarlar"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} öğe"
+                },
+                "list": {
+                    "empty": "Albüm bulunamadı",
+                    "emptySearch": "Bu arama için albüm bulunamadı",
+                    "error": "Albümleriniz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin"
+                },
+                "title": "Albümler"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "Fotoğraflarınıza erişmek için medya izinlerini vermelisiniz."
+                },
+                "items": {
+                    "albums": "Albümler",
+                    "albumsInfo": "Kamera yüklemesinde dahil edilmesi gereken albümleri seçin.",
+                    "background": "Arka plan",
+                    "backgroundInfo": "Arka planda kamera yükleme izni ver. Bu, yüksek pil kullanımına yol açabilir. Arka plan yüklemelerinde sadece görüntüler bulunur. Uygulama zorla kapatılmadığında çalışır.",
+                    "cellular": "Hücresel",
+                    "cellularInfo": "Hücresel veri üzerinden kamera yüklemeye izin verin. Bu durum yüksek veri kullanımına neden olabilir.",
+                    "cloudDirectory": "Bulut dizini",
+                    "cloudDirectoryNotSet": "Ayarlanmadı",
+                    "compress": "Sıkıştır",
+                    "compressInfo": "Depolama alanından tasarruf etmek için fotoğrafları sıkıştır. Bu işlem fotoğrafların kalitesini düşürebilir. JPG sıkıştırması %80 kalitede.",
+                    "enabled": "Etkinleştirildi",
+                    "lowBattery": "Düşük pil",
+                    "lowBatteryInfo": "Batarya düşükken kamera yüklemesini devre dışı bırak.",
+                    "permissionsError": "İzin hatası",
+                    "permissionsErrorInfo": "Uygulamanın sistem ayarlarında fotoğraf ve videolarınıza erişmesine izin verin.",
+                    "videos": "Videolar",
+                    "videosInfo": "Kamera yüklemesine videolar dahil edilsin."
+                },
+                "title": "Ayarlar"
+            }
+        },
+        "state": {
+            "synced": "Senkronize edildi",
+            "syncing": "Senkronizasyon",
+            "syncingProgress": "{{total}} öğeden {{done}} eşitlendi"
+        },
+        "title": "Fotoğraflar"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "İptal",
+            "done": "Tamamlandı",
+            "selectContact": "Kişi seç",
+            "selectContacts": "Kişileri seç"
+        },
+        "list": {
+            "empty": "Henüz kişi yok",
+            "emptySearch": "Bu arama için iletişim bulunamadı",
+            "error": "Kişileriniz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin",
+            "footer": "{{count}} kişi"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} seçildi"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "İptal",
+            "done": "Tamamlandı",
+            "drive": "Sürücü",
+            "selectDirectories": "Dizinleri seç",
+            "selectDirectory": "Dizin seç",
+            "selectFile": "Dosya seç",
+            "selectFiles": "Dosyaları seç",
+            "selectItem": "Öğe seç",
+            "selectItems": "Öğeleri seç",
+            "selectRoot": "Bulut sürücüsünü seç"
+        },
+        "list": {
+            "empty": "Henüz bir şey yüklenmedi",
+            "emptySearch": "Bu arama için öğe bulunamadı",
+            "error": "Dosyalarınız yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin",
+            "footer": "{{count}} öğe"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "Dizin adı",
+                "success": "{{name}} oluşturuldu",
+                "title": "Dizin oluştur"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} seçildi"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "İptal",
+            "done": "Tamamlandı",
+            "selectPlaylist": "Çalma listesini seç",
+            "selectPlaylists": "Çalma listelerini seç"
+        },
+        "item": {
+            "subTitle": "{{date}} tarihinde güncellenen {{count}} parça"
+        },
+        "list": {
+            "empty": "Henüz çalma listesi yok",
+            "emptySearch": "Bu arama için çalma listesi bulunamadı",
+            "error": "Çalma listeleriniz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin",
+            "footer": "{{count}} çalma listesi"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Çalma listesi adı",
+                "title": "Çalma listesi oluştur"
+            }
+        },
+        "selected": "{{countOrName}} seçildi",
+        "toolbar": {
+            "selected": "{{countOrName}} seçildi"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "Avatar resim boyutu 3 MiB sınırını aşıyor.",
+                "emailsNotMatching": "Yeni e-posta adresleri eşleşmiyor."
+            },
+            "items": {
+                "changeAvatar": "Avatarı değiştir",
+                "deleteAllFilesAndDirectories": "Tüm dosyaları ve dizinleri sil",
+                "deleteVersionedFiles": "Versiyonlu dosyaları sil",
+                "emailAddress": "E-posta adresi",
+                "fileVersioning": "Dosya sürümlendirme",
+                "fileVersioningInfo": "Dosyalarınızda yapılan değişiklikleri takip etmek için sürüm kontrolünü etkinleştirin.",
+                "gdpr": "GDPR bilgisi",
+                "loginAlerts": "Giriş uyarıları",
+                "loginAlertsInfo": "Hesabınıza erişildiğinde uyarılar alın.",
+                "logout": "Çıkış yap",
+                "more": "Daha fazla hesap ayarları",
+                "nickname": "Takma ad",
+                "personalInformation": "Kişisel bilgi",
+                "requestAccountDeletion": "Hesap silme talep et",
+                "requestAccountDeletionInfo": "Hesap silme talebi. Size daha fazla talimat içeren bir e-posta göndereceğiz."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "Kod",
+                    "title": "İki Faktörlü Kimlik Doğrulama"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "Yeni e-posta adresini doğrula",
+                        "title": "Yeni e-posta adresini doğrula"
+                    },
+                    "newEmail": {
+                        "placeholder": "Yeni e-posta adresi",
+                        "title": "Yeni e-posta adresi"
+                    },
+                    "password": {
+                        "placeholder": "Şifre",
+                        "title": "Şifreniz"
+                    }
+                },
+                "deleteAccount": {
+                    "message": "Hesap silme talebinde bulunmak istediğinizden emin misiniz? Daha fazla talimat içeren bir e-posta alacaksınız.",
+                    "title": "Hesap silme talep et"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "Tüm dosyaları ve dizinleri silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!",
+                    "title": "Tüm dosyaları ve dizinleri sil"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "Gerçekten emin misiniz? Bu işlem geri alınamaz!",
+                    "title": "Tüm dosyaları ve dizinleri sil"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "Tüm sürümlü dosyaları silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!",
+                    "title": "Versiyonlu dosyaları sil"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "Gerçekten emin misiniz? Bu işlem geri alınamaz!",
+                    "title": "Versiyonlu dosyaları sil"
+                },
+                "logout": {
+                    "message": "Çıkış yapmak istediğinizden emin misiniz? Hesabınıza tekrar erişmek için yeniden giriş yapmanız gerekecek.",
+                    "title": "Çıkış yap"
+                },
+                "more": {
+                    "message": "Web uygulamasında daha fazla ayar mevcut. Şimdi açmak ister misiniz?",
+                    "title": "Web Uygulamasını Aç"
+                },
+                "updateNickname": {
+                    "placeholder": "Yeni rumuz",
+                    "title": "Rumuzu güncelle"
+                }
+            },
+            "title": "Hesap"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "Önbelleği temizle",
+                "clearOfflineFiles": "Çevrimdışı dosyaları temizle",
+                "clearThumbnails": "Küçük resimleri temizle",
+                "clearTrackPlayer": "Parça oynatıcıyı temizle"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "Önbelleği temizlemek, geçici dosyaları kaldırır. Bu, devam eden yükleme veya indirmeleri kesintiye uğratabilir. Devam etmek istediğinizden emin misiniz?",
+                    "title": "Önbelleği temizle"
+                },
+                "clearOfflineFiles": {
+                    "message": "Çevrimdışı dosyaları temizlemek, tüm çevrimdışı kullanılabilir dosyaları kaldıracaktır. Devam etmek istediğinize emin misiniz?",
+                    "title": "Çevrimdışı dosyaları temizle"
+                },
+                "clearThumbnails": {
+                    "message": "Küçük resimleri temizlemek, uygulamanın tüm görünen küçük resimleri tekrar indirmesine neden olur. Devam etmek istediğinizden emin misiniz?",
+                    "title": "Küçük resimleri temizle"
+                },
+                "clearTrackPlayer": {
+                    "message": "Parça oynatıcı önbelleğini temizlemek, önbelleğe alınmış parçaları ve resimleri kaldırır. Bu işlem yükleme sürelerini artırabilir. Devam etmek istediğinizden emin misiniz?",
+                    "title": "Parça oynatıcıyı temizle"
+                }
+            },
+            "title": "Gelişmiş"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "Biyometrik kimlik doğrulama bu cihazda mevcut değil. Lütfen sadece PIN kimlik doğrulamasını etkinleştirin veya biyometrik kimlik doğrulama desteği olan bir cihaz kullanın.",
+                "pinNotMatching": "Yedek PIN kodları eşleşmiyor.",
+                "pinTooLong": "Yedek PIN 128 rakamdan daha uzun olmamalıdır.",
+                "pinTooShort": "Yedek PIN en az 4 basamaklı olmalıdır."
+            },
+            "items": {
+                "biometricAuth": "Biyometrik kimlik doğrulama",
+                "lockAppAfter": "Uygulamayı kilitle",
+                "pinOnly": "Sadece PIN"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15 dakika",
+                "fiveMinutes": "5 dakika",
+                "immediately": "Hemen",
+                "minutes": "{{minutes}} dakika",
+                "never": "Asla",
+                "oneHour": "1 saat",
+                "oneMinute": "1 dakika",
+                "tenMinutes": "10 dakika",
+                "thirtyMinutes": "30 dakika"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "Biyometrik doğrulamayı devre dışı bırakmak istediğinizden emin misiniz?",
+                    "title": "Biyometrik kimlik doğrulamayı devre dışı bırak"
+                },
+                "documentsProvider": {
+                    "message": "Biyometrik kimlik doğrulamayı etkinleştirmek belge sağlayıcısını devre dışı bırakacaktır. Bu, Filen belge sağlayıcısını kullanarak diğer uygulamalarda dosyalarınıza erişemeyeceğiniz anlamına gelir. Devam etmek istiyor musunuz?",
+                    "title": "Belge sağlayıcı etkinleştirildi"
+                },
+                "enable": {
+                    "placeholder": "Yedek PIN",
+                    "title": "Yedek PIN ayarla"
+                },
+                "enableConfirm": {
+                    "placeholder": "PIN'i onaylayın",
+                    "title": "Yedek PIN'i onayla"
+                },
+                "fileProvider": {
+                    "message": "Biyometrik kimlik doğrulamayı etkinleştirmek dosya sağlayıcısını devre dışı bırakacaktır. Bu, Filen dosya sağlayıcısını kullanarak diğer uygulamalarda dosyalarınıza erişemeyeceğiniz anlamına gelir. Devam etmek istiyor musunuz?",
+                    "title": "Dosya sağlayıcı etkinleştirildi"
+                }
+            },
+            "title": "Güvenlik"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "Kişi bulunamadı",
+                    "emptySearch": "Bu arama için iletişim bulunamadı",
+                    "error": "Kişileriniz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin"
+                },
+                "blocked": {
+                    "empty": "Engellenen kişi bulunamadı",
+                    "emptySearch": "Bu arama için engellenmiş iletişim bulunamadı",
+                    "error": "Kişileriniz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin"
+                },
+                "offline": {
+                    "empty": "Çevrimdışı kişi bulunamadı",
+                    "emptySearch": "Bu arama için çevrimdışı iletişim bulunamadı",
+                    "error": "Kişileriniz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin"
+                },
+                "online": {
+                    "empty": "Çevrimiçi kişi bulunamadı",
+                    "emptySearch": "Bu arama için çevrimiçi iletişim bulunamadı",
+                    "error": "Kişileriniz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin"
+                },
+                "pending": {
+                    "empty": "İletişim isteği bulunamadı",
+                    "emptySearch": "Bu arama için iletişim isteği bulunamadı",
+                    "error": "Kişi istekleriniz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin"
+                },
+                "requests": {
+                    "empty": "İletişim isteği bulunamadı",
+                    "emptySearch": "Bu arama için iletişim isteği bulunamadı",
+                    "error": "Kişi istekleriniz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin"
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "Bu kişiyi engellemek istediğinizden emin misiniz?",
+                    "success": "{{email}} engellendi",
+                    "title": "Kişiyi engelle"
+                },
+                "blockContacts": {
+                    "message": "{{count}} kişiyi engellemek istediğinizden emin misiniz?",
+                    "success": "{{count}} kişi engellendi",
+                    "title": "Kişileri engelle"
+                },
+                "removeContact": {
+                    "message": "Bu kişiyi kaldırmak istediğinizden emin misiniz?",
+                    "success": "{{email}} kaldırıldı",
+                    "title": "Kişiyi kaldır"
+                },
+                "removeContacts": {
+                    "message": "{{count}} kişiyi kaldırmak istediğinizden emin misiniz?",
+                    "success": "{{count}} kişi kaldırıldı",
+                    "title": "Kişileri kaldır"
+                },
+                "sendRequest": {
+                    "placeholder": "Filen e-posta adresi",
+                    "success": "{{email}} adresine iletişim isteği gönderildi",
+                    "title": "İletişim isteği gönder"
+                },
+                "unblockContact": {
+                    "message": "Bu kişiyi engelinden çıkarmak istediğinizden emin misiniz?",
+                    "success": "{{email}} engeli kaldırıldı",
+                    "title": "Kişinin engelini kaldır"
+                },
+                "unblockContacts": {
+                    "message": "{{count}} kişiyi engelinden çıkarmak istediğinizden emin misiniz?",
+                    "success": "{{count}} kişinin engeli kaldırıldı",
+                    "title": "Kişilerin engelini kaldır"
+                }
+            },
+            "tabs": {
+                "all": "Tümü",
+                "blocked": "Engellendi",
+                "offline": "Çevrimdışı",
+                "online": "Çevrimiçi",
+                "pending": "Beklemede",
+                "requests": "İstekler"
+            },
+            "title": "Kişiler"
+        },
+        "events": {
+            "event": "Etkinlik",
+            "eventInfo": {
+                "2faDisabled": "2FA devre dışı",
+                "2faEnabled": "2FA etkin",
+                "baseFolderCreated": "Ana klasör oluşturuldu",
+                "codeRedeemed": "\"{{code}}\" kodu kullanıldı",
+                "deleteAll": "Tüm dizinler ve dosyalar kalıcı olarak silindi",
+                "deleteFilePermanently": "{{name}} kalıcı olarak silindi",
+                "deleteFolderPermanently": "{{name}} kalıcı olarak silindi",
+                "deleteUnfinished": "Tamamlanmamış yüklemeler silindi",
+                "deleteVersioned": "Tüm sürümlenmiş dosyalar silindi",
+                "emailChangeAttempt": "E-posta değişikliği denendi",
+                "emailChanged": "E-posta değiştirildi",
+                "failedLogin": "Başarısız giriş denemesi",
+                "fileLinkEdited": "{{name}} için ortak bağlantı düzenlendi",
+                "fileMetadataChanged": "{{name}} için meta veriler değiştirildi",
+                "fileMoved": "{{name}} taşındı",
+                "fileRenamed": "{{oldName}} adı {{newName}} olarak değiştirildi",
+                "fileRestored": "{{name}} geri yüklendi",
+                "fileRm": "{{name}} silindi",
+                "fileShared": "{{name}} {{email}} ile paylaşıldı",
+                "fileTrash": "{{name}} çöp kutusuna taşındı",
+                "fileUploaded": "{{name}} yüklendi",
+                "fileVersioned": "{{name}} sürümlendi",
+                "folderColorChanged": "{{name}} dizin rengi değiştirildi",
+                "folderLinkEdited": "Dizin genel bağlantısı düzenlendi",
+                "folderMetadataChanged": "{{name}} dizininin meta verileri değiştirildi",
+                "folderMoved": "Dizin {{name}} taşındı",
+                "folderRenamed": "Dizin {{oldName}} adı {{newName}} olarak değiştirildi",
+                "folderRestored": "Dizin {{name}} geri yüklendi",
+                "folderShared": "Dizin {{name}} {{email}} ile paylaşıldı",
+                "folderTrash": "Dizin {{name}} çöp kutusuna taşındı",
+                "itemFavorited": "{{name}} favorilere eklendi",
+                "itemUnfavorited": "{{name}} favorilerden çıkarıldı",
+                "login": "Giriş yapıldı",
+                "passwordChanged": "Şifre değiştirildi",
+                "removedSharedInItems": "{{email}} kişisinden paylaşılan öğeler kaldırıldı",
+                "removedSharedOutItems": "{{email}} kişisinden paylaşılan öğeler kaldırıldı",
+                "requestAccountDeletion": "Hesap silme talep edildi",
+                "subFolderCreated": "Dizin {{name}} oluşturuldu",
+                "trashEmptied": "Çöp kutusu boşaltıldı",
+                "versionedFileRestored": "{{name}} sürümü geri yüklendi"
+            },
+            "events": "Etkinlikler",
+            "listEmpty": {
+                "empty": "Etkinlik bulunamadı",
+                "emptySearch": "Bu arama için etkinlik bulunamadı",
+                "error": "Etkinlikleriniz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin"
+            },
+            "title": "Etkinlikler"
+        },
+        "index": {
+            "items": {
+                "advanced": "Gelişmiş",
+                "cameraUpload": "Kamera yüklemesi",
+                "contacts": "Kişiler",
+                "documentsProvider": "Belgeler sağlayıcısı",
+                "documentsProviderInfo": "Uygulama dışındaki dosyalarınıza erişmek için Android Dosyalar entegrasyonunu etkinleştirin.",
+                "events": "Etkinlikler",
+                "fileProvider": "Dosya sağlayıcı",
+                "fileProviderInfo": "Uygulama dışındaki dosyalarınıza erişmek için iOS Dosyalar entegrasyonunu etkinleştirin.",
+                "security": "Güvenlik",
+                "used": "{{max}} içinde {{used}} kullanıldı ({{percentage}}%)"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "Belgeler sağlayıcısını etkinleştirmek biyometrik kimlik doğrulamayı devre dışı bırakacaktır. Bu, uygulamayı açmak için biyometrik kimlik doğrulamayı kullanamayacağınız anlamına gelir. Devam etmek istiyor musunuz?",
+                    "title": "Biyometrik kimlik doğrulama etkin"
+                },
+                "fileProvider": {
+                    "message": "Dosya sağlayıcısını etkinleştirmek biyometrik kimlik doğrulamayı devre dışı bırakacaktır. Bu, uygulamayı açmak için biyometrik kimlik doğrulamayı kullanamayacağınız anlamına gelir. Devam etmek istiyor musunuz?",
+                    "title": "Biyometrik kimlik doğrulama etkin"
+                }
+            },
+            "title": "Ayarlar"
+        },
+        "personal": {
+            "items": {
+                "city": "Şehir",
+                "companyName": "Şirket adı",
+                "country": "Ülke",
+                "firstName": "İsim",
+                "lastName": "Soyadı",
+                "postalCode": "Posta kodu",
+                "street": "Cadde",
+                "streetNumber": "Sokak numarası",
+                "vatId": "KDV Kimlik Numarası"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "Düzenle"
+                }
+            },
+            "title": "Kişisel bilgi"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "Yeni parolalar eşleşmiyor.",
+                "weak": "Yeni şifreniz çok zayıf. Lütfen daha güçlü bir şifre seçin. En az 10 karakter uzunluğunda, büyük ve küçük harf karışımı, sayılar ve özel karakterler içeren bir şifre."
+            },
+            "items": {
+                "2fa": "İki Faktörlü Kimlik Doğrulama",
+                "biometricAuth": "Biyometrik kimlik doğrulama",
+                "changePassword": "Şifreyi değiştir"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "Şifrenizi değiştirdikten sonra, oturumunuz kapatılacak ve yeni şifrenizle tekrar giriş yapmanız gerekecek.",
+                    "title": "Şifreyi değiştir"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "Şifreyi onayla",
+                    "title": "Yeni şifreyi onayla"
+                },
+                "currentPassword": {
+                    "placeholder": "Mevcut şifre",
+                    "title": "Mevcut şifreniz"
+                },
+                "newPassword": {
+                    "placeholder": "Yeni şifre",
+                    "title": "Yeni şifreniz"
+                }
+            },
+            "title": "Güvenlik"
+        },
+        "twoFactorAuth": {
+            "copied": "Anahtar panoya kopyalandı",
+            "copyKey": "Anahtarı kopyala",
+            "items": {
+                "2fa": "İki Faktörlü Kimlik Doğrulama"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "Kod",
+                    "title": "Kodu gir"
+                }
+            },
+            "title": "Güvenlik"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "İptal",
+            "title": "Filen'e kaydet",
+            "upload": "Yükle"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "İptal",
+            "select": "Seç"
+        },
+        "itemInfo": {
+            "creation": "Oluşturuldu",
+            "directories": "Dizinler",
+            "directory": "Dizin",
+            "files": "Dosyalar",
+            "location": "Konum",
+            "modified": "Değiştirildi",
+            "name": "Ad",
+            "notAvailable": "N/A",
+            "size": "Boyut",
+            "type": "Tür",
+            "uploaded": "Yüklendi"
+        }
+    },
+    "tabBar": {
+        "chats": "Sohbetler",
+        "drive": "Sürücü",
+        "home": "Ana Sayfa",
+        "notes": "Notlar",
+        "photos": "Fotoğraflar",
+        "settings": "Ayarlar"
+    },
+    "textEditor": {
+        "header": {
+            "back": "Geri"
+        },
+        "saved": "Kaydedildi",
+        "savedSuccess": "Başarıyla kaydedildi",
+        "unsavedChanges": "Kaydedilmemiş değişiklikler"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "Sıralı parça yok",
+            "unknownArtist": "Bilinmeyen sanatçı",
+            "unknownTitle": "Bilinmeyen başlık"
+        },
+        "header": {
+            "title": "Çalma Listeleri"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "Kuyruğa ekle",
+                "cancel": "İptal",
+                "delete": "Sil",
+                "play": "Oynat"
+            },
+            "subTitle": "{{date}} tarihinde güncellenen {{count}} parça"
+        },
+        "list": {
+            "empty": "Henüz çalma listesi yok",
+            "emptySearch": "Bu arama için çalma listesi bulunamadı",
+            "error": "Çalma listeleriniz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin",
+            "footer": "{{count}} çalma listesi"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "Çalma listesine ekle",
+                    "addToQueue": "Kuyruğa ekle",
+                    "cancel": "İptal",
+                    "play": "Oynat",
+                    "removeFromPlaylist": "Çalma listesinden kaldır"
+                }
+            },
+            "list": {
+                "empty": "Henüz parça yok",
+                "emptySearch": "Bu arama için parça bulunamadı",
+                "error": "Parçalarınız yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin",
+                "footer": "{{count}} parça"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Çalma listesi adı",
+                "title": "Çalma listesi oluştur"
+            },
+            "deletePlaylist": {
+                "message": "Bu çalma listesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!",
+                "title": "Çalma listesini sil"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "Geri",
+            "title": "Transferler"
+        },
+        "info": "{{ongoingTransfers}} öğe {{speed}} hızında aktarılıyor, {{remaining}} kaldı",
+        "list": {
+            "empty": "Henüz transfer yok",
+            "emptySearch": "Bu arama için transfer bulunamadı",
+            "error": "Transferleriniz yüklenirken bir hata oluştu, lütfen daha sonra tekrar deneyin"
+        },
+        "noOngoingTransfers": "Devam eden transfer yok",
+        "transfer": {
+            "cancel": "İptal",
+            "cancelAll": "Hepsini iptal et",
+            "pause": "Duraklat",
+            "resume": "Devam et",
+            "stop": "Durdur",
+            "stopAll": "Hepsini durdur"
+        }
+    }
+}

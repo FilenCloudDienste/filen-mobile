@@ -1,0 +1,1402 @@
+{
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "Avbryt",
+            "okText": "OK",
+            "title": "Titel"
+        },
+        "exportMasterKeys": {
+            "cancelText": "Senare",
+            "message": "Du har ännu inte exporterat dina huvudnycklar. Det rekommenderas starkt att exportera dem nu och förvara dem på en säker plats.",
+            "okText": "Exportera",
+            "title": "Exportera huvudnycklar"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "Senare",
+            "message": "Du har överskridit din lagringsgräns. Frigör utrymme eller uppgradera din plan för att förhindra oönskad databorttagning.",
+            "okText": "Uppgradera",
+            "title": "Lagringsanvändning över gränsen"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "Ända-till-ända-krypterad",
+                "second": "Molnplattform"
+            },
+            "login": "Logga in",
+            "signUp": "Registrera dig gratis"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "Vänligen fyll i alla fält."
+            },
+            "forgotPassword": "Glömt lösenord?",
+            "form": {
+                "email": {
+                    "label": "E-postadress",
+                    "placeholder": "Ange din e-postadress"
+                },
+                "password": {
+                    "label": "Lösenord",
+                    "placeholder": "Ange ditt lösenord"
+                }
+            },
+            "header": {
+                "cancel": "Avbryt"
+            },
+            "login": "Logga in",
+            "loginUsingCreds": "Logga in med dina uppgifter",
+            "next": "Nästa",
+            "signUp": "Registrera dig gratis",
+            "submit": "Logga in",
+            "title": "Logga in",
+            "welcome": "Välkommen tillbaka!"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "Kod",
+                "title": "Tvåfaktorsautentisering"
+            },
+            "forgotPassword": {
+                "placeholder": "E-postadress",
+                "success": "Om e-postadressen är registrerad kommer du att motta ett e-postmeddelande med instruktioner för att återställa ditt lösenord.",
+                "title": "Glömt lösenord"
+            },
+            "resendConfirmation": {
+                "placeholder": "E-postadress",
+                "success": "Bekräftelsemejl skickat till {{email}} om det är registrerat.",
+                "title": "Skicka bekräftelse igen"
+            }
+        },
+        "register": {
+            "createAccount": "Skapa konto",
+            "errors": {
+                "emailAddressesDoNotMatch": "E-postadresserna stämmer inte överens.",
+                "emptyFields": "Vänligen fyll i alla fält.",
+                "passwordsDoNotMatch": "Lösenorden matchar inte.",
+                "weakPassword": "Ditt lösenord är för svagt. Vänligen välj ett starkare lösenord. Ett som är minst 10 tecken långt, innehåller en blandning av stora och små bokstäver, siffror och specialtecken."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "Bekräfta e-postadress",
+                    "placeholder": "Bekräfta din e-postadress"
+                },
+                "confirmPassword": {
+                    "label": "Bekräfta lösenord",
+                    "placeholder": "Bekräfta ditt lösenord"
+                },
+                "email": {
+                    "label": "E-postadress",
+                    "placeholder": "Ange din e-postadress"
+                },
+                "password": {
+                    "label": "Lösenord",
+                    "placeholder": "Ange ditt lösenord"
+                }
+            },
+            "header": {
+                "cancel": "Avbryt",
+                "title": "Registrera dig"
+            },
+            "hero": {
+                "create": "Skapa ditt gratis konto",
+                "description": "Ställ in dina referenser för att komma igång med ditt Filen-konto."
+            },
+            "next": "Nästa",
+            "passwordStrength": {
+                "best": "Bäst",
+                "length": "Längd",
+                "lowercase": "Gemener",
+                "medium": "Medium",
+                "numbers": "Siffror",
+                "specialCharacters": "Specialtecken",
+                "strong": "Starkt",
+                "uppercase": "Versaler",
+                "weak": "Svag"
+            },
+            "resendConfirmationEmail": "Skicka bekräftelse-e-post igen",
+            "title": "Registrera dig"
+        },
+        "registrationSuccessful": "Registreringen lyckades! Vänligen kontrollera din e-post för att bekräfta ditt konto."
+    },
+    "biometric": {
+        "appLockedFor": "App låst i {{seconds}} sekunder",
+        "authenticateUsingPin": "Autentisera med din PIN-kod",
+        "errors": {
+            "incorrectPin": "Felaktig PIN-kod. Vänligen försök igen.",
+            "tooManyIncorrectAttempts": "För många felaktiga försök. Försök igen senare."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN",
+                "title": "Ange din PIN-kod"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "B/s",
+        "eib": "EiB/s",
+        "gib": "GiB/s",
+        "kib": "KiB/s",
+        "mib": "MiB/s",
+        "pib": "PiB/s",
+        "tib": "TiB/s",
+        "yib": "YiB/s",
+        "zib": "ZiB/s"
+    },
+    "chats": {
+        "chat": "Chatt",
+        "chats": "Chattar",
+        "header": {
+            "newMessages": "{{count}} nya meddelanden",
+            "search": "Sök i chattar...",
+            "title": "Chattar"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "Lägg till enhetsobjekt",
+                    "addFiles": "Lägg till filer",
+                    "addMedia": "Lägg till media",
+                    "addPhotos": "Lägg till foton",
+                    "cancel": "Avbryt"
+                }
+            },
+            "placeholder": "Skriv ett meddelande",
+            "send": "Skicka",
+            "suggestions": {
+                "emojis": {
+                    "matching": "Emojis som matchar {{query}}"
+                },
+                "mention": {
+                    "matching": "Användare som matchar {{query}}"
+                },
+                "replyTo": {
+                    "replyingTo": "Svara {{name}}"
+                }
+            }
+        },
+        "item": {
+            "draft": "Utkast",
+            "noMessages": "Inga meddelanden ännu",
+            "you": "Du"
+        },
+        "list": {
+            "empty": "Inga chattar hittades",
+            "emptySearch": "Inga chattar hittades för denna sökning",
+            "error": "Det uppstod ett fel vid laddning av dina chattar, försök igen senare"
+        },
+        "menu": {
+            "archive": "Arkiv",
+            "delete": "Radera",
+            "favorite": "Favorit",
+            "leave": "Lämna",
+            "markAsRead": "Markera som läst",
+            "mute": "Stäng av ljud",
+            "muted": "Ljud avstängt",
+            "participants": "Deltagare",
+            "pin": "Lås",
+            "rename": "Byt namn",
+            "unarchive": "Avarkivera",
+            "unfavorite": "Ta bort favoritmarkering",
+            "unmute": "Slå på ljudet",
+            "unpin": "Ta bort från toppen"
+        },
+        "messages": {
+            "everyone": "Alla",
+            "menu": {
+                "cancel": "Avbryt",
+                "copyId": "Kopiera ID",
+                "copyText": "Kopiera text",
+                "delete": "Radera",
+                "disableEmbeds": "Inaktivera inbäddningar",
+                "edit": "Redigera",
+                "reply": "Svara"
+            },
+            "new": "Ny",
+            "time": {
+                "hourAgo": "{{hours}} timme sedan",
+                "hoursAgo": "{{hours}} timmar sedan",
+                "minuteAgo": "{{minutes}} minut sedan",
+                "minutesAgo": "{{minutes}} minuter sedan",
+                "now": "Nu",
+                "secondAgo": "{{seconds}} sekund sedan",
+                "secondsAgo": "{{seconds}} sekunder sedan",
+                "todayAt": "Idag klockan {{date}}",
+                "yesterdayAt": "Igår klockan {{date}}"
+            },
+            "undecryptable": "Kan inte dekryptera meddelandet.",
+            "unknown": "Okänd"
+        },
+        "participants": {
+            "menu": {
+                "remove": "Ta bort"
+            },
+            "participant": "Deltagare",
+            "participants": "Deltagare",
+            "prompts": {
+                "remove": {
+                    "message": "Är du säker på att du vill ta bort denna deltagare? De kommer inte längre kunna se eller skicka meddelanden i denna chatt.",
+                    "success": "{{name}} borttagen",
+                    "title": "Ta bort deltagare"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "Är du säker på att du vill ta bort denna chatt? Detta kommer att ta bort chatten från din lista och du kommer inte längre att kunna se eller skicka meddelanden i denna chatt.",
+                "title": "Ta bort chatt"
+            },
+            "deleteChats": {
+                "message": "Är du säker på att du vill ta bort {{count}} chattar? Detta kommer att ta bort chattarna från din lista och du kommer inte längre att kunna se eller skicka meddelanden i dessa chattar.",
+                "title": "Ta bort chattar"
+            },
+            "deleteMessage": {
+                "message": "Är du säker på att du vill ta bort detta meddelande? Denna åtgärd kan inte ångras!",
+                "title": "Radera meddelande"
+            },
+            "disableEmbeds": {
+                "message": "Är du säker på att du vill inaktivera inbäddningar för detta meddelande? Detta kommer att ta bort allt inbäddat innehåll.",
+                "title": "Inaktivera inbäddningar"
+            },
+            "leaveChat": {
+                "message": "Är du säker på att du vill lämna denna chatt? Du kommer inte längre kunna se eller skicka meddelanden i denna chatt.",
+                "title": "Lämna chatt"
+            },
+            "leaveChats": {
+                "message": "Är du säker på att du vill lämna {{count}} chattar? Du kommer inte längre kunna se eller skicka meddelanden i dessa chattar.",
+                "title": "Lämna chattar"
+            },
+            "renameChat": {
+                "placeholder": "Nytt namn",
+                "title": "Byt namn på chatt"
+            }
+        },
+        "typing": "{{users}} skriver..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "Acceptera",
+            "block": "Blockera",
+            "cancel": "Avbryt",
+            "decline": "Avböj",
+            "remove": "Ta bort",
+            "unblock": "Lås upp"
+        }
+    },
+    "copiedToClipboard": "Kopierat till urklipp",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "Avbryt",
+                    "create": {
+                        "created": "{{name}} skapad",
+                        "directory": "Skapa katalog",
+                        "photo": "Ta foto",
+                        "textFile": "Skapa textfil"
+                    },
+                    "directoryNamePlaceholder": "Katalognamn",
+                    "itemsUploaded": "{{count}} objekt uppladdade",
+                    "noMediaPermissions": "Du måste ge mediebehörighet för att ladda upp foton eller videor.",
+                    "textFileNamePlaceholder": "Textfilens namn",
+                    "upload": {
+                        "directory": "Ladda upp katalog",
+                        "files": "Ladda upp filer",
+                        "media": "Ladda upp media",
+                        "uploaded": "{{name}} uppladdad"
+                    }
+                },
+                "deselectAll": "Avmarkera alla",
+                "dropdown": {
+                    "bulkActions": "Massåtgärder",
+                    "gridMode": "Visa som Rutnät",
+                    "listMode": "Visa som lista",
+                    "sortBy": {
+                        "ascending": "Stigande",
+                        "descending": "Fallande",
+                        "lastModified": {
+                            "ascendingTitle": "Äldst först",
+                            "descendingTitle": "Senast först",
+                            "title": "Senast ändrad"
+                        },
+                        "name": {
+                            "ascendingTitle": "A till Ö",
+                            "descendingTitle": "Z till A",
+                            "title": "Namn"
+                        },
+                        "size": {
+                            "ascendingTitle": "Minst först",
+                            "descendingTitle": "Störst först",
+                            "title": "Storlek"
+                        },
+                        "sortBy": "Sortera efter",
+                        "type": {
+                            "ascendingTitle": "Stigande",
+                            "descendingTitle": "Fallande",
+                            "title": "Typ"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "Äldst först",
+                            "descendingTitle": "Senast först",
+                            "title": "Uppladdningsdatum"
+                        }
+                    },
+                    "transfers": "Överföringar"
+                },
+                "selectAll": "Välj alla"
+            },
+            "title": {
+                "drive": "Drive",
+                "favorites": "Favoriter",
+                "links": "Offentliga länkar",
+                "offline": "Tillgänglig offline",
+                "recents": "Senaste",
+                "selected": "{{count}} valda",
+                "sharedIn": "Delad med dig",
+                "sharedOut": "Delad med andra",
+                "trash": "Papperskorg"
+            }
+        },
+        "itemShared": "{{name}} delad",
+        "itemSharedWith": "{{name}} delade med {{email}}",
+        "list": {
+            "empty": "Inga objekt hittades",
+            "emptySearch": "Inga objekt hittades för denna sökning",
+            "error": "Det uppstod ett fel vid laddning av din enhet, försök igen senare",
+            "footer": "{{count}} objekt",
+            "item": {
+                "menu": {
+                    "availableOffline": "Tillgänglig offline",
+                    "clipboard": "Urklipp",
+                    "color": "Färg",
+                    "copy": "Kopiera",
+                    "copyId": "Kopiera ID",
+                    "copyPath": "Kopiera sökväg",
+                    "delete": "Radera",
+                    "deletePermanently": "Radera permanent",
+                    "deselect": "Avmarkera",
+                    "deselectAll": "Avmarkera alla",
+                    "disablePublicLink": "Inaktivera länk",
+                    "download": "Ladda ner",
+                    "downloadFolder": "Ladda ner mapp",
+                    "export": "Exportera",
+                    "favorite": "Favorit",
+                    "favorite_one": "Favoritobjekt",
+                    "favorite_other": "Favoritmarkera {{count}} objekt",
+                    "favorited": "Favoriterad",
+                    "id": "ID",
+                    "info": "Info",
+                    "location": "Plats",
+                    "makeAvailableOffline": "Gör tillgänglig offline",
+                    "move": "Flytta",
+                    "move_one": "Flytta objekt",
+                    "move_other": "Flytta {{count}} objekt",
+                    "open": "Öppna",
+                    "path": "Sökväg",
+                    "preview": "Förhandsgranska",
+                    "properties": "Egenskaper",
+                    "publicLink": "Offentlig länk",
+                    "removeOffline": "Ta bort offlinefil",
+                    "removeSharedIn": "Ta bort",
+                    "removeSharedOut": "Sluta dela",
+                    "rename": "Byt namn",
+                    "restore": "Återställ",
+                    "saveToGallery": "Spara till galleriet",
+                    "select": "Välj",
+                    "selectAll": "Välj alla",
+                    "share": "Dela",
+                    "share_one": "Dela objekt",
+                    "share_other": "Dela {{count}} objekt",
+                    "trash": "Papperskorg",
+                    "trash_one": "Papperskorgen",
+                    "trash_other": "Papperskorg {{count}} objekt",
+                    "unfavorite": "Ta bort favoritmarkering",
+                    "versionHistory": "Versionshistorik",
+                    "withUser": "Med användare"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "Är du säker på att du vill ta bort {{count}} objekt permanent? Denna åtgärd kan inte ångras!",
+                "title": "Radera permanent"
+            },
+            "deletePermanently": {
+                "message": "Är du säker på att du vill ta bort det här objektet permanent? Denna åtgärd kan inte ångras!",
+                "title": "Radera permanent"
+            },
+            "disablePublicLinks": {
+                "message": "Är du säker på att du vill inaktivera offentliga länkar för {{count}} objekt? Länkarna kommer inte längre att vara tillgängliga.",
+                "title": "Inaktivera offentliga länkar"
+            },
+            "removeOfflineFiles": {
+                "message": "Är du säker på att du vill ta bort {{count}} offlinefiler? De kommer inte längre vara tillgängliga offline.",
+                "title": "Ta bort offlinefiler"
+            },
+            "removeSharedInItem": {
+                "message": "Är du säker på att du vill ta bort detta objekt från dina delade objekt? Du kommer inte längre kunna se eller komma åt det.",
+                "title": "Ta bort"
+            },
+            "removeSharedInItems": {
+                "message": "Är du säker på att du vill ta bort {{count}} objekt från dina delade objekt? Du kommer inte längre kunna se eller komma åt dem.",
+                "title": "Ta bort"
+            },
+            "removeSharedOutItem": {
+                "message": "Är du säker på att du vill sluta dela detta objekt? Användaren kommer inte längre att kunna komma åt det.",
+                "title": "Sluta dela"
+            },
+            "removeSharedOutItems": {
+                "message": "Är du säker på att du vill sluta dela {{count}} objekt? Användarna kommer inte längre att kunna komma åt dem.",
+                "title": "Sluta dela"
+            },
+            "renameItem": {
+                "placeholder": "Nytt namn",
+                "title": "Byt namn"
+            },
+            "trashItem": {
+                "message": "Är du säker på att du vill flytta detta objekt till papperskorgen? Du kan återställa det senare.",
+                "title": "Flytta till papperskorgen"
+            },
+            "trashItems": {
+                "message": "Är du säker på att du vill flytta {{count}} objekt till papperskorgen? Du kan återställa dem senare.",
+                "title": "Flytta till papperskorgen"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "Inga objekt hittades",
+                "emptySearch": "Inga objekt hittades för denna sökning",
+                "error": "Det uppstod ett fel vid laddning av sökresultaten, försök igen senare",
+                "footer": "{{count}} objekt"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "Avbryt",
+        "items": {
+            "downloadButton": "Nedladdningsknapp",
+            "edit": "Redigera",
+            "enabled": "Aktiverad",
+            "expiration": "Utgångsdatum",
+            "expiration12h": "12 timmar",
+            "expiration14d": "14 dagar",
+            "expiration1d": "1 dag",
+            "expiration1h": "1 timme",
+            "expiration30d": "30 dagar",
+            "expiration3d": "3 dagar",
+            "expiration6h": "6 timmar",
+            "expiration7d": "7 dagar",
+            "expirationNever": "Aldrig",
+            "password": "Lösenord"
+        },
+        "onlyPro": "Den här funktionen är endast tillgänglig för Filen Pro-användare. Prenumerera på någon Filen-plan för att aktivera den.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "Lämna tomt för att ta bort lösenord",
+                "title": "Redigera lösenord"
+            }
+        },
+        "shareDialogTile": "Filen offentlig länk",
+        "title": "Redigera offentlig länk",
+        "unsavedChanges": "Osparade ändringar"
+    },
+    "errors": {
+        "cannotOpenURL": "Kan inte öppna URL.",
+        "notEnoughDiskSpace": "Inte tillräckligt med lokalt diskutrymme tillgängligt.",
+        "sharingNotAvailable": "Delning är inte tillgänglig på denna enhet.",
+        "youAreOffline": "Du är för närvarande offline. Kontrollera din internetanslutning."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "Avbryt",
+                "confirm": "Radera",
+                "message": "Är du säker på att du vill ta bort denna version? Denna åtgärd kan inte ångras!",
+                "title": "Radera version"
+            },
+            "restore": {
+                "cancel": "Avbryt",
+                "confirm": "Återställ",
+                "message": "Är du säker på att du vill återställa denna version? Detta kommer att skriva över den aktuella filen.",
+                "title": "Återställ version"
+            }
+        },
+        "header": {
+            "title": "Versionshistorik"
+        },
+        "list": {
+            "empty": "Inga versioner ännu",
+            "emptySearch": "Inga versioner hittades för denna sökning",
+            "error": "Det uppstod ett fel vid laddning av filversioner, försök igen senare",
+            "item": {
+                "current": "Aktuell",
+                "delete": "Radera",
+                "restore": "Återställ"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "Byte",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiB",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "Ingen förhandsvisning tillgänglig"
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "Favoriter"
+            },
+            "links": {
+                "title": "Offentliga länkar"
+            },
+            "offline": {
+                "title": "Tillgänglig offline"
+            },
+            "recents": {
+                "title": "Senaste"
+            },
+            "sharedIn": {
+                "title": "Delad med dig"
+            },
+            "sharedOut": {
+                "title": "Delad med andra"
+            },
+            "trash": {
+                "title": "Papperskorg"
+            }
+        },
+        "listEmpty": {
+            "favorites": "Inga favoriter än",
+            "links": "Inga offentliga länkar ännu",
+            "offline": "Inga offline-objekt ännu",
+            "recents": "Inga senaste än",
+            "sharedIn": "Inga delade objekt ännu",
+            "sharedOut": "Inga delade objekt ännu",
+            "trash": "Inga borttagna objekt ännu"
+        },
+        "title": "Hem"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "Avbryt",
+            "okText": "OK",
+            "title": "Titel"
+        }
+    },
+    "listEmpty": {
+        "empty": "Inget hittades",
+        "emptySearch": "Ingenting hittades för denna sökning",
+        "error": "Det uppstod ett fel, försök igen senare"
+    },
+    "localAuthentication": {
+        "cancelLabel": "Avbryt",
+        "promptMessage": "Autentisera för att fortsätta"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "Skriv din kod här...",
+                "text": "Skriv din text här..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "Avmarkera alla",
+                    "selectAll": "Välj alla"
+                },
+                "types": {
+                    "checklist": "Checklista",
+                    "code": "Kod",
+                    "markdown": "Markdown",
+                    "rich": "Rich text",
+                    "text": "Text"
+                }
+            },
+            "menu": {
+                "settings": "Inställningar"
+            },
+            "selected": "{{count}} valda",
+            "title": "Anteckningar"
+        },
+        "history": {
+            "list": {
+                "empty": "Ingen historik tillgänglig",
+                "emptySearch": "Ingen post hittades för denna sökning",
+                "error": "Det uppstod ett fel vid laddning av historiken, försök igen senare",
+                "footer": "{{count}} objekt"
+            },
+            "noPreview": "Ingen förhandsvisning tillgänglig",
+            "prompts": {
+                "restore": {
+                    "message": "Är du säker på att du vill återställa denna anteckning? Detta kommer att skriva över den aktuella anteckningen.",
+                    "title": "Återställ anteckning"
+                }
+            },
+            "restore": "Återställ",
+            "title": "Historik"
+        },
+        "list": {
+            "empty": "Inga anteckningar än",
+            "emptySearch": "Ingen anteckning hittades för denna sökning",
+            "error": "Det uppstod ett fel vid laddning av dina anteckningar, försök igen senare",
+            "footer": "{{count}} objekt"
+        },
+        "menu": {
+            "archive": "Arkiv",
+            "clipboard": "Urklipp",
+            "copyId": "Kopiera ID",
+            "delete": "Radera",
+            "deselect": "Avmarkera",
+            "duplicate": "Duplicera",
+            "export": "Exportera",
+            "favorite": "Favorit",
+            "favorited": "Favoriterad",
+            "history": "Historik",
+            "leave": "Lämna",
+            "participants": "Deltagare",
+            "pin": "Lås",
+            "pinned": "Fäst vid topp",
+            "preview": "Förhandsgranska",
+            "rename": "Byt namn",
+            "restore": "Återställ",
+            "select": "Välj",
+            "tags": "Taggar",
+            "trash": "Papperskorg",
+            "type": "Typ",
+            "types": {
+                "checklist": "Checklista",
+                "code": "Kod",
+                "md": "Markdown",
+                "rich": "Rich text",
+                "text": "Text"
+            },
+            "unfavorite": "Ta bort favoritmarkering",
+            "unpin": "Ta bort från toppen"
+        },
+        "participants": {
+            "list": {
+                "empty": "Inga deltagare än",
+                "emptySearch": "Ingen deltagare hittades för denna sökning",
+                "error": "Det uppstod ett fel vid laddning av deltagarna, försök igen senare",
+                "footer": "{{count}} deltagare"
+            },
+            "menu": {
+                "permissionsWrite": "Skrivbehörigheter",
+                "remove": "Ta bort"
+            },
+            "title": "Deltagare"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "Anteckningens titel",
+                "title": "Skapa anteckning"
+            },
+            "createTag": {
+                "placeholder": "Taggnamn",
+                "title": "Skapa etikett"
+            },
+            "deleteNote": {
+                "message": "Är du säker på att du vill ta bort denna notering permanent? Denna åtgärd kan inte ångras!",
+                "title": "Radera anteckning"
+            },
+            "deleteNotes": {
+                "message": "Är du säker på att du vill ta bort {{count}} noteringar permanent? Denna åtgärd kan inte ångras!",
+                "title": "Radera anteckningar"
+            },
+            "deleteTag": {
+                "message": "Är du säker på att du vill ta bort denna tagg? Denna åtgärd kan inte ångras!",
+                "title": "Ta bort tagg"
+            },
+            "deleteTags": {
+                "message": "Är du säker på att du vill ta bort {{count}} taggar? Denna åtgärd kan inte ångras!",
+                "title": "Ta bort taggar"
+            },
+            "leaveNote": {
+                "message": "Är du säker på att du vill lämna denna anteckning? Du kommer inte längre kunna se eller redigera den.",
+                "title": "Lämna anteckning"
+            },
+            "leaveNotes": {
+                "message": "Är du säker på att du vill lämna {{count}} anteckningar? Du kommer inte längre kunna se eller redigera dem.",
+                "title": "Lämna anteckningar"
+            },
+            "removeParticipant": {
+                "message": "Är du säker på att du vill ta bort denna deltagare? De kommer inte längre kunna se eller redigera denna anteckning.",
+                "title": "Ta bort deltagare"
+            },
+            "removeParticipants": {
+                "message": "Är du säker på att du vill ta bort {{count}} deltagare? De kommer inte längre kunna se eller redigera dessa anteckningar.",
+                "title": "Ta bort deltagare"
+            },
+            "renameNote": {
+                "placeholder": "Nytt namn",
+                "title": "Byt namn på anteckning"
+            },
+            "renameTag": {
+                "placeholder": "Nytt taggnamn",
+                "title": "Byt namn på tagg"
+            },
+            "trashNote": {
+                "message": "Är du säker på att du vill flytta denna not till papperskorgen? Du kan återställa den senare.",
+                "title": "Flytta till papperskorgen"
+            },
+            "trashNotes": {
+                "message": "Är du säker på att du vill flytta {{count}} noteringar till papperskorgen? Du kan återställa dem senare.",
+                "title": "Flytta till papperskorgen"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "Radera",
+                "favorited": "Favoriterad",
+                "rename": "Byt namn"
+            },
+            "names": {
+                "all": "Alla",
+                "archived": "Arkiverad",
+                "favorited": "Favoriterad",
+                "pinned": "Fäst vid topp",
+                "shared": "Delad",
+                "trash": "Papperskorg"
+            }
+        },
+        "title": "Anteckningar"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "Avbryt",
+            "placeholder": "Sök..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "Offline-läge"
+    },
+    "photos": {
+        "header": {
+            "selected": "{{count}} valda"
+        },
+        "list": {
+            "empty": "Inga foton än",
+            "emptySearch": "Inga foton hittades för denna sökning",
+            "error": "Det uppstod ett fel vid laddning av dina bilder, försök igen senare"
+        },
+        "menu": {
+            "settings": "Inställningar"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} objekt"
+                },
+                "list": {
+                    "empty": "Inga album hittades",
+                    "emptySearch": "Inga album hittades för denna sökning",
+                    "error": "Det uppstod ett fel vid laddning av dina album, försök igen senare"
+                },
+                "title": "Album"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "Du måste ge mediebehörighet för att komma åt dina foton."
+                },
+                "items": {
+                    "albums": "Album",
+                    "albumsInfo": "Välj vilka album som ska inkluderas i kamerauppladdningen.",
+                    "background": "Bakgrund",
+                    "backgroundInfo": "Tillåt kamerauppladdning i bakgrunden. Detta kan leda till hög batteriförbrukning. Bakgrundsuppladdningar inkluderar endast bilder. Funkar bara när appen inte är tvångsavslutad.",
+                    "cellular": "Mobildata",
+                    "cellularInfo": "Tillåt kamerauppladdning över mobildata. Detta kan leda till hög dataanvändning.",
+                    "cloudDirectory": "Molnkatalog",
+                    "cloudDirectoryNotSet": "Inte inställt",
+                    "compress": "Komprimera",
+                    "compressInfo": "Komprimera foton för att spara lagringsutrymme. Detta kan försämra fotonas kvalitet. JPG-komprimering på 80% kvalitet.",
+                    "enabled": "Aktiverad",
+                    "lowBattery": "Låg batterinivå",
+                    "lowBatteryInfo": "Inaktivera kamerauppladdning när batteriet är lågt.",
+                    "permissionsError": "Behörighetsfel",
+                    "permissionsErrorInfo": "Vänligen tillåt appen att få åtkomst till dina foton och videor i systeminställningarna.",
+                    "videos": "Videor",
+                    "videosInfo": "Inkludera videor i kamerauppladdningen."
+                },
+                "title": "Inställningar"
+            }
+        },
+        "state": {
+            "synced": "Synkroniserad",
+            "syncing": "Synkroniserar",
+            "syncingProgress": "{{done}} av {{total}} objekt synkroniserade"
+        },
+        "title": "Foton"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "Avbryt",
+            "done": "Klart",
+            "selectContact": "Välj kontakt",
+            "selectContacts": "Välj kontakter"
+        },
+        "list": {
+            "empty": "Inga kontakter ännu",
+            "emptySearch": "Inga kontakter hittades för denna sökning",
+            "error": "Det uppstod ett fel vid laddning av dina kontakter, försök igen senare",
+            "footer": "{{count}} kontakter"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} valda"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "Avbryt",
+            "done": "Klart",
+            "drive": "Drive",
+            "selectDirectories": "Välj kataloger",
+            "selectDirectory": "Välj katalog",
+            "selectFile": "Välj fil",
+            "selectFiles": "Välj filer",
+            "selectItem": "Välj objekt",
+            "selectItems": "Välj objekt",
+            "selectRoot": "Välj molnlagring"
+        },
+        "list": {
+            "empty": "Ingenting uppladdat än",
+            "emptySearch": "Inga objekt hittades för denna sökning",
+            "error": "Det uppstod ett fel vid laddning av dina filer, försök igen senare",
+            "footer": "{{count}} objekt"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "Katalognamn",
+                "success": "{{name}} skapad",
+                "title": "Skapa katalog"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} valda"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "Avbryt",
+            "done": "Klart",
+            "selectPlaylist": "Välj spellista",
+            "selectPlaylists": "Välj spellistor"
+        },
+        "item": {
+            "subTitle": "{{count}} spår, uppdaterad {{date}}"
+        },
+        "list": {
+            "empty": "Inga spellistor än",
+            "emptySearch": "Inga spellistor hittades för denna sökning",
+            "error": "Det uppstod ett fel vid laddning av dina spellistor, försök igen senare",
+            "footer": "{{count}} spellistor"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Spellistans namn",
+                "title": "Skapa spellista"
+            }
+        },
+        "selected": "{{countOrName}} valda",
+        "toolbar": {
+            "selected": "{{countOrName}} valda"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "Avatarbildens storlek överskrider gränsen på 3 MiB.",
+                "emailsNotMatching": "De nya e-postadresserna stämmer inte överens."
+            },
+            "items": {
+                "changeAvatar": "Ändra avatar",
+                "deleteAllFilesAndDirectories": "Radera alla filer och kataloger",
+                "deleteVersionedFiles": "Ta bort versionerade filer",
+                "emailAddress": "E-postadress",
+                "fileVersioning": "Filversionering",
+                "fileVersioningInfo": "Aktivera filversionering för att hålla reda på ändringar som gjorts i dina filer.",
+                "gdpr": "GDPR-information",
+                "loginAlerts": "Inloggningsvarningar",
+                "loginAlertsInfo": "Få varningar när ditt konto nås.",
+                "logout": "Logga ut",
+                "more": "Fler kontoinställningar",
+                "nickname": "Smeknamn",
+                "personalInformation": "Personlig information",
+                "requestAccountDeletion": "Begär kontoborttagning",
+                "requestAccountDeletionInfo": "Begär kontoborttagning. Vi kommer att skicka ett e-postmeddelande med vidare instruktioner."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "Kod",
+                    "title": "Tvåfaktorsautentisering"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "Bekräfta ny e-postadress",
+                        "title": "Bekräfta ny e-postadress"
+                    },
+                    "newEmail": {
+                        "placeholder": "Ny e-postadress",
+                        "title": "Ny e-postadress"
+                    },
+                    "password": {
+                        "placeholder": "Lösenord",
+                        "title": "Ditt lösenord"
+                    }
+                },
+                "deleteAccount": {
+                    "message": "Är du säker på att du vill begära kontoradering? Du kommer att få ett e-postmeddelande med vidare instruktioner.",
+                    "title": "Begär kontoborttagning"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "Är du säker på att du vill ta bort alla filer och kataloger? Denna åtgärd kan inte ångras!",
+                    "title": "Radera alla filer och kataloger"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "Är du verkligen säker? Denna åtgärd går inte att ångra!",
+                    "title": "Radera alla filer och kataloger"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "Är du säker på att du vill ta bort alla versionerade filer? Denna åtgärd kan inte ångras!",
+                    "title": "Ta bort versionerade filer"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "Är du verkligen säker? Denna åtgärd går inte att ångra!",
+                    "title": "Ta bort versionerade filer"
+                },
+                "logout": {
+                    "message": "Är du säker på att du vill logga ut? Du måste logga in igen för att få åtkomst till ditt konto.",
+                    "title": "Logga ut"
+                },
+                "more": {
+                    "message": "Fler inställningar finns tillgängliga i webbappen. Vill du öppna den nu?",
+                    "title": "Öppna Webbappen"
+                },
+                "updateNickname": {
+                    "placeholder": "Nytt smeknamn",
+                    "title": "Uppdatera smeknamn"
+                }
+            },
+            "title": "Konto"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "Rensa cache",
+                "clearOfflineFiles": "Rensa offlinefiler",
+                "clearThumbnails": "Rensa miniatyrer",
+                "clearTrackPlayer": "Rensa spårspelare"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "Att rensa cacheminnet tar bort temporära filer. Detta kan avbryta pågående uppladdningar eller nedladdningar. Är du säker på att du vill fortsätta?",
+                    "title": "Rensa cache"
+                },
+                "clearOfflineFiles": {
+                    "message": "Att rensa offlinefiler kommer att ta bort alla filer som finns tillgängliga offline. Är du säker på att du vill fortsätta?",
+                    "title": "Rensa offlinefiler"
+                },
+                "clearThumbnails": {
+                    "message": "Rensning av miniatyrbilder kommer att medföra att appen laddar ner varje synlig miniatyr igen. Är du säker på att du vill fortsätta?",
+                    "title": "Rensa miniatyrer"
+                },
+                "clearTrackPlayer": {
+                    "message": "Att rensa cacheminnet för spårspelaren tar bort cachade spår och bilder. Detta kan leda till ökade laddningstider. Är du säker på att du vill fortsätta?",
+                    "title": "Rensa spårspelare"
+                }
+            },
+            "title": "Avancerat"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "Biometrisk autentisering är inte tillgänglig på denna enhet. Vänligen aktivera endast PIN-autentisering eller använd en enhet med stöd för biometrisk autentisering.",
+                "pinNotMatching": "Säkerhets-PINs matchar inte.",
+                "pinTooLong": "Reserv-PIN-koden får inte vara längre än 128 siffror.",
+                "pinTooShort": "Reserv-PIN måste vara minst 4 siffror lång."
+            },
+            "items": {
+                "biometricAuth": "Biometrisk autentisering",
+                "lockAppAfter": "Lås app efter",
+                "pinOnly": "Endast PIN-kod"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15 minuter",
+                "fiveMinutes": "5 minuter",
+                "immediately": "Omedelbart",
+                "minutes": "{{minutes}} minuter",
+                "never": "Aldrig",
+                "oneHour": "1 timme",
+                "oneMinute": "1 minut",
+                "tenMinutes": "10 minuter",
+                "thirtyMinutes": "30 minuter"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "Är du säker på att du vill inaktivera biometrisk autentisering?",
+                    "title": "Inaktivera biometrisk autentisering"
+                },
+                "documentsProvider": {
+                    "message": "Aktivering av biometrisk autentisering kommer att inaktivera dokumentleverantören. Detta innebär att du inte kommer att kunna komma åt dina filer i andra appar med hjälp av Filens dokumentleverantör. Vill du fortsätta?",
+                    "title": "Dokumentleverantör aktiverad"
+                },
+                "enable": {
+                    "placeholder": "Återställnings-PIN",
+                    "title": "Ställ in reserv-PIN"
+                },
+                "enableConfirm": {
+                    "placeholder": "Bekräfta PIN",
+                    "title": "Bekräfta reserv-PIN"
+                },
+                "fileProvider": {
+                    "message": "Aktivering av biometrisk autentisering kommer att inaktivera filleverantören. Detta innebär att du inte kommer att kunna komma åt dina filer i andra appar med hjälp av Filens filleverantör. Vill du fortsätta?",
+                    "title": "Fillagringsleverantör aktiverad"
+                }
+            },
+            "title": "Säkerhet"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "Inga kontakter hittades",
+                    "emptySearch": "Inga kontakter hittades för denna sökning",
+                    "error": "Det uppstod ett fel vid laddning av dina kontakter, försök igen senare"
+                },
+                "blocked": {
+                    "empty": "Inga blockerade kontakter hittades",
+                    "emptySearch": "Inga blockerade kontakter hittades för denna sökning",
+                    "error": "Det uppstod ett fel vid laddning av dina kontakter, försök igen senare"
+                },
+                "offline": {
+                    "empty": "Inga offlinekontakter hittades",
+                    "emptySearch": "Inga offlinekontakter hittades för denna sökning",
+                    "error": "Det uppstod ett fel vid laddning av dina kontakter, försök igen senare"
+                },
+                "online": {
+                    "empty": "Inga onlinekontakter hittades",
+                    "emptySearch": "Inga onlinekontakter hittades för denna sökning",
+                    "error": "Det uppstod ett fel vid laddning av dina kontakter, försök igen senare"
+                },
+                "pending": {
+                    "empty": "Inga kontaktförfrågningar hittades",
+                    "emptySearch": "Inga kontaktförfrågningar hittades för denna sökning",
+                    "error": "Det uppstod ett fel vid laddning av dina kontaktförfrågningar, försök igen senare"
+                },
+                "requests": {
+                    "empty": "Inga kontaktförfrågningar hittades",
+                    "emptySearch": "Inga kontaktförfrågningar hittades för denna sökning",
+                    "error": "Det uppstod ett fel vid laddning av dina kontaktförfrågningar, försök igen senare"
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "Är du säker på att du vill blockera denna kontakt?",
+                    "success": "{{email}} blockerad",
+                    "title": "Blockera kontakt"
+                },
+                "blockContacts": {
+                    "message": "Är du säker på att du vill blockera {{count}} kontakter?",
+                    "success": "{{count}} kontakter blockerade",
+                    "title": "Blockera kontakter"
+                },
+                "removeContact": {
+                    "message": "Är du säker på att du vill ta bort denna kontakt?",
+                    "success": "{{email}} borttagen",
+                    "title": "Ta bort kontakt"
+                },
+                "removeContacts": {
+                    "message": "Är du säker på att du vill ta bort {{count}} kontakter?",
+                    "success": "{{count}} kontakter borttagna",
+                    "title": "Ta bort kontakter"
+                },
+                "sendRequest": {
+                    "placeholder": "Filen e-postadress",
+                    "success": "Kontaktförfrågan skickad till {{email}}",
+                    "title": "Skicka kontaktförfrågan"
+                },
+                "unblockContact": {
+                    "message": "Är du säker på att du vill avblockera denna kontakt?",
+                    "success": "{{email}} avblockerad",
+                    "title": "Avblockera kontakt"
+                },
+                "unblockContacts": {
+                    "message": "Är du säker på att du vill avblockera {{count}} kontakter?",
+                    "success": "{{count}} kontakter avblockerade",
+                    "title": "Avblockera kontakter"
+                }
+            },
+            "tabs": {
+                "all": "Alla",
+                "blocked": "Blockerad",
+                "offline": "Offline",
+                "online": "Online",
+                "pending": "Väntande",
+                "requests": "Förfrågningar"
+            },
+            "title": "Kontakter"
+        },
+        "events": {
+            "event": "Händelse",
+            "eventInfo": {
+                "2faDisabled": "2FA inaktiverat",
+                "2faEnabled": "2FA aktiverat",
+                "baseFolderCreated": "Bas mapp skapad",
+                "codeRedeemed": "Kod \"{{code}}\" inlöst",
+                "deleteAll": "Alla mappar och filer raderade permanent",
+                "deleteFilePermanently": "{{name}} raderades permanent",
+                "deleteFolderPermanently": "{{name}} raderades permanent",
+                "deleteUnfinished": "Ofullbordade uppladdningar raderade",
+                "deleteVersioned": "Alla versionerade filer raderade",
+                "emailChangeAttempt": "Försök att ändra e-postadress",
+                "emailChanged": "E-post ändrad",
+                "failedLogin": "Misslyckat inloggningsförsök",
+                "fileLinkEdited": "Offentlig länk för {{name}} redigerad",
+                "fileMetadataChanged": "Metadata för {{name}} ändrad",
+                "fileMoved": "{{name}} flyttad",
+                "fileRenamed": "{{oldName}} bytte namn till {{newName}}",
+                "fileRestored": "{{name}} återställd",
+                "fileRm": "{{name}} raderad",
+                "fileShared": "{{name}} delade med {{email}}",
+                "fileTrash": "{{name}} flyttad till papperskorgen",
+                "fileUploaded": "{{name}} uppladdad",
+                "fileVersioned": "{{name}} versionerad",
+                "folderColorChanged": "Färg på katalogen {{name}} ändrad",
+                "folderLinkEdited": "Offentlig länk till katalog redigerad",
+                "folderMetadataChanged": "Metadata för katalog {{name}} ändrad",
+                "folderMoved": "Katalog {{name}} flyttad",
+                "folderRenamed": "Katalog {{oldName}} bytte namn till {{newName}}",
+                "folderRestored": "Katalog {{name}} återställd",
+                "folderShared": "Katalog {{name}} delad med {{email}}",
+                "folderTrash": "Katalog {{name}} flyttad till papperskorgen",
+                "itemFavorited": "{{name}} favoriserad",
+                "itemUnfavorited": "{{name}} ej favoriserad",
+                "login": "Inloggad",
+                "passwordChanged": "Lösenord ändrat",
+                "removedSharedInItems": "Delade objekt borttagna från {{email}}",
+                "removedSharedOutItems": "Delade objekt borttagna från {{email}}",
+                "requestAccountDeletion": "Kontoborttagning begärd",
+                "subFolderCreated": "Katalog {{name}} skapad",
+                "trashEmptied": "Papperskorgen tömd",
+                "versionedFileRestored": "Version av {{name}} återställd"
+            },
+            "events": "Händelser",
+            "listEmpty": {
+                "empty": "Inga händelser hittades",
+                "emptySearch": "Inga evenemang hittades för denna sökning",
+                "error": "Det uppstod ett fel vid laddning av dina händelser, försök igen senare"
+            },
+            "title": "Händelser"
+        },
+        "index": {
+            "items": {
+                "advanced": "Avancerat",
+                "cameraUpload": "Kamerauppladdning",
+                "contacts": "Kontakter",
+                "documentsProvider": "Dokumentleverantör",
+                "documentsProviderInfo": "Aktivera Android-filerintegration för att komma åt dina filer utanför appen.",
+                "events": "Händelser",
+                "fileProvider": "Fillagringsleverantör",
+                "fileProviderInfo": "Aktivera iOS-filerintegration för att komma åt dina filer utanför appen.",
+                "security": "Säkerhet",
+                "used": "{{used}} använt av {{max}} ({{percentage}}%)"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "Om dokumentleverantören aktiveras kommer biometrisk autentisering att inaktiveras. Detta innebär att du inte kommer kunna använda biometrisk autentisering för att låsa upp appen. Vill du fortsätta?",
+                    "title": "Biometrisk autentisering aktiverad"
+                },
+                "fileProvider": {
+                    "message": "Om filleverantören aktiveras kommer biometrisk autentisering att inaktiveras. Detta innebär att du inte kommer kunna använda biometrisk autentisering för att låsa upp appen. Vill du fortsätta?",
+                    "title": "Biometrisk autentisering aktiverad"
+                }
+            },
+            "title": "Inställningar"
+        },
+        "personal": {
+            "items": {
+                "city": "Stad",
+                "companyName": "Företagsnamn",
+                "country": "Land",
+                "firstName": "Förnamn",
+                "lastName": "Efternamn",
+                "postalCode": "Postnummer",
+                "street": "Gata",
+                "streetNumber": "Gatunummer",
+                "vatId": "Moms-ID"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "Redigera"
+                }
+            },
+            "title": "Personlig information"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "De nya lösenorden matchar inte.",
+                "weak": "Ditt nya lösenord är för svagt. Vänligen välj ett starkare lösenord. Ett som är minst 10 tecken långt, innehåller en blandning av stora och små bokstäver, siffror och specialtecken."
+            },
+            "items": {
+                "2fa": "Tvåfaktorsautentisering",
+                "biometricAuth": "Biometrisk autentisering",
+                "changePassword": "Ändra lösenord"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "Efter att du ändrat ditt lösenord, kommer du att loggas ut och behöver logga in igen med ditt nya lösenord.",
+                    "title": "Ändra lösenord"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "Bekräfta lösenord",
+                    "title": "Bekräfta nytt lösenord"
+                },
+                "currentPassword": {
+                    "placeholder": "Nuvarande lösenord",
+                    "title": "Ditt nuvarande lösenord"
+                },
+                "newPassword": {
+                    "placeholder": "Nytt lösenord",
+                    "title": "Ditt nya lösenord"
+                }
+            },
+            "title": "Säkerhet"
+        },
+        "twoFactorAuth": {
+            "copied": "Nyckel kopierad till urklipp",
+            "copyKey": "Kopiera nyckel",
+            "items": {
+                "2fa": "Tvåfaktorsautentisering"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "Kod",
+                    "title": "Ange kod"
+                }
+            },
+            "title": "Säkerhet"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "Avbryt",
+            "title": "Spara till Filen",
+            "upload": "Ladda upp"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "Avbryt",
+            "select": "Välj"
+        },
+        "itemInfo": {
+            "creation": "Skapad",
+            "directories": "Kataloger",
+            "directory": "Katalog",
+            "files": "Filer",
+            "location": "Plats",
+            "modified": "Ändrad",
+            "name": "Namn",
+            "notAvailable": "Ej tillämpligt",
+            "size": "Storlek",
+            "type": "Typ",
+            "uploaded": "Uppladdad"
+        }
+    },
+    "tabBar": {
+        "chats": "Chattar",
+        "drive": "Drive",
+        "home": "Hem",
+        "notes": "Anteckningar",
+        "photos": "Foton",
+        "settings": "Inställningar"
+    },
+    "textEditor": {
+        "header": {
+            "back": "Tillbaka"
+        },
+        "saved": "Sparad",
+        "savedSuccess": "Sparat framgångsrikt",
+        "unsavedChanges": "Osparade ändringar"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "Inget spår i kö",
+            "unknownArtist": "Okänd artist",
+            "unknownTitle": "Okänd titel"
+        },
+        "header": {
+            "title": "Spellistor"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "Lägg till i kö",
+                "cancel": "Avbryt",
+                "delete": "Radera",
+                "play": "Spela"
+            },
+            "subTitle": "{{count}} spår, uppdaterad {{date}}"
+        },
+        "list": {
+            "empty": "Inga spellistor än",
+            "emptySearch": "Inga spellistor hittades för denna sökning",
+            "error": "Det uppstod ett fel vid laddning av dina spellistor, försök igen senare",
+            "footer": "{{count}} spellistor"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "Lägg till i spellista",
+                    "addToQueue": "Lägg till i kö",
+                    "cancel": "Avbryt",
+                    "play": "Spela",
+                    "removeFromPlaylist": "Ta bort från spellista"
+                }
+            },
+            "list": {
+                "empty": "Inga spår än",
+                "emptySearch": "Inga spår hittades för denna sökning",
+                "error": "Det uppstod ett fel vid laddning av dina spår, försök igen senare",
+                "footer": "{{count}} spår"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Spellistans namn",
+                "title": "Skapa spellista"
+            },
+            "deletePlaylist": {
+                "message": "Är du säker på att du vill ta bort denna spellista? Denna åtgärd kan inte ångras!",
+                "title": "Ta bort spellista"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "Tillbaka",
+            "title": "Överföringar"
+        },
+        "info": "Överför {{ongoingTransfers}} objekt med {{speed}}, {{remaining}} kvarstår",
+        "list": {
+            "empty": "Inga överföringar än",
+            "emptySearch": "Inga överföringar hittades för denna sökning",
+            "error": "Det uppstod ett fel vid laddning av dina överföringar, försök igen senare"
+        },
+        "noOngoingTransfers": "Inga pågående överföringar",
+        "transfer": {
+            "cancel": "Avbryt",
+            "cancelAll": "Avbryt alla",
+            "pause": "Pausa",
+            "resume": "Återuppta",
+            "stop": "Stoppa",
+            "stopAll": "Stoppa alla"
+        }
+    }
+}

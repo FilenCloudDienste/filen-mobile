@@ -1,0 +1,1402 @@
+{
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "Avbryt",
+            "okText": "OK",
+            "title": "Tittel"
+        },
+        "exportMasterKeys": {
+            "cancelText": "Senere",
+            "message": "Du har ikke eksportert dine hovednøkler ennå. Det anbefales sterkt å eksportere dem nå og lagre dem på et sikkert sted.",
+            "okText": "Eksporter",
+            "title": "Eksporter hovednøkler"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "Senere",
+            "message": "Du har overskredet lagringsgrensen din. Vennligst frigjør plass eller oppgrader planen din for å unngå uønsket sletting av data.",
+            "okText": "Oppgrader",
+            "title": "Lagringsbruk over grensen"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "Ende-til-ende kryptert",
+                "second": "Cloud Platform"
+            },
+            "login": "Logg inn",
+            "signUp": "Registrer deg gratis"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "Vennligst fyll ut alle felt."
+            },
+            "forgotPassword": "Glemt passord?",
+            "form": {
+                "email": {
+                    "label": "E-postadresse",
+                    "placeholder": "Angi e-postadressen din"
+                },
+                "password": {
+                    "label": "Passord",
+                    "placeholder": "Skriv inn passordet ditt"
+                }
+            },
+            "header": {
+                "cancel": "Avbryt"
+            },
+            "login": "Logg inn",
+            "loginUsingCreds": "Logg inn med dine legitimasjoner",
+            "next": "Neste",
+            "signUp": "Registrer deg gratis",
+            "submit": "Logg inn",
+            "title": "Logg inn",
+            "welcome": "Velkommen tilbake!"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "Kode",
+                "title": "Tofaktorautentisering"
+            },
+            "forgotPassword": {
+                "placeholder": "E-postadresse",
+                "success": "Hvis e-postadressen er registrert, vil du motta en e-post med instruksjoner for å tilbakestille passordet ditt.",
+                "title": "Glemt passord"
+            },
+            "resendConfirmation": {
+                "placeholder": "E-postadresse",
+                "success": "Bekreftelses-e-post sendt til {{email}} hvis den er registrert.",
+                "title": "Send bekreftelse på nytt"
+            }
+        },
+        "register": {
+            "createAccount": "Opprett konto",
+            "errors": {
+                "emailAddressesDoNotMatch": "E-postadressene stemmer ikke overens.",
+                "emptyFields": "Vennligst fyll ut alle felt.",
+                "passwordsDoNotMatch": "Passordene stemmer ikke overens.",
+                "weakPassword": "Passordet ditt er for svakt. Vennligst velg et sterkere passord. Et som er minst 10 tegn langt, inneholder en blanding av store og små bokstaver, tall og spesialtegn."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "Bekreft e-postadresse",
+                    "placeholder": "Bekreft din e-postadresse"
+                },
+                "confirmPassword": {
+                    "label": "Bekreft passord",
+                    "placeholder": "Bekreft passordet ditt"
+                },
+                "email": {
+                    "label": "E-postadresse",
+                    "placeholder": "Angi e-postadressen din"
+                },
+                "password": {
+                    "label": "Passord",
+                    "placeholder": "Skriv inn passordet ditt"
+                }
+            },
+            "header": {
+                "cancel": "Avbryt",
+                "title": "Registrer deg"
+            },
+            "hero": {
+                "create": "Opprett din gratis konto",
+                "description": "Konfigurer dine legitimasjoner for å komme i gang med din Filen-konto."
+            },
+            "next": "Neste",
+            "passwordStrength": {
+                "best": "Beste",
+                "length": "Lengde",
+                "lowercase": "Små bokstaver",
+                "medium": "Medium",
+                "numbers": "Tall",
+                "specialCharacters": "Spesialtegn",
+                "strong": "Sterk",
+                "uppercase": "Store bokstaver",
+                "weak": "Svak"
+            },
+            "resendConfirmationEmail": "Send bekreftelses-e-post på nytt",
+            "title": "Registrer deg"
+        },
+        "registrationSuccessful": "Registrering vellykket! Sjekk e-posten din for å bekrefte kontoen din."
+    },
+    "biometric": {
+        "appLockedFor": "Appen er låst for {{seconds}} sekunder",
+        "authenticateUsingPin": "Autentiser ved bruk av PIN-koden din",
+        "errors": {
+            "incorrectPin": "Feil PIN. Prøv igjen.",
+            "tooManyIncorrectAttempts": "For mange feile forsøk. Vennligst prøv igjen senere."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN",
+                "title": "Skriv inn din PIN"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "B/s",
+        "eib": "EiB/s",
+        "gib": "GiB/s",
+        "kib": "KiB/s",
+        "mib": "MiB/s",
+        "pib": "PiB/s",
+        "tib": "TiB/s",
+        "yib": "YiB/s",
+        "zib": "ZiB/s"
+    },
+    "chats": {
+        "chat": "Chat",
+        "chats": "Chatter",
+        "header": {
+            "newMessages": "{{count}} nye meldinger",
+            "search": "Søk i chatter...",
+            "title": "Chatter"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "Legg til stasjonsobjekter",
+                    "addFiles": "Legg til filer",
+                    "addMedia": "Legg til media",
+                    "addPhotos": "Legg til bilder",
+                    "cancel": "Avbryt"
+                }
+            },
+            "placeholder": "Skriv en melding",
+            "send": "Send",
+            "suggestions": {
+                "emojis": {
+                    "matching": "Emojier som samsvarer med {{query}}"
+                },
+                "mention": {
+                    "matching": "Brukere som samsvarer med {{query}}"
+                },
+                "replyTo": {
+                    "replyingTo": "Svar til {{name}}"
+                }
+            }
+        },
+        "item": {
+            "draft": "Utkast",
+            "noMessages": "Ingen meldinger ennå",
+            "you": "Du"
+        },
+        "list": {
+            "empty": "Ingen chatter funnet",
+            "emptySearch": "Ingen chatter funnet for dette søket",
+            "error": "Det oppstod en feil ved lasting av chattene dine, vennligst prøv igjen senere"
+        },
+        "menu": {
+            "archive": "Arkiv",
+            "delete": "Slett",
+            "favorite": "Favoritt",
+            "leave": "Forlat",
+            "markAsRead": "Merk som lest",
+            "mute": "Slå av lyd",
+            "muted": "Lyd slått av",
+            "participants": "Deltakere",
+            "pin": "Fest",
+            "rename": "Gi nytt navn",
+            "unarchive": "Avarkivere",
+            "unfavorite": "Fjernet favoritt",
+            "unmute": "Slå på lyden",
+            "unpin": "Frigjør"
+        },
+        "messages": {
+            "everyone": "Alle",
+            "menu": {
+                "cancel": "Avbryt",
+                "copyId": "Kopier ID",
+                "copyText": "Kopier tekst",
+                "delete": "Slett",
+                "disableEmbeds": "Deaktiver innebygginger",
+                "edit": "Rediger",
+                "reply": "Svar"
+            },
+            "new": "Ny",
+            "time": {
+                "hourAgo": "{{hours}} time siden",
+                "hoursAgo": "{{hours}} timer siden",
+                "minuteAgo": "{{minutes}} minutt siden",
+                "minutesAgo": "{{minutes}} minutter siden",
+                "now": "Nå",
+                "secondAgo": "{{seconds}} sekund siden",
+                "secondsAgo": "{{seconds}} sekunder siden",
+                "todayAt": "I dag kl {{date}}",
+                "yesterdayAt": "I går kl {{date}}"
+            },
+            "undecryptable": "Kan ikke dekryptere melding.",
+            "unknown": "Ukjent"
+        },
+        "participants": {
+            "menu": {
+                "remove": "Fjern"
+            },
+            "participant": "Deltaker",
+            "participants": "Deltakere",
+            "prompts": {
+                "remove": {
+                    "message": "Er du sikker på at du vil fjerne denne deltakeren? De vil ikke lenger kunne se eller sende meldinger i denne chatten.",
+                    "success": "{{name}} fjernet",
+                    "title": "Fjern deltaker"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "Er du sikker på at du vil slette denne chatten? Dette vil fjerne chatten fra listen din, og du vil ikke lenger kunne se eller sende meldinger i denne chatten.",
+                "title": "Slett chat"
+            },
+            "deleteChats": {
+                "message": "Er du sikker på at du vil slette {{count}} chatter? Dette vil fjerne chattene fra listen din, og du vil ikke lenger kunne se eller sende meldinger i disse chattene.",
+                "title": "Slett chatter"
+            },
+            "deleteMessage": {
+                "message": "Er du sikker på at du vil slette denne meldingen? Denne handlingen kan ikke angres!",
+                "title": "Slett melding"
+            },
+            "disableEmbeds": {
+                "message": "Er du sikker på at du vil deaktivere innebygginger for denne meldingen? Dette vil fjerne alt innebygd innhold.",
+                "title": "Deaktiver innebygginger"
+            },
+            "leaveChat": {
+                "message": "Er du sikker på at du vil forlate denne chatten? Du vil ikke lenger kunne se eller sende meldinger i denne chatten.",
+                "title": "Forlat chat"
+            },
+            "leaveChats": {
+                "message": "Er du sikker på at du vil forlate {{count}} chatter? Du vil ikke lenger kunne se eller sende meldinger i disse chattene.",
+                "title": "Forlat chatter"
+            },
+            "renameChat": {
+                "placeholder": "Nytt navn",
+                "title": "Gi nytt navn til chat"
+            }
+        },
+        "typing": "{{users}} skriver..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "Godta",
+            "block": "Blokker",
+            "cancel": "Avbryt",
+            "decline": "Avslå",
+            "remove": "Fjern",
+            "unblock": "Fjern blokkering"
+        }
+    },
+    "copiedToClipboard": "Kopiert til utklippstavlen",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "Avbryt",
+                    "create": {
+                        "created": "{{name}} opprettet",
+                        "directory": "Opprett katalog",
+                        "photo": "Ta bilde",
+                        "textFile": "Opprett tekstfil"
+                    },
+                    "directoryNamePlaceholder": "Katalognavn",
+                    "itemsUploaded": "{{count}} elementer lastet opp",
+                    "noMediaPermissions": "Du må gi mediatillatelser for å laste opp bilder eller videoer.",
+                    "textFileNamePlaceholder": "Navn på tekstfil",
+                    "upload": {
+                        "directory": "Last opp katalog",
+                        "files": "Last opp filer",
+                        "media": "Last opp media",
+                        "uploaded": "{{name}} lastet opp"
+                    }
+                },
+                "deselectAll": "Velg ingen",
+                "dropdown": {
+                    "bulkActions": "Bulk handlinger",
+                    "gridMode": "Vis som rutenett",
+                    "listMode": "Vis som Liste",
+                    "sortBy": {
+                        "ascending": "Stigende",
+                        "descending": "Synkende",
+                        "lastModified": {
+                            "ascendingTitle": "Tidligst først",
+                            "descendingTitle": "Senest først",
+                            "title": "Sist endret"
+                        },
+                        "name": {
+                            "ascendingTitle": "A til Z",
+                            "descendingTitle": "Z til A",
+                            "title": "Navn"
+                        },
+                        "size": {
+                            "ascendingTitle": "Minst først",
+                            "descendingTitle": "Størst først",
+                            "title": "Størrelse"
+                        },
+                        "sortBy": "Sorter etter",
+                        "type": {
+                            "ascendingTitle": "Stigende",
+                            "descendingTitle": "Synkende",
+                            "title": "Type"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "Tidligst først",
+                            "descendingTitle": "Senest først",
+                            "title": "Opplastningsdato"
+                        }
+                    },
+                    "transfers": "Overføringer"
+                },
+                "selectAll": "Velg alle"
+            },
+            "title": {
+                "drive": "Drive",
+                "favorites": "Favoritter",
+                "links": "Offentlige lenker",
+                "offline": "Tilgjengelig offline",
+                "recents": "Nylig",
+                "selected": "{{count}} valgt",
+                "sharedIn": "Delt med deg",
+                "sharedOut": "Delt med andre",
+                "trash": "Papirkurv"
+            }
+        },
+        "itemShared": "{{name}} delt",
+        "itemSharedWith": "{{name}} delt med {{email}}",
+        "list": {
+            "empty": "Ingen elementer funnet",
+            "emptySearch": "Ingen elementer funnet for dette søket",
+            "error": "Det oppstod en feil ved lasting av lagringsenheten din, vennligst prøv igjen senere",
+            "footer": "{{count}} elementer",
+            "item": {
+                "menu": {
+                    "availableOffline": "Tilgjengelig offline",
+                    "clipboard": "Utklippstavle",
+                    "color": "Farge",
+                    "copy": "Kopier",
+                    "copyId": "Kopier ID",
+                    "copyPath": "Kopier sti",
+                    "delete": "Slett",
+                    "deletePermanently": "Slett permanent",
+                    "deselect": "Fjern markering",
+                    "deselectAll": "Velg ingen",
+                    "disablePublicLink": "Deaktiver lenke",
+                    "download": "Last ned",
+                    "downloadFolder": "Last ned mappe",
+                    "export": "Eksporter",
+                    "favorite": "Favoritt",
+                    "favorite_one": "Favorittelement",
+                    "favorite_other": "Favoritt {{count}} elementer",
+                    "favorited": "Favorittmerket",
+                    "id": "ID",
+                    "info": "Info",
+                    "location": "Plassering",
+                    "makeAvailableOffline": "Gjøre tilgjengelig offline",
+                    "move": "Flytt",
+                    "move_one": "Flytt element",
+                    "move_other": "Flytt {{count}} elementer",
+                    "open": "Åpne",
+                    "path": "Sti",
+                    "preview": "Forhåndsvisning",
+                    "properties": "Egenskaper",
+                    "publicLink": "Offentlig lenke",
+                    "removeOffline": "Fjern offlinefil",
+                    "removeSharedIn": "Fjern",
+                    "removeSharedOut": "Stopp deling",
+                    "rename": "Gi nytt navn",
+                    "restore": "Gjenopprett",
+                    "saveToGallery": "Lagre i galleri",
+                    "select": "Velg",
+                    "selectAll": "Velg alle",
+                    "share": "Del",
+                    "share_one": "Del element",
+                    "share_other": "Del {{count}} elementer",
+                    "trash": "Papirkurv",
+                    "trash_one": "Slett element",
+                    "trash_other": "Papirkurv {{count}} elementer",
+                    "unfavorite": "Fjernet favoritt",
+                    "versionHistory": "Versjonshistorikk",
+                    "withUser": "Med bruker"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "Er du sikker på at du vil slette {{count}} elementer permanent? Denne handlingen kan ikke angres!",
+                "title": "Slett permanent"
+            },
+            "deletePermanently": {
+                "message": "Er du sikker på at du vil slette dette elementet permanent? Denne handlingen kan ikke angres!",
+                "title": "Slett permanent"
+            },
+            "disablePublicLinks": {
+                "message": "Er du sikker på at du vil deaktivere offentlige lenker for {{count}} elementer? Lenker vil ikke lenger være tilgjengelige.",
+                "title": "Deaktiver offentlige lenker"
+            },
+            "removeOfflineFiles": {
+                "message": "Er du sikker på at du vil fjerne {{count}} offlinefiler? De vil ikke lenger være tilgjengelig offline.",
+                "title": "Fjern offlinefiler"
+            },
+            "removeSharedInItem": {
+                "message": "Er du sikker på at du vil fjerne dette elementet fra delte elementer? Du vil ikke lenger kunne se eller få tilgang til det.",
+                "title": "Fjern"
+            },
+            "removeSharedInItems": {
+                "message": "Er du sikker på at du vil fjerne {{count}} elementer fra delte elementer? Du vil ikke lenger kunne se eller få tilgang til dem.",
+                "title": "Fjern"
+            },
+            "removeSharedOutItem": {
+                "message": "Er du sikker på at du vil slutte å dele dette elementet? Brukeren vil ikke lenger ha tilgang til det.",
+                "title": "Stopp deling"
+            },
+            "removeSharedOutItems": {
+                "message": "Er du sikker på at du vil slutte å dele {{count}} elementer? Brukerne vil ikke lenger ha tilgang til dem.",
+                "title": "Stopp deling"
+            },
+            "renameItem": {
+                "placeholder": "Nytt navn",
+                "title": "Gi nytt navn"
+            },
+            "trashItem": {
+                "message": "Er du sikker på at du vil flytte dette elementet til papirkurven? Du kan gjenopprette det senere.",
+                "title": "Flytt til papirkurv"
+            },
+            "trashItems": {
+                "message": "Er du sikker på at du vil flytte {{count}} elementer til papirkurven? Du kan gjenopprette dem senere.",
+                "title": "Flytt til papirkurv"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "Ingen elementer funnet",
+                "emptySearch": "Ingen elementer funnet for dette søket",
+                "error": "Det oppstod en feil ved lasting av søkeresultater, vennligst prøv igjen senere",
+                "footer": "{{count}} elementer"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "Avbryt",
+        "items": {
+            "downloadButton": "Last ned-knapp",
+            "edit": "Rediger",
+            "enabled": "Aktivert",
+            "expiration": "Utløp",
+            "expiration12h": "12 timer",
+            "expiration14d": "14 dager",
+            "expiration1d": "1 dag",
+            "expiration1h": "1 time",
+            "expiration30d": "30 dager",
+            "expiration3d": "3 dager",
+            "expiration6h": "6 timer",
+            "expiration7d": "7 dager",
+            "expirationNever": "Aldri",
+            "password": "Passord"
+        },
+        "onlyPro": "Denne funksjonen er kun tilgjengelig for Filen Pro-brukere. Abonner på en hvilken som helst Filen-plan for å aktivere den.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "La stå tom for å fjerne passord",
+                "title": "Rediger passord"
+            }
+        },
+        "shareDialogTile": "Filen offentlig lenke",
+        "title": "Rediger offentlig lenke",
+        "unsavedChanges": "Ulagrede endringer"
+    },
+    "errors": {
+        "cannotOpenURL": "Kan ikke åpne URL.",
+        "notEnoughDiskSpace": "Ikke nok ledig lokal diskplass.",
+        "sharingNotAvailable": "Deling er ikke tilgjengelig på denne enheten.",
+        "youAreOffline": "Du er for tiden offline. Vennligst sjekk internettforbindelsen din."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "Avbryt",
+                "confirm": "Slett",
+                "message": "Er du sikker på at du vil slette denne versjonen? Denne handlingen kan ikke angres!",
+                "title": "Slett versjon"
+            },
+            "restore": {
+                "cancel": "Avbryt",
+                "confirm": "Gjenopprett",
+                "message": "Er du sikker på at du vil gjenopprette denne versjonen? Dette vil overskrive den gjeldende filen.",
+                "title": "Gjenopprett versjon"
+            }
+        },
+        "header": {
+            "title": "Versjonshistorikk"
+        },
+        "list": {
+            "empty": "Ingen versjoner ennå",
+            "emptySearch": "Ingen versjoner funnet for dette søket",
+            "error": "Det oppstod en feil ved lasting av filversjoner, vennligst prøv igjen senere",
+            "item": {
+                "current": "Nåværende",
+                "delete": "Slett",
+                "restore": "Gjenopprett"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "Byte",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiB",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "Ingen forhåndsvisning tilgjengelig"
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "Favoritter"
+            },
+            "links": {
+                "title": "Offentlige lenker"
+            },
+            "offline": {
+                "title": "Tilgjengelig offline"
+            },
+            "recents": {
+                "title": "Nylig"
+            },
+            "sharedIn": {
+                "title": "Delt med deg"
+            },
+            "sharedOut": {
+                "title": "Delt med andre"
+            },
+            "trash": {
+                "title": "Papirkurv"
+            }
+        },
+        "listEmpty": {
+            "favorites": "Ingen favoritter ennå",
+            "links": "Ingen offentlige lenker ennå",
+            "offline": "Ingen frakoblede elementer ennå",
+            "recents": "Ingen nylige ennå",
+            "sharedIn": "Ingen delte elementer ennå",
+            "sharedOut": "Ingen delte elementer ennå",
+            "trash": "Ingen slettede elementer ennå"
+        },
+        "title": "Hjem"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "Avbryt",
+            "okText": "OK",
+            "title": "Tittel"
+        }
+    },
+    "listEmpty": {
+        "empty": "Ingenting funnet",
+        "emptySearch": "Ingenting funnet for dette søket",
+        "error": "Det oppsto en feil, vennligst prøv igjen senere"
+    },
+    "localAuthentication": {
+        "cancelLabel": "Avbryt",
+        "promptMessage": "Autentiser for å fortsette"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "Skriv koden din her...",
+                "text": "Skriv teksten din her..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "Velg ingen",
+                    "selectAll": "Velg alle"
+                },
+                "types": {
+                    "checklist": "Sjekkliste",
+                    "code": "Kode",
+                    "markdown": "Markdown",
+                    "rich": "Rik tekst",
+                    "text": "Tekst"
+                }
+            },
+            "menu": {
+                "settings": "Innstillinger"
+            },
+            "selected": "{{count}} valgt",
+            "title": "Notater"
+        },
+        "history": {
+            "list": {
+                "empty": "Ingen tilgjengelig historikk",
+                "emptySearch": "Ingen oppføring funnet for dette søket",
+                "error": "Det oppstod en feil ved lasting av historikken, vennligst prøv igjen senere",
+                "footer": "{{count}} elementer"
+            },
+            "noPreview": "Ingen forhåndsvisning tilgjengelig",
+            "prompts": {
+                "restore": {
+                    "message": "Er du sikker på at du vil gjenopprette dette notatet? Dette vil overskrive det gjeldende notatet.",
+                    "title": "Gjenopprett notat"
+                }
+            },
+            "restore": "Gjenopprett",
+            "title": "Historikk"
+        },
+        "list": {
+            "empty": "Ingen notater ennå",
+            "emptySearch": "Ingen notat funnet for dette søket",
+            "error": "Det oppstod en feil ved lasting av notatene dine, vennligst prøv igjen senere",
+            "footer": "{{count}} elementer"
+        },
+        "menu": {
+            "archive": "Arkiv",
+            "clipboard": "Utklippstavle",
+            "copyId": "Kopier ID",
+            "delete": "Slett",
+            "deselect": "Fjern markering",
+            "duplicate": "Dupliser",
+            "export": "Eksporter",
+            "favorite": "Favoritt",
+            "favorited": "Favorittmerket",
+            "history": "Historikk",
+            "leave": "Forlat",
+            "participants": "Deltakere",
+            "pin": "Fest",
+            "pinned": "Festet",
+            "preview": "Forhåndsvisning",
+            "rename": "Gi nytt navn",
+            "restore": "Gjenopprett",
+            "select": "Velg",
+            "tags": "Merker",
+            "trash": "Papirkurv",
+            "type": "Type",
+            "types": {
+                "checklist": "Sjekkliste",
+                "code": "Kode",
+                "md": "Markdown",
+                "rich": "Rik tekst",
+                "text": "Tekst"
+            },
+            "unfavorite": "Fjernet favoritt",
+            "unpin": "Frigjør"
+        },
+        "participants": {
+            "list": {
+                "empty": "Ingen deltakere ennå",
+                "emptySearch": "Ingen deltakere funnet for dette søket",
+                "error": "Det oppstod en feil ved lasting av deltakerne, vennligst prøv igjen senere",
+                "footer": "{{count}} deltakere"
+            },
+            "menu": {
+                "permissionsWrite": "Skrivetillatelser",
+                "remove": "Fjern"
+            },
+            "title": "Deltakere"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "Notattittel",
+                "title": "Opprett notat"
+            },
+            "createTag": {
+                "placeholder": "Taggnavn",
+                "title": "Opprett tag"
+            },
+            "deleteNote": {
+                "message": "Er du sikker på at du vil slette denne notatet permanent? Denne handlingen kan ikke angres!",
+                "title": "Slett notat"
+            },
+            "deleteNotes": {
+                "message": "Er du sikker på at du vil slette {{count}} notater permanent? Denne handlingen kan ikke angres!",
+                "title": "Slett notater"
+            },
+            "deleteTag": {
+                "message": "Er du sikker på at du vil slette dette merket? Denne handlingen kan ikke angres!",
+                "title": "Slett tag"
+            },
+            "deleteTags": {
+                "message": "Er du sikker på at du vil slette {{count}} merker? Denne handlingen kan ikke angres!",
+                "title": "Slett tags"
+            },
+            "leaveNote": {
+                "message": "Er du sikker på at du vil forlate dette notatet? Du vil ikke lenger kunne se eller redigere det.",
+                "title": "Forlat notat"
+            },
+            "leaveNotes": {
+                "message": "Er du sikker på at du vil forlate {{count}} notater? Du vil ikke lenger kunne se eller redigere dem.",
+                "title": "Forlat notater"
+            },
+            "removeParticipant": {
+                "message": "Er du sikker på at du vil fjerne denne deltakeren? De vil ikke lenger kunne se eller redigere dette notatet.",
+                "title": "Fjern deltaker"
+            },
+            "removeParticipants": {
+                "message": "Er du sikker på at du vil fjerne {{count}} deltakere? De vil ikke lenger kunne se eller redigere disse notatene.",
+                "title": "Fjern deltakere"
+            },
+            "renameNote": {
+                "placeholder": "Nytt navn",
+                "title": "Gi nytt navn til notatet"
+            },
+            "renameTag": {
+                "placeholder": "Nytt tagnavn",
+                "title": "Gi nytt navn til tag"
+            },
+            "trashNote": {
+                "message": "Er du sikker på at du vil flytte dette notatet til papirkurven? Du kan gjenopprette det senere.",
+                "title": "Flytt til papirkurv"
+            },
+            "trashNotes": {
+                "message": "Er du sikker på at du vil flytte {{count}} notater til papirkurven? Du kan gjenopprette dem senere.",
+                "title": "Flytt til papirkurv"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "Slett",
+                "favorited": "Favorittmerket",
+                "rename": "Gi nytt navn"
+            },
+            "names": {
+                "all": "Alle",
+                "archived": "Arkivert",
+                "favorited": "Favorittmerket",
+                "pinned": "Festet",
+                "shared": "Delt",
+                "trash": "Papirkurv"
+            }
+        },
+        "title": "Notater"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "Avbryt",
+            "placeholder": "Søk..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "Offline modus"
+    },
+    "photos": {
+        "header": {
+            "selected": "{{count}} valgt"
+        },
+        "list": {
+            "empty": "Ingen bilder ennå",
+            "emptySearch": "Ingen bilder funnet for dette søket",
+            "error": "Det oppstod en feil ved lasting av bildene dine, vennligst prøv igjen senere"
+        },
+        "menu": {
+            "settings": "Innstillinger"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} elementer"
+                },
+                "list": {
+                    "empty": "Ingen album funnet",
+                    "emptySearch": "Ingen album funnet for dette søket",
+                    "error": "Det oppstod en feil ved lasting av albumene dine, vennligst prøv igjen senere"
+                },
+                "title": "Album"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "Du må gi mediatillatelser for å få tilgang til bildene dine."
+                },
+                "items": {
+                    "albums": "Album",
+                    "albumsInfo": "Velg hvilke album som skal inkluderes i kameramaterialopplastningen.",
+                    "background": "Bakgrunn",
+                    "backgroundInfo": "Tillat kameraopplasting i bakgrunnen. Dette kan føre til høyt batteriforbruk. Bakgrunnsopplastinger inkluderer kun bilder. Fungerer kun når appen ikke er tvunget til å avsluttes.",
+                    "cellular": "Mobilnettverk",
+                    "cellularInfo": "Tillat kameraopplasting over mobildata. Dette kan føre til høyt dataforbruk.",
+                    "cloudDirectory": "Skykatalog",
+                    "cloudDirectoryNotSet": "Ikke satt",
+                    "compress": "Komprimer",
+                    "compressInfo": "Kompresser bilder for å spare lagringsplass. Dette kan redusere bildekvaliteten. JPG-komprimering på 80% kvalitet.",
+                    "enabled": "Aktivert",
+                    "lowBattery": "Lavt batteri",
+                    "lowBatteryInfo": "Deaktiver kameraupload når batteriet er lavt.",
+                    "permissionsError": "Tillatelsesfeil",
+                    "permissionsErrorInfo": "Vennligst gi appen tillatelse til å få tilgang til dine bilder og videoer i systeminnstillinger.",
+                    "videos": "Videoer",
+                    "videosInfo": "Inkluder videoer i kameramaterialopplastningen."
+                },
+                "title": "Innstillinger"
+            }
+        },
+        "state": {
+            "synced": "Synkronisert",
+            "syncing": "Synkroniserer",
+            "syncingProgress": "{{done}} av {{total}} elementer synkronisert"
+        },
+        "title": "Bilder"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "Avbryt",
+            "done": "Ferdig",
+            "selectContact": "Velg kontakt",
+            "selectContacts": "Velg kontakter"
+        },
+        "list": {
+            "empty": "Ingen kontakter ennå",
+            "emptySearch": "Ingen kontakter funnet for dette søket",
+            "error": "Det oppstod en feil ved lasting av kontaktene dine, vennligst prøv igjen senere",
+            "footer": "{{count}} kontakter"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} valgt"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "Avbryt",
+            "done": "Ferdig",
+            "drive": "Drive",
+            "selectDirectories": "Velg kataloger",
+            "selectDirectory": "Velg katalog",
+            "selectFile": "Velg fil",
+            "selectFiles": "Velg filer",
+            "selectItem": "Velg element",
+            "selectItems": "Velg elementer",
+            "selectRoot": "Velg skylagring"
+        },
+        "list": {
+            "empty": "Ingenting lastet opp ennå",
+            "emptySearch": "Ingen elementer funnet for dette søket",
+            "error": "Det oppstod en feil ved lasting av filene dine, vennligst prøv igjen senere",
+            "footer": "{{count}} elementer"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "Katalognavn",
+                "success": "{{name}} opprettet",
+                "title": "Opprett katalog"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} valgt"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "Avbryt",
+            "done": "Ferdig",
+            "selectPlaylist": "Velg spilleliste",
+            "selectPlaylists": "Velg spillelister"
+        },
+        "item": {
+            "subTitle": "{{count}} spor, oppdatert {{date}}"
+        },
+        "list": {
+            "empty": "Ingen spillelister ennå",
+            "emptySearch": "Ingen spillelister funnet for dette søket",
+            "error": "Det oppstod en feil ved lasting av spillelistene dine, vennligst prøv igjen senere",
+            "footer": "{{count}} spillelister"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Spillelistens navn",
+                "title": "Opprett spilleliste"
+            }
+        },
+        "selected": "{{countOrName}} valgt",
+        "toolbar": {
+            "selected": "{{countOrName}} valgt"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "Avatarbildets størrelse overskrider grensen på 3 MiB.",
+                "emailsNotMatching": "De nye e-postadressene stemmer ikke overens."
+            },
+            "items": {
+                "changeAvatar": "Endre avatar",
+                "deleteAllFilesAndDirectories": "Slett alle filer og kataloger",
+                "deleteVersionedFiles": "Slett versjonsfiler",
+                "emailAddress": "E-postadresse",
+                "fileVersioning": "Filversjonering",
+                "fileVersioningInfo": "Aktiver filversjonering for å holde oversikt over endringer gjort i filene dine.",
+                "gdpr": "GDPR informasjon",
+                "loginAlerts": "Innpåloggingsvarsler",
+                "loginAlertsInfo": "Motta varsler når kontoen din blir tilgått.",
+                "logout": "Logg ut",
+                "more": "Flere kontoinnstillinger",
+                "nickname": "Kallenavn",
+                "personalInformation": "Personlig informasjon",
+                "requestAccountDeletion": "Be om kontosletting",
+                "requestAccountDeletionInfo": "Be om sletting av konto. Vi vil sende deg en e-post med videre instrukser."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "Kode",
+                    "title": "Tofaktorautentisering"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "Bekreft ny e-postadresse",
+                        "title": "Bekreft ny e-postadresse"
+                    },
+                    "newEmail": {
+                        "placeholder": "Ny e-postadresse",
+                        "title": "Ny e-postadresse"
+                    },
+                    "password": {
+                        "placeholder": "Passord",
+                        "title": "Ditt passord"
+                    }
+                },
+                "deleteAccount": {
+                    "message": "Er du sikker på at du vil be om kontosletting? Du vil motta en e-post med videre instruksjoner.",
+                    "title": "Be om kontosletting"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "Er du sikker på at du vil slette alle filer og kataloger? Denne handlingen kan ikke angres!",
+                    "title": "Slett alle filer og kataloger"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "Er du helt sikker? Denne handlingen kan ikke angres!",
+                    "title": "Slett alle filer og kataloger"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "Er du sikker på at du vil slette alle versjonerte filer? Denne handlingen kan ikke angres!",
+                    "title": "Slett versjonsfiler"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "Er du helt sikker? Denne handlingen kan ikke angres!",
+                    "title": "Slett versjonsfiler"
+                },
+                "logout": {
+                    "message": "Er du sikker på at du vil logge ut? Du må logge inn igjen for å få tilgang til kontoen din.",
+                    "title": "Logg ut"
+                },
+                "more": {
+                    "message": "Flere innstillinger er tilgjengelige i webappen. Vil du åpne den nå?",
+                    "title": "Åpne Web App"
+                },
+                "updateNickname": {
+                    "placeholder": "Nytt kallenavn",
+                    "title": "Oppdater kallenavn"
+                }
+            },
+            "title": "Konto"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "Tøm hurtigbuffer",
+                "clearOfflineFiles": "Tøm offline filer",
+                "clearThumbnails": "Fjern miniatyrbilder",
+                "clearTrackPlayer": "Tøm sporavspiller"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "Å tømme hurtigbufferen vil fjerne midlertidige filer. Dette kan avbryte pågående opplastinger eller nedlastinger. Er du sikker på at du vil fortsette?",
+                    "title": "Tøm hurtigbuffer"
+                },
+                "clearOfflineFiles": {
+                    "message": "Tømming av frakoblet filer vil fjerne alle tilgjengelige frakoblede filer. Er du sikker på at du vil fortsette?",
+                    "title": "Tøm offline filer"
+                },
+                "clearThumbnails": {
+                    "message": "Å tømme miniatyrene vil føre til at appen laster ned hver synlig miniatyr på nytt. Er du sikker på at du vil fortsette?",
+                    "title": "Fjern miniatyrbilder"
+                },
+                "clearTrackPlayer": {
+                    "message": "Å tømme bufferet til sporavspilleren fjerner hurtigbufrede spor og bilder. Dette kan føre til økte lastetider. Er du sikker på at du vil fortsette?",
+                    "title": "Tøm sporavspiller"
+                }
+            },
+            "title": "Avansert"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "Biometrisk autentisering er ikke tilgjengelig på denne enheten. Vennligst aktiver kun PIN-autentisering eller bruk en enhet som støtter biometrisk autentisering.",
+                "pinNotMatching": "Reserve-PIN-ene samsvarer ikke.",
+                "pinTooLong": "Reserve-PIN-koden må ikke være lengre enn 128 sifre.",
+                "pinTooShort": "Reserve-PIN-koden må være minst 4 sifre lang."
+            },
+            "items": {
+                "biometricAuth": "Biometrisk autentisering",
+                "lockAppAfter": "Lås appen etter",
+                "pinOnly": "Kun PIN"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15 minutter",
+                "fiveMinutes": "5 minutter",
+                "immediately": "Umiddelbart",
+                "minutes": "{{minutes}} minutter",
+                "never": "Aldri",
+                "oneHour": "1 time",
+                "oneMinute": "1 minutt",
+                "tenMinutes": "10 minutter",
+                "thirtyMinutes": "30 minutter"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "Er du sikker på at du vil deaktivere biometrisk autentisering?",
+                    "title": "Deaktiver biometrisk autentisering"
+                },
+                "documentsProvider": {
+                    "message": "Aktivering av biometrisk autentisering vil deaktivere dokumentleverandøren. Det betyr at du ikke vil kunne få tilgang til filene dine i andre apper ved hjelp av Filen dokumentleverandøren. Ønsker du å fortsette?",
+                    "title": "Dokumentleverandør aktivert"
+                },
+                "enable": {
+                    "placeholder": "Fallback-PIN",
+                    "title": "Sett opp reserve-PIN"
+                },
+                "enableConfirm": {
+                    "placeholder": "Bekreft PIN",
+                    "title": "Bekreft reserve-PIN"
+                },
+                "fileProvider": {
+                    "message": "Aktivering av biometrisk autentisering vil deaktivere filleverandøren. Det betyr at du ikke vil kunne få tilgang til filene dine i andre apper ved hjelp av Filen filleverandøren. Ønsker du å fortsette?",
+                    "title": "Filleverandør aktivert"
+                }
+            },
+            "title": "Sikkerhet"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "Ingen kontakter funnet",
+                    "emptySearch": "Ingen kontakter funnet for dette søket",
+                    "error": "Det oppstod en feil ved lasting av kontaktene dine, vennligst prøv igjen senere"
+                },
+                "blocked": {
+                    "empty": "Ingen blokkerte kontakter funnet",
+                    "emptySearch": "Ingen blokkerte kontakter funnet for dette søket",
+                    "error": "Det oppstod en feil ved lasting av kontaktene dine, vennligst prøv igjen senere"
+                },
+                "offline": {
+                    "empty": "Ingen kontakter frakoblet funnet",
+                    "emptySearch": "Ingen offline kontakter funnet for dette søket",
+                    "error": "Det oppstod en feil ved lasting av kontaktene dine, vennligst prøv igjen senere"
+                },
+                "online": {
+                    "empty": "Ingen kontakter på nett funnet",
+                    "emptySearch": "Ingen online kontakter funnet for dette søket",
+                    "error": "Det oppstod en feil ved lasting av kontaktene dine, vennligst prøv igjen senere"
+                },
+                "pending": {
+                    "empty": "Ingen kontaktforespørsler funnet",
+                    "emptySearch": "Ingen kontaktforespørsler funnet for dette søket",
+                    "error": "Det oppstod en feil ved lasting av kontaktforespørslene dine, vennligst prøv igjen senere"
+                },
+                "requests": {
+                    "empty": "Ingen kontaktforespørsler funnet",
+                    "emptySearch": "Ingen kontaktforespørsler funnet for dette søket",
+                    "error": "Det oppstod en feil ved lasting av kontaktforespørslene dine, vennligst prøv igjen senere"
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "Er du sikker på at du vil blokkere denne kontakten?",
+                    "success": "{{email}} blokkert",
+                    "title": "Blokker kontakt"
+                },
+                "blockContacts": {
+                    "message": "Er du sikker på at du vil blokkere {{count}} kontakter?",
+                    "success": "{{count}} kontakter blokkert",
+                    "title": "Blokker kontakter"
+                },
+                "removeContact": {
+                    "message": "Er du sikker på at du vil fjerne denne kontakten?",
+                    "success": "{{email}} fjernet",
+                    "title": "Fjern kontakt"
+                },
+                "removeContacts": {
+                    "message": "Er du sikker på at du vil fjerne {{count}} kontakter?",
+                    "success": "{{count}} kontakter fjernet",
+                    "title": "Fjern kontakter"
+                },
+                "sendRequest": {
+                    "placeholder": "Filen e-postadresse",
+                    "success": "Kontaktforespørsel sendt til {{email}}",
+                    "title": "Send kontaktforespørsel"
+                },
+                "unblockContact": {
+                    "message": "Er du sikker på at du vil fjerne blokkeringen av denne kontakten?",
+                    "success": "{{email}} opphevet blokkering",
+                    "title": "Fjern blokkering av kontakt"
+                },
+                "unblockContacts": {
+                    "message": "Er du sikker på at du vil fjerne blokkeringen av {{count}} kontakter?",
+                    "success": "{{count}} kontakter opphevet blokkering",
+                    "title": "Fjern blokkering av kontakter"
+                }
+            },
+            "tabs": {
+                "all": "Alle",
+                "blocked": "Blokkert",
+                "offline": "Frakoblet",
+                "online": "Online",
+                "pending": "Venter",
+                "requests": "Forespørsler"
+            },
+            "title": "Kontakter"
+        },
+        "events": {
+            "event": "Hendelse",
+            "eventInfo": {
+                "2faDisabled": "2FA deaktivert",
+                "2faEnabled": "2FA aktivert",
+                "baseFolderCreated": "Basis mappe opprettet",
+                "codeRedeemed": "Kode \"{{code}}\" innløst",
+                "deleteAll": "Alle mapper og filer slettet permanent",
+                "deleteFilePermanently": "{{name}} slettet permanent",
+                "deleteFolderPermanently": "{{name}} slettet permanent",
+                "deleteUnfinished": "Uferdige opplastinger slettet",
+                "deleteVersioned": "Alle versjonerte filer slettet",
+                "emailChangeAttempt": "Forsøk på å endre e-postadresse",
+                "emailChanged": "E-post endret",
+                "failedLogin": "Mislykket påloggingsforsøk",
+                "fileLinkEdited": "Offentlig lenke for {{name}} redigert",
+                "fileMetadataChanged": "Metadata for {{name}} endret",
+                "fileMoved": "{{name}} flyttet",
+                "fileRenamed": "{{oldName}} omdøpt til {{newName}}",
+                "fileRestored": "{{name}} gjenopprettet",
+                "fileRm": "{{name}} slettet",
+                "fileShared": "{{name}} delt med {{email}}",
+                "fileTrash": "{{name}} flyttet til papirkurv",
+                "fileUploaded": "{{name}} lastet opp",
+                "fileVersioned": "{{name}} versjonert",
+                "folderColorChanged": "Fargen på katalogen {{name}} er endret",
+                "folderLinkEdited": "Katalog offentlig lenke redigert",
+                "folderMetadataChanged": "Metadata for katalog {{name}} endret",
+                "folderMoved": "Katalog {{name}} flyttet",
+                "folderRenamed": "Katalog {{oldName}} omdøpt til {{newName}}",
+                "folderRestored": "Katalog {{name}} gjenopprettet",
+                "folderShared": "Mappe {{name}} delt med {{email}}",
+                "folderTrash": "Katalog {{name}} flyttet til papirkurv",
+                "itemFavorited": "{{name}} favorisert",
+                "itemUnfavorited": "{{name}} av-favorisert",
+                "login": "Logget inn",
+                "passwordChanged": "Passord endret",
+                "removedSharedInItems": "Delte elementer fjernet fra {{email}}",
+                "removedSharedOutItems": "Delte elementer fjernet fra {{email}}",
+                "requestAccountDeletion": "Konto sletting forespurt",
+                "subFolderCreated": "Katalog {{name}} opprettet",
+                "trashEmptied": "Søppel tømt",
+                "versionedFileRestored": "Versjon av {{name}} gjenopprettet"
+            },
+            "events": "Hendelser",
+            "listEmpty": {
+                "empty": "Ingen hendelser funnet",
+                "emptySearch": "Ingen hendelser funnet for dette søket",
+                "error": "Det oppstod en feil ved lasting av hendelsene dine, vennligst prøv igjen senere"
+            },
+            "title": "Hendelser"
+        },
+        "index": {
+            "items": {
+                "advanced": "Avansert",
+                "cameraUpload": "Kameralasting",
+                "contacts": "Kontakter",
+                "documentsProvider": "Dokumentleverandør",
+                "documentsProviderInfo": "Aktiver Android Files-integrasjonen for å få tilgang til filene dine utenfor appen.",
+                "events": "Hendelser",
+                "fileProvider": "Filleverandør",
+                "fileProviderInfo": "Aktiver iOS Files-integrasjonen for å få tilgang til filene dine utenfor appen.",
+                "security": "Sikkerhet",
+                "used": "{{used}} brukt av {{max}} ({{percentage}}%)"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "Aktivering av dokumentleverandøren vil deaktivere biometrisk autentisering. Det betyr at du ikke vil kunne bruke biometrisk autentisering for å låse opp appen. Ønsker du å fortsette?",
+                    "title": "Biometrisk autentisering aktivert"
+                },
+                "fileProvider": {
+                    "message": "Aktivering av filleverandøren vil deaktivere biometrisk autentisering. Det betyr at du ikke vil kunne bruke biometrisk autentisering for å låse opp appen. Ønsker du å fortsette?",
+                    "title": "Biometrisk autentisering aktivert"
+                }
+            },
+            "title": "Innstillinger"
+        },
+        "personal": {
+            "items": {
+                "city": "By",
+                "companyName": "Firmanavn",
+                "country": "Land",
+                "firstName": "Fornavn",
+                "lastName": "Etternavn",
+                "postalCode": "Postnummer",
+                "street": "Gate",
+                "streetNumber": "Gatenummer",
+                "vatId": "MVA ID"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "Rediger"
+                }
+            },
+            "title": "Personlig informasjon"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "De nye passordene stemmer ikke overens.",
+                "weak": "Ditt nye passord er for svakt. Vennligst velg et sterkere passord. Et som er minst 10 tegn langt, inneholder en blanding av store og små bokstaver, tall og spesialtegn."
+            },
+            "items": {
+                "2fa": "Tofaktorautentisering",
+                "biometricAuth": "Biometrisk autentisering",
+                "changePassword": "Endre passord"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "Etter å ha endret passordet ditt, vil du bli logget ut og må logge inn igjen med ditt nye passord.",
+                    "title": "Endre passord"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "Bekreft passord",
+                    "title": "Bekreft nytt passord"
+                },
+                "currentPassword": {
+                    "placeholder": "Gjeldende passord",
+                    "title": "Ditt gjeldende passord"
+                },
+                "newPassword": {
+                    "placeholder": "Nytt passord",
+                    "title": "Ditt nye passord"
+                }
+            },
+            "title": "Sikkerhet"
+        },
+        "twoFactorAuth": {
+            "copied": "Nøkkel kopiert til utklippstavlen",
+            "copyKey": "Kopier nøkkel",
+            "items": {
+                "2fa": "Tofaktorautentisering"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "Kode",
+                    "title": "Skriv inn kode"
+                }
+            },
+            "title": "Sikkerhet"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "Avbryt",
+            "title": "Lagre til Filen",
+            "upload": "Last opp"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "Avbryt",
+            "select": "Velg"
+        },
+        "itemInfo": {
+            "creation": "Opprettet",
+            "directories": "Kataloger",
+            "directory": "Katalog",
+            "files": "Filer",
+            "location": "Plassering",
+            "modified": "Endret",
+            "name": "Navn",
+            "notAvailable": "I/A",
+            "size": "Størrelse",
+            "type": "Type",
+            "uploaded": "Lastet opp"
+        }
+    },
+    "tabBar": {
+        "chats": "Chatter",
+        "drive": "Drive",
+        "home": "Hjem",
+        "notes": "Notater",
+        "photos": "Bilder",
+        "settings": "Innstillinger"
+    },
+    "textEditor": {
+        "header": {
+            "back": "Tilbake"
+        },
+        "saved": "Lagret",
+        "savedSuccess": "Lagret vellykket",
+        "unsavedChanges": "Ulagrede endringer"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "Ingen spor i køen",
+            "unknownArtist": "Ukjent artist",
+            "unknownTitle": "Ukjent tittel"
+        },
+        "header": {
+            "title": "Spillelister"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "Legg til i kø",
+                "cancel": "Avbryt",
+                "delete": "Slett",
+                "play": "Spill"
+            },
+            "subTitle": "{{count}} spor, oppdatert {{date}}"
+        },
+        "list": {
+            "empty": "Ingen spillelister ennå",
+            "emptySearch": "Ingen spillelister funnet for dette søket",
+            "error": "Det oppstod en feil ved lasting av spillelistene dine, vennligst prøv igjen senere",
+            "footer": "{{count}} spillelister"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "Legg til i spilleliste",
+                    "addToQueue": "Legg til i kø",
+                    "cancel": "Avbryt",
+                    "play": "Spill",
+                    "removeFromPlaylist": "Fjern fra spilleliste"
+                }
+            },
+            "list": {
+                "empty": "Ingen spor ennå",
+                "emptySearch": "Ingen sanger funnet for dette søket",
+                "error": "Det oppstod en feil ved lasting av sporene dine, vennligst prøv igjen senere",
+                "footer": "{{count}} spor"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Spillelistens navn",
+                "title": "Opprett spilleliste"
+            },
+            "deletePlaylist": {
+                "message": "Er du sikker på at du vil slette denne spillelisten? Denne handlingen kan ikke angres!",
+                "title": "Slett spilleliste"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "Tilbake",
+            "title": "Overføringer"
+        },
+        "info": "Overfører {{ongoingTransfers}} elementer på {{speed}}, {{remaining}} gjenstår",
+        "list": {
+            "empty": "Ingen overføringer ennå",
+            "emptySearch": "Ingen overføringer funnet for dette søket",
+            "error": "Det oppstod en feil ved lasting av overføringene dine, vennligst prøv igjen senere"
+        },
+        "noOngoingTransfers": "Ingen pågående overføringer",
+        "transfer": {
+            "cancel": "Avbryt",
+            "cancelAll": "Avbryt alle",
+            "pause": "Pause",
+            "resume": "Gjenoppta",
+            "stop": "Stopp",
+            "stopAll": "Stopp alle"
+        }
+    }
+}

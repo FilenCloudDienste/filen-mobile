@@ -1,0 +1,1402 @@
+{
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "Hủy bỏ",
+            "okText": "OK",
+            "title": "Tiêu đề"
+        },
+        "exportMasterKeys": {
+            "cancelText": "Sau",
+            "message": "Bạn chưa xuất khóa chính của mình. Rất khuyến khích bạn xuất chúng ngay bây giờ và lưu trữ ở một nơi an toàn.",
+            "okText": "Xuất",
+            "title": "Xuất khóa chính"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "Sau",
+            "message": "Bạn đã vượt quá giới hạn lưu trữ của mình. Vui lòng giải phóng một số không gian hoặc nâng cấp kế hoạch của bạn để tránh mất dữ liệu không mong muốn.",
+            "okText": "Nâng cấp",
+            "title": "Sử dụng lưu trữ vượt mức"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "Mã hóa đầu cuối",
+                "second": "Nền tảng đám mây"
+            },
+            "login": "Đăng nhập",
+            "signUp": "Đăng ký miễn phí"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "Vui lòng điền vào tất cả các trường."
+            },
+            "forgotPassword": "Quên mật khẩu?",
+            "form": {
+                "email": {
+                    "label": "Địa chỉ email",
+                    "placeholder": "Nhập địa chỉ email của bạn"
+                },
+                "password": {
+                    "label": "Mật khẩu",
+                    "placeholder": "Nhập mật khẩu của bạn"
+                }
+            },
+            "header": {
+                "cancel": "Hủy bỏ"
+            },
+            "login": "Đăng nhập",
+            "loginUsingCreds": "Đăng nhập bằng thông tin đăng nhập của bạn",
+            "next": "Tiếp theo",
+            "signUp": "Đăng ký miễn phí",
+            "submit": "Đăng nhập",
+            "title": "Đăng nhập",
+            "welcome": "Chào mừng trở lại!"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "Mã",
+                "title": "Xác thực hai yếu tố"
+            },
+            "forgotPassword": {
+                "placeholder": "Địa chỉ email",
+                "success": "Nếu địa chỉ email đã được đăng ký, bạn sẽ nhận được một email với hướng dẫn để đặt lại mật khẩu của bạn.",
+                "title": "Quên mật khẩu"
+            },
+            "resendConfirmation": {
+                "placeholder": "Địa chỉ email",
+                "success": "Email xác nhận đã được gửi đến {{email}} nếu nó đã được đăng ký.",
+                "title": "Gửi lại xác nhận"
+            }
+        },
+        "register": {
+            "createAccount": "Tạo tài khoản",
+            "errors": {
+                "emailAddressesDoNotMatch": "Địa chỉ email không khớp.",
+                "emptyFields": "Vui lòng điền vào tất cả các trường.",
+                "passwordsDoNotMatch": "Mật khẩu không khớp nhau.",
+                "weakPassword": "Mật khẩu của bạn quá yếu. Vui lòng chọn mật khẩu mạnh hơn. Phải dài ít nhất 10 ký tự, bao gồm chữ hoa và chữ thường, số và ký tự đặc biệt."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "Xác nhận địa chỉ email",
+                    "placeholder": "Xác nhận địa chỉ email của bạn"
+                },
+                "confirmPassword": {
+                    "label": "Xác nhận mật khẩu",
+                    "placeholder": "Xác nhận mật khẩu của bạn"
+                },
+                "email": {
+                    "label": "Địa chỉ email",
+                    "placeholder": "Nhập địa chỉ email của bạn"
+                },
+                "password": {
+                    "label": "Mật khẩu",
+                    "placeholder": "Nhập mật khẩu của bạn"
+                }
+            },
+            "header": {
+                "cancel": "Hủy bỏ",
+                "title": "Đăng ký"
+            },
+            "hero": {
+                "create": "Tạo tài khoản miễn phí của bạn",
+                "description": "Thiết lập thông tin đăng nhập của bạn để bắt đầu với tài khoản Filen."
+            },
+            "next": "Tiếp theo",
+            "passwordStrength": {
+                "best": "Tốt nhất",
+                "length": "Độ dài",
+                "lowercase": "Chữ in thường",
+                "medium": "Trung bình",
+                "numbers": "Số",
+                "specialCharacters": "Ký tự đặc biệt",
+                "strong": "Mạnh",
+                "uppercase": "Chữ in hoa",
+                "weak": "Yếu"
+            },
+            "resendConfirmationEmail": "Gửi lại email xác nhận",
+            "title": "Đăng ký"
+        },
+        "registrationSuccessful": "Đăng ký thành công! Vui lòng kiểm tra email của bạn để xác nhận tài khoản."
+    },
+    "biometric": {
+        "appLockedFor": "Ứng dụng đã bị khóa trong {{seconds}} giây",
+        "authenticateUsingPin": "Xác thực bằng mã PIN của bạn",
+        "errors": {
+            "incorrectPin": "Mã PIN không chính xác. Vui lòng thử lại.",
+            "tooManyIncorrectAttempts": "Quá nhiều lần thử không chính xác. Vui lòng thử lại sau."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN",
+                "title": "Nhập mã PIN của bạn"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "B/s",
+        "eib": "EiB/s",
+        "gib": "GiB/s",
+        "kib": "KiB/s",
+        "mib": "MiB/s",
+        "pib": "PiB/s",
+        "tib": "TiB/s",
+        "yib": "YiB/s",
+        "zib": "ZiB/s"
+    },
+    "chats": {
+        "chat": "Trò chuyện",
+        "chats": "Những cuộc trò chuyện",
+        "header": {
+            "newMessages": "{{count}} tin nhắn mới",
+            "search": "Tìm kiếm cuộc trò chuyện...",
+            "title": "Những cuộc trò chuyện"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "Thêm mục vào ổ đĩa",
+                    "addFiles": "Thêm tệp",
+                    "addMedia": "Thêm phương tiện",
+                    "addPhotos": "Thêm ảnh",
+                    "cancel": "Hủy bỏ"
+                }
+            },
+            "placeholder": "Gõ tin nhắn",
+            "send": "Gửi",
+            "suggestions": {
+                "emojis": {
+                    "matching": "Biểu tượng cảm xúc phù hợp với {{query}}"
+                },
+                "mention": {
+                    "matching": "Người dùng phù hợp với {{query}}"
+                },
+                "replyTo": {
+                    "replyingTo": "Trả lời {{name}}"
+                }
+            }
+        },
+        "item": {
+            "draft": "Bản nháp",
+            "noMessages": "Chưa có tin nhắn nào",
+            "you": "Bạn"
+        },
+        "list": {
+            "empty": "Không tìm thấy trò chuyện nào",
+            "emptySearch": "Không tìm thấy cuộc trò chuyện nào cho tìm kiếm này",
+            "error": "Có lỗi khi tải các cuộc trò chuyện của bạn, vui lòng thử lại sau"
+        },
+        "menu": {
+            "archive": "Lưu trữ",
+            "delete": "Xóa",
+            "favorite": "Yêu thích",
+            "leave": "Rời khỏi",
+            "markAsRead": "Đánh dấu là đã đọc",
+            "mute": "Tắt âm",
+            "muted": "Đã tắt âm",
+            "participants": "Người tham gia",
+            "pin": "Ghim",
+            "rename": "Đổi tên",
+            "unarchive": "Bỏ lưu trữ",
+            "unfavorite": "Bỏ yêu thích",
+            "unmute": "Bỏ tắt tiếng",
+            "unpin": "Gỡ ghim"
+        },
+        "messages": {
+            "everyone": "Mọi người",
+            "menu": {
+                "cancel": "Hủy bỏ",
+                "copyId": "Sao chép ID",
+                "copyText": "Sao chép văn bản",
+                "delete": "Xóa",
+                "disableEmbeds": "Tắt nhúng",
+                "edit": "Chỉnh sửa",
+                "reply": "Trả lời"
+            },
+            "new": "Mới",
+            "time": {
+                "hourAgo": "{{hours}} giờ trước",
+                "hoursAgo": "{{hours}} giờ trước",
+                "minuteAgo": "{{minutes}} phút trước",
+                "minutesAgo": "{{minutes}} phút trước",
+                "now": "Bây giờ",
+                "secondAgo": "{{seconds}} giây trước",
+                "secondsAgo": "{{seconds}} giây trước",
+                "todayAt": "Hôm nay lúc {{date}}",
+                "yesterdayAt": "Hôm qua lúc {{date}}"
+            },
+            "undecryptable": "Không thể giải mã thông điệp.",
+            "unknown": "Không xác định"
+        },
+        "participants": {
+            "menu": {
+                "remove": "Xóa bỏ"
+            },
+            "participant": "Người tham gia",
+            "participants": "Người tham gia",
+            "prompts": {
+                "remove": {
+                    "message": "Bạn có chắc chắn muốn xóa người tham gia này không? Họ sẽ không còn có thể xem hoặc gửi tin nhắn trong cuộc trò chuyện này nữa.",
+                    "success": "{{name}} đã xóa",
+                    "title": "Xóa người tham gia"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "Bạn có chắc chắn muốn xóa trò chuyện này không? Điều này sẽ xóa cuộc trò chuyện khỏi danh sách của bạn và bạn sẽ không còn có thể xem hoặc gửi tin nhắn trong cuộc trò chuyện này.",
+                "title": "Xóa trò chuyện"
+            },
+            "deleteChats": {
+                "message": "Bạn có chắc chắn muốn xóa {{count}} cuộc trò chuyện không? Điều này sẽ xóa các cuộc trò chuyện khỏi danh sách của bạn và bạn sẽ không còn có thể xem hoặc gửi tin nhắn trong các cuộc trò chuyện này.",
+                "title": "Xóa các trò chuyện"
+            },
+            "deleteMessage": {
+                "message": "Bạn có chắc chắn muốn xóa tin nhắn này không? Hành động này không thể hoàn tác!",
+                "title": "Xóa tin nhắn"
+            },
+            "disableEmbeds": {
+                "message": "Bạn có chắc chắn muốn vô hiệu hóa nhúng cho tin nhắn này không? Điều này sẽ xóa mọi nội dung được nhúng.",
+                "title": "Tắt nhúng"
+            },
+            "leaveChat": {
+                "message": "Bạn có chắc chắn muốn rời khỏi cuộc trò chuyện này không? Bạn sẽ không còn có thể xem hoặc gửi tin nhắn trong cuộc trò chuyện này nữa.",
+                "title": "Rời khỏi cuộc trò chuyện"
+            },
+            "leaveChats": {
+                "message": "Bạn có chắc chắn muốn rời khỏi {{count}} cuộc trò chuyện không? Bạn sẽ không còn có thể xem hoặc gửi tin nhắn trong những cuộc trò chuyện này nữa.",
+                "title": "Rời khỏi các cuộc trò chuyện"
+            },
+            "renameChat": {
+                "placeholder": "Tên mới",
+                "title": "Đổi tên cuộc trò chuyện"
+            }
+        },
+        "typing": "{{users}} đang gõ..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "Chấp nhận",
+            "block": "Chặn",
+            "cancel": "Hủy bỏ",
+            "decline": "Từ chối",
+            "remove": "Xóa bỏ",
+            "unblock": "Bỏ chặn"
+        }
+    },
+    "copiedToClipboard": "Đã sao chép vào khay nhớ tạm",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "Hủy bỏ",
+                    "create": {
+                        "created": "{{name}} đã tạo",
+                        "directory": "Tạo thư mục",
+                        "photo": "Chụp ảnh",
+                        "textFile": "Tạo tệp văn bản"
+                    },
+                    "directoryNamePlaceholder": "Tên thư mục",
+                    "itemsUploaded": "{{count}} mục đã được tải lên",
+                    "noMediaPermissions": "Bạn cần cấp quyền truy cập phương tiện để tải ảnh hoặc video.",
+                    "textFileNamePlaceholder": "Tên tệp văn bản",
+                    "upload": {
+                        "directory": "Tải lên thư mục",
+                        "files": "Tải tệp lên",
+                        "media": "Tải phương tiện lên",
+                        "uploaded": "{{name}} đã tải lên"
+                    }
+                },
+                "deselectAll": "Bỏ chọn tất cả",
+                "dropdown": {
+                    "bulkActions": "Hành động hàng loạt",
+                    "gridMode": "Xem dưới dạng Lưới",
+                    "listMode": "Xem dưới dạng danh sách",
+                    "sortBy": {
+                        "ascending": "Tăng dần",
+                        "descending": "Giảm dần",
+                        "lastModified": {
+                            "ascendingTitle": "Sớm nhất trước",
+                            "descendingTitle": "Mới nhất trước",
+                            "title": "Chỉnh sửa lần cuối"
+                        },
+                        "name": {
+                            "ascendingTitle": "A đến Z",
+                            "descendingTitle": "Z đến A",
+                            "title": "Tên"
+                        },
+                        "size": {
+                            "ascendingTitle": "Nhỏ nhất trước",
+                            "descendingTitle": "Lớn nhất trước",
+                            "title": "Kích thước"
+                        },
+                        "sortBy": "Sắp xếp theo",
+                        "type": {
+                            "ascendingTitle": "Tăng dần",
+                            "descendingTitle": "Giảm dần",
+                            "title": "Loại"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "Sớm nhất trước",
+                            "descendingTitle": "Mới nhất trước",
+                            "title": "Ngày tải lên"
+                        }
+                    },
+                    "transfers": "Truyền tải"
+                },
+                "selectAll": "Chọn tất cả"
+            },
+            "title": {
+                "drive": "Ổ đĩa",
+                "favorites": "Mục yêu thích",
+                "links": "Liên kết công khai",
+                "offline": "Có sẵn ngoại tuyến",
+                "recents": "Gần đây",
+                "selected": "Đã chọn {{count}}",
+                "sharedIn": "Đã chia sẻ với bạn",
+                "sharedOut": "Đã chia sẻ với người khác",
+                "trash": "Thùng rác"
+            }
+        },
+        "itemShared": "{{name}} đã chia sẻ",
+        "itemSharedWith": "{{name}} đã chia sẻ với {{email}}",
+        "list": {
+            "empty": "Không tìm thấy mục nào",
+            "emptySearch": "Không tìm thấy mục nào cho tìm kiếm này",
+            "error": "Có lỗi khi tải ổ đĩa của bạn, vui lòng thử lại sau",
+            "footer": "{{count}} mục",
+            "item": {
+                "menu": {
+                    "availableOffline": "Có sẵn ngoại tuyến",
+                    "clipboard": "Bảng nhớ tạm thời",
+                    "color": "Màu sắc",
+                    "copy": "Sao chép",
+                    "copyId": "Sao chép ID",
+                    "copyPath": "Sao chép đường dẫn",
+                    "delete": "Xóa",
+                    "deletePermanently": "Xóa vĩnh viễn",
+                    "deselect": "Bỏ chọn",
+                    "deselectAll": "Bỏ chọn tất cả",
+                    "disablePublicLink": "Vô hiệu hóa liên kết",
+                    "download": "Tải xuống",
+                    "downloadFolder": "Tải thư mục xuống",
+                    "export": "Xuất",
+                    "favorite": "Yêu thích",
+                    "favorite_one": "Mục yêu thích",
+                    "favorite_other": "Yêu thích {{count}} mục",
+                    "favorited": "Đã yêu thích",
+                    "id": "ID",
+                    "info": "Thông tin",
+                    "location": "Vị trí",
+                    "makeAvailableOffline": "Tạo sẵn ngoại tuyến",
+                    "move": "Di chuyển",
+                    "move_one": "Di chuyển mục",
+                    "move_other": "Di chuyển {{count}} mục",
+                    "open": "Mở",
+                    "path": "Đường dẫn",
+                    "preview": "Xem trước",
+                    "properties": "Thuộc tính",
+                    "publicLink": "Liên kết công khai",
+                    "removeOffline": "Xóa tệp ngoại tuyến",
+                    "removeSharedIn": "Xóa bỏ",
+                    "removeSharedOut": "Dừng chia sẻ",
+                    "rename": "Đổi tên",
+                    "restore": "Khôi phục",
+                    "saveToGallery": "Lưu vào thư viện",
+                    "select": "Chọn",
+                    "selectAll": "Chọn tất cả",
+                    "share": "Chia sẻ",
+                    "share_one": "Chia sẻ mục",
+                    "share_other": "Chia sẻ {{count}} mục",
+                    "trash": "Thùng rác",
+                    "trash_one": "Xóa mục",
+                    "trash_other": "Xóa {{count}} mục",
+                    "unfavorite": "Bỏ yêu thích",
+                    "versionHistory": "Lịch sử phiên bản",
+                    "withUser": "Với người dùng"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "Bạn có chắc chắn muốn xóa vĩnh viễn {{count}} mục không? Hành động này không thể hoàn tác!",
+                "title": "Xóa vĩnh viễn"
+            },
+            "deletePermanently": {
+                "message": "Bạn có chắc chắn muốn xóa vĩnh viễn mục này không? Hành động này không thể hoàn tác!",
+                "title": "Xóa vĩnh viễn"
+            },
+            "disablePublicLinks": {
+                "message": "Bạn có chắc chắn muốn vô hiệu hóa các liên kết công khai cho {{count}} mục không? Các liên kết này sẽ không còn được truy cập.",
+                "title": "Tắt liên kết công khai"
+            },
+            "removeOfflineFiles": {
+                "message": "Bạn có chắc chắn muốn xóa {{count}} tệp ngoại tuyến không? Chúng sẽ không còn có sẵn ngoại tuyến nữa.",
+                "title": "Xóa các tệp ngoại tuyến"
+            },
+            "removeSharedInItem": {
+                "message": "Bạn có chắc chắn muốn xóa mục này khỏi các mục được chia sẻ của mình không? Bạn sẽ không thể nhìn thấy hoặc truy cập nó nữa.",
+                "title": "Xóa bỏ"
+            },
+            "removeSharedInItems": {
+                "message": "Bạn có chắc chắn muốn xóa {{count}} mục khỏi các mục được chia sẻ của mình không? Bạn sẽ không thể nhìn thấy hoặc truy cập chúng nữa.",
+                "title": "Xóa bỏ"
+            },
+            "removeSharedOutItem": {
+                "message": "Bạn có chắc chắn muốn ngừng chia sẻ mục này không? Người dùng sẽ không thể truy cập nó nữa.",
+                "title": "Dừng chia sẻ"
+            },
+            "removeSharedOutItems": {
+                "message": "Bạn có chắc chắn muốn ngừng chia sẻ {{count}} mục không? Người dùng sẽ không thể truy cập chúng nữa.",
+                "title": "Dừng chia sẻ"
+            },
+            "renameItem": {
+                "placeholder": "Tên mới",
+                "title": "Đổi tên"
+            },
+            "trashItem": {
+                "message": "Bạn có chắc muốn chuyển mục này vào thùng rác không? Bạn có thể khôi phục nó sau.",
+                "title": "Chuyển vào thùng rác"
+            },
+            "trashItems": {
+                "message": "Bạn có chắc muốn chuyển {{count}} mục vào thùng rác không? Bạn có thể khôi phục chúng sau.",
+                "title": "Chuyển vào thùng rác"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "Không tìm thấy mục nào",
+                "emptySearch": "Không tìm thấy mục nào cho tìm kiếm này",
+                "error": "Có lỗi khi tải kết quả tìm kiếm, vui lòng thử lại sau",
+                "footer": "{{count}} mục"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "Hủy bỏ",
+        "items": {
+            "downloadButton": "Nút tải xuống",
+            "edit": "Chỉnh sửa",
+            "enabled": "Đã bật",
+            "expiration": "Hết hạn",
+            "expiration12h": "12 giờ",
+            "expiration14d": "14 ngày",
+            "expiration1d": "1 ngày",
+            "expiration1h": "1 giờ",
+            "expiration30d": "30 ngày",
+            "expiration3d": "3 ngày",
+            "expiration6h": "6 giờ",
+            "expiration7d": "7 ngày",
+            "expirationNever": "Không bao giờ",
+            "password": "Mật khẩu"
+        },
+        "onlyPro": "Tính năng này chỉ có sẵn cho người dùng Filen Pro. Hãy đăng ký bất kỳ gói Filen nào để kích hoạt nó.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "Để trống để xóa mật khẩu",
+                "title": "Chỉnh sửa mật khẩu"
+            }
+        },
+        "shareDialogTile": "Liên kết công khai của Filen",
+        "title": "Chỉnh sửa liên kết công khai",
+        "unsavedChanges": "Thay đổi chưa được lưu"
+    },
+    "errors": {
+        "cannotOpenURL": "Không thể mở URL.",
+        "notEnoughDiskSpace": "Không đủ dung lượng đĩa cục bộ có sẵn.",
+        "sharingNotAvailable": "Chia sẻ không khả dụng trên thiết bị này.",
+        "youAreOffline": "Bạn hiện đang ngoại tuyến. Vui lòng kiểm tra kết nối internet của bạn."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "Hủy bỏ",
+                "confirm": "Xóa",
+                "message": "Bạn có chắc chắn muốn xóa phiên bản này không? Hành động này không thể hoàn tác!",
+                "title": "Xóa phiên bản"
+            },
+            "restore": {
+                "cancel": "Hủy bỏ",
+                "confirm": "Khôi phục",
+                "message": "Bạn có chắc chắn muốn khôi phục phiên bản này không? Điều này sẽ ghi đè tệp hiện tại.",
+                "title": "Khôi phục phiên bản"
+            }
+        },
+        "header": {
+            "title": "Lịch sử phiên bản"
+        },
+        "list": {
+            "empty": "Chưa có phiên bản nào",
+            "emptySearch": "Không tìm thấy phiên bản nào cho tìm kiếm này",
+            "error": "Có lỗi khi tải các phiên bản tệp, vui lòng thử lại sau",
+            "item": {
+                "current": "Hiện tại",
+                "delete": "Xóa",
+                "restore": "Khôi phục"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "Bytes",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiB",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "Không có bản xem trước nào có sẵn"
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "Mục yêu thích"
+            },
+            "links": {
+                "title": "Liên kết công khai"
+            },
+            "offline": {
+                "title": "Có sẵn ngoại tuyến"
+            },
+            "recents": {
+                "title": "Gần đây"
+            },
+            "sharedIn": {
+                "title": "Đã chia sẻ với bạn"
+            },
+            "sharedOut": {
+                "title": "Đã chia sẻ với người khác"
+            },
+            "trash": {
+                "title": "Thùng rác"
+            }
+        },
+        "listEmpty": {
+            "favorites": "Chưa có mục yêu thích nào",
+            "links": "Chưa có liên kết công khai nào",
+            "offline": "Chưa có mục ngoại tuyến",
+            "recents": "Chưa có gì gần đây",
+            "sharedIn": "Chưa có mục nào được chia sẻ",
+            "sharedOut": "Chưa có mục nào được chia sẻ",
+            "trash": "Chưa có mục nào bị xóa"
+        },
+        "title": "Trang chủ"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "Hủy bỏ",
+            "okText": "OK",
+            "title": "Tiêu đề"
+        }
+    },
+    "listEmpty": {
+        "empty": "Không tìm thấy gì",
+        "emptySearch": "Không tìm thấy gì cho tìm kiếm này",
+        "error": "Đã xảy ra lỗi, vui lòng thử lại sau"
+    },
+    "localAuthentication": {
+        "cancelLabel": "Hủy bỏ",
+        "promptMessage": "Xác thực để tiếp tục"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "Viết mã của bạn tại đây...",
+                "text": "Viết văn bản của bạn tại đây..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "Bỏ chọn tất cả",
+                    "selectAll": "Chọn tất cả"
+                },
+                "types": {
+                    "checklist": "Danh sách kiểm tra",
+                    "code": "Mã",
+                    "markdown": "Markdown",
+                    "rich": "Văn bản phong phú",
+                    "text": "Văn bản"
+                }
+            },
+            "menu": {
+                "settings": "Cài đặt"
+            },
+            "selected": "Đã chọn {{count}}",
+            "title": "Ghi chú"
+        },
+        "history": {
+            "list": {
+                "empty": "Không có lịch sử",
+                "emptySearch": "Không tìm thấy mục nào cho tìm kiếm này",
+                "error": "Có lỗi khi tải lịch sử, vui lòng thử lại sau",
+                "footer": "{{count}} mục"
+            },
+            "noPreview": "Không có bản xem trước nào có sẵn",
+            "prompts": {
+                "restore": {
+                    "message": "Bạn có chắc chắn muốn khôi phục ghi chú này không? Điều này sẽ ghi đè lên ghi chú hiện tại.",
+                    "title": "Khôi phục ghi chú"
+                }
+            },
+            "restore": "Khôi phục",
+            "title": "Lịch sử"
+        },
+        "list": {
+            "empty": "Chưa có ghi chú nào",
+            "emptySearch": "Không tìm thấy ghi chú nào cho tìm kiếm này",
+            "error": "Có lỗi khi tải các ghi chú của bạn, vui lòng thử lại sau",
+            "footer": "{{count}} mục"
+        },
+        "menu": {
+            "archive": "Lưu trữ",
+            "clipboard": "Bảng nhớ tạm thời",
+            "copyId": "Sao chép ID",
+            "delete": "Xóa",
+            "deselect": "Bỏ chọn",
+            "duplicate": "Trùng lặp",
+            "export": "Xuất",
+            "favorite": "Yêu thích",
+            "favorited": "Đã yêu thích",
+            "history": "Lịch sử",
+            "leave": "Rời khỏi",
+            "participants": "Người tham gia",
+            "pin": "Ghim",
+            "pinned": "Đã ghim",
+            "preview": "Xem trước",
+            "rename": "Đổi tên",
+            "restore": "Khôi phục",
+            "select": "Chọn",
+            "tags": "Thẻ",
+            "trash": "Thùng rác",
+            "type": "Loại",
+            "types": {
+                "checklist": "Danh sách kiểm tra",
+                "code": "Mã",
+                "md": "Markdown",
+                "rich": "Văn bản phong phú",
+                "text": "Văn bản"
+            },
+            "unfavorite": "Bỏ yêu thích",
+            "unpin": "Gỡ ghim"
+        },
+        "participants": {
+            "list": {
+                "empty": "Chưa có người tham gia nào",
+                "emptySearch": "Không tìm thấy người tham gia nào cho tìm kiếm này",
+                "error": "Có lỗi khi tải danh sách người tham gia, vui lòng thử lại sau",
+                "footer": "{{count}} người tham gia"
+            },
+            "menu": {
+                "permissionsWrite": "Quyền viết",
+                "remove": "Xóa bỏ"
+            },
+            "title": "Người tham gia"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "Tiêu đề ghi chú",
+                "title": "Tạo ghi chú"
+            },
+            "createTag": {
+                "placeholder": "Tên thẻ",
+                "title": "Tạo nhãn"
+            },
+            "deleteNote": {
+                "message": "Bạn có chắc chắn muốn xóa vĩnh viễn ghi chú này không? Hành động này không thể hoàn tác!",
+                "title": "Xóa ghi chú"
+            },
+            "deleteNotes": {
+                "message": "Bạn có chắc chắn muốn xóa vĩnh viễn {{count}} ghi chú không? Hành động này không thể hoàn tác!",
+                "title": "Xóa các ghi chú"
+            },
+            "deleteTag": {
+                "message": "Bạn có chắc chắn muốn xóa thẻ này không? Hành động này không thể hoàn tác!",
+                "title": "Xóa thẻ"
+            },
+            "deleteTags": {
+                "message": "Bạn có chắc chắn muốn xóa {{count}} thẻ không? Hành động này không thể hoàn tác!",
+                "title": "Xóa các thẻ"
+            },
+            "leaveNote": {
+                "message": "Bạn có chắc chắn muốn rời khỏi ghi chú này không? Bạn sẽ không thể nhìn thấy hoặc chỉnh sửa nó nữa.",
+                "title": "Rời khỏi ghi chú"
+            },
+            "leaveNotes": {
+                "message": "Bạn có chắc chắn muốn rời khỏi {{count}} ghi chú không? Bạn sẽ không thể nhìn thấy hoặc chỉnh sửa chúng nữa.",
+                "title": "Rời khỏi các ghi chú"
+            },
+            "removeParticipant": {
+                "message": "Bạn có chắc chắn muốn xóa người tham gia này không? Họ sẽ không còn có thể thấy hoặc chỉnh sửa ghi chú này nữa.",
+                "title": "Xóa người tham gia"
+            },
+            "removeParticipants": {
+                "message": "Bạn có chắc chắn muốn xóa {{count}} người tham gia không? Họ sẽ không còn có thể thấy hoặc chỉnh sửa những ghi chú này nữa.",
+                "title": "Xóa những người tham gia"
+            },
+            "renameNote": {
+                "placeholder": "Tên mới",
+                "title": "Đổi tên ghi chú"
+            },
+            "renameTag": {
+                "placeholder": "Tên thẻ mới",
+                "title": "Đổi tên thẻ"
+            },
+            "trashNote": {
+                "message": "Bạn có chắc muốn chuyển ghi chú này vào thùng rác không? Bạn có thể khôi phục nó sau.",
+                "title": "Chuyển vào thùng rác"
+            },
+            "trashNotes": {
+                "message": "Bạn có chắc muốn chuyển {{count}} ghi chú vào thùng rác không? Bạn có thể khôi phục chúng sau.",
+                "title": "Chuyển vào thùng rác"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "Xóa",
+                "favorited": "Đã yêu thích",
+                "rename": "Đổi tên"
+            },
+            "names": {
+                "all": "Tất cả",
+                "archived": "Đã lưu trữ",
+                "favorited": "Đã yêu thích",
+                "pinned": "Đã ghim",
+                "shared": "Đã chia sẻ",
+                "trash": "Thùng rác"
+            }
+        },
+        "title": "Ghi chú"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "Hủy bỏ",
+            "placeholder": "Tìm kiếm..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "Chế độ ngoại tuyến"
+    },
+    "photos": {
+        "header": {
+            "selected": "Đã chọn {{count}}"
+        },
+        "list": {
+            "empty": "Chưa có ảnh nào",
+            "emptySearch": "Không tìm thấy ảnh nào cho tìm kiếm này",
+            "error": "Có lỗi khi tải ảnh của bạn, vui lòng thử lại sau"
+        },
+        "menu": {
+            "settings": "Cài đặt"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} mục"
+                },
+                "list": {
+                    "empty": "Không tìm thấy album nào",
+                    "emptySearch": "Không tìm thấy album nào cho tìm kiếm này",
+                    "error": "Có lỗi khi tải album của bạn, vui lòng thử lại sau"
+                },
+                "title": "Album"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "Bạn cần cấp quyền truy cập phương tiện để truy cập ảnh của bạn."
+                },
+                "items": {
+                    "albums": "Album",
+                    "albumsInfo": "Chọn album nào để bao gồm trong tải lên từ camera.",
+                    "background": "Nền",
+                    "backgroundInfo": "Cho phép tải lên máy ảnh trong nền. Điều này có thể dẫn đến việc sử dụng pin cao. Việc tải lên nền chỉ bao gồm hình ảnh. Chỉ hoạt động khi ứng dụng không bị buộc đóng.",
+                    "cellular": "Di động",
+                    "cellularInfo": "Cho phép tải ảnh qua dữ liệu di động. Điều này có thể dẫn đến việc sử dụng dữ liệu cao.",
+                    "cloudDirectory": "Thư mục đám mây",
+                    "cloudDirectoryNotSet": "Chưa đặt",
+                    "compress": "Nén",
+                    "compressInfo": "Nén ảnh để tiết kiệm dung lượng lưu trữ. Điều này có thể giảm chất lượng của ảnh. Nén JPG ở chất lượng 80%.",
+                    "enabled": "Đã bật",
+                    "lowBattery": "Pin yếu",
+                    "lowBatteryInfo": "Tắt tải lên máy ảnh khi pin yếu.",
+                    "permissionsError": "Lỗi quyền truy cập",
+                    "permissionsErrorInfo": "Vui lòng cho phép ứng dụng truy cập ảnh và video của bạn trong cài đặt hệ thống.",
+                    "videos": "Video",
+                    "videosInfo": "Bao gồm video trong tải lên từ camera."
+                },
+                "title": "Cài đặt"
+            }
+        },
+        "state": {
+            "synced": "Đã đồng bộ",
+            "syncing": "Đang đồng bộ",
+            "syncingProgress": "{{done}} trên tổng số {{total}} mục đã được đồng bộ"
+        },
+        "title": "Ảnh"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "Hủy bỏ",
+            "done": "Hoàn thành",
+            "selectContact": "Chọn liên hệ",
+            "selectContacts": "Chọn các liên hệ"
+        },
+        "list": {
+            "empty": "Chưa có liên hệ nào",
+            "emptySearch": "Không tìm thấy liên hệ nào cho tìm kiếm này",
+            "error": "Có lỗi khi tải danh bạ của bạn, vui lòng thử lại sau",
+            "footer": "{{count}} liên hệ"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} đã chọn"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "Hủy bỏ",
+            "done": "Hoàn thành",
+            "drive": "Ổ đĩa",
+            "selectDirectories": "Chọn các thư mục",
+            "selectDirectory": "Chọn thư mục",
+            "selectFile": "Chọn tệp",
+            "selectFiles": "Chọn các tệp",
+            "selectItem": "Chọn mục",
+            "selectItems": "Chọn mục",
+            "selectRoot": "Chọn ổ đĩa đám mây"
+        },
+        "list": {
+            "empty": "Chưa tải lên gì cả",
+            "emptySearch": "Không tìm thấy mục nào cho tìm kiếm này",
+            "error": "Có lỗi khi tải tệp của bạn, vui lòng thử lại sau",
+            "footer": "{{count}} mục"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "Tên thư mục",
+                "success": "{{name}} đã tạo",
+                "title": "Tạo thư mục"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} đã chọn"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "Hủy bỏ",
+            "done": "Hoàn thành",
+            "selectPlaylist": "Chọn danh sách phát",
+            "selectPlaylists": "Chọn danh sách phát"
+        },
+        "item": {
+            "subTitle": "{{count}} bản nhạc, cập nhật {{date}}"
+        },
+        "list": {
+            "empty": "Chưa có danh sách phát nào",
+            "emptySearch": "Không tìm thấy danh sách phát nào cho tìm kiếm này",
+            "error": "Có lỗi khi tải danh sách phát của bạn, vui lòng thử lại sau",
+            "footer": "{{count}} danh sách phát"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Tên danh sách phát",
+                "title": "Tạo danh sách phát"
+            }
+        },
+        "selected": "{{countOrName}} đã chọn",
+        "toolbar": {
+            "selected": "{{countOrName}} đã chọn"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "Kích thước ảnh đại diện vượt quá giới hạn 3 MiB.",
+                "emailsNotMatching": "Địa chỉ email mới không khớp."
+            },
+            "items": {
+                "changeAvatar": "Thay đổi ảnh đại diện",
+                "deleteAllFilesAndDirectories": "Xóa tất cả tệp và thư mục",
+                "deleteVersionedFiles": "Xóa các tệp đã phiên bản",
+                "emailAddress": "Địa chỉ email",
+                "fileVersioning": "Phiên bản tệp",
+                "fileVersioningInfo": "Kích hoạt phiên bản tệp để theo dõi các thay đổi được thực hiện trên tệp của bạn.",
+                "gdpr": "Thông tin GDPR",
+                "loginAlerts": "Cảnh báo đăng nhập",
+                "loginAlertsInfo": "Nhận cảnh báo khi tài khoản của bạn được truy cập.",
+                "logout": "Đăng xuất",
+                "more": "Cài đặt tài khoản nâng cao",
+                "nickname": "Biệt danh",
+                "personalInformation": "Thông tin cá nhân",
+                "requestAccountDeletion": "Yêu cầu xoá tài khoản",
+                "requestAccountDeletionInfo": "Yêu cầu xóa tài khoản. Chúng tôi sẽ gửi cho bạn một email với hướng dẫn chi tiết hơn."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "Mã",
+                    "title": "Xác thực hai yếu tố"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "Xác nhận địa chỉ email mới",
+                        "title": "Xác nhận địa chỉ email mới"
+                    },
+                    "newEmail": {
+                        "placeholder": "Địa chỉ email mới",
+                        "title": "Địa chỉ email mới"
+                    },
+                    "password": {
+                        "placeholder": "Mật khẩu",
+                        "title": "Mật khẩu của bạn"
+                    }
+                },
+                "deleteAccount": {
+                    "message": "Bạn có chắc chắn muốn yêu cầu xóa tài khoản không? Bạn sẽ nhận được một email với hướng dẫn tiếp theo.",
+                    "title": "Yêu cầu xoá tài khoản"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "Bạn có chắc chắn muốn xóa tất cả các tệp và thư mục không? Hành động này không thể hoàn tác!",
+                    "title": "Xóa tất cả tệp và thư mục"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "Bạn có thật sự chắc chắn không? Hành động này không thể hoàn tác!",
+                    "title": "Xóa tất cả tệp và thư mục"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "Bạn có chắc chắn muốn xóa tất cả các tệp có phiên bản không? Hành động này không thể hoàn tác!",
+                    "title": "Xóa các tệp đã phiên bản"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "Bạn có thật sự chắc chắn không? Hành động này không thể hoàn tác!",
+                    "title": "Xóa các tệp đã phiên bản"
+                },
+                "logout": {
+                    "message": "Bạn có chắc chắn muốn đăng xuất không? Bạn sẽ cần đăng nhập lại để truy cập tài khoản của mình.",
+                    "title": "Đăng xuất"
+                },
+                "more": {
+                    "message": "Nhiều cài đặt hơn có sẵn trong ứng dụng web. Bạn có muốn mở nó ngay bây giờ không?",
+                    "title": "Mở ứng dụng Web"
+                },
+                "updateNickname": {
+                    "placeholder": "Biệt danh mới",
+                    "title": "Cập nhật biệt danh"
+                }
+            },
+            "title": "Tài khoản"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "Xóa bộ nhớ đệm",
+                "clearOfflineFiles": "Xóa tệp offline",
+                "clearThumbnails": "Xóa hình thu nhỏ",
+                "clearTrackPlayer": "Xóa trình phát nhạc"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "Xóa cache sẽ xóa tất cả các tệp tạm thời. Điều này có thể làm gián đoạn các quá trình tải lên hoặc tải xuống đang diễn ra. Bạn có chắc chắn muốn tiếp tục không?",
+                    "title": "Xóa bộ nhớ đệm"
+                },
+                "clearOfflineFiles": {
+                    "message": "Xóa tệp ngoại tuyến sẽ xóa tất cả các tệp có sẵn ngoại tuyến. Bạn có chắc chắn muốn tiếp tục không?",
+                    "title": "Xóa tệp offline"
+                },
+                "clearThumbnails": {
+                    "message": "Việc xóa hình thu nhỏ sẽ khiến ứng dụng tải lại tất cả các hình thu nhỏ có thể nhìn thấy. Bạn có chắc chắn muốn tiếp tục không?",
+                    "title": "Xóa hình thu nhỏ"
+                },
+                "clearTrackPlayer": {
+                    "message": "Xóa bộ nhớ đệm của trình phát nhạc sẽ loại bỏ các bản nhạc và hình ảnh đã được đệm. Điều này có thể dẫn đến thời gian tải lâu hơn. Bạn có chắc chắn muốn tiếp tục không?",
+                    "title": "Xóa trình phát nhạc"
+                }
+            },
+            "title": "Nâng cao"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "Xác thực sinh trắc học không khả dụng trên thiết bị này. Vui lòng bật xác thực chỉ bằng mã PIN hoặc sử dụng thiết bị hỗ trợ xác thực sinh trắc học.",
+                "pinNotMatching": "Mã PIN dự phòng không khớp.",
+                "pinTooLong": "Mã PIN dự phòng không được dài hơn 128 chữ số.",
+                "pinTooShort": "Mã PIN dự phòng phải có ít nhất 4 chữ số."
+            },
+            "items": {
+                "biometricAuth": "Xác thực sinh trắc học",
+                "lockAppAfter": "Khóa ứng dụng sau",
+                "pinOnly": "Chỉ mã PIN"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15 phút",
+                "fiveMinutes": "5 phút",
+                "immediately": "Ngay lập tức",
+                "minutes": "{{minutes}} phút",
+                "never": "Không bao giờ",
+                "oneHour": "1 giờ",
+                "oneMinute": "1 phút",
+                "tenMinutes": "10 phút",
+                "thirtyMinutes": "30 phút"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "Bạn có chắc chắn muốn tắt xác thực sinh trắc học không?",
+                    "title": "Vô hiệu hóa xác thực sinh trắc học"
+                },
+                "documentsProvider": {
+                    "message": "Kích hoạt xác thực sinh trắc học sẽ vô hiệu hóa nhà cung cấp tài liệu. Điều này có nghĩa là bạn sẽ không thể truy cập tệp của mình trong các ứng dụng khác bằng cách sử dụng nhà cung cấp tài liệu Filen. Bạn có muốn tiếp tục không?",
+                    "title": "Nhà cung cấp tài liệu đã được kích hoạt"
+                },
+                "enable": {
+                    "placeholder": "Mã PIN dự phòng",
+                    "title": "Thiết lập mã PIN dự phòng"
+                },
+                "enableConfirm": {
+                    "placeholder": "Xác nhận mã PIN",
+                    "title": "Xác nhận mã PIN dự phòng"
+                },
+                "fileProvider": {
+                    "message": "Kích hoạt xác thực sinh trắc học sẽ vô hiệu hóa nhà cung cấp tệp. Điều này có nghĩa là bạn sẽ không thể truy cập tệp của mình trong các ứng dụng khác bằng cách sử dụng nhà cung cấp tệp Filen. Bạn có muốn tiếp tục không?",
+                    "title": "Trình cung cấp tệp đã được bật"
+                }
+            },
+            "title": "Bảo mật"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "Không tìm thấy liên hệ nào",
+                    "emptySearch": "Không tìm thấy liên hệ nào cho tìm kiếm này",
+                    "error": "Có lỗi khi tải danh bạ của bạn, vui lòng thử lại sau"
+                },
+                "blocked": {
+                    "empty": "Không tìm thấy liên hệ bị chặn nào",
+                    "emptySearch": "Không tìm thấy liên hệ bị chặn nào cho tìm kiếm này",
+                    "error": "Có lỗi khi tải danh bạ của bạn, vui lòng thử lại sau"
+                },
+                "offline": {
+                    "empty": "Không tìm thấy liên hệ ngoại tuyến nào",
+                    "emptySearch": "Không tìm thấy liên hệ ngoại tuyến nào cho tìm kiếm này",
+                    "error": "Có lỗi khi tải danh bạ của bạn, vui lòng thử lại sau"
+                },
+                "online": {
+                    "empty": "Không tìm thấy liên hệ trực tuyến nào",
+                    "emptySearch": "Không tìm thấy liên hệ trực tuyến nào cho tìm kiếm này",
+                    "error": "Có lỗi khi tải danh bạ của bạn, vui lòng thử lại sau"
+                },
+                "pending": {
+                    "empty": "Không tìm thấy yêu cầu liên hệ nào",
+                    "emptySearch": "Không tìm thấy yêu cầu liên hệ nào cho tìm kiếm này",
+                    "error": "Có lỗi khi tải yêu cầu liên hệ của bạn, vui lòng thử lại sau"
+                },
+                "requests": {
+                    "empty": "Không tìm thấy yêu cầu liên hệ nào",
+                    "emptySearch": "Không tìm thấy yêu cầu liên hệ nào cho tìm kiếm này",
+                    "error": "Có lỗi khi tải yêu cầu liên hệ của bạn, vui lòng thử lại sau"
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "Bạn có chắc chắn muốn chặn liên lạc này không?",
+                    "success": "{{email}} đã chặn",
+                    "title": "Chặn liên hệ"
+                },
+                "blockContacts": {
+                    "message": "Bạn có chắc chắn muốn chặn {{count}} liên lạc không?",
+                    "success": "{{count}} liên hệ đã bị chặn",
+                    "title": "Chặn các liên hệ"
+                },
+                "removeContact": {
+                    "message": "Bạn có chắc chắn muốn xoá liên lạc này không?",
+                    "success": "{{email}} đã xóa",
+                    "title": "Xóa liên hệ"
+                },
+                "removeContacts": {
+                    "message": "Bạn có chắc chắn muốn xoá {{count}} liên lạc không?",
+                    "success": "{{count}} liên hệ đã bị xóa",
+                    "title": "Xóa các liên hệ"
+                },
+                "sendRequest": {
+                    "placeholder": "Địa chỉ email Filen",
+                    "success": "Yêu cầu liên hệ đã được gửi tới {{email}}",
+                    "title": "Gửi yêu cầu kết nối"
+                },
+                "unblockContact": {
+                    "message": "Bạn có chắc chắn muốn bỏ chặn liên lạc này không?",
+                    "success": "{{email}} đã bỏ chặn",
+                    "title": "Mở chặn liên hệ"
+                },
+                "unblockContacts": {
+                    "message": "Bạn có chắc chắn muốn bỏ chặn {{count}} liên lạc không?",
+                    "success": "{{count}} liên hệ đã được bỏ chặn",
+                    "title": "Mở chặn các liên hệ"
+                }
+            },
+            "tabs": {
+                "all": "Tất cả",
+                "blocked": "Đã chặn",
+                "offline": "Ngoại tuyến",
+                "online": "Trực tuyến",
+                "pending": "Đang chờ xử lý",
+                "requests": "Yêu cầu"
+            },
+            "title": "Liên hệ"
+        },
+        "events": {
+            "event": "Sự kiện",
+            "eventInfo": {
+                "2faDisabled": "2FA đã bị vô hiệu hóa",
+                "2faEnabled": "2FA đã được kích hoạt",
+                "baseFolderCreated": "Thư mục gốc đã được tạo",
+                "codeRedeemed": "Mã \"{{code}}\" đã được sử dụng",
+                "deleteAll": "Tất cả thư mục và tệp đã bị xóa vĩnh viễn",
+                "deleteFilePermanently": "{{name}} đã bị xóa vĩnh viễn",
+                "deleteFolderPermanently": "{{name}} đã bị xóa vĩnh viễn",
+                "deleteUnfinished": "Tải lên chưa hoàn thành đã bị xóa",
+                "deleteVersioned": "Tất cả tệp phiên bản đã bị xóa",
+                "emailChangeAttempt": "Đã thử thay đổi email",
+                "emailChanged": "Email đã thay đổi",
+                "failedLogin": "Nỗ lực đăng nhập không thành công",
+                "fileLinkEdited": "Liên kết công khai cho {{name}} đã được chỉnh sửa",
+                "fileMetadataChanged": "Siêu dữ liệu của {{name}} đã thay đổi",
+                "fileMoved": "{{name}} đã di chuyển",
+                "fileRenamed": "{{oldName}} đã được đổi tên thành {{newName}}",
+                "fileRestored": "{{name}} đã khôi phục",
+                "fileRm": "{{name}} đã xóa",
+                "fileShared": "{{name}} đã chia sẻ với {{email}}",
+                "fileTrash": "{{name}} đã chuyển vào thùng rác",
+                "fileUploaded": "{{name}} đã tải lên",
+                "fileVersioned": "{{name}} đã phiên bản",
+                "folderColorChanged": "Màu sắc của thư mục {{name}} đã thay đổi",
+                "folderLinkEdited": "Liên kết công khai thư mục đã được chỉnh sửa",
+                "folderMetadataChanged": "Siêu dữ liệu của thư mục {{name}} đã thay đổi",
+                "folderMoved": "Thư mục {{name}} đã chuyển",
+                "folderRenamed": "Thư mục {{oldName}} đã được đổi tên thành {{newName}}",
+                "folderRestored": "Thư mục {{name}} đã khôi phục",
+                "folderShared": "Thư mục {{name}} đã chia sẻ với {{email}}",
+                "folderTrash": "Thư mục {{name}} đã chuyển vào thùng rác",
+                "itemFavorited": "{{name}} đã được yêu thích",
+                "itemUnfavorited": "{{name}} đã bị loại khỏi yêu thích",
+                "login": "Đã đăng nhập",
+                "passwordChanged": "Mật khẩu đã được thay đổi",
+                "removedSharedInItems": "Đã xóa các mục chia sẻ từ {{email}}",
+                "removedSharedOutItems": "Đã xóa các mục chia sẻ từ {{email}}",
+                "requestAccountDeletion": "Yêu cầu xóa tài khoản",
+                "subFolderCreated": "Thư mục {{name}} đã được tạo",
+                "trashEmptied": "Thùng rác đã được làm trống",
+                "versionedFileRestored": "Phiên bản của {{name}} đã được khôi phục"
+            },
+            "events": "Sự kiện",
+            "listEmpty": {
+                "empty": "Không tìm thấy sự kiện nào",
+                "emptySearch": "Không tìm thấy sự kiện nào cho tìm kiếm này",
+                "error": "Có lỗi khi tải sự kiện của bạn, vui lòng thử lại sau"
+            },
+            "title": "Sự kiện"
+        },
+        "index": {
+            "items": {
+                "advanced": "Nâng cao",
+                "cameraUpload": "Tải lên từ máy ảnh",
+                "contacts": "Liên hệ",
+                "documentsProvider": "Nhà cung cấp tài liệu",
+                "documentsProviderInfo": "Kích hoạt tích hợp Lí tệp Android để truy cập tệp của bạn bên ngoài ứng dụng.",
+                "events": "Sự kiện",
+                "fileProvider": "Nhà cung cấp tệp",
+                "fileProviderInfo": "Kích hoạt tích hợp Lí tệp iOS để truy cập tệp của bạn bên ngoài ứng dụng.",
+                "security": "Bảo mật",
+                "used": "{{used}} đã sử dụng trong tổng số {{max}} ({{percentage}}%)"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "Việc cho phép nhà cung cấp tài liệu sẽ vô hiệu hóa xác thực sinh trắc. Điều này có nghĩa là bạn sẽ không thể sử dụng xác thực sinh trắc để mở khóa ứng dụng. Bạn có muốn tiếp tục không?",
+                    "title": "Xác thực sinh trắc học đã được kích hoạt"
+                },
+                "fileProvider": {
+                    "message": "Việc cho phép nhà cung cấp tệp sẽ vô hiệu hóa xác thực sinh trắc. Điều này có nghĩa là bạn sẽ không thể sử dụng xác thực sinh trắc để mở khóa ứng dụng. Bạn có muốn tiếp tục không?",
+                    "title": "Xác thực sinh trắc học đã được kích hoạt"
+                }
+            },
+            "title": "Cài đặt"
+        },
+        "personal": {
+            "items": {
+                "city": "Thành phố",
+                "companyName": "Tên công ty",
+                "country": "Quốc gia",
+                "firstName": "Tên",
+                "lastName": "Họ",
+                "postalCode": "Mã bưu điện",
+                "street": "Đường phố",
+                "streetNumber": "Số đường phố",
+                "vatId": "ID VAT"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "Chỉnh sửa"
+                }
+            },
+            "title": "Thông tin cá nhân"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "Mật khẩu mới không khớp nhau.",
+                "weak": "Mật khẩu mới của bạn quá yếu. Vui lòng chọn mật khẩu mạnh hơn. Phải dài ít nhất 10 ký tự, bao gồm chữ hoa và chữ thường, số và ký tự đặc biệt."
+            },
+            "items": {
+                "2fa": "Xác thực hai yếu tố",
+                "biometricAuth": "Xác thực sinh trắc học",
+                "changePassword": "Thay đổi mật khẩu"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "Sau khi thay đổi mật khẩu, bạn sẽ bị đăng xuất và cần đăng nhập lại bằng mật khẩu mới của bạn.",
+                    "title": "Thay đổi mật khẩu"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "Xác nhận mật khẩu",
+                    "title": "Xác nhận mật khẩu mới"
+                },
+                "currentPassword": {
+                    "placeholder": "Mật khẩu hiện tại",
+                    "title": "Mật khẩu hiện tại của bạn"
+                },
+                "newPassword": {
+                    "placeholder": "Mật khẩu mới",
+                    "title": "Mật khẩu mới của bạn"
+                }
+            },
+            "title": "Bảo mật"
+        },
+        "twoFactorAuth": {
+            "copied": "Khóa đã được sao chép vào khay nhớ tạm",
+            "copyKey": "Sao chép khóa",
+            "items": {
+                "2fa": "Xác thực hai yếu tố"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "Mã",
+                    "title": "Nhập mã"
+                }
+            },
+            "title": "Bảo mật"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "Hủy bỏ",
+            "title": "Lưu vào Filen",
+            "upload": "Tải lên"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "Hủy bỏ",
+            "select": "Chọn"
+        },
+        "itemInfo": {
+            "creation": "Đã tạo",
+            "directories": "Các thư mục",
+            "directory": "Thư mục",
+            "files": "Tệp tin",
+            "location": "Vị trí",
+            "modified": "Đã chỉnh sửa",
+            "name": "Tên",
+            "notAvailable": "N/A",
+            "size": "Kích thước",
+            "type": "Loại",
+            "uploaded": "Đã tải lên"
+        }
+    },
+    "tabBar": {
+        "chats": "Những cuộc trò chuyện",
+        "drive": "Ổ đĩa",
+        "home": "Trang chủ",
+        "notes": "Ghi chú",
+        "photos": "Ảnh",
+        "settings": "Cài đặt"
+    },
+    "textEditor": {
+        "header": {
+            "back": "Trở lại"
+        },
+        "saved": "Đã lưu",
+        "savedSuccess": "Đã lưu thành công",
+        "unsavedChanges": "Thay đổi chưa được lưu"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "Không có bản nhạc nào được xếp hàng",
+            "unknownArtist": "Nghệ sĩ không xác định",
+            "unknownTitle": "Tiêu đề không xác định"
+        },
+        "header": {
+            "title": "Danh sách phát"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "Thêm vào hàng đợi",
+                "cancel": "Hủy bỏ",
+                "delete": "Xóa",
+                "play": "Phát"
+            },
+            "subTitle": "{{count}} bản nhạc, cập nhật {{date}}"
+        },
+        "list": {
+            "empty": "Chưa có danh sách phát nào",
+            "emptySearch": "Không tìm thấy danh sách phát nào cho tìm kiếm này",
+            "error": "Có lỗi khi tải danh sách phát của bạn, vui lòng thử lại sau",
+            "footer": "{{count}} danh sách phát"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "Thêm vào danh sách phát",
+                    "addToQueue": "Thêm vào hàng đợi",
+                    "cancel": "Hủy bỏ",
+                    "play": "Phát",
+                    "removeFromPlaylist": "Xóa khỏi danh sách phát"
+                }
+            },
+            "list": {
+                "empty": "Chưa có bản nhạc nào",
+                "emptySearch": "Không tìm thấy bản nhạc nào cho tìm kiếm này",
+                "error": "Có lỗi khi tải các bản nhạc của bạn, vui lòng thử lại sau",
+                "footer": "{{count}} bài hát"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Tên danh sách phát",
+                "title": "Tạo danh sách phát"
+            },
+            "deletePlaylist": {
+                "message": "Bạn có chắc chắn muốn xóa danh sách phát này không? Hành động này không thể hoàn tác!",
+                "title": "Xóa danh sách phát"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "Trở lại",
+            "title": "Truyền tải"
+        },
+        "info": "Đang chuyển {{ongoingTransfers}} mục với tốc độ {{speed}}, còn lại {{remaining}}",
+        "list": {
+            "empty": "Chưa có chuyển khoản nào",
+            "emptySearch": "Không tìm thấy chuyển khoản nào cho tìm kiếm này",
+            "error": "Có lỗi khi tải các chuyển khoản của bạn, vui lòng thử lại sau"
+        },
+        "noOngoingTransfers": "Không có chuyển khoản đang diễn ra",
+        "transfer": {
+            "cancel": "Hủy bỏ",
+            "cancelAll": "Hủy tất cả",
+            "pause": "Tạm dừng",
+            "resume": "Tiếp tục",
+            "stop": "Dừng",
+            "stopAll": "Dừng tất cả"
+        }
+    }
+}

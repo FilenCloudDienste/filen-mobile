@@ -1,0 +1,1402 @@
+{
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "Anulează",
+            "okText": "OK",
+            "title": "Titlu"
+        },
+        "exportMasterKeys": {
+            "cancelText": "Mai târziu",
+            "message": "Nu ați exportat încă cheile principale. Este foarte recomandat să le exportați acum și să le stocați într-un loc sigur.",
+            "okText": "Exportați",
+            "title": "Exportă cheile master"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "Mai târziu",
+            "message": "Ați depășit limita de stocare. Vă rugăm să eliberați spațiu sau să vă actualizați planul pentru a preveni ștergerea nedorită a datelor.",
+            "okText": "Actualizare",
+            "title": "Depășire a limitelor de stocare"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "Criptat de la un capăt la altul",
+                "second": "Platforma Cloud"
+            },
+            "login": "Autentificare",
+            "signUp": "Înscrieți-vă gratuit"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "Vă rugăm să completați toate câmpurile."
+            },
+            "forgotPassword": "Parolă uitată?",
+            "form": {
+                "email": {
+                    "label": "Adresă de e-mail",
+                    "placeholder": "Introduceți adresa dvs. de email"
+                },
+                "password": {
+                    "label": "Parolă",
+                    "placeholder": "Introduceți parola"
+                }
+            },
+            "header": {
+                "cancel": "Anulează"
+            },
+            "login": "Autentificare",
+            "loginUsingCreds": "Autentifică-te folosind credențialele tale",
+            "next": "Următor",
+            "signUp": "Înscrieți-vă gratuit",
+            "submit": "Autentificare",
+            "title": "Autentificare",
+            "welcome": "Bun venit înapoi!"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "Cod",
+                "title": "Autentificare în doi pași"
+            },
+            "forgotPassword": {
+                "placeholder": "Adresă de e-mail",
+                "success": "Dacă adresa de email este înregistrată, veți primi un email cu instrucțiuni pentru a vă reseta parola.",
+                "title": "Parolă uitată"
+            },
+            "resendConfirmation": {
+                "placeholder": "Adresă de e-mail",
+                "success": "E-mail de confirmare trimis la {{email}} dacă este înregistrat.",
+                "title": "Retrimite confirmarea"
+            }
+        },
+        "register": {
+            "createAccount": "Creați cont",
+            "errors": {
+                "emailAddressesDoNotMatch": "Adresele de e-mail nu coincid.",
+                "emptyFields": "Vă rugăm să completați toate câmpurile.",
+                "passwordsDoNotMatch": "Parolele nu se potrivesc.",
+                "weakPassword": "Parola dvs. este prea slabă. Vă rugăm să alegeți o parolă mai puternică. Una care are cel puțin 10 caractere, conține un amestec de litere mari și mici, numere și caractere speciale."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "Confirmați adresa de email",
+                    "placeholder": "Confirmați-vă adresa de email"
+                },
+                "confirmPassword": {
+                    "label": "Confirmare parolă",
+                    "placeholder": "Confirmați parola dvs."
+                },
+                "email": {
+                    "label": "Adresă de e-mail",
+                    "placeholder": "Introduceți adresa dvs. de email"
+                },
+                "password": {
+                    "label": "Parolă",
+                    "placeholder": "Introduceți parola"
+                }
+            },
+            "header": {
+                "cancel": "Anulează",
+                "title": "Înscrie-te"
+            },
+            "hero": {
+                "create": "Creează-ți contul gratuit",
+                "description": "Configurați-vă acreditivele pentru a începe să folosiți contul Filen."
+            },
+            "next": "Următor",
+            "passwordStrength": {
+                "best": "Cel mai bun",
+                "length": "Lungime",
+                "lowercase": "Litere minuscule",
+                "medium": "Mediu",
+                "numbers": "Numere",
+                "specialCharacters": "Caractere speciale",
+                "strong": "Puternică",
+                "uppercase": "Litere majuscule",
+                "weak": "Slabă"
+            },
+            "resendConfirmationEmail": "Retrimite e-mailul de confirmare",
+            "title": "Înscrie-te"
+        },
+        "registrationSuccessful": "Înregistrare reușită! Vă rugăm să verificați emailul pentru a confirma contul."
+    },
+    "biometric": {
+        "appLockedFor": "Aplicația a fost blocată timp de {{seconds}} secunde",
+        "authenticateUsingPin": "Autentificați-vă folosind PIN-ul",
+        "errors": {
+            "incorrectPin": "Cod PIN incorect. Vă rugăm să încercați din nou.",
+            "tooManyIncorrectAttempts": "Prea multe încercări incorecte. Vă rugăm să încercați mai târziu."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN",
+                "title": "Introdu PIN-ul"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "B/s",
+        "eib": "EiB/s",
+        "gib": "GiB/s",
+        "kib": "KiB/s",
+        "mib": "MiB/s",
+        "pib": "PiB/s",
+        "tib": "TiB/s",
+        "yib": "YiB/s",
+        "zib": "ZiB/s"
+    },
+    "chats": {
+        "chat": "Chat",
+        "chats": "Chat-uri",
+        "header": {
+            "newMessages": "{{count}} mesaje noi",
+            "search": "Căutați în chat...",
+            "title": "Chat-uri"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "Adaugă elemente la unitate",
+                    "addFiles": "Adaugă fișiere",
+                    "addMedia": "Adaugă media",
+                    "addPhotos": "Adaugă fotografii",
+                    "cancel": "Anulează"
+                }
+            },
+            "placeholder": "Tastați un mesaj",
+            "send": "Trimite",
+            "suggestions": {
+                "emojis": {
+                    "matching": "Emoji-uri care corespund cu {{query}}"
+                },
+                "mention": {
+                    "matching": "Utilizatori care corespund cu {{query}}"
+                },
+                "replyTo": {
+                    "replyingTo": "Răspundeți lui {{name}}"
+                }
+            }
+        },
+        "item": {
+            "draft": "Ciornă",
+            "noMessages": "Nu există încă mesaje",
+            "you": "Tu"
+        },
+        "list": {
+            "empty": "Nu au fost găsite conversații",
+            "emptySearch": "Niciun chat găsit pentru această căutare",
+            "error": "A fost o eroare la încărcarea chat-urilor dvs., vă rugăm să încercați din nou mai târziu"
+        },
+        "menu": {
+            "archive": "Arhivă",
+            "delete": "Șterge",
+            "favorite": "Favorit",
+            "leave": "Părăsiți",
+            "markAsRead": "Marchează ca citit",
+            "mute": "Dezactivare sunet",
+            "muted": "Sunet dezactivat",
+            "participants": "Participanți",
+            "pin": "Fixare",
+            "rename": "Redenumește",
+            "unarchive": "Dezarhivează",
+            "unfavorite": "Elimină din favorite",
+            "unmute": "Anulați dezactivarea sunetului",
+            "unpin": "Detașează"
+        },
+        "messages": {
+            "everyone": "Toată lumea",
+            "menu": {
+                "cancel": "Anulează",
+                "copyId": "Copiați ID-ul",
+                "copyText": "Copiază textul",
+                "delete": "Șterge",
+                "disableEmbeds": "Dezactivează embed-urile",
+                "edit": "Editează",
+                "reply": "Răspunde"
+            },
+            "new": "Nou",
+            "time": {
+                "hourAgo": "Acum o oră",
+                "hoursAgo": "Acum {{hours}} ore",
+                "minuteAgo": "Acum {{minutes}} minut",
+                "minutesAgo": "Acum {{minutes}} minute",
+                "now": "Acum",
+                "secondAgo": "Acum {{seconds}} secundă",
+                "secondsAgo": "Acum {{seconds}} secunde",
+                "todayAt": "Astăzi la {{date}}",
+                "yesterdayAt": "Ieri la {{date}}"
+            },
+            "undecryptable": "Nu se poate decripta mesajul.",
+            "unknown": "Necunoscut"
+        },
+        "participants": {
+            "menu": {
+                "remove": "Elimină"
+            },
+            "participant": "Participant",
+            "participants": "Participanți",
+            "prompts": {
+                "remove": {
+                    "message": "Sigur doriți să eliminați acest participant? Nu va mai putea vedea sau trimite mesaje în acest chat.",
+                    "success": "{{name}} a eliminat",
+                    "title": "Elimină participantul"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "Sunteți sigur că doriți să ștergeți acest chat? Acesta va fi eliminat din lista dvs. și nu veți mai putea vedea sau trimite mesaje în acest chat.",
+                "title": "Ștergeți chatul"
+            },
+            "deleteChats": {
+                "message": "Sunteți sigur că doriți să ștergeți {{count}} chat-uri? Acestea vor fi eliminate din lista dvs. și nu veți mai putea vedea sau trimite mesaje în aceste chat-uri.",
+                "title": "Ștergeți chat-urile"
+            },
+            "deleteMessage": {
+                "message": "Sunteți sigur că doriți să ștergeți acest mesaj? Această acțiune nu poate fi anulată!",
+                "title": "Șterge mesajul"
+            },
+            "disableEmbeds": {
+                "message": "Sunteți sigur că doriți să dezactivați încorporările pentru acest mesaj? Acest lucru va elimina orice conținut încorporat.",
+                "title": "Dezactivează embed-urile"
+            },
+            "leaveChat": {
+                "message": "Sigur doriți să părăsiți acest chat? Nu veți mai putea vedea sau trimite mesaje în acest chat.",
+                "title": "Părăsiți chatul"
+            },
+            "leaveChats": {
+                "message": "Sigur doriți să părăsiți {{count}} chat-uri? Nu veți mai putea vedea sau trimite mesaje în aceste chat-uri.",
+                "title": "Părăsiți chaturile"
+            },
+            "renameChat": {
+                "placeholder": "Nume nou",
+                "title": "Redenumiți chatul"
+            }
+        },
+        "typing": "{{users}} scrie..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "Acceptă",
+            "block": "Blochează",
+            "cancel": "Anulează",
+            "decline": "Refuză",
+            "remove": "Elimină",
+            "unblock": "Deblocare"
+        }
+    },
+    "copiedToClipboard": "Copiat în clipboard",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "Anulează",
+                    "create": {
+                        "created": "{{name}} a creat",
+                        "directory": "Creează director",
+                        "photo": "Fă o poză",
+                        "textFile": "Creează fișier text"
+                    },
+                    "directoryNamePlaceholder": "Numele directorului",
+                    "itemsUploaded": "{{count}} elemente încărcate",
+                    "noMediaPermissions": "Trebuie să acorzi permisiuni media pentru a încărca fotografii sau videoclipuri.",
+                    "textFileNamePlaceholder": "Nume fișier text",
+                    "upload": {
+                        "directory": "Încărcați directoare",
+                        "files": "Încărcați fișiere",
+                        "media": "Încărcați media",
+                        "uploaded": "{{name}} a încărcat"
+                    }
+                },
+                "deselectAll": "Deselectează tot",
+                "dropdown": {
+                    "bulkActions": "Acțiuni masive",
+                    "gridMode": "Vizualizare ca Grid",
+                    "listMode": "Vizualizare ca listă",
+                    "sortBy": {
+                        "ascending": "Crescător",
+                        "descending": "Descrescător",
+                        "lastModified": {
+                            "ascendingTitle": "Cele mai vechi mai întâi",
+                            "descendingTitle": "Cele mai noi mai întâi",
+                            "title": "Ultima modificare"
+                        },
+                        "name": {
+                            "ascendingTitle": "De la A la Z",
+                            "descendingTitle": "De la Z la A",
+                            "title": "Nume"
+                        },
+                        "size": {
+                            "ascendingTitle": "Cele mai mici mai întâi",
+                            "descendingTitle": "Cele mai mari mai întâi",
+                            "title": "Mărime"
+                        },
+                        "sortBy": "Sortare după",
+                        "type": {
+                            "ascendingTitle": "Crescător",
+                            "descendingTitle": "Descrescător",
+                            "title": "Tip"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "Cele mai vechi mai întâi",
+                            "descendingTitle": "Cele mai noi mai întâi",
+                            "title": "Data încărcării"
+                        }
+                    },
+                    "transfers": "Transferuri"
+                },
+                "selectAll": "Selectează tot"
+            },
+            "title": {
+                "drive": "Unitate",
+                "favorites": "Favorite",
+                "links": "Linkuri publice",
+                "offline": "Disponibil offline",
+                "recents": "Recent",
+                "selected": "{{count}} selectate",
+                "sharedIn": "Partajate cu dvs.",
+                "sharedOut": "Partajat cu alții",
+                "trash": "Coș de gunoi"
+            }
+        },
+        "itemShared": "{{name}} a partajat",
+        "itemSharedWith": "{{name}} a partajat cu {{email}}",
+        "list": {
+            "empty": "Nu au fost găsite elemente",
+            "emptySearch": "Nu au fost găsite elemente pentru această căutare",
+            "error": "A fost o eroare la încărcarea unității dvs., vă rugăm să încercați din nou mai târziu",
+            "footer": "{{count}} articole",
+            "item": {
+                "menu": {
+                    "availableOffline": "Disponibil offline",
+                    "clipboard": "Clipboard",
+                    "color": "Culoare",
+                    "copy": "Copiază",
+                    "copyId": "Copiați ID-ul",
+                    "copyPath": "Copiază calea",
+                    "delete": "Șterge",
+                    "deletePermanently": "Șterge definitiv",
+                    "deselect": "Deselectați",
+                    "deselectAll": "Deselectează tot",
+                    "disablePublicLink": "Dezactivează linkul",
+                    "download": "Descarcă",
+                    "downloadFolder": "Descărcați dosarul",
+                    "export": "Exportați",
+                    "favorite": "Favorit",
+                    "favorite_one": "Element favorit",
+                    "favorite_other": "Adaugă la favorite {{count}} elemente",
+                    "favorited": "Adăugat la favorite",
+                    "id": "ID",
+                    "info": "Info",
+                    "location": "Locație",
+                    "makeAvailableOffline": "Fă disponibil offline",
+                    "move": "Mutare",
+                    "move_one": "Mutare element",
+                    "move_other": "Mută {{count}} elemente",
+                    "open": "Deschideți",
+                    "path": "Cale",
+                    "preview": "Previzualizare",
+                    "properties": "Proprietăți",
+                    "publicLink": "Link public",
+                    "removeOffline": "Eliminați fișierul offline",
+                    "removeSharedIn": "Elimină",
+                    "removeSharedOut": "Opriți partajarea",
+                    "rename": "Redenumește",
+                    "restore": "Restaurează",
+                    "saveToGallery": "Salvați în galerie",
+                    "select": "Selectați",
+                    "selectAll": "Selectează tot",
+                    "share": "Partajează",
+                    "share_one": "Partajează articolul",
+                    "share_other": "Partajează {{count}} elemente",
+                    "trash": "Coș de gunoi",
+                    "trash_one": "Aruncă elementul",
+                    "trash_other": "Aruncă {{count}} elemente",
+                    "unfavorite": "Elimină din favorite",
+                    "versionHistory": "Istoricul versiunilor",
+                    "withUser": "Cu utilizatorul"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "Sunteți sigur că doriți să ștergeți permanent {{count}} elemente? Această acțiune nu poate fi anulată!",
+                "title": "Șterge definitiv"
+            },
+            "deletePermanently": {
+                "message": "Sunteți sigur că doriți să ștergeți acest element definitiv? Această acțiune nu poate fi anulată!",
+                "title": "Șterge definitiv"
+            },
+            "disablePublicLinks": {
+                "message": "Sunteți sigur că doriți să dezactivați linkurile publice pentru {{count}} elemente? Linkurile nu vor mai fi accesibile.",
+                "title": "Dezactivează linkuri publice"
+            },
+            "removeOfflineFiles": {
+                "message": "Sunteți sigur că doriți să ștergeți {{count}} fișiere offline? Ele nu vor mai fi disponibile offline.",
+                "title": "Eliminați fișierele offline"
+            },
+            "removeSharedInItem": {
+                "message": "Ești sigur că vrei să elimini acest element din articolele partajate? Nu vei mai putea să îl vezi sau să ai acces la el.",
+                "title": "Elimină"
+            },
+            "removeSharedInItems": {
+                "message": "Ești sigur că vrei să elimini {{count}} elemente din articolele partajate? Nu vei mai putea să le vezi sau să ai acces la ele.",
+                "title": "Elimină"
+            },
+            "removeSharedOutItem": {
+                "message": "Sunteți sigur că doriți să opriți partajarea acestui element? Utilizatorul nu va mai putea să îl acceseze.",
+                "title": "Opriți partajarea"
+            },
+            "removeSharedOutItems": {
+                "message": "Sunteți sigur că doriți să opriți partajarea {{count}} elemente? Utilizatorii nu vor mai putea să le acceseze.",
+                "title": "Opriți partajarea"
+            },
+            "renameItem": {
+                "placeholder": "Nume nou",
+                "title": "Redenumește"
+            },
+            "trashItem": {
+                "message": "Sunteți sigur că doriți să mutați acest element în coșul de gunoi? Îl puteți restaura mai târziu.",
+                "title": "Mutare în coșul de gunoi"
+            },
+            "trashItems": {
+                "message": "Sunteți sigur că doriți să mutați {{count}} elemente în coșul de gunoi? Le puteți restaura mai târziu.",
+                "title": "Mutare în coșul de gunoi"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "Nu au fost găsite elemente",
+                "emptySearch": "Nu au fost găsite elemente pentru această căutare",
+                "error": "A fost o eroare la încărcarea rezultatelor căutării, vă rugăm să încercați din nou mai târziu",
+                "footer": "{{count}} articole"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "Anulează",
+        "items": {
+            "downloadButton": "Buton de descărcare",
+            "edit": "Editează",
+            "enabled": "Activat",
+            "expiration": "Expirare",
+            "expiration12h": "12 ore",
+            "expiration14d": "14 zile",
+            "expiration1d": "1 zi",
+            "expiration1h": "1 oră",
+            "expiration30d": "30 zile",
+            "expiration3d": "3 zile",
+            "expiration6h": "6 ore",
+            "expiration7d": "7 zile",
+            "expirationNever": "Niciodată",
+            "password": "Parolă"
+        },
+        "onlyPro": "Această funcție este disponibilă doar pentru utilizatorii Filen Pro. Abonați-vă la orice plan Filen pentru a o activa.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "Lasă gol pentru a elimina parola",
+                "title": "Editează parola"
+            }
+        },
+        "shareDialogTile": "Link public Filen",
+        "title": "Editează linkul public",
+        "unsavedChanges": "Modificări nesalvate"
+    },
+    "errors": {
+        "cannotOpenURL": "Nu se poate deschide URL.",
+        "notEnoughDiskSpace": "Spațiul local disponibil pe disc este insuficient.",
+        "sharingNotAvailable": "Partajarea nu este disponibilă pe acest dispozitiv.",
+        "youAreOffline": "În prezent ești offline. Te rog să verifici conexiunea la internet."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "Anulează",
+                "confirm": "Șterge",
+                "message": "Sunteți sigur că doriți să ștergeți această versiune? Această acțiune nu poate fi anulată!",
+                "title": "Șterge versiunea"
+            },
+            "restore": {
+                "cancel": "Anulează",
+                "confirm": "Restaurează",
+                "message": "Sigur doriți să restaurați această versiune? Aceasta va suprascrie fișierul actual.",
+                "title": "Restaurează versiunea"
+            }
+        },
+        "header": {
+            "title": "Istoricul versiunilor"
+        },
+        "list": {
+            "empty": "Încă nu există versiuni",
+            "emptySearch": "Nicio versiune găsită pentru această căutare",
+            "error": "A fost o eroare la încărcarea versiunilor fișierului, vă rugăm să încercați din nou mai târziu",
+            "item": {
+                "current": "Curent",
+                "delete": "Șterge",
+                "restore": "Restaurează"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "Bytes",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiB",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "Previzualizare indisponibilă"
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "Favorite"
+            },
+            "links": {
+                "title": "Linkuri publice"
+            },
+            "offline": {
+                "title": "Disponibil offline"
+            },
+            "recents": {
+                "title": "Recent"
+            },
+            "sharedIn": {
+                "title": "Partajate cu dvs."
+            },
+            "sharedOut": {
+                "title": "Partajat cu alții"
+            },
+            "trash": {
+                "title": "Coș de gunoi"
+            }
+        },
+        "listEmpty": {
+            "favorites": "Nu există favorite încă",
+            "links": "Nu există încă link-uri publice",
+            "offline": "Niciun element offline deocamdată",
+            "recents": "Încă nu există elemente recente",
+            "sharedIn": "Niciun element partajat momentan",
+            "sharedOut": "Niciun element partajat momentan",
+            "trash": "Niciun element șters momentan"
+        },
+        "title": "Acasă"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "Anulează",
+            "okText": "OK",
+            "title": "Titlu"
+        }
+    },
+    "listEmpty": {
+        "empty": "Nimic găsit",
+        "emptySearch": "Nimic găsit pentru această căutare",
+        "error": "A apărut o eroare, vă rugăm să încercați din nou mai târziu"
+    },
+    "localAuthentication": {
+        "cancelLabel": "Anulează",
+        "promptMessage": "Autentificați-vă pentru a continua"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "Scrie codul aici...",
+                "text": "Scrie textul aici..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "Deselectează tot",
+                    "selectAll": "Selectează tot"
+                },
+                "types": {
+                    "checklist": "Listă de verificare",
+                    "code": "Cod",
+                    "markdown": "Markdown",
+                    "rich": "Text îmbogățit",
+                    "text": "Text"
+                }
+            },
+            "menu": {
+                "settings": "Setări"
+            },
+            "selected": "{{count}} selectate",
+            "title": "Note"
+        },
+        "history": {
+            "list": {
+                "empty": "Nicio istorie disponibilă",
+                "emptySearch": "Nicio intrare găsită pentru această căutare",
+                "error": "A fost o eroare la încărcarea istoricului, vă rugăm să încercați din nou mai târziu",
+                "footer": "{{count}} articole"
+            },
+            "noPreview": "Previzualizare indisponibilă",
+            "prompts": {
+                "restore": {
+                    "message": "Sigur doriți să restaurați această notiță? Aceasta va suprascrie notița actuală.",
+                    "title": "Restaurează nota"
+                }
+            },
+            "restore": "Restaurează",
+            "title": "Istorie"
+        },
+        "list": {
+            "empty": "Încă nu există note",
+            "emptySearch": "Nicio notă găsită pentru această căutare",
+            "error": "A fost o eroare la încărcarea notițelor dvs., vă rugăm să încercați din nou mai târziu",
+            "footer": "{{count}} articole"
+        },
+        "menu": {
+            "archive": "Arhivă",
+            "clipboard": "Clipboard",
+            "copyId": "Copiați ID-ul",
+            "delete": "Șterge",
+            "deselect": "Deselectați",
+            "duplicate": "Dublează",
+            "export": "Exportați",
+            "favorite": "Favorit",
+            "favorited": "Adăugat la favorite",
+            "history": "Istorie",
+            "leave": "Părăsiți",
+            "participants": "Participanți",
+            "pin": "Fixare",
+            "pinned": "Fixat",
+            "preview": "Previzualizare",
+            "rename": "Redenumește",
+            "restore": "Restaurează",
+            "select": "Selectați",
+            "tags": "Etichete",
+            "trash": "Coș de gunoi",
+            "type": "Tip",
+            "types": {
+                "checklist": "Listă de verificare",
+                "code": "Cod",
+                "md": "Markdown",
+                "rich": "Text îmbogățit",
+                "text": "Text"
+            },
+            "unfavorite": "Elimină din favorite",
+            "unpin": "Detașează"
+        },
+        "participants": {
+            "list": {
+                "empty": "Niciun participant momentan",
+                "emptySearch": "Niciun participant găsit pentru această căutare",
+                "error": "A fost o eroare la încărcarea participanților, vă rugăm să încercați din nou mai târziu",
+                "footer": "{{count}} participanți"
+            },
+            "menu": {
+                "permissionsWrite": "Permisiuni de scriere",
+                "remove": "Elimină"
+            },
+            "title": "Participanți"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "Titlul notei",
+                "title": "Creați notă"
+            },
+            "createTag": {
+                "placeholder": "Nume etichetă",
+                "title": "Creează etichetă"
+            },
+            "deleteNote": {
+                "message": "Sunteți sigur că doriți să ștergeți definitiv această notă? Această acțiune nu poate fi anulată!",
+                "title": "Șterge nota"
+            },
+            "deleteNotes": {
+                "message": "Sunteți sigur că doriți să ștergeți definitiv {{count}} note? Această acțiune nu poate fi anulată!",
+                "title": "Șterge notele"
+            },
+            "deleteTag": {
+                "message": "Sunteți sigur că doriți să ștergeți această etichetă? Această acțiune nu poate fi anulată!",
+                "title": "Ștergeți eticheta"
+            },
+            "deleteTags": {
+                "message": "Sunteți sigur că doriți să ștergeți {{count}} etichete? Această acțiune nu poate fi anulată!",
+                "title": "Ștergeți etichetele"
+            },
+            "leaveNote": {
+                "message": "Ești sigur că vrei să părăsești această notă? Nu vei mai putea să o vezi sau să o editezi.",
+                "title": "Părăsiți nota"
+            },
+            "leaveNotes": {
+                "message": "Ești sigur că vrei să părăsești {{count}} note? Nu vei mai putea să le vezi sau să le editezi.",
+                "title": "Părăsiți notele"
+            },
+            "removeParticipant": {
+                "message": "Ești sigur că vrei să elimini acest participant? Acesta nu va mai putea să vadă sau să editeze această notă.",
+                "title": "Elimină participantul"
+            },
+            "removeParticipants": {
+                "message": "Ești sigur că vrei să elimini {{count}} participanți? Aceștia nu vor mai putea să vadă sau să editeze aceste note.",
+                "title": "Elimină participanții"
+            },
+            "renameNote": {
+                "placeholder": "Nume nou",
+                "title": "Redenumește nota"
+            },
+            "renameTag": {
+                "placeholder": "Numele noii etichete",
+                "title": "Redenumiți eticheta"
+            },
+            "trashNote": {
+                "message": "Sunteți sigur că doriți să mutați această notă în coșul de gunoi? O puteți restaura mai târziu.",
+                "title": "Mutare în coșul de gunoi"
+            },
+            "trashNotes": {
+                "message": "Sunteți sigur că doriți să mutați {{count}} note în coșul de gunoi? Le puteți restaura mai târziu.",
+                "title": "Mutare în coșul de gunoi"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "Șterge",
+                "favorited": "Adăugat la favorite",
+                "rename": "Redenumește"
+            },
+            "names": {
+                "all": "Toate",
+                "archived": "Arhivat",
+                "favorited": "Adăugat la favorite",
+                "pinned": "Fixat",
+                "shared": "Partajat",
+                "trash": "Coș de gunoi"
+            }
+        },
+        "title": "Note"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "Anulează",
+            "placeholder": "Căutare..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "Mod offline"
+    },
+    "photos": {
+        "header": {
+            "selected": "{{count}} selectate"
+        },
+        "list": {
+            "empty": "Încă nu există fotografii",
+            "emptySearch": "Nicio fotografie găsită pentru această căutare",
+            "error": "A fost o eroare la încărcarea fotografiilor dvs., vă rugăm să încercați din nou mai târziu"
+        },
+        "menu": {
+            "settings": "Setări"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} articole"
+                },
+                "list": {
+                    "empty": "Nu au fost găsite albume",
+                    "emptySearch": "Niciun album găsit pentru această căutare",
+                    "error": "A fost o eroare la încărcarea albumelor dvs., vă rugăm să încercați din nou mai târziu"
+                },
+                "title": "Albume"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "Trebuie să acorzi permisiuni media pentru a accesa fotografiile tale."
+                },
+                "items": {
+                    "albums": "Albume",
+                    "albumsInfo": "Selectați care albume să fie incluse în încărcarea camerei.",
+                    "background": "Fundal",
+                    "backgroundInfo": "Permite încărcarea camerei în fundal. Acest lucru poate duce la un consum ridicat de baterie. Încărcările de fundal includ doar imagini. Funcționează doar când aplicația nu este închisă forțat.",
+                    "cellular": "Celular",
+                    "cellularInfo": "Permiteți încărcarea camerei prin datele mobile. Acest lucru poate duce la un consum mare de date.",
+                    "cloudDirectory": "Director cloud",
+                    "cloudDirectoryNotSet": "Neconfigurat",
+                    "compress": "Comprimă",
+                    "compressInfo": "Comprimați fotografiile pentru a economisi spațiu de stocare. Aceasta poate reduce calitatea fotografiilor. Comprimare JPG la o calitate de 80%.",
+                    "enabled": "Activat",
+                    "lowBattery": "Baterie scăzută",
+                    "lowBatteryInfo": "Dezactivați încărcarea de pe cameră atunci când bateria este la un nivel scăzut.",
+                    "permissionsError": "Eroare de permisiuni",
+                    "permissionsErrorInfo": "Te rugăm să permiți aplicației accesul la fotografiile și videoclipurile tale în setările sistemului.",
+                    "videos": "Video",
+                    "videosInfo": "Includeți videoclipuri în încărcarea camerei."
+                },
+                "title": "Setări"
+            }
+        },
+        "state": {
+            "synced": "Sincronizat",
+            "syncing": "Sincronizare",
+            "syncingProgress": "{{done}} din {{total}} articole sincronizate"
+        },
+        "title": "Fotografii"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "Anulează",
+            "done": "Gata",
+            "selectContact": "Selectează contactul",
+            "selectContacts": "Selectează contactele"
+        },
+        "list": {
+            "empty": "Încă nu există contacte",
+            "emptySearch": "Niciun contact găsit pentru această căutare",
+            "error": "A fost o eroare la încărcarea contactelor dvs., vă rugăm să încercați din nou mai târziu",
+            "footer": "{{count}} contacte"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} selectat"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "Anulează",
+            "done": "Gata",
+            "drive": "Unitate",
+            "selectDirectories": "Selectați directoarele",
+            "selectDirectory": "Selectați directorul",
+            "selectFile": "Selectează fișierul",
+            "selectFiles": "Selectează fișierele",
+            "selectItem": "Selectează elementul",
+            "selectItems": "Selectează elementele",
+            "selectRoot": "Selectați unitatea cloud"
+        },
+        "list": {
+            "empty": "Nimic încărcat încă",
+            "emptySearch": "Nu au fost găsite elemente pentru această căutare",
+            "error": "A fost o eroare la încărcarea fișierelor dvs., vă rugăm să încercați din nou mai târziu",
+            "footer": "{{count}} articole"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "Numele directorului",
+                "success": "{{name}} a creat",
+                "title": "Creează director"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} selectat"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "Anulează",
+            "done": "Gata",
+            "selectPlaylist": "Selectați lista de redare",
+            "selectPlaylists": "Selectați listele de redare"
+        },
+        "item": {
+            "subTitle": "{{count}} piese, actualizat {{date}}"
+        },
+        "list": {
+            "empty": "Nu există liste de redare încă",
+            "emptySearch": "Nicio listă de redare găsită pentru această căutare",
+            "error": "A fost o eroare la încărcarea listelor de redare, vă rugăm să încercați din nou mai târziu",
+            "footer": "{{count}} liste de redare"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Nume listă de redare",
+                "title": "Creați listă de redare"
+            }
+        },
+        "selected": "{{countOrName}} selectat",
+        "toolbar": {
+            "selected": "{{countOrName}} selectat"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "Dimensiunea imaginii avatarului depășește limita de 3 MiB.",
+                "emailsNotMatching": "Noile adrese de e-mail nu coincid."
+            },
+            "items": {
+                "changeAvatar": "Schimbați avatarul",
+                "deleteAllFilesAndDirectories": "Șterge toate fișierele și directoarele",
+                "deleteVersionedFiles": "Ștergeți fișierele versionate",
+                "emailAddress": "Adresă de e-mail",
+                "fileVersioning": "Versiuni ale fișierului",
+                "fileVersioningInfo": "Activează versiunile de fișiere pentru a urmări modificările făcute în fișierele tale.",
+                "gdpr": "Informații GDPR",
+                "loginAlerts": "Alerte autentificare",
+                "loginAlertsInfo": "Primiți alerte când contul dvs. este accesat.",
+                "logout": "Deconectare",
+                "more": "Mai multe setări ale contului",
+                "nickname": "Pseudonim",
+                "personalInformation": "Informații personale",
+                "requestAccountDeletion": "Solicitați ștergerea contului",
+                "requestAccountDeletionInfo": "Solicită ștergerea contului. Îți vom trimite un email cu instrucțiuni suplimentare."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "Cod",
+                    "title": "Autentificare în doi pași"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "Confirmați noua adresă de email",
+                        "title": "Confirmați noua adresă de email"
+                    },
+                    "newEmail": {
+                        "placeholder": "Adresă nouă de email",
+                        "title": "Adresă nouă de email"
+                    },
+                    "password": {
+                        "placeholder": "Parolă",
+                        "title": "Parola dvs."
+                    }
+                },
+                "deleteAccount": {
+                    "message": "Sunteți sigur că doriți să solicitați ștergerea contului? Veți primi un email cu instrucțiuni suplimentare.",
+                    "title": "Solicitați ștergerea contului"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "Sunteți sigur că doriți să ștergeți toate fișierele și directoarele? Această acțiune nu poate fi anulată!",
+                    "title": "Șterge toate fișierele și directoarele"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "Ești chiar sigur? Această acțiune nu poate fi anulată!",
+                    "title": "Șterge toate fișierele și directoarele"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "Sunteți sigur că doriți să ștergeți toate fișierele versionate? Această acțiune nu poate fi anulată!",
+                    "title": "Ștergeți fișierele versionate"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "Ești chiar sigur? Această acțiune nu poate fi anulată!",
+                    "title": "Ștergeți fișierele versionate"
+                },
+                "logout": {
+                    "message": "Sunteți sigur că doriți să vă deconectați? Va trebui să vă conectați din nou pentru a accesa contul dvs.",
+                    "title": "Deconectare"
+                },
+                "more": {
+                    "message": "Mai multe setări sunt disponibile în aplicația web. Doriți să o deschideți acum?",
+                    "title": "Deschide aplicația web"
+                },
+                "updateNickname": {
+                    "placeholder": "Poreclă nouă",
+                    "title": "Actualizează porecla"
+                }
+            },
+            "title": "Cont"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "Golește cache-ul",
+                "clearOfflineFiles": "Șterge fișierele offline",
+                "clearThumbnails": "Șterge miniaturile",
+                "clearTrackPlayer": "Șterge cache-ul playerului de piese"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "Curățarea cache-ului va elimina fișierele temporare. Acest lucru poate întrerupe încărcările sau descărcările în curs. Sunteți sigur că doriți să continuați?",
+                    "title": "Golește cache-ul"
+                },
+                "clearOfflineFiles": {
+                    "message": "Ștergerea fișierelor offline va elimina toate fișierele disponibile offline. Ești sigur că vrei să continui?",
+                    "title": "Șterge fișierele offline"
+                },
+                "clearThumbnails": {
+                    "message": "Ștergerea miniaturilor va face ca aplicația să descarce din nou fiecare miniatură vizibilă. Sunteți sigur că doriți să continuați?",
+                    "title": "Șterge miniaturile"
+                },
+                "clearTrackPlayer": {
+                    "message": "Ștergerea cache-ului playerului de piese elimină piesele și imaginile cache-uite. Acest lucru poate duce la timpi de încărcare mai mari. Sunteți sigur că doriți să continuați?",
+                    "title": "Șterge cache-ul playerului de piese"
+                }
+            },
+            "title": "Avansat"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "Autentificarea biometrică nu este disponibilă pe acest dispozitiv. Vă rugăm să activați doar autentificarea PIN sau să utilizați un dispozitiv care suportă autentificarea biometrică.",
+                "pinNotMatching": "PIN-urile de rezervă nu se potrivesc.",
+                "pinTooLong": "PIN-ul de rezervă nu trebuie să depășească 128 de cifre.",
+                "pinTooShort": "Codul PIN de rezervă trebuie să aibă cel puțin 4 cifre."
+            },
+            "items": {
+                "biometricAuth": "Autentificare biometrică",
+                "lockAppAfter": "Blochează aplicația după",
+                "pinOnly": "Numai PIN"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15 minute",
+                "fiveMinutes": "5 minute",
+                "immediately": "Imediat",
+                "minutes": "{{minutes}} minute",
+                "never": "Niciodată",
+                "oneHour": "1 oră",
+                "oneMinute": "1 minut",
+                "tenMinutes": "10 minute",
+                "thirtyMinutes": "30 de minute"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "Sunteți sigur că doriți să dezactivați autentificarea biometrică?",
+                    "title": "Dezactivați autentificarea biometrică"
+                },
+                "documentsProvider": {
+                    "message": "Activarea autentificării biometrice va dezactiva furnizorul de documente. Aceasta înseamnă că nu vei putea accesa fișierele tale în alte aplicații folosind furnizorul de documente Filen. Vrei să continui?",
+                    "title": "Furnizor de documente activat"
+                },
+                "enable": {
+                    "placeholder": "PIN de rezervă",
+                    "title": "Configurați codul PIN de rezervă"
+                },
+                "enableConfirm": {
+                    "placeholder": "Confirmă PIN-ul",
+                    "title": "Confirmați codul PIN de rezervă"
+                },
+                "fileProvider": {
+                    "message": "Activarea autentificării biometrice va dezactiva furnizorul de fișiere. Aceasta înseamnă că nu vei putea accesa fișierele tale în alte aplicații folosind furnizorul de fișiere Filen. Vrei să continui?",
+                    "title": "Furnizor de fișiere activat"
+                }
+            },
+            "title": "Securitate"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "Nu au fost găsite contacte",
+                    "emptySearch": "Niciun contact găsit pentru această căutare",
+                    "error": "A fost o eroare la încărcarea contactelor dvs., vă rugăm să încercați din nou mai târziu"
+                },
+                "blocked": {
+                    "empty": "Nu au fost găsite contacte blocate",
+                    "emptySearch": "Niciun contact blocat găsit pentru această căutare",
+                    "error": "A fost o eroare la încărcarea contactelor dvs., vă rugăm să încercați din nou mai târziu"
+                },
+                "offline": {
+                    "empty": "Nu au fost găsite contacte offline",
+                    "emptySearch": "Niciun contact offline găsit pentru această căutare",
+                    "error": "A fost o eroare la încărcarea contactelor dvs., vă rugăm să încercați din nou mai târziu"
+                },
+                "online": {
+                    "empty": "Nu au fost găsite contacte online",
+                    "emptySearch": "Niciun contact online găsit pentru această căutare",
+                    "error": "A fost o eroare la încărcarea contactelor dvs., vă rugăm să încercați din nou mai târziu"
+                },
+                "pending": {
+                    "empty": "Nu au fost găsite cereri de contact",
+                    "emptySearch": "Nicio cerere de contact găsită pentru această căutare",
+                    "error": "A fost o eroare la încărcarea cererilor dvs. de contact, vă rugăm să încercați din nou mai târziu"
+                },
+                "requests": {
+                    "empty": "Nu au fost găsite cereri de contact",
+                    "emptySearch": "Nicio cerere de contact găsită pentru această căutare",
+                    "error": "A fost o eroare la încărcarea cererilor dvs. de contact, vă rugăm să încercați din nou mai târziu"
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "Sunteți sigur că doriți să blocați acest contact?",
+                    "success": "{{email}} a blocat",
+                    "title": "Blochează contactul"
+                },
+                "blockContacts": {
+                    "message": "Sunteți sigur că doriți să blocați {{count}} contacte?",
+                    "success": "{{count}} contacte blocate",
+                    "title": "Blochează contactele"
+                },
+                "removeContact": {
+                    "message": "Sunteți sigur că doriți să eliminați acest contact?",
+                    "success": "{{email}} a eliminat",
+                    "title": "Elimină contactul"
+                },
+                "removeContacts": {
+                    "message": "Sunteți sigur că doriți să ștergeți {{count}} contacte?",
+                    "success": "{{count}} contacte eliminate",
+                    "title": "Elimină contactele"
+                },
+                "sendRequest": {
+                    "placeholder": "Adresă de email Filen",
+                    "success": "Cererea de contact a fost trimisă către {{email}}",
+                    "title": "Trimite cerere de contact"
+                },
+                "unblockContact": {
+                    "message": "Sunteți sigur că doriți să deblocați acest contact?",
+                    "success": "{{email}} a deblocat",
+                    "title": "Deblochează contactul"
+                },
+                "unblockContacts": {
+                    "message": "Sunteți sigur că doriți să deblocați {{count}} contacte?",
+                    "success": "{{count}} contacte deblocate",
+                    "title": "Deblochează contactele"
+                }
+            },
+            "tabs": {
+                "all": "Toate",
+                "blocked": "Blocat",
+                "offline": "Offline",
+                "online": "Online",
+                "pending": "În așteptare",
+                "requests": "Cereri"
+            },
+            "title": "Contacte"
+        },
+        "events": {
+            "event": "Eveniment",
+            "eventInfo": {
+                "2faDisabled": "2FA dezactivat",
+                "2faEnabled": "2FA activat",
+                "baseFolderCreated": "Folder de bază creat",
+                "codeRedeemed": "Codul \"{{code}}\" a fost răscumpărat",
+                "deleteAll": "Toate directoarele și fișierele șterse permanent",
+                "deleteFilePermanently": "{{name}} șters definitiv",
+                "deleteFolderPermanently": "{{name}} șters definitiv",
+                "deleteUnfinished": "Încărcările nefinalizate au fost șterse",
+                "deleteVersioned": "Toate fișierele versiuni au fost șterse",
+                "emailChangeAttempt": "Încercare de schimbare a e-mailului",
+                "emailChanged": "Email schimbat",
+                "failedLogin": "Încercare de autentificare eșuată",
+                "fileLinkEdited": "Link public pentru {{name}} editat",
+                "fileMetadataChanged": "Metadata pentru {{name}} modificat",
+                "fileMoved": "{{name}} a mutat",
+                "fileRenamed": "{{oldName}} redenumit în {{newName}}",
+                "fileRestored": "{{name}} a restaurat",
+                "fileRm": "{{name}} a șters",
+                "fileShared": "{{name}} a partajat cu {{email}}",
+                "fileTrash": "{{name}} a fost mutat în coșul de gunoi",
+                "fileUploaded": "{{name}} a încărcat",
+                "fileVersioned": "{{name}} versiunea",
+                "folderColorChanged": "Culoarea directorului {{name}} a fost schimbată",
+                "folderLinkEdited": "Link public repertoriu editat",
+                "folderMetadataChanged": "Metadata director {{name}} modificat",
+                "folderMoved": "Directorul {{name}} a fost mutat",
+                "folderRenamed": "Directorul {{oldName}} redenumit în {{newName}}",
+                "folderRestored": "Directorul {{name}} a fost restaurat",
+                "folderShared": "Directorul {{name}} a fost partajat cu {{email}}",
+                "folderTrash": "Directorul {{name}} a fost mutat la coșul de gunoi",
+                "itemFavorited": "{{name}} marcat ca favorit",
+                "itemUnfavorited": "{{name}} demarcat ca favorit",
+                "login": "Conectat",
+                "passwordChanged": "Parola a fost schimbată",
+                "removedSharedInItems": "Articole partajate eliminate de la {{email}}",
+                "removedSharedOutItems": "Articole partajate eliminate de la {{email}}",
+                "requestAccountDeletion": "Cerere de ștergere a contului",
+                "subFolderCreated": "Directorul {{name}} a fost creat",
+                "trashEmptied": "Coș de gunoi golit",
+                "versionedFileRestored": "Versiunea {{name}} restaurată"
+            },
+            "events": "Evenimente",
+            "listEmpty": {
+                "empty": "Nu au fost găsite evenimente",
+                "emptySearch": "Niciun eveniment găsit pentru această căutare",
+                "error": "A fost o eroare la încărcarea evenimentelor dvs., vă rugăm să încercați din nou mai târziu"
+            },
+            "title": "Evenimente"
+        },
+        "index": {
+            "items": {
+                "advanced": "Avansat",
+                "cameraUpload": "Încărcare cameră",
+                "contacts": "Contacte",
+                "documentsProvider": "Furnizor de documente",
+                "documentsProviderInfo": "Activați integrarea Android Files pentru a accesa fișierele în afara aplicației.",
+                "events": "Evenimente",
+                "fileProvider": "Furnizor de fișiere",
+                "fileProviderInfo": "Activați integrarea iOS Files pentru a accesa fișierele în afara aplicației.",
+                "security": "Securitate",
+                "used": "{{used}} folosit din {{max}} ({{percentage}}%)"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "Activarea furnizorului de documente va dezactiva autentificarea biometrică. Aceasta înseamnă că nu veți putea folosi autentificarea biometrică pentru a debloca aplicația. Doriți să continuați?",
+                    "title": "Autentificare biometrică activată"
+                },
+                "fileProvider": {
+                    "message": "Activarea furnizorului de fișiere va dezactiva autentificarea biometrică. Aceasta înseamnă că nu veți putea folosi autentificarea biometrică pentru a debloca aplicația. Doriți să continuați?",
+                    "title": "Autentificare biometrică activată"
+                }
+            },
+            "title": "Setări"
+        },
+        "personal": {
+            "items": {
+                "city": "Oraș",
+                "companyName": "Numele companiei",
+                "country": "Țară",
+                "firstName": "Prenume",
+                "lastName": "Prenume",
+                "postalCode": "Cod poștal",
+                "street": "Stradă",
+                "streetNumber": "Număr de stradă",
+                "vatId": "ID TVA"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "Editează"
+                }
+            },
+            "title": "Informații personale"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "Noile parole nu se potrivesc.",
+                "weak": "Noua dvs. parolă este prea slabă. Vă rugăm să alegeți o parolă mai puternică. Una care are cel puțin 10 caractere, conține un amestec de litere mari și mici, numere și caractere speciale."
+            },
+            "items": {
+                "2fa": "Autentificare în doi pași",
+                "biometricAuth": "Autentificare biometrică",
+                "changePassword": "Schimbare parolă"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "După ce schimbați parola, veți fi deconectat și va trebui să vă conectați din nou cu noua parolă.",
+                    "title": "Schimbare parolă"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "Confirmare parolă",
+                    "title": "Confirmați noua parolă"
+                },
+                "currentPassword": {
+                    "placeholder": "Parola actuală",
+                    "title": "Parola dvs. actuală"
+                },
+                "newPassword": {
+                    "placeholder": "Parolă nouă",
+                    "title": "Noua dvs. parolă"
+                }
+            },
+            "title": "Securitate"
+        },
+        "twoFactorAuth": {
+            "copied": "Cheie copiată în clipboard",
+            "copyKey": "Copiază cheia",
+            "items": {
+                "2fa": "Autentificare în doi pași"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "Cod",
+                    "title": "Introdu codul"
+                }
+            },
+            "title": "Securitate"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "Anulează",
+            "title": "Salvează în Filen",
+            "upload": "Încărcare"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "Anulează",
+            "select": "Selectați"
+        },
+        "itemInfo": {
+            "creation": "Creat",
+            "directories": "Directoare",
+            "directory": "Director",
+            "files": "Fișiere",
+            "location": "Locație",
+            "modified": "Modificat",
+            "name": "Nume",
+            "notAvailable": "N/A",
+            "size": "Mărime",
+            "type": "Tip",
+            "uploaded": "Încărcat"
+        }
+    },
+    "tabBar": {
+        "chats": "Chat-uri",
+        "drive": "Unitate",
+        "home": "Acasă",
+        "notes": "Note",
+        "photos": "Fotografii",
+        "settings": "Setări"
+    },
+    "textEditor": {
+        "header": {
+            "back": "Înapoi"
+        },
+        "saved": "Salvat",
+        "savedSuccess": "Salvat cu succes",
+        "unsavedChanges": "Modificări nesalvate"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "Nicio melodie în coadă",
+            "unknownArtist": "Artist necunoscut",
+            "unknownTitle": "Titlu necunoscut"
+        },
+        "header": {
+            "title": "Liste de redare"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "Adaugă la coadă",
+                "cancel": "Anulează",
+                "delete": "Șterge",
+                "play": "Redați"
+            },
+            "subTitle": "{{count}} piese, actualizat {{date}}"
+        },
+        "list": {
+            "empty": "Nu există liste de redare încă",
+            "emptySearch": "Nicio listă de redare găsită pentru această căutare",
+            "error": "A fost o eroare la încărcarea listelor de redare, vă rugăm să încercați din nou mai târziu",
+            "footer": "{{count}} liste de redare"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "Adaugă la playlist",
+                    "addToQueue": "Adaugă la coadă",
+                    "cancel": "Anulează",
+                    "play": "Redați",
+                    "removeFromPlaylist": "Elimină din playlist"
+                }
+            },
+            "list": {
+                "empty": "Încă nu există piste",
+                "emptySearch": "Nicio piesă găsită pentru această căutare",
+                "error": "A fost o eroare la încărcarea pieselor dvs., vă rugăm să încercați din nou mai târziu",
+                "footer": "{{count}} melodii"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Nume listă de redare",
+                "title": "Creați listă de redare"
+            },
+            "deletePlaylist": {
+                "message": "Sunteți sigur că doriți să ștergeți această listă de redare? Această acțiune nu poate fi anulată!",
+                "title": "Șterge lista de redare"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "Înapoi",
+            "title": "Transferuri"
+        },
+        "info": "Transferând {{ongoingTransfers}} elemente la {{speed}}, {{remaining}} rămase",
+        "list": {
+            "empty": "Niciun transfer momentan",
+            "emptySearch": "Niciun transfer găsit pentru această căutare",
+            "error": "A fost o eroare la încărcarea transferurilor dvs., vă rugăm să încercați din nou mai târziu"
+        },
+        "noOngoingTransfers": "Nicio transfer în desfășurare",
+        "transfer": {
+            "cancel": "Anulează",
+            "cancelAll": "Anulează toate",
+            "pause": "Pauză",
+            "resume": "Reia",
+            "stop": "Opriți",
+            "stopAll": "Opriți tot"
+        }
+    }
+}

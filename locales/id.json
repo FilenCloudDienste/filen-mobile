@@ -1,0 +1,1402 @@
+{
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "Batalkan",
+            "okText": "OK",
+            "title": "Judul"
+        },
+        "exportMasterKeys": {
+            "cancelText": "Nanti",
+            "message": "Anda belum mengekspor kunci master Anda. Sangat disarankan untuk mengekspornya sekarang dan menyimpannya di tempat yang aman.",
+            "okText": "Ekspor",
+            "title": "Ekspor kunci utama"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "Nanti",
+            "message": "Anda telah melebihi batas penyimpanan Anda. Harap kosongkan beberapa ruang atau tingkatkan paket Anda untuk mencegah penghapusan data yang tidak diinginkan.",
+            "okText": "Tingkatkan",
+            "title": "Penggunaan penyimpanan melampaui batas"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "Dienkripsi ujung-ke-ujung",
+                "second": "Platform Cloud"
+            },
+            "login": "Masuk",
+            "signUp": "Daftar secara gratis"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "Silakan isi semua kolom."
+            },
+            "forgotPassword": "Lupa kata sandi?",
+            "form": {
+                "email": {
+                    "label": "Alamat email",
+                    "placeholder": "Masukkan alamat email Anda"
+                },
+                "password": {
+                    "label": "Kata sandi",
+                    "placeholder": "Masukkan kata sandi Anda"
+                }
+            },
+            "header": {
+                "cancel": "Batalkan"
+            },
+            "login": "Masuk",
+            "loginUsingCreds": "Masuk menggunakan kredensial Anda",
+            "next": "Berikutnya",
+            "signUp": "Daftar secara gratis",
+            "submit": "Masuk",
+            "title": "Masuk",
+            "welcome": "Selamat datang kembali!"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "Kode",
+                "title": "Otentikasi Dua Faktor"
+            },
+            "forgotPassword": {
+                "placeholder": "Alamat email",
+                "success": "Jika alamat email terdaftar, Anda akan menerima email dengan instruksi untuk mengatur ulang kata sandi Anda.",
+                "title": "Lupa kata sandi"
+            },
+            "resendConfirmation": {
+                "placeholder": "Alamat email",
+                "success": "Email konfirmasi dikirim ke {{email}} jika terdaftar.",
+                "title": "Kirim ulang konfirmasi"
+            }
+        },
+        "register": {
+            "createAccount": "Buat akun",
+            "errors": {
+                "emailAddressesDoNotMatch": "Alamat email tidak cocok.",
+                "emptyFields": "Silakan isi semua kolom.",
+                "passwordsDoNotMatch": "Kata sandi tidak cocok.",
+                "weakPassword": "Kata sandi Anda terlalu lemah. Silakan pilih kata sandi yang lebih kuat. Yang setidaknya sepanjang 10 karakter, berisi campuran huruf besar dan kecil, angka, dan karakter khusus."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "Konfirmasi alamat email",
+                    "placeholder": "Konfirmasi alamat email Anda"
+                },
+                "confirmPassword": {
+                    "label": "Konfirmasi kata sandi",
+                    "placeholder": "Konfirmasi kata sandi Anda"
+                },
+                "email": {
+                    "label": "Alamat email",
+                    "placeholder": "Masukkan alamat email Anda"
+                },
+                "password": {
+                    "label": "Kata sandi",
+                    "placeholder": "Masukkan kata sandi Anda"
+                }
+            },
+            "header": {
+                "cancel": "Batalkan",
+                "title": "Daftar"
+            },
+            "hero": {
+                "create": "Buat akun gratis Anda",
+                "description": "Atur kredensial Anda untuk memulai dengan akun Filen Anda."
+            },
+            "next": "Berikutnya",
+            "passwordStrength": {
+                "best": "Terbaik",
+                "length": "Panjang",
+                "lowercase": "Huruf kecil",
+                "medium": "Medium",
+                "numbers": "Angka",
+                "specialCharacters": "Karakter khusus",
+                "strong": "Kuat",
+                "uppercase": "Huruf kapital",
+                "weak": "Lemah"
+            },
+            "resendConfirmationEmail": "Kirim ulang email konfirmasi",
+            "title": "Daftar"
+        },
+        "registrationSuccessful": "Pendaftaran berhasil! Silakan periksa email Anda untuk mengonfirmasi akun Anda."
+    },
+    "biometric": {
+        "appLockedFor": "Aplikasi terkunci selama {{seconds}} detik",
+        "authenticateUsingPin": "Otentikasi menggunakan PIN Anda",
+        "errors": {
+            "incorrectPin": "PIN salah. Silakan coba lagi.",
+            "tooManyIncorrectAttempts": "Terlalu banyak upaya salah. Silakan coba lagi nanti."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN",
+                "title": "Masukkan PIN Anda"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "B/s",
+        "eib": "EiB/s",
+        "gib": "GiB/s",
+        "kib": "KiB/s",
+        "mib": "MiB/s",
+        "pib": "PiB/s",
+        "tib": "TiB/s",
+        "yib": "YiB/s",
+        "zib": "ZiB/s"
+    },
+    "chats": {
+        "chat": "Obrolan",
+        "chats": "Obrolan",
+        "header": {
+            "newMessages": "{{count}} pesan baru",
+            "search": "Cari obrolan...",
+            "title": "Obrolan"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "Tambahkan item drive",
+                    "addFiles": "Tambahkan file",
+                    "addMedia": "Tambahkan media",
+                    "addPhotos": "Tambah foto",
+                    "cancel": "Batalkan"
+                }
+            },
+            "placeholder": "Ketik pesan",
+            "send": "Kirim",
+            "suggestions": {
+                "emojis": {
+                    "matching": "Emoji cocok dengan {{query}}"
+                },
+                "mention": {
+                    "matching": "Pengguna cocok dengan {{query}}"
+                },
+                "replyTo": {
+                    "replyingTo": "Membalas ke {{name}}"
+                }
+            }
+        },
+        "item": {
+            "draft": "Draf",
+            "noMessages": "Belum ada pesan",
+            "you": "Anda"
+        },
+        "list": {
+            "empty": "Tidak ada obrolan yang ditemukan",
+            "emptySearch": "Tidak ada obrolan ditemukan untuk pencarian ini",
+            "error": "Terdapat kesalahan saat memuat obrolan Anda, silakan coba lagi nanti"
+        },
+        "menu": {
+            "archive": "Arsip",
+            "delete": "Hapus",
+            "favorite": "Favorit",
+            "leave": "Keluar",
+            "markAsRead": "Tandai sebagai dibaca",
+            "mute": "Matikan suara",
+            "muted": "Suara dimatikan",
+            "participants": "Peserta",
+            "pin": "Pin",
+            "rename": "Ganti nama",
+            "unarchive": "Batalkan arsip",
+            "unfavorite": "Hapus favorit",
+            "unmute": "Nyalakan suara",
+            "unpin": "Lepaskan pin"
+        },
+        "messages": {
+            "everyone": "Semua orang",
+            "menu": {
+                "cancel": "Batalkan",
+                "copyId": "Salin ID",
+                "copyText": "Salin teks",
+                "delete": "Hapus",
+                "disableEmbeds": "Nonaktifkan sematan",
+                "edit": "Edit",
+                "reply": "Balas"
+            },
+            "new": "Baru",
+            "time": {
+                "hourAgo": "{{hours}} jam yang lalu",
+                "hoursAgo": "{{hours}} jam yang lalu",
+                "minuteAgo": "{{minutes}} menit yang lalu",
+                "minutesAgo": "{{minutes}} menit yang lalu",
+                "now": "Sekarang",
+                "secondAgo": "{{seconds}} detik yang lalu",
+                "secondsAgo": "{{seconds}} detik yang lalu",
+                "todayAt": "Hari ini pada {{date}}",
+                "yesterdayAt": "Kemarin pada {{date}}"
+            },
+            "undecryptable": "Tidak dapat mendekripsi pesan.",
+            "unknown": "Tidak diketahui"
+        },
+        "participants": {
+            "menu": {
+                "remove": "Hapus"
+            },
+            "participant": "Peserta",
+            "participants": "Peserta",
+            "prompts": {
+                "remove": {
+                    "message": "Apakah Anda yakin ingin menghapus peserta ini? Mereka tidak akan dapat melihat atau mengirim pesan di obrolan ini lagi.",
+                    "success": "{{name}} dihapus",
+                    "title": "Hapus peserta"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "Apakah Anda yakin ingin menghapus obrolan ini? Ini akan menghapus obrolan dari daftar Anda dan Anda tidak akan dapat melihat atau mengirim pesan dalam obrolan ini.",
+                "title": "Hapus obrolan"
+            },
+            "deleteChats": {
+                "message": "Apakah Anda yakin ingin menghapus {{count}} obrolan? Ini akan menghapus obrolan dari daftar Anda dan Anda tidak akan dapat melihat atau mengirim pesan dalam obrolan ini.",
+                "title": "Hapus obrolan"
+            },
+            "deleteMessage": {
+                "message": "Apakah Anda yakin ingin menghapus pesan ini? Tindakan ini tidak dapat diurungkan!",
+                "title": "Hapus pesan"
+            },
+            "disableEmbeds": {
+                "message": "Apakah Anda yakin ingin menonaktifkan sematan untuk pesan ini? Ini akan menghapus konten yang disematkan.",
+                "title": "Nonaktifkan sematan"
+            },
+            "leaveChat": {
+                "message": "Apakah Anda yakin ingin meninggalkan obrolan ini? Anda tidak akan dapat melihat atau mengirim pesan di obrolan ini lagi.",
+                "title": "Tinggalkan obrolan"
+            },
+            "leaveChats": {
+                "message": "Apakah Anda yakin ingin meninggalkan {{count}} obrolan? Anda tidak akan dapat melihat atau mengirim pesan di obrolan-obrolan ini lagi.",
+                "title": "Tinggalkan obrolan"
+            },
+            "renameChat": {
+                "placeholder": "Nama baru",
+                "title": "Ganti nama obrolan"
+            }
+        },
+        "typing": "{{users}} sedang mengetik..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "Terima",
+            "block": "Blokir",
+            "cancel": "Batalkan",
+            "decline": "Tolak",
+            "remove": "Hapus",
+            "unblock": "Buka Blokir"
+        }
+    },
+    "copiedToClipboard": "Disalin ke papan klip",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "Batalkan",
+                    "create": {
+                        "created": "{{name}} dibuat",
+                        "directory": "Buat direktori",
+                        "photo": "Ambil foto",
+                        "textFile": "Buat file teks"
+                    },
+                    "directoryNamePlaceholder": "Nama direktori",
+                    "itemsUploaded": "{{count}} item berhasil diunggah",
+                    "noMediaPermissions": "Anda perlu memberikan izin media untuk mengunggah foto atau video.",
+                    "textFileNamePlaceholder": "Nama file teks",
+                    "upload": {
+                        "directory": "Direktori unggah",
+                        "files": "Unggah file",
+                        "media": "Unggah media",
+                        "uploaded": "{{name}} diunggah"
+                    }
+                },
+                "deselectAll": "Batalkan pilihan semua",
+                "dropdown": {
+                    "bulkActions": "Tindakan massal",
+                    "gridMode": "Lihat sebagai Grid",
+                    "listMode": "Lihat sebagai Daftar",
+                    "sortBy": {
+                        "ascending": "Naik",
+                        "descending": "Turun",
+                        "lastModified": {
+                            "ascendingTitle": "Terawal Dulu",
+                            "descendingTitle": "Terakhir Dulu",
+                            "title": "Terakhir Diubah"
+                        },
+                        "name": {
+                            "ascendingTitle": "A sampai Z",
+                            "descendingTitle": "Z ke A",
+                            "title": "Nama"
+                        },
+                        "size": {
+                            "ascendingTitle": "Terkecil Dulu",
+                            "descendingTitle": "Terbesar Dulu",
+                            "title": "Ukuran"
+                        },
+                        "sortBy": "Urutkan Berdasarkan",
+                        "type": {
+                            "ascendingTitle": "Naik",
+                            "descendingTitle": "Turun",
+                            "title": "Tipe"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "Terawal Dulu",
+                            "descendingTitle": "Terakhir Dulu",
+                            "title": "Tanggal unggah"
+                        }
+                    },
+                    "transfers": "Transfer"
+                },
+                "selectAll": "Pilih semua"
+            },
+            "title": {
+                "drive": "Drive",
+                "favorites": "Favorit",
+                "links": "Tautan publik",
+                "offline": "Tersedia offline",
+                "recents": "Terbaru",
+                "selected": "{{count}} terpilih",
+                "sharedIn": "Dibagikan dengan Anda",
+                "sharedOut": "Dibagikan dengan orang lain",
+                "trash": "Sampah"
+            }
+        },
+        "itemShared": "{{name}} dibagikan",
+        "itemSharedWith": "{{name}} dibagikan dengan {{email}}",
+        "list": {
+            "empty": "Tidak ada item yang ditemukan",
+            "emptySearch": "Tidak ada item ditemukan untuk pencarian ini",
+            "error": "Terdapat kesalahan saat memuat drive Anda, silakan coba lagi nanti",
+            "footer": "{{count}} item",
+            "item": {
+                "menu": {
+                    "availableOffline": "Tersedia offline",
+                    "clipboard": "Papan Klip",
+                    "color": "Warna",
+                    "copy": "Salin",
+                    "copyId": "Salin ID",
+                    "copyPath": "Salin jalur",
+                    "delete": "Hapus",
+                    "deletePermanently": "Hapus secara permanen",
+                    "deselect": "Hapus pilihan",
+                    "deselectAll": "Batalkan pilihan semua",
+                    "disablePublicLink": "Nonaktifkan tautan",
+                    "download": "Unduh",
+                    "downloadFolder": "Folder unduhan",
+                    "export": "Ekspor",
+                    "favorite": "Favorit",
+                    "favorite_one": "Item favorit",
+                    "favorite_other": "Favoritkan {{count}} Item",
+                    "favorited": "Telah difavoritkan",
+                    "id": "ID",
+                    "info": "Info",
+                    "location": "Lokasi",
+                    "makeAvailableOffline": "Buat tersedia offline",
+                    "move": "Pindahkan",
+                    "move_one": "Pindahkan Item",
+                    "move_other": "Pindahkan {{count}} Item",
+                    "open": "Buka",
+                    "path": "Jalur",
+                    "preview": "Pratinjau",
+                    "properties": "Properti",
+                    "publicLink": "Tautan publik",
+                    "removeOffline": "Hapus file offline",
+                    "removeSharedIn": "Hapus",
+                    "removeSharedOut": "Hentikan berbagi",
+                    "rename": "Ganti nama",
+                    "restore": "Pulihkan",
+                    "saveToGallery": "Simpan ke galeri",
+                    "select": "Pilih",
+                    "selectAll": "Pilih semua",
+                    "share": "Bagikan",
+                    "share_one": "Bagikan Item",
+                    "share_other": "Bagikan {{count}} Item",
+                    "trash": "Sampah",
+                    "trash_one": "Item sampah",
+                    "trash_other": "Hapus {{count}} Item",
+                    "unfavorite": "Hapus favorit",
+                    "versionHistory": "Riwayat versi",
+                    "withUser": "Dengan pengguna"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "Apakah Anda yakin ingin menghapus {{count}} item secara permanen? Tindakan ini tidak dapat diurungkan!",
+                "title": "Hapus secara permanen"
+            },
+            "deletePermanently": {
+                "message": "Apakah Anda yakin ingin menghapus item ini secara permanen? Tindakan ini tidak dapat diurungkan!",
+                "title": "Hapus secara permanen"
+            },
+            "disablePublicLinks": {
+                "message": "Apakah Anda yakin ingin menonaktifkan tautan publik untuk {{count}} item? Tautan tidak lagi dapat diakses.",
+                "title": "Nonaktifkan tautan publik"
+            },
+            "removeOfflineFiles": {
+                "message": "Apakah Anda yakin ingin menghapus {{count}} file offline? File tersebut tidak akan tersedia secara offline lagi.",
+                "title": "Hapus file-file offline"
+            },
+            "removeSharedInItem": {
+                "message": "Apakah Anda yakin ingin menghapus item ini dari item yang dibagikan? Anda tidak akan dapat melihat atau mengaksesnya lagi.",
+                "title": "Hapus"
+            },
+            "removeSharedInItems": {
+                "message": "Apakah Anda yakin ingin menghapus {{count}} item dari item yang dibagikan? Anda tidak akan dapat melihat atau mengaksesnya lagi.",
+                "title": "Hapus"
+            },
+            "removeSharedOutItem": {
+                "message": "Apakah Anda yakin ingin berhenti membagikan item ini? Pengguna tidak akan dapat mengaksesnya lagi.",
+                "title": "Hentikan berbagi"
+            },
+            "removeSharedOutItems": {
+                "message": "Apakah Anda yakin ingin berhenti membagikan {{count}} item? Pengguna tidak akan dapat mengaksesnya lagi.",
+                "title": "Hentikan berbagi"
+            },
+            "renameItem": {
+                "placeholder": "Nama baru",
+                "title": "Ganti nama"
+            },
+            "trashItem": {
+                "message": "Apakah Anda yakin ingin memindahkan item ini ke tempat sampah? Anda dapat mengembalikannya nanti.",
+                "title": "Pindahkan ke sampah"
+            },
+            "trashItems": {
+                "message": "Apakah Anda yakin ingin memindahkan {{count}} item ke tempat sampah? Anda dapat mengembalikannya nanti.",
+                "title": "Pindahkan ke sampah"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "Tidak ada item yang ditemukan",
+                "emptySearch": "Tidak ada item ditemukan untuk pencarian ini",
+                "error": "Terdapat kesalahan saat memuat hasil pencarian, silakan coba lagi nanti",
+                "footer": "{{count}} item"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "Batalkan",
+        "items": {
+            "downloadButton": "Tombol unduh",
+            "edit": "Edit",
+            "enabled": "Dinyalakan",
+            "expiration": "Kadaluwarsa",
+            "expiration12h": "12 jam",
+            "expiration14d": "14 hari",
+            "expiration1d": "1 hari",
+            "expiration1h": "1 jam",
+            "expiration30d": "30 hari",
+            "expiration3d": "3 hari",
+            "expiration6h": "6 jam",
+            "expiration7d": "7 hari",
+            "expirationNever": "Tak pernah",
+            "password": "Kata sandi"
+        },
+        "onlyPro": "Fitur ini hanya tersedia bagi pengguna Filen Pro. Berlangganan salah satu paket Filen untuk mengaktifkannya.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "Biarkan kosong untuk menghapus kata sandi",
+                "title": "Edit kata sandi"
+            }
+        },
+        "shareDialogTile": "Tautan publik Filen",
+        "title": "Edit tautan publik",
+        "unsavedChanges": "Perubahan belum disimpan"
+    },
+    "errors": {
+        "cannotOpenURL": "Tidak dapat membuka URL.",
+        "notEnoughDiskSpace": "Ruang disk lokal tidak cukup tersedia.",
+        "sharingNotAvailable": "Berbagi tidak tersedia di perangkat ini.",
+        "youAreOffline": "Anda sedang offline. Silakan periksa koneksi internet Anda."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "Batalkan",
+                "confirm": "Hapus",
+                "message": "Apakah Anda yakin ingin menghapus versi ini? Tindakan ini tidak dapat diurungkan!",
+                "title": "Hapus versi"
+            },
+            "restore": {
+                "cancel": "Batalkan",
+                "confirm": "Pulihkan",
+                "message": "Apakah Anda yakin ingin memulihkan versi ini? Ini akan menimpa file saat ini.",
+                "title": "Pulihkan versi"
+            }
+        },
+        "header": {
+            "title": "Riwayat versi"
+        },
+        "list": {
+            "empty": "Belum ada versi",
+            "emptySearch": "Tidak ada versi ditemukan untuk pencarian ini",
+            "error": "Terdapat kesalahan saat memuat versi file, silakan coba lagi nanti",
+            "item": {
+                "current": "Saat ini",
+                "delete": "Hapus",
+                "restore": "Pulihkan"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "Byte",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiB",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "Pratinjau tidak tersedia"
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "Favorit"
+            },
+            "links": {
+                "title": "Tautan publik"
+            },
+            "offline": {
+                "title": "Tersedia offline"
+            },
+            "recents": {
+                "title": "Terbaru"
+            },
+            "sharedIn": {
+                "title": "Dibagikan dengan Anda"
+            },
+            "sharedOut": {
+                "title": "Dibagikan dengan orang lain"
+            },
+            "trash": {
+                "title": "Sampah"
+            }
+        },
+        "listEmpty": {
+            "favorites": "Belum ada favorit",
+            "links": "Belum ada tautan publik",
+            "offline": "Belum ada item offline",
+            "recents": "Belum ada yang terbaru",
+            "sharedIn": "Belum ada item yang dibagikan",
+            "sharedOut": "Belum ada item yang dibagikan",
+            "trash": "Belum ada item yang dihapus"
+        },
+        "title": "Beranda"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "Batalkan",
+            "okText": "OK",
+            "title": "Judul"
+        }
+    },
+    "listEmpty": {
+        "empty": "Tidak ada yang ditemukan",
+        "emptySearch": "Tidak ada yang ditemukan untuk pencarian ini",
+        "error": "Terjadi kesalahan, silakan coba lagi nanti"
+    },
+    "localAuthentication": {
+        "cancelLabel": "Batalkan",
+        "promptMessage": "Otentikasi untuk melanjutkan"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "Tulis kode Anda di sini...",
+                "text": "Tulis teks Anda di sini..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "Batalkan pilihan semua",
+                    "selectAll": "Pilih semua"
+                },
+                "types": {
+                    "checklist": "Daftar periksa",
+                    "code": "Kode",
+                    "markdown": "Markdown",
+                    "rich": "Teks kaya",
+                    "text": "Teks"
+                }
+            },
+            "menu": {
+                "settings": "Pengaturan"
+            },
+            "selected": "{{count}} terpilih",
+            "title": "Catatan"
+        },
+        "history": {
+            "list": {
+                "empty": "Tidak ada riwayat yang tersedia",
+                "emptySearch": "Tidak ada entri ditemukan untuk pencarian ini",
+                "error": "Terdapat kesalahan saat memuat riwayat, silakan coba lagi nanti",
+                "footer": "{{count}} item"
+            },
+            "noPreview": "Pratinjau tidak tersedia",
+            "prompts": {
+                "restore": {
+                    "message": "Apakah Anda yakin ingin memulihkan catatan ini? Ini akan menimpa catatan saat ini.",
+                    "title": "Pulihkan catatan"
+                }
+            },
+            "restore": "Pulihkan",
+            "title": "Riwayat"
+        },
+        "list": {
+            "empty": "Belum ada catatan",
+            "emptySearch": "Tidak ada catatan ditemukan untuk pencarian ini",
+            "error": "Terdapat kesalahan saat memuat catatan Anda, silakan coba lagi nanti",
+            "footer": "{{count}} item"
+        },
+        "menu": {
+            "archive": "Arsip",
+            "clipboard": "Papan Klip",
+            "copyId": "Salin ID",
+            "delete": "Hapus",
+            "deselect": "Hapus pilihan",
+            "duplicate": "Duplikat",
+            "export": "Ekspor",
+            "favorite": "Favorit",
+            "favorited": "Telah difavoritkan",
+            "history": "Riwayat",
+            "leave": "Keluar",
+            "participants": "Peserta",
+            "pin": "Pin",
+            "pinned": "Disematkan",
+            "preview": "Pratinjau",
+            "rename": "Ganti nama",
+            "restore": "Pulihkan",
+            "select": "Pilih",
+            "tags": "Tag",
+            "trash": "Sampah",
+            "type": "Tipe",
+            "types": {
+                "checklist": "Daftar periksa",
+                "code": "Kode",
+                "md": "Markdown",
+                "rich": "Teks kaya",
+                "text": "Teks"
+            },
+            "unfavorite": "Hapus favorit",
+            "unpin": "Lepaskan pin"
+        },
+        "participants": {
+            "list": {
+                "empty": "Belum ada peserta",
+                "emptySearch": "Tidak ada peserta ditemukan untuk pencarian ini",
+                "error": "Terdapat kesalahan saat memuat peserta, silakan coba lagi nanti",
+                "footer": "{{count}} peserta"
+            },
+            "menu": {
+                "permissionsWrite": "Izin menulis",
+                "remove": "Hapus"
+            },
+            "title": "Peserta"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "Judul catatan",
+                "title": "Buat catatan"
+            },
+            "createTag": {
+                "placeholder": "Nama tag",
+                "title": "Buat tag"
+            },
+            "deleteNote": {
+                "message": "Apakah Anda yakin ingin menghapus catatan ini secara permanen? Tindakan ini tidak dapat diurungkan!",
+                "title": "Hapus catatan"
+            },
+            "deleteNotes": {
+                "message": "Apakah Anda yakin ingin menghapus {{count}} catatan secara permanen? Tindakan ini tidak dapat diurungkan!",
+                "title": "Hapus catatan"
+            },
+            "deleteTag": {
+                "message": "Apakah Anda yakin ingin menghapus tag ini? Tindakan ini tidak dapat diurungkan!",
+                "title": "Hapus tag"
+            },
+            "deleteTags": {
+                "message": "Apakah Anda yakin ingin menghapus {{count}} tag? Tindakan ini tidak dapat diurungkan!",
+                "title": "Hapus tag"
+            },
+            "leaveNote": {
+                "message": "Apakah Anda yakin ingin meninggalkan catatan ini? Anda tidak akan dapat melihat atau mengeditnya lagi.",
+                "title": "Tinggalkan catatan"
+            },
+            "leaveNotes": {
+                "message": "Apakah Anda yakin ingin meninggalkan {{count}} catatan? Anda tidak akan dapat melihat atau mengeditnya lagi.",
+                "title": "Tinggalkan catatan-catatan"
+            },
+            "removeParticipant": {
+                "message": "Apakah Anda yakin ingin menghapus peserta ini? Mereka tidak akan dapat melihat atau mengedit catatan ini lagi.",
+                "title": "Hapus peserta"
+            },
+            "removeParticipants": {
+                "message": "Apakah Anda yakin ingin menghapus {{count}} peserta? Mereka tidak akan dapat melihat atau mengedit catatan ini lagi.",
+                "title": "Hapus peserta-peserta"
+            },
+            "renameNote": {
+                "placeholder": "Nama baru",
+                "title": "Ganti nama catatan"
+            },
+            "renameTag": {
+                "placeholder": "Nama tag baru",
+                "title": "Ganti nama tag"
+            },
+            "trashNote": {
+                "message": "Apakah Anda yakin ingin memindahkan catatan ini ke tempat sampah? Anda dapat mengembalikannya nanti.",
+                "title": "Pindahkan ke sampah"
+            },
+            "trashNotes": {
+                "message": "Apakah Anda yakin ingin memindahkan {{count}} catatan ke tempat sampah? Anda dapat mengembalikannya nanti.",
+                "title": "Pindahkan ke sampah"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "Hapus",
+                "favorited": "Telah difavoritkan",
+                "rename": "Ganti nama"
+            },
+            "names": {
+                "all": "Semua",
+                "archived": "Diarsipkan",
+                "favorited": "Telah difavoritkan",
+                "pinned": "Disematkan",
+                "shared": "Dibagikan",
+                "trash": "Sampah"
+            }
+        },
+        "title": "Catatan"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "Batalkan",
+            "placeholder": "Cari..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "Mode offline"
+    },
+    "photos": {
+        "header": {
+            "selected": "{{count}} terpilih"
+        },
+        "list": {
+            "empty": "Belum ada foto",
+            "emptySearch": "Tidak ada foto ditemukan untuk pencarian ini",
+            "error": "Terdapat kesalahan saat memuat foto Anda, silakan coba lagi nanti"
+        },
+        "menu": {
+            "settings": "Pengaturan"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} item"
+                },
+                "list": {
+                    "empty": "Tidak ada album yang ditemukan",
+                    "emptySearch": "Tidak ada album ditemukan untuk pencarian ini",
+                    "error": "Terdapat kesalahan saat memuat album Anda, silakan coba lagi nanti"
+                },
+                "title": "Album"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "Anda perlu memberikan izin media untuk mengakses foto Anda."
+                },
+                "items": {
+                    "albums": "Album",
+                    "albumsInfo": "Pilih album yang akan dimasukkan dalam unggahan kamera.",
+                    "background": "Latar belakang",
+                    "backgroundInfo": "Izinkan unggahan kamera di latar belakang. Ini dapat menyebabkan penggunaan baterai yang tinggi. Unggahan latar belakang hanya termasuk gambar. Hanya berfungsi ketika aplikasi tidak ditutup secara paksa.",
+                    "cellular": "Seluler",
+                    "cellularInfo": "Izinkan unggahan kamera melalui data seluler. Ini dapat menyebabkan penggunaan data yang tinggi.",
+                    "cloudDirectory": "Direktori cloud",
+                    "cloudDirectoryNotSet": "Belum diatur",
+                    "compress": "Kompres",
+                    "compressInfo": "Kompres foto untuk menghemat ruang penyimpanan. Ini dapat mengurangi kualitas foto. Kompresi JPG pada kualitas 80%.",
+                    "enabled": "Dinyalakan",
+                    "lowBattery": "Baterai lemah",
+                    "lowBatteryInfo": "Nonaktifkan unggahan kamera saat baterai rendah.",
+                    "permissionsError": "Kesalahan izin",
+                    "permissionsErrorInfo": "Harap izinkan aplikasi mengakses foto dan video Anda di pengaturan sistem.",
+                    "videos": "Video",
+                    "videosInfo": "Sertakan video dalam unggahan kamera."
+                },
+                "title": "Pengaturan"
+            }
+        },
+        "state": {
+            "synced": "Tersinkronisasi",
+            "syncing": "Sinkronisasi",
+            "syncingProgress": "{{done}} dari {{total}} item tersinkronisasi"
+        },
+        "title": "Foto"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "Batalkan",
+            "done": "Selesai",
+            "selectContact": "Pilih kontak",
+            "selectContacts": "Pilih kontak-kontak"
+        },
+        "list": {
+            "empty": "Belum ada kontak",
+            "emptySearch": "Tidak ada kontak ditemukan untuk pencarian ini",
+            "error": "Terdapat kesalahan saat memuat kontak Anda, silakan coba lagi nanti",
+            "footer": "{{count}} kontak"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} terpilih"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "Batalkan",
+            "done": "Selesai",
+            "drive": "Drive",
+            "selectDirectories": "Pilih direktori",
+            "selectDirectory": "Pilih direktori",
+            "selectFile": "Pilih file",
+            "selectFiles": "Pilih file-file",
+            "selectItem": "Pilih item",
+            "selectItems": "Pilih item",
+            "selectRoot": "Pilih drive cloud"
+        },
+        "list": {
+            "empty": "Belum ada yang diunggah",
+            "emptySearch": "Tidak ada item ditemukan untuk pencarian ini",
+            "error": "Terdapat kesalahan saat memuat file Anda, silakan coba lagi nanti",
+            "footer": "{{count}} item"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "Nama direktori",
+                "success": "{{name}} dibuat",
+                "title": "Buat direktori"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} terpilih"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "Batalkan",
+            "done": "Selesai",
+            "selectPlaylist": "Pilih daftar putar",
+            "selectPlaylists": "Pilih daftar putar"
+        },
+        "item": {
+            "subTitle": "{{count}} lagu, diperbarui {{date}}"
+        },
+        "list": {
+            "empty": "Belum ada daftar putar",
+            "emptySearch": "Tidak ada daftar putar ditemukan untuk pencarian ini",
+            "error": "Terdapat kesalahan saat memuat daftar putar Anda, silakan coba lagi nanti",
+            "footer": "{{count}} daftar putar"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Nama daftar putar",
+                "title": "Buat daftar putar"
+            }
+        },
+        "selected": "{{countOrName}} terpilih",
+        "toolbar": {
+            "selected": "{{countOrName}} terpilih"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "Ukuran gambar avatar melebihi batas 3 MiB.",
+                "emailsNotMatching": "Alamat email baru tidak cocok."
+            },
+            "items": {
+                "changeAvatar": "Ubah avatar",
+                "deleteAllFilesAndDirectories": "Hapus semua file dan direktori",
+                "deleteVersionedFiles": "Hapus file versi",
+                "emailAddress": "Alamat email",
+                "fileVersioning": "Versi file",
+                "fileVersioningInfo": "Aktifkan versi file untuk melacak perubahan pada file Anda.",
+                "gdpr": "Informasi GDPR",
+                "loginAlerts": "Pemberitahuan masuk",
+                "loginAlertsInfo": "Terima peringatan saat akun Anda diakses.",
+                "logout": "Keluar",
+                "more": "Pengaturan akun lebih lanjut",
+                "nickname": "Nama panggilan",
+                "personalInformation": "Informasi Pribadi",
+                "requestAccountDeletion": "Permohonan penghapusan akun",
+                "requestAccountDeletionInfo": "Meminta penghapusan akun. Kami akan mengirimkan email dengan instruksi lebih lanjut."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "Kode",
+                    "title": "Otentikasi Dua Faktor"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "Konfirmasi alamat email baru",
+                        "title": "Konfirmasi alamat email baru"
+                    },
+                    "newEmail": {
+                        "placeholder": "Alamat email baru",
+                        "title": "Alamat email baru"
+                    },
+                    "password": {
+                        "placeholder": "Kata sandi",
+                        "title": "Kata sandi Anda"
+                    }
+                },
+                "deleteAccount": {
+                    "message": "Apakah Anda yakin ingin meminta penghapusan akun? Anda akan menerima email dengan instruksi selanjutnya.",
+                    "title": "Permohonan penghapusan akun"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "Apakah Anda yakin ingin menghapus semua file dan direktori? Tindakan ini tidak dapat diurungkan!",
+                    "title": "Hapus semua file dan direktori"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "Apakah Anda benar-benar yakin? Tindakan ini tidak dapat dibatalkan!",
+                    "title": "Hapus semua file dan direktori"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "Apakah Anda yakin ingin menghapus semua file dengan versi? Tindakan ini tidak dapat diurungkan!",
+                    "title": "Hapus file versi"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "Apakah Anda benar-benar yakin? Tindakan ini tidak dapat dibatalkan!",
+                    "title": "Hapus file versi"
+                },
+                "logout": {
+                    "message": "Apakah Anda yakin ingin keluar? Anda perlu login lagi untuk mengakses akun Anda.",
+                    "title": "Keluar"
+                },
+                "more": {
+                    "message": "Pengaturan lebih lanjut tersedia di aplikasi web. Apakah Anda ingin membukanya sekarang?",
+                    "title": "Buka Aplikasi Web"
+                },
+                "updateNickname": {
+                    "placeholder": "Nama panggilan baru",
+                    "title": "Perbarui nama panggilan"
+                }
+            },
+            "title": "Akun"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "Bersihkan cache",
+                "clearOfflineFiles": "Hapus file offline",
+                "clearThumbnails": "Bersihkan thumbnail",
+                "clearTrackPlayer": "Bersihkan pemutar track"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "Menghapus cache akan menghapus file sementara. Ini dapat mengganggu unggahan atau unduhan yang sedang berlangsung. Apakah Anda yakin ingin melanjutkan?",
+                    "title": "Bersihkan cache"
+                },
+                "clearOfflineFiles": {
+                    "message": "Menghapus file offline akan menghapus semua file yang tersedia offline. Apakah Anda yakin ingin melanjutkan?",
+                    "title": "Hapus file offline"
+                },
+                "clearThumbnails": {
+                    "message": "Menghapus gambar mini akan membuat aplikasi mengunduh setiap gambar mini yang terlihat lagi. Apakah Anda yakin ingin melanjutkan?",
+                    "title": "Bersihkan thumbnail"
+                },
+                "clearTrackPlayer": {
+                    "message": "Menghapus cache pemutar lagu akan menghapus lagu dan gambar yang disimpan dalam cache. Ini dapat menyebabkan waktu pemuatan meningkat. Apakah Anda yakin ingin melanjutkan?",
+                    "title": "Bersihkan pemutar track"
+                }
+            },
+            "title": "Lanjutan"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "Autentikasi biometrik tidak tersedia di perangkat ini. Silakan aktifkan autentikasi menggunakan PIN saja atau gunakan perangkat dengan dukungan autentikasi biometrik.",
+                "pinNotMatching": "PIN cadangan tidak cocok.",
+                "pinTooLong": "PIN cadangan tidak boleh lebih dari 128 digit.",
+                "pinTooShort": "PIN cadangan harus setidaknya 4 digit."
+            },
+            "items": {
+                "biometricAuth": "Autentikasi biometrik",
+                "lockAppAfter": "Kunci aplikasi setelah",
+                "pinOnly": "Hanya PIN"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15 menit",
+                "fiveMinutes": "5 menit",
+                "immediately": "Segera",
+                "minutes": "{{minutes}} menit",
+                "never": "Tak pernah",
+                "oneHour": "1 jam",
+                "oneMinute": "1 menit",
+                "tenMinutes": "10 menit",
+                "thirtyMinutes": "30 menit"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "Apakah Anda yakin ingin menonaktifkan otentikasi biometrik?",
+                    "title": "Nonaktifkan autentikasi biometrik"
+                },
+                "documentsProvider": {
+                    "message": "Mengaktifkan autentikasi biometrik akan menonaktifkan penyedia dokumen. Ini berarti Anda tidak dapat mengakses file Anda di aplikasi lain menggunakan penyedia dokumen Filen. Apakah Anda ingin melanjutkan?",
+                    "title": "Penyedia dokumen diaktifkan"
+                },
+                "enable": {
+                    "placeholder": "PIN Cadangan",
+                    "title": "Atur PIN cadangan"
+                },
+                "enableConfirm": {
+                    "placeholder": "Konfirmasi PIN",
+                    "title": "Konfirmasi PIN cadangan"
+                },
+                "fileProvider": {
+                    "message": "Mengaktifkan autentikasi biometrik akan menonaktifkan penyedia file. Ini berarti Anda tidak dapat mengakses file Anda di aplikasi lain menggunakan penyedia file Filen. Apakah Anda ingin melanjutkan?",
+                    "title": "Penyedia file diaktifkan"
+                }
+            },
+            "title": "Keamanan"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "Tidak ada kontak yang ditemukan",
+                    "emptySearch": "Tidak ada kontak ditemukan untuk pencarian ini",
+                    "error": "Terdapat kesalahan saat memuat kontak Anda, silakan coba lagi nanti"
+                },
+                "blocked": {
+                    "empty": "Tidak ada kontak yang diblokir ditemukan",
+                    "emptySearch": "Tidak ada kontak terblokir ditemukan untuk pencarian ini",
+                    "error": "Terdapat kesalahan saat memuat kontak Anda, silakan coba lagi nanti"
+                },
+                "offline": {
+                    "empty": "Tidak ada kontak offline yang ditemukan",
+                    "emptySearch": "Tidak ada kontak offline ditemukan untuk pencarian ini",
+                    "error": "Terdapat kesalahan saat memuat kontak Anda, silakan coba lagi nanti"
+                },
+                "online": {
+                    "empty": "Tidak ada kontak online yang ditemukan",
+                    "emptySearch": "Tidak ada kontak online ditemukan untuk pencarian ini",
+                    "error": "Terdapat kesalahan saat memuat kontak Anda, silakan coba lagi nanti"
+                },
+                "pending": {
+                    "empty": "Tidak ditemukan permintaan kontak",
+                    "emptySearch": "Tidak ada permintaan kontak ditemukan untuk pencarian ini",
+                    "error": "Terdapat kesalahan saat memuat permintaan kontak Anda, silakan coba lagi nanti"
+                },
+                "requests": {
+                    "empty": "Tidak ditemukan permintaan kontak",
+                    "emptySearch": "Tidak ada permintaan kontak ditemukan untuk pencarian ini",
+                    "error": "Terdapat kesalahan saat memuat permintaan kontak Anda, silakan coba lagi nanti"
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "Apakah Anda yakin ingin memblokir kontak ini?",
+                    "success": "{{email}} diblokir",
+                    "title": "Blokir kontak"
+                },
+                "blockContacts": {
+                    "message": "Apakah Anda yakin ingin memblokir {{count}} kontak?",
+                    "success": "{{count}} kontak diblokir",
+                    "title": "Blokir kontak-kontak"
+                },
+                "removeContact": {
+                    "message": "Apakah Anda yakin ingin menghapus kontak ini?",
+                    "success": "{{email}} dihapus",
+                    "title": "Hapus kontak"
+                },
+                "removeContacts": {
+                    "message": "Apakah Anda yakin ingin menghapus {{count}} kontak?",
+                    "success": "{{count}} kontak dihapus",
+                    "title": "Hapus kontak-kontak"
+                },
+                "sendRequest": {
+                    "placeholder": "Alamat email Filen",
+                    "success": "Permintaan kontak dikirim ke {{email}}",
+                    "title": "Kirim permintaan kontak"
+                },
+                "unblockContact": {
+                    "message": "Apakah Anda yakin ingin membuka blokir kontak ini?",
+                    "success": "{{email}} dibuka blokir",
+                    "title": "Buka blokir kontak"
+                },
+                "unblockContacts": {
+                    "message": "Apakah Anda yakin ingin membuka blokir {{count}} kontak?",
+                    "success": "{{count}} kontak dibuka blokir",
+                    "title": "Buka blokir kontak-kontak"
+                }
+            },
+            "tabs": {
+                "all": "Semua",
+                "blocked": "Diblokir",
+                "offline": "Offline",
+                "online": "Online",
+                "pending": "Menunggu",
+                "requests": "Permintaan"
+            },
+            "title": "Kontak"
+        },
+        "events": {
+            "event": "Acara",
+            "eventInfo": {
+                "2faDisabled": "2FA dinonaktifkan",
+                "2faEnabled": "2FA diaktifkan",
+                "baseFolderCreated": "Folder dasar dibuat",
+                "codeRedeemed": "Kode \"{{code}}\" telah ditebus",
+                "deleteAll": "Semua direktori dan file dihapus secara permanen",
+                "deleteFilePermanently": "{{name}} dihapus secara permanen",
+                "deleteFolderPermanently": "{{name}} dihapus secara permanen",
+                "deleteUnfinished": "Unggahan yang belum selesai dihapus",
+                "deleteVersioned": "Semua file ber-versi dihapus",
+                "emailChangeAttempt": "Percobaan perubahan email",
+                "emailChanged": "Email diubah",
+                "failedLogin": "Percobaan login gagal",
+                "fileLinkEdited": "Tautan publik untuk {{name}} telah diedit",
+                "fileMetadataChanged": "Metadata untuk {{name}} berubah",
+                "fileMoved": "{{name}} dipindahkan",
+                "fileRenamed": "{{oldName}} diganti nama menjadi {{newName}}",
+                "fileRestored": "{{name}} dipulihkan",
+                "fileRm": "{{name}} dihapus",
+                "fileShared": "{{name}} dibagikan dengan {{email}}",
+                "fileTrash": "{{name}} dipindahkan ke tempat sampah",
+                "fileUploaded": "{{name}} diunggah",
+                "fileVersioned": "{{name}} diberi versi",
+                "folderColorChanged": "Warna dari direktori {{name}} telah diubah",
+                "folderLinkEdited": "Tautan publik direktori diedit",
+                "folderMetadataChanged": "Metadata direktori {{name}} berubah",
+                "folderMoved": "Direktori {{name}} dipindahkan",
+                "folderRenamed": "Direktori {{oldName}} diganti nama menjadi {{newName}}",
+                "folderRestored": "Direktori {{name}} dipulihkan",
+                "folderShared": "Direktori {{name}} dibagikan dengan {{email}}",
+                "folderTrash": "Direktori {{name}} dipindahkan ke sampah",
+                "itemFavorited": "{{name}} difavoritkan",
+                "itemUnfavorited": "{{name}} tidak difavoritkan",
+                "login": "Masuk",
+                "passwordChanged": "Kata sandi diubah",
+                "removedSharedInItems": "Item bersama dihapus dari {{email}}",
+                "removedSharedOutItems": "Item bersama dihapus dari {{email}}",
+                "requestAccountDeletion": "Permintaan penghapusan akun",
+                "subFolderCreated": "Direktori {{name}} dibuat",
+                "trashEmptied": "Sampah dikosongkan",
+                "versionedFileRestored": "Versi dari {{name}} dipulihkan"
+            },
+            "events": "Acara",
+            "listEmpty": {
+                "empty": "Tidak ada acara yang ditemukan",
+                "emptySearch": "Tidak ada acara ditemukan untuk pencarian ini",
+                "error": "Terdapat kesalahan saat memuat acara Anda, silakan coba lagi nanti"
+            },
+            "title": "Acara"
+        },
+        "index": {
+            "items": {
+                "advanced": "Lanjutan",
+                "cameraUpload": "Unggahan kamera",
+                "contacts": "Kontak",
+                "documentsProvider": "Penyedia dokumen",
+                "documentsProviderInfo": "Aktifkan integrasi Files Android untuk mengakses file Anda di luar aplikasi.",
+                "events": "Acara",
+                "fileProvider": "Penyedia file",
+                "fileProviderInfo": "Aktifkan integrasi Files iOS untuk mengakses file Anda di luar aplikasi.",
+                "security": "Keamanan",
+                "used": "{{used}} digunakan dari {{max}} ({{percentage}}%)"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "Mengaktifkan penyedia dokumen akan menonaktifkan otentikasi biometrik. Ini berarti Anda tidak dapat menggunakan otentikasi biometrik untuk membuka kunci aplikasi. Apakah Anda ingin melanjutkan?",
+                    "title": "Autentikasi biometrik diaktifkan"
+                },
+                "fileProvider": {
+                    "message": "Mengaktifkan penyedia file akan menonaktifkan otentikasi biometrik. Ini berarti Anda tidak dapat menggunakan otentikasi biometrik untuk membuka kunci aplikasi. Apakah Anda ingin melanjutkan?",
+                    "title": "Autentikasi biometrik diaktifkan"
+                }
+            },
+            "title": "Pengaturan"
+        },
+        "personal": {
+            "items": {
+                "city": "Kota",
+                "companyName": "Nama perusahaan",
+                "country": "Negara",
+                "firstName": "Nama depan",
+                "lastName": "Nama belakang",
+                "postalCode": "Kode pos",
+                "street": "Jalan",
+                "streetNumber": "Nomor jalan",
+                "vatId": "ID PPN"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "Edit"
+                }
+            },
+            "title": "Informasi Pribadi"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "Kata sandi baru tidak cocok.",
+                "weak": "Kata sandi baru Anda terlalu lemah. Silakan pilih kata sandi yang lebih kuat. Yang setidaknya sepanjang 10 karakter, berisi campuran huruf besar dan kecil, angka, dan karakter khusus."
+            },
+            "items": {
+                "2fa": "Otentikasi Dua Faktor",
+                "biometricAuth": "Autentikasi biometrik",
+                "changePassword": "Ubah kata sandi"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "Setelah mengubah kata sandi Anda, Anda akan keluar dan perlu masuk kembali dengan kata sandi baru Anda.",
+                    "title": "Ubah kata sandi"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "Konfirmasi kata sandi",
+                    "title": "Konfirmasi kata sandi baru"
+                },
+                "currentPassword": {
+                    "placeholder": "Kata sandi saat ini",
+                    "title": "Kata sandi Anda saat ini"
+                },
+                "newPassword": {
+                    "placeholder": "Kata sandi baru",
+                    "title": "Kata sandi baru Anda"
+                }
+            },
+            "title": "Keamanan"
+        },
+        "twoFactorAuth": {
+            "copied": "Kunci disalin ke papan klip",
+            "copyKey": "Salin kunci",
+            "items": {
+                "2fa": "Otentikasi Dua Faktor"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "Kode",
+                    "title": "Masukkan kode"
+                }
+            },
+            "title": "Keamanan"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "Batalkan",
+            "title": "Simpan ke Filen",
+            "upload": "Unggah"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "Batalkan",
+            "select": "Pilih"
+        },
+        "itemInfo": {
+            "creation": "Dibuat",
+            "directories": "Direktori",
+            "directory": "Direktori",
+            "files": "File",
+            "location": "Lokasi",
+            "modified": "Dimodifikasi",
+            "name": "Nama",
+            "notAvailable": "Tidak tersedia",
+            "size": "Ukuran",
+            "type": "Tipe",
+            "uploaded": "Diunggah"
+        }
+    },
+    "tabBar": {
+        "chats": "Obrolan",
+        "drive": "Drive",
+        "home": "Beranda",
+        "notes": "Catatan",
+        "photos": "Foto",
+        "settings": "Pengaturan"
+    },
+    "textEditor": {
+        "header": {
+            "back": "Kembali"
+        },
+        "saved": "Tersimpan",
+        "savedSuccess": "Berhasil disimpan",
+        "unsavedChanges": "Perubahan belum disimpan"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "Tidak ada track yang dipesan",
+            "unknownArtist": "Artis tidak dikenal",
+            "unknownTitle": "Judul tidak diketahui"
+        },
+        "header": {
+            "title": "Daftar putar"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "Tambahkan ke antrean",
+                "cancel": "Batalkan",
+                "delete": "Hapus",
+                "play": "Putar"
+            },
+            "subTitle": "{{count}} lagu, diperbarui {{date}}"
+        },
+        "list": {
+            "empty": "Belum ada daftar putar",
+            "emptySearch": "Tidak ada daftar putar ditemukan untuk pencarian ini",
+            "error": "Terdapat kesalahan saat memuat daftar putar Anda, silakan coba lagi nanti",
+            "footer": "{{count}} daftar putar"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "Tambahkan ke daftar putar",
+                    "addToQueue": "Tambahkan ke antrean",
+                    "cancel": "Batalkan",
+                    "play": "Putar",
+                    "removeFromPlaylist": "Hapus dari daftar putar"
+                }
+            },
+            "list": {
+                "empty": "Belum ada trek",
+                "emptySearch": "Tidak ada trek ditemukan untuk pencarian ini",
+                "error": "Terdapat kesalahan saat memuat lagu Anda, silakan coba lagi nanti",
+                "footer": "{{count}} lagu"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Nama daftar putar",
+                "title": "Buat daftar putar"
+            },
+            "deletePlaylist": {
+                "message": "Apakah Anda yakin ingin menghapus daftar putar ini? Tindakan ini tidak dapat diurungkan!",
+                "title": "Hapus daftar putar"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "Kembali",
+            "title": "Transfer"
+        },
+        "info": "Mentrasfer {{ongoingTransfers}} item pada {{speed}}, {{remaining}} tersisa",
+        "list": {
+            "empty": "Belum ada transfer",
+            "emptySearch": "Tidak ada transfer ditemukan untuk pencarian ini",
+            "error": "Terdapat kesalahan saat memuat transfer Anda, silakan coba lagi nanti"
+        },
+        "noOngoingTransfers": "Tidak ada transfer yang sedang berlangsung",
+        "transfer": {
+            "cancel": "Batalkan",
+            "cancelAll": "Batalkan semua",
+            "pause": "Jeda",
+            "resume": "Lanjutkan",
+            "stop": "Berhenti",
+            "stopAll": "Hentikan semua"
+        }
+    }
+}
