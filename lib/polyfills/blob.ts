@@ -8,7 +8,7 @@ export type BlobPart = string | ArrayBuffer | ArrayBufferView | Blob
 export class BlobPolyfill implements Blob {
 	private _size: number = 0
 	private _type: string = ""
-	private _parts: Uint8Array[] = []
+	private _parts: Uint8Array<ArrayBuffer>[] = []
 
 	public constructor(blobParts: BlobPart[] = [], options: BlobPropertyBag = {}) {
 		this._type = options.type || ""
@@ -29,7 +29,7 @@ export class BlobPolyfill implements Blob {
 
 	private _processParts(blobParts: BlobPart[], endings?: "transparent" | "native"): void {
 		let totalSize = 0
-		const parts: Uint8Array[] = []
+		const parts: Uint8Array<ArrayBuffer>[] = []
 
 		for (const part of blobParts) {
 			let uint8Array: Uint8Array
@@ -46,7 +46,7 @@ export class BlobPolyfill implements Blob {
 				uint8Array = this._stringToUint8Array(String(part), endings)
 			}
 
-			parts.push(uint8Array)
+			parts.push(uint8Array as Uint8Array<ArrayBuffer>)
 
 			totalSize += uint8Array.length
 		}
@@ -55,7 +55,7 @@ export class BlobPolyfill implements Blob {
 		this._size = totalSize
 	}
 
-	private _stringToUint8Array(str: string, endings?: "transparent" | "native"): Uint8Array {
+	private _stringToUint8Array(str: string, endings?: "transparent" | "native"): Uint8Array<ArrayBuffer> {
 		if (endings === "native") {
 			str = str.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
 		}
@@ -65,7 +65,7 @@ export class BlobPolyfill implements Blob {
 		return encoder.encode(str)
 	}
 
-	private _combineUint8Arrays(arrays: Uint8Array[]): Uint8Array {
+	private _combineUint8Arrays(arrays: Uint8Array<ArrayBuffer>[]): Uint8Array<ArrayBuffer> {
 		const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0)
 		const result = new Uint8Array(totalLength)
 		let offset = 0
@@ -79,7 +79,7 @@ export class BlobPolyfill implements Blob {
 		return result
 	}
 
-	async bytes(): Promise<Uint8Array> {
+	async bytes(): Promise<Uint8Array<ArrayBuffer>> {
 		const combined = this._combineUint8Arrays(this._parts)
 
 		return combined
@@ -114,7 +114,7 @@ export class BlobPolyfill implements Blob {
 			})
 		}
 
-		const slicedData = new Uint8Array(sliceLength)
+		const slicedData = new Uint8Array(sliceLength) as Uint8Array<ArrayBuffer>
 		let currentOffset = 0
 		let sliceOffset = 0
 
@@ -162,11 +162,11 @@ export class BlobPolyfill implements Blob {
 		return decoder.decode(combined)
 	}
 
-	public stream(): ReadableStream<Uint8Array> {
+	public stream(): ReadableStream<Uint8Array<ArrayBuffer>> {
 		const parts = this._parts
 		let partIndex = 0
 
-		return new ReadableStream<Uint8Array>({
+		return new ReadableStream<Uint8Array<ArrayBuffer>>({
 			start() {},
 			pull(controller) {
 				if (partIndex >= parts.length) {

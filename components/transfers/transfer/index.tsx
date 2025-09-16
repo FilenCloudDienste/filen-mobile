@@ -30,7 +30,7 @@ export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo>
 	const { t } = useTranslation()
 
 	const onPress = useCallback(() => {
-		if (info.item.transfer.state === "finished" || info.item.transfer.state === "error") {
+		if (info.item.transfer.state === "finished" || info.item.transfer.state === "error" || info.item.transfer.state === "stopped") {
 			return
 		}
 

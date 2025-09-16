@@ -19,10 +19,14 @@ export const Transfers = memo(() => {
 	}, [transfers, hiddenTransfers])
 
 	const onPress = useCallback(() => {
+		if (ongoingTransfersLength === 0) {
+			return
+		}
+
 		routerPush({
 			pathname: "/transfers"
 		})
-	}, [routerPush])
+	}, [routerPush, ongoingTransfersLength])
 
 	return (
 		<Button

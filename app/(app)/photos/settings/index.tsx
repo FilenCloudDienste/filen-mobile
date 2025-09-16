@@ -18,7 +18,7 @@ export const Settings = memo(() => {
 	const { push: routerPush } = useRouter()
 	const { t } = useTranslation()
 
-	const [permissions] = MediaLibrary.usePermissions({
+	const [permissions, requestPermissions] = MediaLibrary.usePermissions({
 		writeOnly: false,
 		request: false
 	})
@@ -165,7 +165,7 @@ export const Settings = memo(() => {
 					),
 					onPress: async () => {
 						try {
-							const ask = await MediaLibrary.requestPermissionsAsync(false)
+							const ask = await requestPermissions()
 
 							if (ask.status !== MediaLibrary.PermissionStatus.GRANTED) {
 								alerts.error(t("photos.settings.index.errors.noPermissions"))
@@ -325,7 +325,8 @@ export const Settings = memo(() => {
 		selectRemoteDirectory,
 		routerPush,
 		t,
-		permissions
+		permissions,
+		requestPermissions
 	])
 
 	useFocusEffect(

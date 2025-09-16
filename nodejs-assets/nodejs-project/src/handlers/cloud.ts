@@ -151,6 +151,10 @@ export async function downloadDirectory(
 				this.transfersBytesSent += transferred
 			},
 			onFinished: () => {
+				if (this.transfersAbortControllers[params.id]?.signal.aborted) {
+					return
+				}
+
 				const now = Date.now()
 
 				setFinishedTransfers(prev => [
@@ -175,6 +179,10 @@ export async function downloadDirectory(
 				setTransfers(prev => prev.filter(transfer => transfer.id !== params.id))
 			},
 			onError: () => {
+				if (this.transfersAbortControllers[params.id]?.signal.aborted) {
+					return
+				}
+
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -194,6 +202,25 @@ export async function downloadDirectory(
 				}
 			}
 		})
+
+	if (this.transfersAbortControllers[params.id]?.signal.aborted) {
+		setTransfers(prev =>
+			prev.map(transfer =>
+				transfer.id === params.id
+					? {
+							...transfer,
+							state: "stopped"
+					  }
+					: transfer
+			)
+		)
+
+		if (this.transfersAllBytes >= params.size) {
+			this.transfersAllBytes -= params.size
+		}
+
+		throw new Error("Aborted")
+	}
 }
 
 export async function deleteDirectory(this: NodeWorker, params: Parameters<Cloud["deleteDirectory"]>[0]) {
@@ -334,6 +361,10 @@ export async function downloadFile(
 				this.transfersBytesSent += transferred
 			},
 			onFinished: () => {
+				if (this.transfersAbortControllers[params.id]?.signal.aborted) {
+					return
+				}
+
 				const now = Date.now()
 
 				setFinishedTransfers(prev => [
@@ -358,6 +389,10 @@ export async function downloadFile(
 				setTransfers(prev => prev.filter(transfer => transfer.id !== params.id))
 			},
 			onError: () => {
+				if (this.transfersAbortControllers[params.id]?.signal.aborted) {
+					return
+				}
+
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -377,6 +412,25 @@ export async function downloadFile(
 				}
 			}
 		})
+
+	if (this.transfersAbortControllers[params.id]?.signal.aborted) {
+		setTransfers(prev =>
+			prev.map(transfer =>
+				transfer.id === params.id
+					? {
+							...transfer,
+							state: "stopped"
+					  }
+					: transfer
+			)
+		)
+
+		if (this.transfersAllBytes >= params.size) {
+			this.transfersAllBytes -= params.size
+		}
+
+		throw new Error("Aborted")
+	}
 
 	if ((await fs.stat(to)).size !== params.size) {
 		throw new Error("File download failed, file size does not match expected size.")
@@ -803,6 +857,10 @@ export async function uploadDirectory(
 				this.transfersBytesSent += transferred
 			},
 			onFinished: () => {
+				if (this.transfersAbortControllers[params.id]?.signal.aborted) {
+					return
+				}
+
 				const now = Date.now()
 
 				setFinishedTransfers(prev => [
@@ -827,6 +885,10 @@ export async function uploadDirectory(
 				setTransfers(prev => prev.filter(transfer => transfer.id !== params.id))
 			},
 			onError: () => {
+				if (this.transfersAbortControllers[params.id]?.signal.aborted) {
+					return
+				}
+
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -846,6 +908,25 @@ export async function uploadDirectory(
 				}
 			}
 		})
+
+	if (this.transfersAbortControllers[params.id]?.signal.aborted) {
+		setTransfers(prev =>
+			prev.map(transfer =>
+				transfer.id === params.id
+					? {
+							...transfer,
+							state: "stopped"
+					  }
+					: transfer
+			)
+		)
+
+		if (this.transfersAllBytes >= params.size) {
+			this.transfersAllBytes -= params.size
+		}
+
+		throw new Error("Aborted")
+	}
 
 	if (typeof params.deleteAfterUpload === "boolean" && params.deleteAfterUpload) {
 		await fs.rm(normalizeFilePathForNode(params.localPath), FS_RM_OPTIONS)
@@ -943,6 +1024,10 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 				this.transfersBytesSent += transferred
 			},
 			onFinished: () => {
+				if (this.transfersAbortControllers[params.id]?.signal.aborted) {
+					return
+				}
+
 				const now = Date.now()
 
 				setFinishedTransfers(prev => [
@@ -967,6 +1052,10 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 				setTransfers(prev => prev.filter(transfer => transfer.id !== params.id))
 			},
 			onError: () => {
+				if (this.transfersAbortControllers[params.id]?.signal.aborted) {
+					return
+				}
+
 				const now = Date.now()
 
 				setTransfers(prev =>
@@ -986,6 +1075,25 @@ export async function uploadFile(this: NodeWorker, params: UploadFileParams) {
 				}
 			}
 		})
+
+	if (this.transfersAbortControllers[params.id]?.signal.aborted) {
+		setTransfers(prev =>
+			prev.map(transfer =>
+				transfer.id === params.id
+					? {
+							...transfer,
+							state: "stopped"
+					  }
+					: transfer
+			)
+		)
+
+		if (this.transfersAllBytes >= params.size) {
+			this.transfersAllBytes -= params.size
+		}
+
+		throw new Error("Aborted")
+	}
 
 	if (typeof params.deleteAfterUpload === "boolean" && params.deleteAfterUpload) {
 		await fs.rm(normalizeFilePathForNode(params.localPath), FS_RM_OPTIONS)
