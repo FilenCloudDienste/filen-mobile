@@ -75,19 +75,29 @@
 						"ascending": "升序",
 						"descending": "降序",
 						"name": {
-							"title": "名称"
+							"title": "名称",
+							"ascendingTitle": "A 到 Z",
+							"descendingTitle": "Z 到 A"
 						},
 						"uploadDate": {
-							"title": "上传日期"
+							"title": "上传日期",
+							"ascendingTitle": "最早优先",
+							"descendingTitle": "最新优先"
 						},
 						"lastModified": {
-							"title": "修改日期"
+							"title": "修改日期",
+							"ascendingTitle": "最早优先",
+							"descendingTitle": "最新优先"
 						},
 						"type": {
-							"title": "类型"
+							"title": "类型",
+							"ascendingTitle": "升序",
+							"descendingTitle": "降序"
 						},
 						"size": {
-							"title": "大小"
+							"title": "大小",
+							"ascendingTitle": "最小优先",
+							"descendingTitle": "最大优先"
 						}
 					},
 					"transfers": "传输",
@@ -144,7 +154,15 @@
 					"removeSharedIn": "移除",
 					"removeSharedOut": "停止共享",
 					"disablePublicLink": "禁用公开链接",
-					"availableOffline": "离线可用"
+					"availableOffline": "离线可用",
+					"share_one": "共享项目",
+					"share_other": "共享 {{count}} 个项目",
+					"favorite_one": "收藏项目",
+					"favorite_other": "收藏 {{count}} 个项目",
+					"move_one": "移动项目",
+					"move_other": "移动 {{count}} 个项目",
+					"trash_one": "回收项目",
+					"trash_other": "回收 {{count}} 个项目"
 				}
 			}
 		},
