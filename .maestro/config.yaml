@@ -1,6 +1,7 @@
 flows:
-  # - 'flows/login.yaml'
+  - flows/drive/*
   - flows/photos/enable_photos_sync.yaml
+  - flows/notes/*
 
 platform:
   ios:

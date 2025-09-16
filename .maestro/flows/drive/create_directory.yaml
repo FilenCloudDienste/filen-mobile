@@ -1,6 +1,16 @@
 appId: io.filen.app
 env:
   DIRNAME: new_dir
+onFlowComplete:
+  # Cleanup
+  - runFlow:
+      file: ../common/drive_item_delete.yaml
+      env:
+        ITEM: ${DIRNAME}
+  - runFlow:
+      file: ../common/drive_item_delete_permanently.yaml
+      env:
+        ITEM: ${DIRNAME}
 ---
 - runFlow: ../login.yaml
 - tapOn: Drive
@@ -10,7 +20,3 @@ env:
 - inputText: ${DIRNAME}
 - tapOn: OK
 - assertVisible: ${DIRNAME} created
-- runFlow:
-    file: ../common/drive_item_delete.yaml
-    env:
-        FILENAME: ${DIRNAME}

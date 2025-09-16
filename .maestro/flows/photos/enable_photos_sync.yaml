@@ -2,8 +2,16 @@
 appId: io.filen.app
 env:
   DIRNAME: dir_for_photos
-  ALBUM: Download # Change to Android:Download on iOS:Recents
-  ITEM: ${DIRNAME}
+onFlowComplete:
+  # Cleanup
+  - runFlow:
+      file: ../common/drive_item_delete.yaml
+      env:
+        ITEM: ${DIRNAME}
+  - runFlow:
+      file: ../common/drive_item_delete_permanently.yaml
+      env:
+        ITEM: ${DIRNAME}
 ---
 - runFlow: ../login.yaml
 - runFlow:
@@ -22,8 +30,18 @@ env:
     id: selectDriveItems.toolbar.submit
 # Select albums
 - tapOn: Albums.*
-- tapOn:
-    id: photos.settings.albums.toggle.${ALBUM}
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: photos.settings.albums.toggle.Recents
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: photos.settings.albums.toggle.Download
 - runFlow:
     file: ../common/back.yaml
     env:
@@ -43,12 +61,3 @@ env:
           start: 50%, 30%
           end: 50%, 90% 
       - assertVisible: .* items synced
-# Cleanup
-- runFlow:
-    file: ../common/drive_item_delete.yaml
-    env:
-      ITEM: ${DIRNAME}
-- runFlow:
-    file: ../common/drive_item_delete_permanently.yaml
-    env:
-      ITEM: ${DIRNAME}
