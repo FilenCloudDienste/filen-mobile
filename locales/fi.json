@@ -1,0 +1,1402 @@
+{
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "Peruuta",
+            "okText": "OK",
+            "title": "Otsikko"
+        },
+        "exportMasterKeys": {
+            "cancelText": "Myöhemmin",
+            "message": "Et ole vielä vienyt pääavaimiasi. On erittäin suositeltavaa viedä ne nyt ja säilyttää niitä turvallisessa paikassa.",
+            "okText": "Vie",
+            "title": "Vie pääavaimet"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "Myöhemmin",
+            "message": "Olet ylittänyt tallennusrajan. Vapauta tilaa tai päivitä palvelupakettiasi estääksesi tahattoman datan poistamisen.",
+            "okText": "Päivitä",
+            "title": "Tallennustilan käyttö ylittää rajan"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "Päästä päähän salattu",
+                "second": "Pilvipalvelu"
+            },
+            "login": "Kirjaudu sisään",
+            "signUp": "Rekisteröidy ilmaiseksi"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "Täytä kaikki kentät."
+            },
+            "forgotPassword": "Unohtuiko salasana?",
+            "form": {
+                "email": {
+                    "label": "Sähköpostiosoite",
+                    "placeholder": "Syötä sähköpostiosoitteesi"
+                },
+                "password": {
+                    "label": "Salasana",
+                    "placeholder": "Anna salasanasi"
+                }
+            },
+            "header": {
+                "cancel": "Peruuta"
+            },
+            "login": "Kirjaudu sisään",
+            "loginUsingCreds": "Kirjaudu sisään käyttämällä tunnuksiasi",
+            "next": "Seuraava",
+            "signUp": "Rekisteröidy ilmaiseksi",
+            "submit": "Kirjaudu sisään",
+            "title": "Kirjaudu sisään",
+            "welcome": "Tervetuloa takaisin!"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "Koodi",
+                "title": "Kaksivaiheinen tunnistautuminen"
+            },
+            "forgotPassword": {
+                "placeholder": "Sähköpostiosoite",
+                "success": "Jos sähköpostiosoite on rekisteröity, saat sähköpostiviestin, jossa on ohjeet salasanan nollaamiseksi.",
+                "title": "Unohtuiko salasana"
+            },
+            "resendConfirmation": {
+                "placeholder": "Sähköpostiosoite",
+                "success": "Vahvistusviesti lähetetty osoitteeseen {{email}}, jos se on rekisteröity.",
+                "title": "Lähetä vahvistus uudelleen"
+            }
+        },
+        "register": {
+            "createAccount": "Luo tili",
+            "errors": {
+                "emailAddressesDoNotMatch": "Sähköpostiosoitteet eivät täsmää.",
+                "emptyFields": "Täytä kaikki kentät.",
+                "passwordsDoNotMatch": "Salasanat eivät täsmää.",
+                "weakPassword": "Salasanasi on liian heikko. Valitse vahvempi salasana. Sellainen, joka on vähintään 10 merkkiä pitkä, sisältää sekä isoja että pieniä kirjaimia, numeroita ja erikoismerkkejä."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "Vahvista sähköpostiosoite",
+                    "placeholder": "Vahvista sähköpostiosoitteesi"
+                },
+                "confirmPassword": {
+                    "label": "Vahvista salasana",
+                    "placeholder": "Vahvista salasanasi"
+                },
+                "email": {
+                    "label": "Sähköpostiosoite",
+                    "placeholder": "Syötä sähköpostiosoitteesi"
+                },
+                "password": {
+                    "label": "Salasana",
+                    "placeholder": "Anna salasanasi"
+                }
+            },
+            "header": {
+                "cancel": "Peruuta",
+                "title": "Rekisteröidy"
+            },
+            "hero": {
+                "create": "Luo ilmainen tilisi",
+                "description": "Aseta tunnistetietosi aloittaaksesi Filen-tililläsi."
+            },
+            "next": "Seuraava",
+            "passwordStrength": {
+                "best": "Paras",
+                "length": "Pituus",
+                "lowercase": "Pienet kirjaimet",
+                "medium": "Keskitaso",
+                "numbers": "Numerot",
+                "specialCharacters": "Erikoismerkit",
+                "strong": "Vahva",
+                "uppercase": "Isot kirjaimet",
+                "weak": "Heikko"
+            },
+            "resendConfirmationEmail": "Lähetä vahvistusviesti uudelleen",
+            "title": "Rekisteröidy"
+        },
+        "registrationSuccessful": "Rekisteröityminen onnistui! Vahvista tilisi sähköpostistasi."
+    },
+    "biometric": {
+        "appLockedFor": "Sovellus lukittu {{seconds}} sekunniksi",
+        "authenticateUsingPin": "Todista henkilöllisyytesi käyttämällä PIN-koodia",
+        "errors": {
+            "incorrectPin": "Virheellinen PIN. Yritä uudelleen.",
+            "tooManyIncorrectAttempts": "Liian paljon virheellisiä yrityksiä. Yritä uudelleen myöhemmin."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN-koodi",
+                "title": "Syötä PIN-koodisi"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "B/s",
+        "eib": "EiB/s",
+        "gib": "GiB/s",
+        "kib": "KiB/s",
+        "mib": "MiB/s",
+        "pib": "PiB/s",
+        "tib": "TiB/s",
+        "yib": "YiB/s",
+        "zib": "ZiB/s"
+    },
+    "chats": {
+        "chat": "Chat",
+        "chats": "Chatit",
+        "header": {
+            "newMessages": "{{count}} uutta viestiä",
+            "search": "Etsi keskusteluja...",
+            "title": "Chatit"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "Lisää aseman kohteet",
+                    "addFiles": "Lisää tiedostoja",
+                    "addMedia": "Lisää mediaa",
+                    "addPhotos": "Lisää valokuvia",
+                    "cancel": "Peruuta"
+                }
+            },
+            "placeholder": "Kirjoita viesti",
+            "send": "Lähetä",
+            "suggestions": {
+                "emojis": {
+                    "matching": "Emojit vastaavat {{query}}"
+                },
+                "mention": {
+                    "matching": "Käyttäjät vastaavat {{query}}"
+                },
+                "replyTo": {
+                    "replyingTo": "Vastaa käyttäjälle {{name}}"
+                }
+            }
+        },
+        "item": {
+            "draft": "Luonnos",
+            "noMessages": "Ei viestejä vielä",
+            "you": "Sinä"
+        },
+        "list": {
+            "empty": "Ei keskusteluja löytynyt",
+            "emptySearch": "Hakua vastaavia keskusteluja ei löytynyt",
+            "error": "Tapahtui virhe keskustelujen lataamisessa, yritä myöhemmin uudelleen"
+        },
+        "menu": {
+            "archive": "Arkisto",
+            "delete": "Poista",
+            "favorite": "Suosikki",
+            "leave": "Poistu",
+            "markAsRead": "Merkitse luetuksi",
+            "mute": "Äänetön",
+            "muted": "Mykistetty",
+            "participants": "Osallistujat",
+            "pin": "Kiinnitä",
+            "rename": "Nimeä uudelleen",
+            "unarchive": "Poista arkistointi",
+            "unfavorite": "Poista suosikeista",
+            "unmute": "Poista mykistys",
+            "unpin": "Irrota"
+        },
+        "messages": {
+            "everyone": "Kaikki",
+            "menu": {
+                "cancel": "Peruuta",
+                "copyId": "Kopioi tunnus",
+                "copyText": "Kopioi teksti",
+                "delete": "Poista",
+                "disableEmbeds": "Poista upotukset käytöstä",
+                "edit": "Muokkaa",
+                "reply": "Vastaa"
+            },
+            "new": "Uusi",
+            "time": {
+                "hourAgo": "{{hours}} tunti sitten",
+                "hoursAgo": "{{hours}} tuntia sitten",
+                "minuteAgo": "{{minutes}} minuuttia sitten",
+                "minutesAgo": "{{minutes}} minuuttia sitten",
+                "now": "Nyt",
+                "secondAgo": "{{seconds}} sekunti sitten",
+                "secondsAgo": "{{seconds}} sekuntia sitten",
+                "todayAt": "Tänään klo {{date}}",
+                "yesterdayAt": "Eilen klo {{date}}"
+            },
+            "undecryptable": "Viestin purkaminen epäonnistui.",
+            "unknown": "Tuntematon"
+        },
+        "participants": {
+            "menu": {
+                "remove": "Poista"
+            },
+            "participant": "Osallistuja",
+            "participants": "Osallistujat",
+            "prompts": {
+                "remove": {
+                    "message": "Oletko varma, että haluat poistaa tämän osallistujan? Hän ei voi enää nähdä tai lähettää viestejä tässä keskustelussa.",
+                    "success": "{{name}} poistettu",
+                    "title": "Poista osallistuja"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "Oletko varma, että haluat poistaa tämän keskustelun? Tämä poistaa keskustelun listaltasi ja et voi enää nähdä tai lähettää viestejä tässä keskustelussa.",
+                "title": "Poista keskustelu"
+            },
+            "deleteChats": {
+                "message": "Oletko varma, että haluat poistaa {{count}} keskustelua? Tämä poistaa keskustelut listaltasi ja et voi enää nähdä tai lähettää viestejä näissä keskusteluissa.",
+                "title": "Poista keskustelut"
+            },
+            "deleteMessage": {
+                "message": "Haluatko varmasti poistaa tämän viestin? Tätä toimintoa ei voi perua!",
+                "title": "Poista viesti"
+            },
+            "disableEmbeds": {
+                "message": "Haluatko varmasti poistaa upotukset tästä viestistä? Tämä poistaa kaiken upotetun sisällön.",
+                "title": "Poista upotukset käytöstä"
+            },
+            "leaveChat": {
+                "message": "Oletko varma, että haluat poistua tästä keskustelusta? Et voi enää nähdä tai lähettää viestejä tässä keskustelussa.",
+                "title": "Poistu keskustelusta"
+            },
+            "leaveChats": {
+                "message": "Oletko varma, että haluat poistua {{count}} keskustelusta? Et voi enää nähdä tai lähettää viestejä näissä keskusteluissa.",
+                "title": "Poistu keskusteluista"
+            },
+            "renameChat": {
+                "placeholder": "Uusi nimi",
+                "title": "Nimeä keskustelu uudelleen"
+            }
+        },
+        "typing": "{{users}} kirjoittamassa..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "Hyväksy",
+            "block": "Estä",
+            "cancel": "Peruuta",
+            "decline": "Kieltäydy",
+            "remove": "Poista",
+            "unblock": "Poista esto"
+        }
+    },
+    "copiedToClipboard": "Kopioitu leikepöydälle",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "Peruuta",
+                    "create": {
+                        "created": "{{name}} luotu",
+                        "directory": "Luo hakemisto",
+                        "photo": "Ota valokuva",
+                        "textFile": "Luo tekstitiedosto"
+                    },
+                    "directoryNamePlaceholder": "Hakemiston nimi",
+                    "itemsUploaded": "{{count}} kohdetta ladattu",
+                    "noMediaPermissions": "Sinun on myönnettävä medialuvat ladataksesi valokuvia tai videoita.",
+                    "textFileNamePlaceholder": "Tekstitiedoston nimi",
+                    "upload": {
+                        "directory": "Lähetä hakemisto",
+                        "files": "Lataa tiedostoja",
+                        "media": "Lataa mediaa",
+                        "uploaded": "{{name}} ladattu"
+                    }
+                },
+                "deselectAll": "Poista valinta kaikista",
+                "dropdown": {
+                    "bulkActions": "Massatoiminnot",
+                    "gridMode": "Näytä ruudukkona",
+                    "listMode": "Näytä luettelona",
+                    "sortBy": {
+                        "ascending": "Nouseva",
+                        "descending": "Laskeva",
+                        "lastModified": {
+                            "ascendingTitle": "Vanhin ensin",
+                            "descendingTitle": "Uusin ensin",
+                            "title": "Viimeksi muokattu"
+                        },
+                        "name": {
+                            "ascendingTitle": "A-Ö",
+                            "descendingTitle": "Z:stä A:han",
+                            "title": "Nimi"
+                        },
+                        "size": {
+                            "ascendingTitle": "Pienin ensin",
+                            "descendingTitle": "Suurin ensin",
+                            "title": "Koko"
+                        },
+                        "sortBy": "Järjestä",
+                        "type": {
+                            "ascendingTitle": "Nouseva",
+                            "descendingTitle": "Laskeva",
+                            "title": "Tyyppi"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "Vanhin ensin",
+                            "descendingTitle": "Uusin ensin",
+                            "title": "Lähetyspäivä"
+                        }
+                    },
+                    "transfers": "Siirrot"
+                },
+                "selectAll": "Valitse kaikki"
+            },
+            "title": {
+                "drive": "Asema",
+                "favorites": "Suosikit",
+                "links": "Julkiset linkit",
+                "offline": "Käytettävissä offline-tilassa",
+                "recents": "Äskettäiset",
+                "selected": "{{count}} valittu",
+                "sharedIn": "Jaettu kanssasi",
+                "sharedOut": "Jaettu muiden kanssa",
+                "trash": "Roskakori"
+            }
+        },
+        "itemShared": "{{name}} jaettu",
+        "itemSharedWith": "{{name}} jaettu käyttäjän {{email}} kanssa",
+        "list": {
+            "empty": "Ei kohteita löytynyt",
+            "emptySearch": "Hakua vastaavia kohteita ei löytynyt",
+            "error": "Tapahtui virhe ladataan asemaa, yritä myöhemmin uudelleen",
+            "footer": "{{count}} kohdetta",
+            "item": {
+                "menu": {
+                    "availableOffline": "Käytettävissä offline-tilassa",
+                    "clipboard": "Leikepöytä",
+                    "color": "Väri",
+                    "copy": "Kopioi",
+                    "copyId": "Kopioi tunnus",
+                    "copyPath": "Kopioi polku",
+                    "delete": "Poista",
+                    "deletePermanently": "Poista pysyvästi",
+                    "deselect": "Poista valinta",
+                    "deselectAll": "Poista valinta kaikista",
+                    "disablePublicLink": "Poista linkki käytöstä",
+                    "download": "Lataa",
+                    "downloadFolder": "Lataa kansio",
+                    "export": "Vie",
+                    "favorite": "Suosikki",
+                    "favorite_one": "Suosikkikohde",
+                    "favorite_other": "Suosikit {{count}} kohdetta",
+                    "favorited": "Lisätty suosikkeihin",
+                    "id": "ID",
+                    "info": "Info",
+                    "location": "Sijainti",
+                    "makeAvailableOffline": "Ota käyttöön offline-tilassa",
+                    "move": "Siirrä",
+                    "move_one": "Siirrä kohde",
+                    "move_other": "Siirrä {{count}} kohdetta",
+                    "open": "Avaa",
+                    "path": "Polku",
+                    "preview": "Esikatselu",
+                    "properties": "Ominaisuudet",
+                    "publicLink": "Julkinen linkki",
+                    "removeOffline": "Poista offline-tiedosto",
+                    "removeSharedIn": "Poista",
+                    "removeSharedOut": "Lopeta jakaminen",
+                    "rename": "Nimeä uudelleen",
+                    "restore": "Palauta",
+                    "saveToGallery": "Tallenna galleriaan",
+                    "select": "Valitse",
+                    "selectAll": "Valitse kaikki",
+                    "share": "Jaa",
+                    "share_one": "Jaa kohde",
+                    "share_other": "Jaa {{count}} kohdetta",
+                    "trash": "Roskakori",
+                    "trash_one": "Roskakoriin",
+                    "trash_other": "Roskakori {{count}} kohdetta",
+                    "unfavorite": "Poista suosikeista",
+                    "versionHistory": "Versiohistoria",
+                    "withUser": "Käyttäjän kanssa"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "Haluatko varmasti poistaa {{count}} kohdetta pysyvästi? Tätä toimintoa ei voi perua!",
+                "title": "Poista pysyvästi"
+            },
+            "deletePermanently": {
+                "message": "Haluatko varmasti poistaa tämän kohteen pysyvästi? Tätä toimintoa ei voi perua!",
+                "title": "Poista pysyvästi"
+            },
+            "disablePublicLinks": {
+                "message": "Oletko varma, että haluat poistaa julkiset linkit {{count}} kohteelle? Linkit eivät enää ole käytettävissä.",
+                "title": "Poista julkiset linkit käytöstä"
+            },
+            "removeOfflineFiles": {
+                "message": "Haluatko varmasti poistaa {{count}} offline-tiedostoa? Ne eivät enää ole saatavilla offline-tilassa.",
+                "title": "Poista offline-tiedostot"
+            },
+            "removeSharedInItem": {
+                "message": "Oletko varma, että haluat poistaa tämän kohteen jaetuista kohteistasi? Et voi enää nähdä tai käyttää sitä.",
+                "title": "Poista"
+            },
+            "removeSharedInItems": {
+                "message": "Oletko varma, että haluat poistaa {{count}} kohdetta jaetuista kohteistasi? Et voi enää nähdä tai käyttää niitä.",
+                "title": "Poista"
+            },
+            "removeSharedOutItem": {
+                "message": "Haluatko varmasti lopettaa tämän kohteen jakamisen? Käyttäjä ei enää pääse käsiksi siihen.",
+                "title": "Lopeta jakaminen"
+            },
+            "removeSharedOutItems": {
+                "message": "Haluatko varmasti lopettaa {{count}} kohteen jakamisen? Käyttäjät eivät enää pääse niihin käsiksi.",
+                "title": "Lopeta jakaminen"
+            },
+            "renameItem": {
+                "placeholder": "Uusi nimi",
+                "title": "Nimeä uudelleen"
+            },
+            "trashItem": {
+                "message": "Oletko varma, että haluat siirtää tämän kohteen roskakoriin? Voit palauttaa sen myöhemmin.",
+                "title": "Siirrä roskiin"
+            },
+            "trashItems": {
+                "message": "Oletko varma, että haluat siirtää {{count}} kohdetta roskakoriin? Voit palauttaa ne myöhemmin.",
+                "title": "Siirrä roskiin"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "Ei kohteita löytynyt",
+                "emptySearch": "Hakua vastaavia kohteita ei löytynyt",
+                "error": "Tapahtui virhe haku tulosten lataamisessa, yritä myöhemmin uudelleen",
+                "footer": "{{count}} kohdetta"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "Peruuta",
+        "items": {
+            "downloadButton": "Lataa-painike",
+            "edit": "Muokkaa",
+            "enabled": "Käytössä",
+            "expiration": "Vanhentuminen",
+            "expiration12h": "12 tuntia",
+            "expiration14d": "14 päivää",
+            "expiration1d": "1 päivä",
+            "expiration1h": "1 tunti",
+            "expiration30d": "30 päivää",
+            "expiration3d": "3 päivää",
+            "expiration6h": "6 tuntia",
+            "expiration7d": "7 päivää",
+            "expirationNever": "Ei koskaan",
+            "password": "Salasana"
+        },
+        "onlyPro": "Tämä ominaisuus on saatavilla vain Filen Pro -käyttäjille. Tilaa mikä tahansa Filen-suunnitelma ottaaksesi sen käyttöön.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "Jätä tyhjäksi poistaaksesi salasanan",
+                "title": "Muokkaa salasanaa"
+            }
+        },
+        "shareDialogTile": "Filen julkinen linkki",
+        "title": "Muokkaa julkista linkkiä",
+        "unsavedChanges": "Tallentamattomat muutokset"
+    },
+    "errors": {
+        "cannotOpenURL": "URL-osoitetta ei voida avata.",
+        "notEnoughDiskSpace": "Paikallisella levyllä ei ole tarpeeksi tilaa.",
+        "sharingNotAvailable": "Jakaminen ei ole käytettävissä tässä laitteessa.",
+        "youAreOffline": "Olet tällä hetkellä offline-tilassa. Tarkista internet-yhteytesi."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "Peruuta",
+                "confirm": "Poista",
+                "message": "Haluatko varmasti poistaa tämän version? Tätä toimintoa ei voi perua!",
+                "title": "Poista versio"
+            },
+            "restore": {
+                "cancel": "Peruuta",
+                "confirm": "Palauta",
+                "message": "Oletko varma, että haluat palauttaa tämän version? Tämä korvaa nykyisen tiedoston.",
+                "title": "Palauta versio"
+            }
+        },
+        "header": {
+            "title": "Versiohistoria"
+        },
+        "list": {
+            "empty": "Ei vielä versioita",
+            "emptySearch": "Hakua vastaavia versioita ei löytynyt",
+            "error": "Tapahtui virhe tiedostoversioiden lataamisessa, yritä myöhemmin uudelleen",
+            "item": {
+                "current": "Nykyinen",
+                "delete": "Poista",
+                "restore": "Palauta"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "Tavut",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiB",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "Esikatselu ei ole saatavilla"
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "Suosikit"
+            },
+            "links": {
+                "title": "Julkiset linkit"
+            },
+            "offline": {
+                "title": "Käytettävissä offline-tilassa"
+            },
+            "recents": {
+                "title": "Äskettäiset"
+            },
+            "sharedIn": {
+                "title": "Jaettu kanssasi"
+            },
+            "sharedOut": {
+                "title": "Jaettu muiden kanssa"
+            },
+            "trash": {
+                "title": "Roskakori"
+            }
+        },
+        "listEmpty": {
+            "favorites": "Ei suosikkeja vielä",
+            "links": "Ei julkisia linkkejä vielä",
+            "offline": "Ei offline-kohteita vielä",
+            "recents": "Ei vielä viimeaikaisia",
+            "sharedIn": "Ei jaettuja kohteita vielä",
+            "sharedOut": "Ei jaettuja kohteita vielä",
+            "trash": "Ei poistettuja kohteita vielä"
+        },
+        "title": "Koti"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "Peruuta",
+            "okText": "OK",
+            "title": "Otsikko"
+        }
+    },
+    "listEmpty": {
+        "empty": "Ei löytynyt mitään",
+        "emptySearch": "Hakua vastaavia tuloksia ei löytynyt",
+        "error": "Tapahtui virhe, yritä myöhemmin uudelleen"
+    },
+    "localAuthentication": {
+        "cancelLabel": "Peruuta",
+        "promptMessage": "Tunnistaudu jatkaaksesi"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "Kirjoita koodisi tähän...",
+                "text": "Kirjoita tekstisi tähän..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "Poista valinta kaikista",
+                    "selectAll": "Valitse kaikki"
+                },
+                "types": {
+                    "checklist": "Tarkistuslista",
+                    "code": "Koodi",
+                    "markdown": "Markdown",
+                    "rich": "Muotoiltu teksti",
+                    "text": "Teksti"
+                }
+            },
+            "menu": {
+                "settings": "Asetukset"
+            },
+            "selected": "{{count}} valittu",
+            "title": "Muistiinpanot"
+        },
+        "history": {
+            "list": {
+                "empty": "Historia ei ole saatavilla",
+                "emptySearch": "Hakua vastaavia tietoja ei löytynyt",
+                "error": "Tapahtui virhe historian lataamisessa, yritä myöhemmin uudelleen",
+                "footer": "{{count}} kohdetta"
+            },
+            "noPreview": "Esikatselu ei ole saatavilla",
+            "prompts": {
+                "restore": {
+                    "message": "Oletko varma, että haluat palauttaa tämän muistiinpanon? Tämä korvaa nykyisen muistiinpanon.",
+                    "title": "Palauta muistiinpano"
+                }
+            },
+            "restore": "Palauta",
+            "title": "Historia"
+        },
+        "list": {
+            "empty": "Ei muistiinpanoja vielä",
+            "emptySearch": "Hakua vastaavaa muistiinpanoa ei löytynyt",
+            "error": "Tapahtui virhe muistiinpanojen lataamisessa, yritä myöhemmin uudelleen",
+            "footer": "{{count}} kohdetta"
+        },
+        "menu": {
+            "archive": "Arkisto",
+            "clipboard": "Leikepöytä",
+            "copyId": "Kopioi tunnus",
+            "delete": "Poista",
+            "deselect": "Poista valinta",
+            "duplicate": "Kaksoiskappale",
+            "export": "Vie",
+            "favorite": "Suosikki",
+            "favorited": "Lisätty suosikkeihin",
+            "history": "Historia",
+            "leave": "Poistu",
+            "participants": "Osallistujat",
+            "pin": "Kiinnitä",
+            "pinned": "Kiinnitetty",
+            "preview": "Esikatselu",
+            "rename": "Nimeä uudelleen",
+            "restore": "Palauta",
+            "select": "Valitse",
+            "tags": "Tunnisteet",
+            "trash": "Roskakori",
+            "type": "Tyyppi",
+            "types": {
+                "checklist": "Tarkistuslista",
+                "code": "Koodi",
+                "md": "Markdown",
+                "rich": "Muotoiltu teksti",
+                "text": "Teksti"
+            },
+            "unfavorite": "Poista suosikeista",
+            "unpin": "Irrota"
+        },
+        "participants": {
+            "list": {
+                "empty": "Ei osallistujia vielä",
+                "emptySearch": "Hakua vastaavia osallistujia ei löytynyt",
+                "error": "Tapahtui virhe osallistujien lataamisessa, yritä myöhemmin uudelleen",
+                "footer": "{{count}} osallistujaa"
+            },
+            "menu": {
+                "permissionsWrite": "Kirjoitusoikeudet",
+                "remove": "Poista"
+            },
+            "title": "Osallistujat"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "Muistiinpanon otsikko",
+                "title": "Luo muistiinpano"
+            },
+            "createTag": {
+                "placeholder": "Tunnisteen nimi",
+                "title": "Luo tunniste"
+            },
+            "deleteNote": {
+                "message": "Haluatko varmasti poistaa tämän muistiinpanon pysyvästi? Tätä toimintoa ei voi perua!",
+                "title": "Poista muistiinpano"
+            },
+            "deleteNotes": {
+                "message": "Haluatko varmasti poistaa {{count}} muistiinpanoa pysyvästi? Tätä toimintoa ei voi perua!",
+                "title": "Poista muistiinpanot"
+            },
+            "deleteTag": {
+                "message": "Haluatko varmasti poistaa tämän tunnisteen? Tätä toimintoa ei voi perua!",
+                "title": "Poista tunniste"
+            },
+            "deleteTags": {
+                "message": "Haluatko varmasti poistaa {{count}} tunnistetta? Tätä toimintoa ei voi perua!",
+                "title": "Poista tunnisteet"
+            },
+            "leaveNote": {
+                "message": "Oletko varma, että haluat poistua tästä muistiinpanosta? Et voi enää nähdä tai muokata sitä.",
+                "title": "Poistu muistiinpanosta"
+            },
+            "leaveNotes": {
+                "message": "Oletko varma, että haluat poistua {{count}} muistiinpanosta? Et voi enää nähdä tai muokata niitä.",
+                "title": "Poistu muistiinpanoista"
+            },
+            "removeParticipant": {
+                "message": "Oletko varma, että haluat poistaa tämän osallistujan? Hän ei voi enää nähdä tai muokata tätä muistiinpanoa.",
+                "title": "Poista osallistuja"
+            },
+            "removeParticipants": {
+                "message": "Oletko varma, että haluat poistaa {{count}} osallistujaa? He eivät voi enää nähdä tai muokata näitä muistiinpanoja.",
+                "title": "Poista osallistujat"
+            },
+            "renameNote": {
+                "placeholder": "Uusi nimi",
+                "title": "Nimeä muistiinpano uudelleen"
+            },
+            "renameTag": {
+                "placeholder": "Uusi tunnistenimi",
+                "title": "Nimeä tunniste uudelleen"
+            },
+            "trashNote": {
+                "message": "Oletko varma, että haluat siirtää tämän muistiinpanon roskakoriin? Voit palauttaa sen myöhemmin.",
+                "title": "Siirrä roskiin"
+            },
+            "trashNotes": {
+                "message": "Oletko varma, että haluat siirtää {{count}} muistiinpanoa roskakoriin? Voit palauttaa ne myöhemmin.",
+                "title": "Siirrä roskiin"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "Poista",
+                "favorited": "Lisätty suosikkeihin",
+                "rename": "Nimeä uudelleen"
+            },
+            "names": {
+                "all": "Kaikki",
+                "archived": "Arkistoitu",
+                "favorited": "Lisätty suosikkeihin",
+                "pinned": "Kiinnitetty",
+                "shared": "Jaettu",
+                "trash": "Roskakori"
+            }
+        },
+        "title": "Muistiinpanot"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "Peruuta",
+            "placeholder": "Etsi..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "Offline-tila"
+    },
+    "photos": {
+        "header": {
+            "selected": "{{count}} valittu"
+        },
+        "list": {
+            "empty": "Ei valokuvia vielä",
+            "emptySearch": "Hakua vastaavia valokuvia ei löytynyt",
+            "error": "Tapahtui virhe kuvien lataamisessa, yritä myöhemmin uudelleen"
+        },
+        "menu": {
+            "settings": "Asetukset"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} kohdetta"
+                },
+                "list": {
+                    "empty": "Ei albumeita löytynyt",
+                    "emptySearch": "Hakua vastaavia albumeita ei löytynyt",
+                    "error": "Tapahtui virhe albumien lataamisessa, yritä myöhemmin uudelleen"
+                },
+                "title": "Albumit"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "Sinun on myönnettävä medialuvat päästäksesi valokuviisi."
+                },
+                "items": {
+                    "albums": "Albumit",
+                    "albumsInfo": "Valitse, mitkä albumit sisällytetään kameran lataukseen.",
+                    "background": "Tausta",
+                    "backgroundInfo": "Salli kameran lataus taustalla. Tämä voi johtaa korkeaan akun kulutukseen. Taustaladatukset sisältävät vain kuvia. Toimii vain, kun sovellusta ei ole pakotettu sulkemaan.",
+                    "cellular": "Matkapuhelin",
+                    "cellularInfo": "Salli kameran lataus mobiilidatalla. Tämä voi johtaa suureen datankulutukseen.",
+                    "cloudDirectory": "Pilvihakemisto",
+                    "cloudDirectoryNotSet": "Ei asetettu",
+                    "compress": "Pakkaa",
+                    "compressInfo": "Pakkaa valokuvat tallennustilan säästämiseksi. Tämä voi heikentää valokuvien laatua. JPG-pakkaus 80 % laadulla.",
+                    "enabled": "Käytössä",
+                    "lowBattery": "Akkua jäljellä vähän",
+                    "lowBatteryInfo": "Poista kameran lataus käytöstä, kun akku on vähissä.",
+                    "permissionsError": "Käyttöoikeusvirhe",
+                    "permissionsErrorInfo": "Salli sovelluksen käyttää kuvia ja videoita järjestelmäasetuksissa.",
+                    "videos": "Videot",
+                    "videosInfo": "Sisällytä videot kameran lataukseen."
+                },
+                "title": "Asetukset"
+            }
+        },
+        "state": {
+            "synced": "Synkronoitu",
+            "syncing": "Synkronoidaan",
+            "syncingProgress": "{{done}}/{{total}} kohdetta synkronoitu"
+        },
+        "title": "Kuvat"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "Peruuta",
+            "done": "Valmis",
+            "selectContact": "Valitse yhteystieto",
+            "selectContacts": "Valitse yhteystiedot"
+        },
+        "list": {
+            "empty": "Ei yhteystietoja vielä",
+            "emptySearch": "Hakua vastaavia yhteystietoja ei löytynyt",
+            "error": "Tapahtui virhe yhteystietojen lataamisessa, yritä myöhemmin uudelleen",
+            "footer": "{{count}} yhteystietoa"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} valittu"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "Peruuta",
+            "done": "Valmis",
+            "drive": "Asema",
+            "selectDirectories": "Valitse hakemistot",
+            "selectDirectory": "Valitse hakemisto",
+            "selectFile": "Valitse tiedosto",
+            "selectFiles": "Valitse tiedostot",
+            "selectItem": "Valitse kohde",
+            "selectItems": "Valitse kohteet",
+            "selectRoot": "Valitse pilviasema"
+        },
+        "list": {
+            "empty": "Ei vielä ladattuja",
+            "emptySearch": "Hakua vastaavia kohteita ei löytynyt",
+            "error": "Tapahtui virhe tiedostojen lataamisessa, yritä myöhemmin uudelleen",
+            "footer": "{{count}} kohdetta"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "Hakemiston nimi",
+                "success": "{{name}} luotu",
+                "title": "Luo hakemisto"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} valittu"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "Peruuta",
+            "done": "Valmis",
+            "selectPlaylist": "Valitse soittolista",
+            "selectPlaylists": "Valitse soittolistat"
+        },
+        "item": {
+            "subTitle": "{{count}} kappaletta, päivitetty {{date}}"
+        },
+        "list": {
+            "empty": "Ei soittolistoja vielä",
+            "emptySearch": "Hakua vastaavia soittolistoja ei löytynyt",
+            "error": "Tapahtui virhe soittolistojen lataamisessa, yritä myöhemmin uudelleen",
+            "footer": "{{count}} soittolistaa"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Soittolistan nimi",
+                "title": "Luo soittolista"
+            }
+        },
+        "selected": "{{countOrName}} valittu",
+        "toolbar": {
+            "selected": "{{countOrName}} valittu"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "Avatar-kuvan koko ylittää 3 MiB:n rajan.",
+                "emailsNotMatching": "Uudet sähköpostiosoitteet eivät täsmää."
+            },
+            "items": {
+                "changeAvatar": "Vaihda avatar",
+                "deleteAllFilesAndDirectories": "Poista kaikki tiedostot ja hakemistot",
+                "deleteVersionedFiles": "Poista versionoidut tiedostot",
+                "emailAddress": "Sähköpostiosoite",
+                "fileVersioning": "Tiedostoversiointi",
+                "fileVersioningInfo": "Ota käyttöön tiedostojen versiointi pitääksesi kirjaa tiedostoihin tehdyistä muutoksista.",
+                "gdpr": "GDPR-tiedot",
+                "loginAlerts": "Kirjautumisilmoitukset",
+                "loginAlertsInfo": "Vastaanota ilmoituksia tilisi käytöstä.",
+                "logout": "Kirjaudu ulos",
+                "more": "Lisää tiliasetuksia",
+                "nickname": "Lempinimi",
+                "personalInformation": "Henkilökohtaiset tiedot",
+                "requestAccountDeletion": "Pyydä tilin poistoa",
+                "requestAccountDeletionInfo": "Pyydä tilin poistamista. Lähetämme sinulle sähköpostia lisäohjeilla."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "Koodi",
+                    "title": "Kaksivaiheinen tunnistautuminen"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "Vahvista uusi sähköpostiosoite",
+                        "title": "Vahvista uusi sähköpostiosoite"
+                    },
+                    "newEmail": {
+                        "placeholder": "Uusi sähköpostiosoite",
+                        "title": "Uusi sähköpostiosoite"
+                    },
+                    "password": {
+                        "placeholder": "Salasana",
+                        "title": "Salasanasi"
+                    }
+                },
+                "deleteAccount": {
+                    "message": "Haluatko varmasti pyytää tilin poistamista? Saat sähköpostitse lisäohjeet.",
+                    "title": "Pyydä tilin poistoa"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "Haluatko varmasti poistaa kaikki tiedostot ja hakemistot? Tätä toimintoa ei voi perua!",
+                    "title": "Poista kaikki tiedostot ja hakemistot"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "Oletko todella varma? Tätä toimintoa ei voi peruuttaa!",
+                    "title": "Poista kaikki tiedostot ja hakemistot"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "Haluatko varmasti poistaa kaikki versiotiedostot? Tätä toimintoa ei voi perua!",
+                    "title": "Poista versionoidut tiedostot"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "Oletko todella varma? Tätä toimintoa ei voi peruuttaa!",
+                    "title": "Poista versionoidut tiedostot"
+                },
+                "logout": {
+                    "message": "Oletko varma, että haluat kirjautua ulos? Sinun on kirjauduttava sisään uudelleen päästäksesi tilillesi.",
+                    "title": "Kirjaudu ulos"
+                },
+                "more": {
+                    "message": "Lisää asetuksia on saatavilla verkkosovelluksessa. Haluatko avata sen nyt?",
+                    "title": "Avaa Web-sovellus"
+                },
+                "updateNickname": {
+                    "placeholder": "Uusi lempinimi",
+                    "title": "Päivitä lempinimi"
+                }
+            },
+            "title": "Tili"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "Tyhjennä välimuisti",
+                "clearOfflineFiles": "Tyhjennä offline-tiedostot",
+                "clearThumbnails": "Tyhjennä esikatselukuvat",
+                "clearTrackPlayer": "Tyhjennä kappalesoitin"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "Välimuistin tyhjennys poistaa väliaikaiset tiedostot. Tämä voi keskeyttää käynnissä olevat lataukset. Oletko varma, että haluat jatkaa?",
+                    "title": "Tyhjennä välimuisti"
+                },
+                "clearOfflineFiles": {
+                    "message": "Offline-tiedostojen tyhjentäminen poistaa kaikki offline-käyttöön saatavilla olevat tiedostot. Oletko varma, että haluat jatkaa?",
+                    "title": "Tyhjennä offline-tiedostot"
+                },
+                "clearThumbnails": {
+                    "message": "Pikkukuvien tyhjennys aiheuttaa sovelluksen lataamaan jokaisen näkyvän pikkukuvan uudelleen. Haluatko varmasti jatkaa?",
+                    "title": "Tyhjennä esikatselukuvat"
+                },
+                "clearTrackPlayer": {
+                    "message": "Kappalesoittimen välimuistin tyhjennys poistaa välimuistiin tallennetut kappaleet ja kuvat. Tämä voi pidentää latausaikoja. Oletko varma, että haluat jatkaa?",
+                    "title": "Tyhjennä kappalesoitin"
+                }
+            },
+            "title": "Edistyneet"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "Biometrinen tunnistus ei ole käytettävissä tässä laitteessa. Ota käyttöön ainoastaan PIN-koodin tunnistus tai käytä laitetta, jossa on biometrisen tunnistuksen tuki.",
+                "pinNotMatching": "Vara-PIN-koodit eivät täsmää.",
+                "pinTooLong": "Vara-PIN ei saa olla yli 128 numeroa pitkä.",
+                "pinTooShort": "Varakoodin on oltava vähintään 4 numeroa pitkä."
+            },
+            "items": {
+                "biometricAuth": "Biometrinen tunnistus",
+                "lockAppAfter": "Lukitse sovellus jälkeen",
+                "pinOnly": "Vain PIN-koodi"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15 minuuttia",
+                "fiveMinutes": "5 minuuttia",
+                "immediately": "Välittömästi",
+                "minutes": "{{minutes}} minuuttia",
+                "never": "Ei koskaan",
+                "oneHour": "1 tunti",
+                "oneMinute": "1 minuutti",
+                "tenMinutes": "10 minuuttia",
+                "thirtyMinutes": "30 minuuttia"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "Oletko varma, että haluat poistaa biometrisen todennuksen käytöstä?",
+                    "title": "Poista biometrinen tunnistus käytöstä"
+                },
+                "documentsProvider": {
+                    "message": "Biometrisen tunnistautumisen käyttöönotto poistaa asiakirjapalvelimen käytöstä. Tämä tarkoittaa, ettet voi käyttää tiedostojasi muissa sovelluksissa Filen-asiakirjapalvelimen kautta. Haluatko jatkaa?",
+                    "title": "Asiakirjapalvelin käytössä"
+                },
+                "enable": {
+                    "placeholder": "Vara-PIN",
+                    "title": "Aseta varmuus PIN-koodi"
+                },
+                "enableConfirm": {
+                    "placeholder": "Vahvista PIN",
+                    "title": "Vahvista varmuus-PIN"
+                },
+                "fileProvider": {
+                    "message": "Biometrisen tunnistautumisen käyttöönotto poistaa tiedostopalvelimen käytöstä. Tämä tarkoittaa, ettet voi käyttää tiedostojasi muissa sovelluksissa Filen-tiedostopalvelimen kautta. Haluatko jatkaa?",
+                    "title": "Tiedostopalvelu käytössä"
+                }
+            },
+            "title": "Turvallisuus"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "Ei yhteystietoja löytynyt",
+                    "emptySearch": "Hakua vastaavia yhteystietoja ei löytynyt",
+                    "error": "Tapahtui virhe yhteystietojen lataamisessa, yritä myöhemmin uudelleen"
+                },
+                "blocked": {
+                    "empty": "Ei estettyjä yhteystietoja löytynyt",
+                    "emptySearch": "Hakua vastaavia estettyjä yhteystietoja ei löytynyt",
+                    "error": "Tapahtui virhe yhteystietojen lataamisessa, yritä myöhemmin uudelleen"
+                },
+                "offline": {
+                    "empty": "Ei offline-yhteystietoja löytynyt",
+                    "emptySearch": "Hakua vastaavia offline-yhteystietoja ei löytynyt",
+                    "error": "Tapahtui virhe yhteystietojen lataamisessa, yritä myöhemmin uudelleen"
+                },
+                "online": {
+                    "empty": "Ei online-yhteystietoja löytynyt",
+                    "emptySearch": "Hakua vastaavia online-yhteystietoja ei löytynyt",
+                    "error": "Tapahtui virhe yhteystietojen lataamisessa, yritä myöhemmin uudelleen"
+                },
+                "pending": {
+                    "empty": "Yhteyspyyntöjä ei löytynyt",
+                    "emptySearch": "Hakua vastaavia yhteyspyyntöjä ei löytynyt",
+                    "error": "Tapahtui virhe yhteyspyyntöjen lataamisessa, yritä myöhemmin uudelleen"
+                },
+                "requests": {
+                    "empty": "Yhteyspyyntöjä ei löytynyt",
+                    "emptySearch": "Hakua vastaavia yhteyspyyntöjä ei löytynyt",
+                    "error": "Tapahtui virhe yhteyspyyntöjen lataamisessa, yritä myöhemmin uudelleen"
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "Oletko varma, että haluat estää tämän yhteystiedon?",
+                    "success": "{{email}} estetty",
+                    "title": "Estä yhteystieto"
+                },
+                "blockContacts": {
+                    "message": "Oletko varma, että haluat estää {{count}} yhteystietoa?",
+                    "success": "{{count}} yhteystietoa estetty",
+                    "title": "Estä yhteystiedot"
+                },
+                "removeContact": {
+                    "message": "Oletko varma, että haluat poistaa tämän yhteystiedon?",
+                    "success": "{{email}} poistettu",
+                    "title": "Poista yhteystieto"
+                },
+                "removeContacts": {
+                    "message": "Oletko varma, että haluat poistaa {{count}} yhteystietoa?",
+                    "success": "{{count}} yhteystietoa poistettu",
+                    "title": "Poista yhteystiedot"
+                },
+                "sendRequest": {
+                    "placeholder": "Filen-sähköpostiosoite",
+                    "success": "Yhteyspyynnön lähettäminen osoitteeseen {{email}}",
+                    "title": "Lähetä yhteyspyyntö"
+                },
+                "unblockContact": {
+                    "message": "Oletko varma, että haluat poistaa tämän yhteystiedon esto?",
+                    "success": "{{email}} avattu estosta",
+                    "title": "Poista yhteystiedon esto"
+                },
+                "unblockContacts": {
+                    "message": "Oletko varma, että haluat poistaa {{count}} yhteystiedon estot?",
+                    "success": "{{count}} yhteystietoa avattu estosta",
+                    "title": "Poista yhteystietojen esto"
+                }
+            },
+            "tabs": {
+                "all": "Kaikki",
+                "blocked": "Estetty",
+                "offline": "Offline",
+                "online": "Online",
+                "pending": "Odottaa",
+                "requests": "Pyynnöt"
+            },
+            "title": "Yhteystiedot"
+        },
+        "events": {
+            "event": "Tapahtuma",
+            "eventInfo": {
+                "2faDisabled": "2FA poistettu käytöstä",
+                "2faEnabled": "2FA otettu käyttöön",
+                "baseFolderCreated": "Peruskansio luotu",
+                "codeRedeemed": "Koodi \"{{code}}\" lunastettu",
+                "deleteAll": "Kaikki hakemistot ja tiedostot poistettu pysyvästi",
+                "deleteFilePermanently": "{{name}} poistettu pysyvästi",
+                "deleteFolderPermanently": "{{name}} poistettu pysyvästi",
+                "deleteUnfinished": "Keskeneräiset lataukset poistettu",
+                "deleteVersioned": "Kaikki versionoidut tiedostot poistettu",
+                "emailChangeAttempt": "Yriteltiin muuttaa sähköpostiosoitetta",
+                "emailChanged": "Sähköposti muutettu",
+                "failedLogin": "Kirjautumisyritys epäonnistui",
+                "fileLinkEdited": "Julkinen linkki {{name}} muokattu",
+                "fileMetadataChanged": "{{name}} metatiedot muuttuivat",
+                "fileMoved": "{{name}} siirretty",
+                "fileRenamed": "{{oldName}} nimetty uudelleen nimelle {{newName}}",
+                "fileRestored": "{{name}} palautettu",
+                "fileRm": "{{name}} poistettu",
+                "fileShared": "{{name}} jaettu käyttäjän {{email}} kanssa",
+                "fileTrash": "{{name}} siirretty roskakoriin",
+                "fileUploaded": "{{name}} ladattu",
+                "fileVersioned": "{{name}} versioitu",
+                "folderColorChanged": "Hakemiston {{name}} väri muutettu",
+                "folderLinkEdited": "Hakemiston julkinen linkki muokattu",
+                "folderMetadataChanged": "Hakemiston {{name}} metatiedot muuttuivat",
+                "folderMoved": "Hakemisto {{name}} siirretty",
+                "folderRenamed": "Hakemisto {{oldName}} nimetty uudelleen nimelle {{newName}}",
+                "folderRestored": "Hakemisto {{name}} palautettu",
+                "folderShared": "Hakemisto {{name}} jaettu käyttäjän {{email}} kanssa",
+                "folderTrash": "Hakemisto {{name}} siirretty roskakoriin",
+                "itemFavorited": "{{name}} lisätty suosikkeihin",
+                "itemUnfavorited": "{{name}} poistettu suosikeista",
+                "login": "Kirjautunut",
+                "passwordChanged": "Salasana vaihdettu",
+                "removedSharedInItems": "Jaetut kohteet poistettu käyttäjältä {{email}}",
+                "removedSharedOutItems": "Jaetut kohteet poistettu käyttäjältä {{email}}",
+                "requestAccountDeletion": "Tilin poisto pyydetty",
+                "subFolderCreated": "Hakemisto {{name}} luotu",
+                "trashEmptied": "Roskakori tyhjennetty",
+                "versionedFileRestored": "{{name}} versio palautettu"
+            },
+            "events": "Tapahtumat",
+            "listEmpty": {
+                "empty": "Ei tapahtumia löytynyt",
+                "emptySearch": "Hakua vastaavia tapahtumia ei löytynyt",
+                "error": "Tapahtui virhe tapahtumien lataamisessa, yritä myöhemmin uudelleen"
+            },
+            "title": "Tapahtumat"
+        },
+        "index": {
+            "items": {
+                "advanced": "Edistyneet",
+                "cameraUpload": "Kameran lataus",
+                "contacts": "Yhteystiedot",
+                "documentsProvider": "Asiakirjatarjoaja",
+                "documentsProviderInfo": "Ota käyttöön Android-tiedostojen integrointi päästäksesi tiedostoihisi sovelluksen ulkopuolella.",
+                "events": "Tapahtumat",
+                "fileProvider": "Tiedostopalvelu",
+                "fileProviderInfo": "Ota käyttöön iOS-tiedostojen integrointi päästäksesi tiedostoihisi sovelluksen ulkopuolella.",
+                "security": "Turvallisuus",
+                "used": "{{used}} käytetty {{max}}:sta ({{percentage}}%)"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "Dokumenttipalvelun käyttöönotto poistaa biometrisen tunnistuksen käytöstä. Tämä tarkoittaa, että et voi käyttää biometrisiä tunnistusmenetelmiä sovelluksen avaamiseen. Haluatko jatkossa?",
+                    "title": "Biometrinen tunnistus käytössä"
+                },
+                "fileProvider": {
+                    "message": "Tiedostopalvelun käyttöönotto poistaa biometrisen tunnistuksen käytöstä. Tämä tarkoittaa, että et voi käyttää biometrisiä tunnistusmenetelmiä sovelluksen avaamiseen. Haluatko jatkossa?",
+                    "title": "Biometrinen tunnistus käytössä"
+                }
+            },
+            "title": "Asetukset"
+        },
+        "personal": {
+            "items": {
+                "city": "Kaupunki",
+                "companyName": "Yrityksen nimi",
+                "country": "Maa",
+                "firstName": "Etunimi",
+                "lastName": "Sukunimi",
+                "postalCode": "Postinumero",
+                "street": "Katu",
+                "streetNumber": "Katu numero",
+                "vatId": "ALV-tunnus"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "Muokkaa"
+                }
+            },
+            "title": "Henkilökohtaiset tiedot"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "Uudet salasanat eivät täsmää.",
+                "weak": "Uusi salasanasi on liian heikko. Valitse vahvempi salasana. Sellainen, joka on vähintään 10 merkkiä pitkä, sisältää sekä isoja että pieniä kirjaimia, numeroita ja erikoismerkkejä."
+            },
+            "items": {
+                "2fa": "Kaksivaiheinen tunnistautuminen",
+                "biometricAuth": "Biometrinen tunnistus",
+                "changePassword": "Vaihtaa salasana"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "Kun vaihdat salasanasi, sinut kirjataan ulos ja sinun on kirjauduttava sisään uudella salasanallasi.",
+                    "title": "Vaihtaa salasana"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "Vahvista salasana",
+                    "title": "Vahvista uusi salasana"
+                },
+                "currentPassword": {
+                    "placeholder": "Nykyinen salasana",
+                    "title": "Nykyinen salasanasi"
+                },
+                "newPassword": {
+                    "placeholder": "Uusi salasana",
+                    "title": "Uusi salasanasi"
+                }
+            },
+            "title": "Turvallisuus"
+        },
+        "twoFactorAuth": {
+            "copied": "Avain kopioitu leikepöydälle",
+            "copyKey": "Kopioi avain",
+            "items": {
+                "2fa": "Kaksivaiheinen tunnistautuminen"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "Koodi",
+                    "title": "Anna koodi"
+                }
+            },
+            "title": "Turvallisuus"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "Peruuta",
+            "title": "Tallenna Filen-palveluun",
+            "upload": "Lataa"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "Peruuta",
+            "select": "Valitse"
+        },
+        "itemInfo": {
+            "creation": "Luotu",
+            "directories": "Hakemistot",
+            "directory": "Hakemisto",
+            "files": "Tiedostot",
+            "location": "Sijainti",
+            "modified": "Muokattu",
+            "name": "Nimi",
+            "notAvailable": "Ei saatavilla",
+            "size": "Koko",
+            "type": "Tyyppi",
+            "uploaded": "Ladattu"
+        }
+    },
+    "tabBar": {
+        "chats": "Chatit",
+        "drive": "Asema",
+        "home": "Koti",
+        "notes": "Muistiinpanot",
+        "photos": "Kuvat",
+        "settings": "Asetukset"
+    },
+    "textEditor": {
+        "header": {
+            "back": "Takaisin"
+        },
+        "saved": "Tallennettu",
+        "savedSuccess": "Tallennettu onnistuneesti",
+        "unsavedChanges": "Tallentamattomat muutokset"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "Ei kappaleita jonossa",
+            "unknownArtist": "Tuntematon artisti",
+            "unknownTitle": "Tuntematon nimi"
+        },
+        "header": {
+            "title": "Soittolistat"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "Lisää jonoon",
+                "cancel": "Peruuta",
+                "delete": "Poista",
+                "play": "Toista"
+            },
+            "subTitle": "{{count}} kappaletta, päivitetty {{date}}"
+        },
+        "list": {
+            "empty": "Ei soittolistoja vielä",
+            "emptySearch": "Hakua vastaavia soittolistoja ei löytynyt",
+            "error": "Tapahtui virhe soittolistojen lataamisessa, yritä myöhemmin uudelleen",
+            "footer": "{{count}} soittolistaa"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "Lisää soittolistaan",
+                    "addToQueue": "Lisää jonoon",
+                    "cancel": "Peruuta",
+                    "play": "Toista",
+                    "removeFromPlaylist": "Poista soittolistalta"
+                }
+            },
+            "list": {
+                "empty": "Ei kappaleita vielä",
+                "emptySearch": "Hakua vastaavia kappaleita ei löytynyt",
+                "error": "Tapahtui virhe kappaleiden lataamisessa, yritä myöhemmin uudelleen",
+                "footer": "{{count}} kappaletta"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Soittolistan nimi",
+                "title": "Luo soittolista"
+            },
+            "deletePlaylist": {
+                "message": "Haluatko varmasti poistaa tämän soittolistan? Tätä toimintoa ei voi perua!",
+                "title": "Poista soittolista"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "Takaisin",
+            "title": "Siirrot"
+        },
+        "info": "Siirtämässä {{ongoingTransfers}} kohdetta nopeudella {{speed}}, jäljellä {{remaining}}",
+        "list": {
+            "empty": "Ei siirtoja vielä",
+            "emptySearch": "Hakua vastaavia siirtoja ei löytynyt",
+            "error": "Tapahtui virhe siirtojen lataamisessa, yritä myöhemmin uudelleen"
+        },
+        "noOngoingTransfers": "Ei käynnissä olevia siirtoja",
+        "transfer": {
+            "cancel": "Peruuta",
+            "cancelAll": "Peruuta kaikki",
+            "pause": "Tauko",
+            "resume": "Jatka",
+            "stop": "Pysäytä",
+            "stopAll": "Pysäytä kaikki"
+        }
+    }
+}

@@ -1,0 +1,1402 @@
+{
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "Annuleren",
+            "okText": "OK",
+            "title": "Titel"
+        },
+        "exportMasterKeys": {
+            "cancelText": "Later",
+            "message": "U heeft uw hoofdsleutels nog niet geëxporteerd. Het wordt sterk aanbevolen om ze nu te exporteren en op een veilige plaats op te slaan.",
+            "okText": "Exporteren",
+            "title": "Exporteer hoofdsleutels"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "Later",
+            "message": "U heeft uw opslaglimiet overschreden. Maak ruimte vrij of upgrade uw abonnement om ongewenste gegevensverwijdering te voorkomen.",
+            "okText": "Upgraden",
+            "title": "Opslaggebruik boven limiet"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "End-to-end versleuteld",
+                "second": "Cloud Platform"
+            },
+            "login": "Inloggen",
+            "signUp": "Meld je gratis aan"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "Vul alstublieft alle velden in."
+            },
+            "forgotPassword": "Wachtwoord vergeten?",
+            "form": {
+                "email": {
+                    "label": "E-mailadres",
+                    "placeholder": "Voer uw e-mailadres in"
+                },
+                "password": {
+                    "label": "Wachtwoord",
+                    "placeholder": "Voer uw wachtwoord in"
+                }
+            },
+            "header": {
+                "cancel": "Annuleren"
+            },
+            "login": "Inloggen",
+            "loginUsingCreds": "Log in met uw inloggegevens",
+            "next": "Volgende",
+            "signUp": "Meld je gratis aan",
+            "submit": "Inloggen",
+            "title": "Inloggen",
+            "welcome": "Welkom terug!"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "Code",
+                "title": "Twee-factorenauthenticatie"
+            },
+            "forgotPassword": {
+                "placeholder": "E-mailadres",
+                "success": "Als het e-mailadres is geregistreerd, ontvangt u een e-mail met instructies om uw wachtwoord opnieuw in te stellen.",
+                "title": "Wachtwoord vergeten"
+            },
+            "resendConfirmation": {
+                "placeholder": "E-mailadres",
+                "success": "Bevestigingsmail verstuurd naar {{email}} als het adres is geregistreerd.",
+                "title": "Bevestiging opnieuw verzenden"
+            }
+        },
+        "register": {
+            "createAccount": "Account aanmaken",
+            "errors": {
+                "emailAddressesDoNotMatch": "De e-mailadressen komen niet overeen.",
+                "emptyFields": "Vul alstublieft alle velden in.",
+                "passwordsDoNotMatch": "De wachtwoorden komen niet overeen.",
+                "weakPassword": "Uw wachtwoord is te zwak. Kies een sterker wachtwoord van minimaal 10 tekens lang, met een mix van hoofd- en kleine letters, cijfers en speciale tekens."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "Bevestig e-mailadres",
+                    "placeholder": "Bevestig uw e-mailadres"
+                },
+                "confirmPassword": {
+                    "label": "Bevestig wachtwoord",
+                    "placeholder": "Bevestig je wachtwoord"
+                },
+                "email": {
+                    "label": "E-mailadres",
+                    "placeholder": "Voer uw e-mailadres in"
+                },
+                "password": {
+                    "label": "Wachtwoord",
+                    "placeholder": "Voer uw wachtwoord in"
+                }
+            },
+            "header": {
+                "cancel": "Annuleren",
+                "title": "Aanmelden"
+            },
+            "hero": {
+                "create": "Maak uw gratis account aan",
+                "description": "Stel uw inloggegevens in om aan de slag te gaan met uw Filen-account."
+            },
+            "next": "Volgende",
+            "passwordStrength": {
+                "best": "Beste",
+                "length": "Lengte",
+                "lowercase": "Kleine letters",
+                "medium": "Medium",
+                "numbers": "Nummers",
+                "specialCharacters": "Speciale tekens",
+                "strong": "Sterk",
+                "uppercase": "Hoofdletters",
+                "weak": "Zwak"
+            },
+            "resendConfirmationEmail": "Bevestigingsmail opnieuw verzenden",
+            "title": "Aanmelden"
+        },
+        "registrationSuccessful": "Registratie geslaagd! Controleer uw e-mail om uw account te bevestigen."
+    },
+    "biometric": {
+        "appLockedFor": "App vergrendeld voor {{seconds}} seconden",
+        "authenticateUsingPin": "Authenticeer met uw PIN",
+        "errors": {
+            "incorrectPin": "Onjuiste PIN. Probeer het opnieuw.",
+            "tooManyIncorrectAttempts": "Te veel onjuiste pogingen. Probeer het later opnieuw."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN",
+                "title": "Voer uw PIN in"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "B/s",
+        "eib": "EiB/s",
+        "gib": "GiB/s",
+        "kib": "KiB/s",
+        "mib": "MiB/s",
+        "pib": "PiB/s",
+        "tib": "TiB/s",
+        "yib": "YiB/s",
+        "zib": "ZiB/s"
+    },
+    "chats": {
+        "chat": "Chat",
+        "chats": "Chats",
+        "header": {
+            "newMessages": "{{count}} nieuwe berichten",
+            "search": "Zoek in chats...",
+            "title": "Chats"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "Drive items toevoegen",
+                    "addFiles": "Bestanden toevoegen",
+                    "addMedia": "Media toevoegen",
+                    "addPhotos": "Foto's toevoegen",
+                    "cancel": "Annuleren"
+                }
+            },
+            "placeholder": "Typ een bericht",
+            "send": "Verzenden",
+            "suggestions": {
+                "emojis": {
+                    "matching": "Emoji's die overeenkomen met {{query}}"
+                },
+                "mention": {
+                    "matching": "Gebruikers die overeenkomen met {{query}}"
+                },
+                "replyTo": {
+                    "replyingTo": "Antwoorden aan {{name}}"
+                }
+            }
+        },
+        "item": {
+            "draft": "Concept",
+            "noMessages": "Nog geen berichten",
+            "you": "U"
+        },
+        "list": {
+            "empty": "Geen chats gevonden",
+            "emptySearch": "Geen chats gevonden voor deze zoekopdracht",
+            "error": "Er was een fout bij het laden van uw chats, probeer het later opnieuw"
+        },
+        "menu": {
+            "archive": "Archief",
+            "delete": "Verwijderen",
+            "favorite": "Favoriet",
+            "leave": "Verlaten",
+            "markAsRead": "Markeren als gelezen",
+            "mute": "Dempen",
+            "muted": "Gedempt",
+            "participants": "Deelnemers",
+            "pin": "Pin",
+            "rename": "Hernoemen",
+            "unarchive": "Uit archief halen",
+            "unfavorite": "Verwijder van favorieten",
+            "unmute": "Dempen ongedaan maken",
+            "unpin": "Losmaken"
+        },
+        "messages": {
+            "everyone": "Iedereen",
+            "menu": {
+                "cancel": "Annuleren",
+                "copyId": "ID kopiëren",
+                "copyText": "Tekst kopiëren",
+                "delete": "Verwijderen",
+                "disableEmbeds": "Insluiten uitschakelen",
+                "edit": "Bewerken",
+                "reply": "Antwoorden"
+            },
+            "new": "Nieuw",
+            "time": {
+                "hourAgo": "{{hours}} uur geleden",
+                "hoursAgo": "{{hours}} uren geleden",
+                "minuteAgo": "{{minutes}} minuut geleden",
+                "minutesAgo": "{{minutes}} minuten geleden",
+                "now": "Nu",
+                "secondAgo": "{{seconds}} seconde geleden",
+                "secondsAgo": "{{seconds}} seconden geleden",
+                "todayAt": "Vandaag om {{date}}",
+                "yesterdayAt": "Gisteren om {{date}}"
+            },
+            "undecryptable": "Kan bericht niet ontsleutelen.",
+            "unknown": "Onbekend"
+        },
+        "participants": {
+            "menu": {
+                "remove": "Verwijderen"
+            },
+            "participant": "Deelnemer",
+            "participants": "Deelnemers",
+            "prompts": {
+                "remove": {
+                    "message": "Weet u zeker dat u deze deelnemer wilt verwijderen? Ze kunnen geen berichten meer zien of verzenden in deze chat.",
+                    "success": "{{name}} verwijderd",
+                    "title": "Deelnemer verwijderen"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "Weet u zeker dat u deze chat wilt verwijderen? Dit verwijdert de chat uit uw lijst en u zult geen berichten meer kunnen zien of verzenden in deze chat.",
+                "title": "Chat verwijderen"
+            },
+            "deleteChats": {
+                "message": "Weet u zeker dat u {{count}} chats wilt verwijderen? Dit verwijdert de chats uit uw lijst en u zult geen berichten meer kunnen zien of verzenden in deze chats.",
+                "title": "Chats verwijderen"
+            },
+            "deleteMessage": {
+                "message": "Weet u zeker dat u dit bericht wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt!",
+                "title": "Bericht verwijderen"
+            },
+            "disableEmbeds": {
+                "message": "Weet u zeker dat u embeds voor dit bericht wilt uitschakelen? Dit zal alle ingesloten inhoud verwijderen.",
+                "title": "Insluiten uitschakelen"
+            },
+            "leaveChat": {
+                "message": "Weet u zeker dat u deze chat wilt verlaten? U kunt geen berichten meer zien of verzenden in deze chat.",
+                "title": "Chat verlaten"
+            },
+            "leaveChats": {
+                "message": "Weet u zeker dat u {{count}} chats wilt verlaten? U kunt geen berichten meer zien of verzenden in deze chats.",
+                "title": "Chats verlaten"
+            },
+            "renameChat": {
+                "placeholder": "Nieuwe naam",
+                "title": "Chat hernoemen"
+            }
+        },
+        "typing": "{{users}} typen..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "Accepteren",
+            "block": "Blokkeren",
+            "cancel": "Annuleren",
+            "decline": "Afwijzen",
+            "remove": "Verwijderen",
+            "unblock": "Deblokkeren"
+        }
+    },
+    "copiedToClipboard": "Gekopieerd naar klembord",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "Annuleren",
+                    "create": {
+                        "created": "{{name}} gemaakt",
+                        "directory": "Map aanmaken",
+                        "photo": "Foto maken",
+                        "textFile": "Tekstbestand maken"
+                    },
+                    "directoryNamePlaceholder": "Mapnaam",
+                    "itemsUploaded": "{{count}} items geüpload",
+                    "noMediaPermissions": "U moet mediatoestemmingen verlenen om foto's of video's te uploaden.",
+                    "textFileNamePlaceholder": "Tekstbestandsnaam",
+                    "upload": {
+                        "directory": "Map uploaden",
+                        "files": "Bestanden uploaden",
+                        "media": "Media uploaden",
+                        "uploaded": "{{name}} geüpload"
+                    }
+                },
+                "deselectAll": "Alles deselecteren",
+                "dropdown": {
+                    "bulkActions": "Bulkacties",
+                    "gridMode": "Weergeven als raster",
+                    "listMode": "Bekijken als lijst",
+                    "sortBy": {
+                        "ascending": "Oplopend",
+                        "descending": "Aflopend",
+                        "lastModified": {
+                            "ascendingTitle": "Eerst de vroegste",
+                            "descendingTitle": "Eerst de laatste",
+                            "title": "Laatst gewijzigd"
+                        },
+                        "name": {
+                            "ascendingTitle": "A tot Z",
+                            "descendingTitle": "Z naar A",
+                            "title": "Naam"
+                        },
+                        "size": {
+                            "ascendingTitle": "Eerst de kleinste",
+                            "descendingTitle": "Eerst de grootste",
+                            "title": "Grootte"
+                        },
+                        "sortBy": "Sorteren op",
+                        "type": {
+                            "ascendingTitle": "Oplopend",
+                            "descendingTitle": "Aflopend",
+                            "title": "Type"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "Eerst de vroegste",
+                            "descendingTitle": "Eerst de laatste",
+                            "title": "Upload datum"
+                        }
+                    },
+                    "transfers": "Overdrachten"
+                },
+                "selectAll": "Alles selecteren"
+            },
+            "title": {
+                "drive": "Drive",
+                "favorites": "Favorieten",
+                "links": "Publieke links",
+                "offline": "Offline beschikbaar",
+                "recents": "Recente",
+                "selected": "{{count}} geselecteerd",
+                "sharedIn": "Gedeeld met u",
+                "sharedOut": "Gedeeld met anderen",
+                "trash": "Prullenbak"
+            }
+        },
+        "itemShared": "{{name}} gedeeld",
+        "itemSharedWith": "{{name}} gedeeld met {{email}}",
+        "list": {
+            "empty": "Geen items gevonden",
+            "emptySearch": "Geen items gevonden voor deze zoekopdracht",
+            "error": "Er was een fout bij het laden van uw drive, probeer het later opnieuw",
+            "footer": "{{count}} items",
+            "item": {
+                "menu": {
+                    "availableOffline": "Offline beschikbaar",
+                    "clipboard": "Klembord",
+                    "color": "Kleur",
+                    "copy": "Kopiëren",
+                    "copyId": "ID kopiëren",
+                    "copyPath": "Pad kopiëren",
+                    "delete": "Verwijderen",
+                    "deletePermanently": "Permanent verwijderen",
+                    "deselect": "Deselecteren",
+                    "deselectAll": "Alles deselecteren",
+                    "disablePublicLink": "Link uitschakelen",
+                    "download": "Downloaden",
+                    "downloadFolder": "Download map",
+                    "export": "Exporteren",
+                    "favorite": "Favoriet",
+                    "favorite_one": "Favoriet item",
+                    "favorite_other": "Favoriet {{count}} items",
+                    "favorited": "Toegevoegd aan favorieten",
+                    "id": "ID",
+                    "info": "Info",
+                    "location": "Locatie",
+                    "makeAvailableOffline": "Offline beschikbaar maken",
+                    "move": "Verplaatsen",
+                    "move_one": "Item verplaatsen",
+                    "move_other": "Verplaats {{count}} items",
+                    "open": "Openen",
+                    "path": "Pad",
+                    "preview": "Voorbeeldweergave",
+                    "properties": "Eigenschappen",
+                    "publicLink": "Publieke link",
+                    "removeOffline": "Offline bestand verwijderen",
+                    "removeSharedIn": "Verwijderen",
+                    "removeSharedOut": "Stop met delen",
+                    "rename": "Hernoemen",
+                    "restore": "Herstellen",
+                    "saveToGallery": "Opslaan in galerij",
+                    "select": "Selecteer",
+                    "selectAll": "Alles selecteren",
+                    "share": "Delen",
+                    "share_one": "Item delen",
+                    "share_other": "Deel {{count}} items",
+                    "trash": "Prullenbak",
+                    "trash_one": "Item naar prullenbak verplaatsen",
+                    "trash_other": "Verwijder {{count}} items",
+                    "unfavorite": "Verwijder van favorieten",
+                    "versionHistory": "Versiegeschiedenis",
+                    "withUser": "Met gebruiker"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "Weet u zeker dat u {{count}} items permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt!",
+                "title": "Permanent verwijderen"
+            },
+            "deletePermanently": {
+                "message": "Weet u zeker dat u dit item permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt!",
+                "title": "Permanent verwijderen"
+            },
+            "disablePublicLinks": {
+                "message": "Weet u zeker dat u publieke links voor {{count}} items wilt uitschakelen? De links zullen niet langer toegankelijk zijn.",
+                "title": "Publieke links uitschakelen"
+            },
+            "removeOfflineFiles": {
+                "message": "Weet u zeker dat u {{count}} offline bestanden wilt verwijderen? Ze zullen niet langer offline beschikbaar zijn.",
+                "title": "Offline bestanden verwijderen"
+            },
+            "removeSharedInItem": {
+                "message": "Weet u zeker dat u dit item uit uw gedeelde items wilt verwijderen? U kunt het niet meer zien of openen.",
+                "title": "Verwijderen"
+            },
+            "removeSharedInItems": {
+                "message": "Weet u zeker dat u {{count}} items uit uw gedeelde items wilt verwijderen? U kunt ze niet meer zien of openen.",
+                "title": "Verwijderen"
+            },
+            "removeSharedOutItem": {
+                "message": "Weet u zeker dat u wilt stoppen met het delen van dit item? De gebruiker zal er geen toegang meer toe hebben.",
+                "title": "Stop met delen"
+            },
+            "removeSharedOutItems": {
+                "message": "Weet u zeker dat u wilt stoppen met het delen van {{count}} items? De gebruikers zullen er geen toegang meer toe hebben.",
+                "title": "Stop met delen"
+            },
+            "renameItem": {
+                "placeholder": "Nieuwe naam",
+                "title": "Hernoemen"
+            },
+            "trashItem": {
+                "message": "Weet u zeker dat u dit item naar de prullenbak wilt verplaatsen? U kunt het later herstellen.",
+                "title": "Naar prullenbak verplaatsen"
+            },
+            "trashItems": {
+                "message": "Weet u zeker dat u {{count}} items naar de prullenbak wilt verplaatsen? U kunt ze later herstellen.",
+                "title": "Naar prullenbak verplaatsen"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "Geen items gevonden",
+                "emptySearch": "Geen items gevonden voor deze zoekopdracht",
+                "error": "Er was een fout bij het laden van de zoekresultaten, probeer het later opnieuw",
+                "footer": "{{count}} items"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "Annuleren",
+        "items": {
+            "downloadButton": "Download knop",
+            "edit": "Bewerken",
+            "enabled": "Ingeschakeld",
+            "expiration": "Verloopdatum",
+            "expiration12h": "12 uur",
+            "expiration14d": "14 dagen",
+            "expiration1d": "1 dag",
+            "expiration1h": "1 uur",
+            "expiration30d": "30 dagen",
+            "expiration3d": "3 dagen",
+            "expiration6h": "6 uur",
+            "expiration7d": "7 dagen",
+            "expirationNever": "Nooit",
+            "password": "Wachtwoord"
+        },
+        "onlyPro": "Deze functie is alleen beschikbaar voor Filen Pro-gebruikers. Abonneer je op een Filen-abonnement om het in te schakelen.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "Laat leeg om wachtwoord te verwijderen",
+                "title": "Wachtwoord bewerken"
+            }
+        },
+        "shareDialogTile": "Filen publieke link",
+        "title": "Publieke link bewerken",
+        "unsavedChanges": "Niet opgeslagen wijzigingen"
+    },
+    "errors": {
+        "cannotOpenURL": "Kan URL niet openen.",
+        "notEnoughDiskSpace": "Niet genoeg lokale schijfruimte beschikbaar.",
+        "sharingNotAvailable": "Delen is niet beschikbaar op dit apparaat.",
+        "youAreOffline": "U bent momenteel offline. Controleer uw internetverbinding."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "Annuleren",
+                "confirm": "Verwijderen",
+                "message": "Weet u zeker dat u deze versie wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt!",
+                "title": "Verwijder versie"
+            },
+            "restore": {
+                "cancel": "Annuleren",
+                "confirm": "Herstellen",
+                "message": "Weet u zeker dat u deze versie wilt herstellen? Dit zal het huidige bestand overschrijven.",
+                "title": "Herstel versie"
+            }
+        },
+        "header": {
+            "title": "Versiegeschiedenis"
+        },
+        "list": {
+            "empty": "Nog geen versies",
+            "emptySearch": "Geen versies gevonden voor deze zoekopdracht",
+            "error": "Er was een fout bij het laden van de bestand versies, probeer het later opnieuw",
+            "item": {
+                "current": "Huidig",
+                "delete": "Verwijderen",
+                "restore": "Herstellen"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "Bytes",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiB",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "Geen voorbeeld beschikbaar"
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "Favorieten"
+            },
+            "links": {
+                "title": "Publieke links"
+            },
+            "offline": {
+                "title": "Offline beschikbaar"
+            },
+            "recents": {
+                "title": "Recente"
+            },
+            "sharedIn": {
+                "title": "Gedeeld met u"
+            },
+            "sharedOut": {
+                "title": "Gedeeld met anderen"
+            },
+            "trash": {
+                "title": "Prullenbak"
+            }
+        },
+        "listEmpty": {
+            "favorites": "Nog geen favorieten",
+            "links": "Nog geen openbare links",
+            "offline": "Nog geen offline items",
+            "recents": "Nog geen recente bestanden",
+            "sharedIn": "Nog geen gedeelde items",
+            "sharedOut": "Nog geen gedeelde items",
+            "trash": "Nog geen items in de prullenbak"
+        },
+        "title": "Home"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "Annuleren",
+            "okText": "OK",
+            "title": "Titel"
+        }
+    },
+    "listEmpty": {
+        "empty": "Niets gevonden",
+        "emptySearch": "Niets gevonden voor deze zoekopdracht",
+        "error": "Er is een fout opgetreden, probeer het later opnieuw"
+    },
+    "localAuthentication": {
+        "cancelLabel": "Annuleren",
+        "promptMessage": "Authenticeer om verder te gaan"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "Schrijf uw code hier...",
+                "text": "Schrijf uw tekst hier..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "Alles deselecteren",
+                    "selectAll": "Alles selecteren"
+                },
+                "types": {
+                    "checklist": "Checklist",
+                    "code": "Code",
+                    "markdown": "Markdown",
+                    "rich": "Opmaakrijke tekst",
+                    "text": "Tekst"
+                }
+            },
+            "menu": {
+                "settings": "Instellingen"
+            },
+            "selected": "{{count}} geselecteerd",
+            "title": "Notities"
+        },
+        "history": {
+            "list": {
+                "empty": "Geen geschiedenis beschikbaar",
+                "emptySearch": "Geen invoer gevonden voor deze zoekopdracht",
+                "error": "Er was een fout bij het laden van de geschiedenis, probeer het later opnieuw",
+                "footer": "{{count}} items"
+            },
+            "noPreview": "Geen voorbeeld beschikbaar",
+            "prompts": {
+                "restore": {
+                    "message": "Weet u zeker dat u deze notitie wilt herstellen? Dit zal de huidige notitie overschrijven.",
+                    "title": "Notitie herstellen"
+                }
+            },
+            "restore": "Herstellen",
+            "title": "Geschiedenis"
+        },
+        "list": {
+            "empty": "Nog geen notities",
+            "emptySearch": "Geen notities gevonden voor deze zoekopdracht",
+            "error": "Er was een fout bij het laden van uw notities, probeer het later opnieuw",
+            "footer": "{{count}} items"
+        },
+        "menu": {
+            "archive": "Archief",
+            "clipboard": "Klembord",
+            "copyId": "ID kopiëren",
+            "delete": "Verwijderen",
+            "deselect": "Deselecteren",
+            "duplicate": "Dupliceren",
+            "export": "Exporteren",
+            "favorite": "Favoriet",
+            "favorited": "Toegevoegd aan favorieten",
+            "history": "Geschiedenis",
+            "leave": "Verlaten",
+            "participants": "Deelnemers",
+            "pin": "Pin",
+            "pinned": "Vastgezet",
+            "preview": "Voorbeeldweergave",
+            "rename": "Hernoemen",
+            "restore": "Herstellen",
+            "select": "Selecteer",
+            "tags": "Labels",
+            "trash": "Prullenbak",
+            "type": "Type",
+            "types": {
+                "checklist": "Checklist",
+                "code": "Code",
+                "md": "Markdown",
+                "rich": "Opmaakrijke tekst",
+                "text": "Tekst"
+            },
+            "unfavorite": "Verwijder van favorieten",
+            "unpin": "Losmaken"
+        },
+        "participants": {
+            "list": {
+                "empty": "Nog geen deelnemers",
+                "emptySearch": "Geen deelnemers gevonden voor deze zoekopdracht",
+                "error": "Er was een fout bij het laden van de deelnemers, probeer het later opnieuw",
+                "footer": "{{count}} deelnemers"
+            },
+            "menu": {
+                "permissionsWrite": "Schrijfrechten",
+                "remove": "Verwijderen"
+            },
+            "title": "Deelnemers"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "Notitietitel",
+                "title": "Notitie maken"
+            },
+            "createTag": {
+                "placeholder": "Labelnaam",
+                "title": "Label aanmaken"
+            },
+            "deleteNote": {
+                "message": "Weet u zeker dat u deze notitie permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt!",
+                "title": "Notitie verwijderen"
+            },
+            "deleteNotes": {
+                "message": "Weet u zeker dat u {{count}} notities permanent wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt!",
+                "title": "Notities verwijderen"
+            },
+            "deleteTag": {
+                "message": "Weet u zeker dat u deze tag wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt!",
+                "title": "Tag verwijderen"
+            },
+            "deleteTags": {
+                "message": "Weet u zeker dat u {{count}} tags wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt!",
+                "title": "Tags verwijderen"
+            },
+            "leaveNote": {
+                "message": "Weet u zeker dat u deze notitie wilt verlaten? U kunt het niet meer zien of bewerken.",
+                "title": "Notitie verlaten"
+            },
+            "leaveNotes": {
+                "message": "Weet u zeker dat u {{count}} notities wilt verlaten? U kunt ze niet meer zien of bewerken.",
+                "title": "Notities verlaten"
+            },
+            "removeParticipant": {
+                "message": "Weet u zeker dat u deze deelnemer wilt verwijderen? Ze kunnen deze notitie niet meer zien of bewerken.",
+                "title": "Deelnemer verwijderen"
+            },
+            "removeParticipants": {
+                "message": "Weet u zeker dat u {{count}} deelnemers wilt verwijderen? Ze kunnen deze notities niet meer zien of bewerken.",
+                "title": "Deelnemers verwijderen"
+            },
+            "renameNote": {
+                "placeholder": "Nieuwe naam",
+                "title": "Notitie hernoemen"
+            },
+            "renameTag": {
+                "placeholder": "Nieuwe tagnaam",
+                "title": "Label hernoemen"
+            },
+            "trashNote": {
+                "message": "Weet u zeker dat u deze notitie naar de prullenbak wilt verplaatsen? U kunt het later herstellen.",
+                "title": "Naar prullenbak verplaatsen"
+            },
+            "trashNotes": {
+                "message": "Weet u zeker dat u {{count}} notities naar de prullenbak wilt verplaatsen? U kunt ze later herstellen.",
+                "title": "Naar prullenbak verplaatsen"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "Verwijderen",
+                "favorited": "Toegevoegd aan favorieten",
+                "rename": "Hernoemen"
+            },
+            "names": {
+                "all": "Alle",
+                "archived": "Gearchiveerd",
+                "favorited": "Toegevoegd aan favorieten",
+                "pinned": "Vastgezet",
+                "shared": "Gedeeld",
+                "trash": "Prullenbak"
+            }
+        },
+        "title": "Notities"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "Annuleren",
+            "placeholder": "Zoeken..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "Offline modus"
+    },
+    "photos": {
+        "header": {
+            "selected": "{{count}} geselecteerd"
+        },
+        "list": {
+            "empty": "Nog geen foto's",
+            "emptySearch": "Geen foto's gevonden voor deze zoekopdracht",
+            "error": "Er was een fout bij het laden van uw foto's, probeer het later opnieuw"
+        },
+        "menu": {
+            "settings": "Instellingen"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} items"
+                },
+                "list": {
+                    "empty": "Geen albums gevonden",
+                    "emptySearch": "Geen albums gevonden voor deze zoekopdracht",
+                    "error": "Er was een fout bij het laden van uw albums, probeer het later opnieuw"
+                },
+                "title": "Albums"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "U moet mediatoestemmingen verlenen om toegang tot uw foto's te krijgen."
+                },
+                "items": {
+                    "albums": "Albums",
+                    "albumsInfo": "Selecteer welke albums bij de camera-upload moeten worden opgenomen.",
+                    "background": "Achtergrond",
+                    "backgroundInfo": "Sta camera-upload op de achtergrond toe. Dit kan leiden tot een hoog batterijverbruik. Achtergronduploads bevatten alleen afbeeldingen. Werkt alleen als de app niet geforceerd wordt afgesloten.",
+                    "cellular": "Mobiel",
+                    "cellularInfo": "Sta camerauploads via mobiele data toe. Dit kan leiden tot een hoog dataverbruik.",
+                    "cloudDirectory": "Cloudmap",
+                    "cloudDirectoryNotSet": "Niet ingesteld",
+                    "compress": "Comprimeren",
+                    "compressInfo": "Comprimeer foto's om opslagruimte te besparen. Dit kan de kwaliteit van de foto's verminderen. JPG-compressie op 80% kwaliteit.",
+                    "enabled": "Ingeschakeld",
+                    "lowBattery": "Lage batterij",
+                    "lowBatteryInfo": "Camera-upload uitschakelen wanneer de batterij bijna leeg is.",
+                    "permissionsError": "Toestemmingsfout",
+                    "permissionsErrorInfo": "Sta de app toe toegang te krijgen tot uw foto's en video's in de systeeminstellingen.",
+                    "videos": "Video's",
+                    "videosInfo": "Video's opnemen in de camera-upload."
+                },
+                "title": "Instellingen"
+            }
+        },
+        "state": {
+            "synced": "Gesynchroniseerd",
+            "syncing": "Synchroniseren",
+            "syncingProgress": "{{done}} van {{total}} items gesynchroniseerd"
+        },
+        "title": "Foto's"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "Annuleren",
+            "done": "Gereed",
+            "selectContact": "Contact selecteren",
+            "selectContacts": "Contacten selecteren"
+        },
+        "list": {
+            "empty": "Nog geen contacten",
+            "emptySearch": "Geen contacten gevonden voor deze zoekopdracht",
+            "error": "Er was een fout bij het laden van uw contacten, probeer het later opnieuw",
+            "footer": "{{count}} contacten"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} geselecteerd"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "Annuleren",
+            "done": "Gereed",
+            "drive": "Drive",
+            "selectDirectories": "Mappen selecteren",
+            "selectDirectory": "Map selecteren",
+            "selectFile": "Bestand selecteren",
+            "selectFiles": "Bestanden selecteren",
+            "selectItem": "Selecteer item",
+            "selectItems": "Selecteer items",
+            "selectRoot": "Selecteer clouddrive"
+        },
+        "list": {
+            "empty": "Nog niets geüpload",
+            "emptySearch": "Geen items gevonden voor deze zoekopdracht",
+            "error": "Er was een fout bij het laden van uw bestanden, probeer het later opnieuw",
+            "footer": "{{count}} items"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "Mapnaam",
+                "success": "{{name}} gemaakt",
+                "title": "Map aanmaken"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} geselecteerd"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "Annuleren",
+            "done": "Gereed",
+            "selectPlaylist": "Selecteer afspeellijst",
+            "selectPlaylists": "Selecteer afspeellijsten"
+        },
+        "item": {
+            "subTitle": "{{count}} nummers, bijgewerkt op {{date}}"
+        },
+        "list": {
+            "empty": "Nog geen afspeellijsten",
+            "emptySearch": "Geen afspeellijsten gevonden voor deze zoekopdracht",
+            "error": "Er was een fout bij het laden van uw afspeellijsten, probeer het later opnieuw",
+            "footer": "{{count}} afspeellijsten"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Afspeellijst naam",
+                "title": "Afspeellijst maken"
+            }
+        },
+        "selected": "{{countOrName}} geselecteerd",
+        "toolbar": {
+            "selected": "{{countOrName}} geselecteerd"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "De grootte van de avatar overschrijdt de limiet van 3 MiB.",
+                "emailsNotMatching": "De nieuwe e-mailadressen komen niet overeen."
+            },
+            "items": {
+                "changeAvatar": "Avatar wijzigen",
+                "deleteAllFilesAndDirectories": "Verwijder alle bestanden en mappen",
+                "deleteVersionedFiles": "Versiebeheer bestanden verwijderen",
+                "emailAddress": "E-mailadres",
+                "fileVersioning": "Bestandsversiebeheer",
+                "fileVersioningInfo": "Schakel bestandsversiebeheer in om wijzigingen aan uw bestanden bij te houden.",
+                "gdpr": "GDPR-informatie",
+                "loginAlerts": "Inlogmeldingen",
+                "loginAlertsInfo": "Ontvang meldingen wanneer uw account wordt geopend.",
+                "logout": "Uitloggen",
+                "more": "Meer accountinstellingen",
+                "nickname": "Bijnaam",
+                "personalInformation": "Persoonlijke informatie",
+                "requestAccountDeletion": "Accountverwijdering aanvragen",
+                "requestAccountDeletionInfo": "Verzoek om accountverwijdering. We zullen je een e-mail sturen met verdere instructies."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "Code",
+                    "title": "Twee-factorenauthenticatie"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "Bevestig nieuw e-mailadres",
+                        "title": "Bevestig nieuw e-mailadres"
+                    },
+                    "newEmail": {
+                        "placeholder": "Nieuw e-mailadres",
+                        "title": "Nieuw e-mailadres"
+                    },
+                    "password": {
+                        "placeholder": "Wachtwoord",
+                        "title": "Je wachtwoord"
+                    }
+                },
+                "deleteAccount": {
+                    "message": "Weet u zeker dat u om verwijdering van het account wilt vragen? U ontvangt een e-mail met verdere instructies.",
+                    "title": "Accountverwijdering aanvragen"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "Weet u zeker dat u alle bestanden en mappen wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt!",
+                    "title": "Verwijder alle bestanden en mappen"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "Weet u het echt zeker? Deze actie kan niet ongedaan worden gemaakt!",
+                    "title": "Verwijder alle bestanden en mappen"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "Weet u zeker dat u alle versiebeheer bestanden wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt!",
+                    "title": "Versiebeheer bestanden verwijderen"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "Weet u het echt zeker? Deze actie kan niet ongedaan worden gemaakt!",
+                    "title": "Versiebeheer bestanden verwijderen"
+                },
+                "logout": {
+                    "message": "Weet u zeker dat u wilt uitloggen? U moet opnieuw inloggen om toegang tot uw account te krijgen.",
+                    "title": "Uitloggen"
+                },
+                "more": {
+                    "message": "Meer instellingen zijn beschikbaar in de web app. Wilt u die nu openen?",
+                    "title": "Open Web App"
+                },
+                "updateNickname": {
+                    "placeholder": "Nieuwe bijnaam",
+                    "title": "Bijnamen bijwerken"
+                }
+            },
+            "title": "Account"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "Cache wissen",
+                "clearOfflineFiles": "Offline bestanden wissen",
+                "clearThumbnails": "Miniaturen wissen",
+                "clearTrackPlayer": "Wis muziekspeler"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "Het cachegeheugen legen verwijdert tijdelijke bestanden. Dit kan lopende uploads of downloads onderbreken. Weet u zeker dat u wilt doorgaan?",
+                    "title": "Cache wissen"
+                },
+                "clearOfflineFiles": {
+                    "message": "Het wissen van offline bestanden verwijdert alle offline beschikbare bestanden. Weet u zeker dat u wilt doorgaan?",
+                    "title": "Offline bestanden wissen"
+                },
+                "clearThumbnails": {
+                    "message": "Het wissen van de miniaturen zorgt ervoor dat de app elke zichtbare miniatuur opnieuw downloadt. Weet u zeker dat u wilt doorgaan?",
+                    "title": "Miniaturen wissen"
+                },
+                "clearTrackPlayer": {
+                    "message": "Het wissen van de trackspeler cache verwijdert gecachete tracks en afbeeldingen. Dit kan leiden tot langere laadtijden. Weet u zeker dat u wilt doorgaan?",
+                    "title": "Wis muziekspeler"
+                }
+            },
+            "title": "Geavanceerd"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "Biometrische authenticatie is niet beschikbaar op dit apparaat. Schakel alstublieft alleen PIN-authenticatie in of gebruik een apparaat met ondersteuning voor biometrische authenticatie.",
+                "pinNotMatching": "De reserve-PINs komen niet overeen.",
+                "pinTooLong": "De reserve PIN mag niet langer zijn dan 128 cijfers.",
+                "pinTooShort": "De back-up-PIN moet minimaal 4 cijfers lang zijn."
+            },
+            "items": {
+                "biometricAuth": "Biometrische authenticatie",
+                "lockAppAfter": "App vergrendelen na",
+                "pinOnly": "Alleen PIN"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15 minuten",
+                "fiveMinutes": "5 minuten",
+                "immediately": "Onmiddellijk",
+                "minutes": "{{minutes}} minuten",
+                "never": "Nooit",
+                "oneHour": "1 uur",
+                "oneMinute": "1 minuut",
+                "tenMinutes": "10 minuten",
+                "thirtyMinutes": "30 minuten"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "Weet je zeker dat je biometrische authenticatie wilt uitschakelen?",
+                    "title": "Biometrische authenticatie uitschakelen"
+                },
+                "documentsProvider": {
+                    "message": "Het inschakelen van biometrische authenticatie schakelt de documentenprovider uit. Dit betekent dat u uw bestanden niet kunt openen in andere apps die gebruikmaken van de Filen documentenprovider. Wilt u doorgaan?",
+                    "title": "Documentenprovider ingeschakeld"
+                },
+                "enable": {
+                    "placeholder": "Nood-PIN",
+                    "title": "Stel nood-PIN in"
+                },
+                "enableConfirm": {
+                    "placeholder": "Bevestig PIN",
+                    "title": "Fallback PIN bevestigen"
+                },
+                "fileProvider": {
+                    "message": "Het inschakelen van biometrische authenticatie schakelt de bestandenprovider uit. Dit betekent dat u uw bestanden niet kunt openen in andere apps die gebruikmaken van de Filen bestandenprovider. Wilt u doorgaan?",
+                    "title": "Bestandsprovider ingeschakeld"
+                }
+            },
+            "title": "Beveiliging"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "Geen contacten gevonden",
+                    "emptySearch": "Geen contacten gevonden voor deze zoekopdracht",
+                    "error": "Er was een fout bij het laden van uw contacten, probeer het later opnieuw"
+                },
+                "blocked": {
+                    "empty": "Geen geblokkeerde contacten gevonden",
+                    "emptySearch": "Geen geblokkeerde contacten gevonden voor deze zoekopdracht",
+                    "error": "Er was een fout bij het laden van uw contacten, probeer het later opnieuw"
+                },
+                "offline": {
+                    "empty": "Geen offline contacten gevonden",
+                    "emptySearch": "Geen offline contacten gevonden voor deze zoekopdracht",
+                    "error": "Er was een fout bij het laden van uw contacten, probeer het later opnieuw"
+                },
+                "online": {
+                    "empty": "Geen online contacten gevonden",
+                    "emptySearch": "Geen online contacten gevonden voor deze zoekopdracht",
+                    "error": "Er was een fout bij het laden van uw contacten, probeer het later opnieuw"
+                },
+                "pending": {
+                    "empty": "Geen contactverzoeken gevonden",
+                    "emptySearch": "Geen contactverzoeken gevonden voor deze zoekopdracht",
+                    "error": "Er was een fout bij het laden van uw contactverzoeken, probeer het later opnieuw"
+                },
+                "requests": {
+                    "empty": "Geen contactverzoeken gevonden",
+                    "emptySearch": "Geen contactverzoeken gevonden voor deze zoekopdracht",
+                    "error": "Er was een fout bij het laden van uw contactverzoeken, probeer het later opnieuw"
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "Weet u zeker dat u dit contact wilt blokkeren?",
+                    "success": "{{email}} geblokkeerd",
+                    "title": "Contact blokkeren"
+                },
+                "blockContacts": {
+                    "message": "Weet u zeker dat u {{count}} contacten wilt blokkeren?",
+                    "success": "{{count}} contacten geblokkeerd",
+                    "title": "Contacten blokkeren"
+                },
+                "removeContact": {
+                    "message": "Weet u zeker dat u dit contact wilt verwijderen?",
+                    "success": "{{email}} verwijderd",
+                    "title": "Contact verwijderen"
+                },
+                "removeContacts": {
+                    "message": "Weet u zeker dat u {{count}} contacten wilt verwijderen?",
+                    "success": "{{count}} contacten verwijderd",
+                    "title": "Contacten verwijderen"
+                },
+                "sendRequest": {
+                    "placeholder": "Filen e-mailadres",
+                    "success": "Contactverzoek verzonden naar {{email}}",
+                    "title": "Contactverzoek versturen"
+                },
+                "unblockContact": {
+                    "message": "Weet u zeker dat u dit contact wilt deblokkeren?",
+                    "success": "{{email}} gedeblokkeerd",
+                    "title": "Contact deblokkeren"
+                },
+                "unblockContacts": {
+                    "message": "Weet u zeker dat u {{count}} contacten wilt deblokkeren?",
+                    "success": "{{count}} contacten gedeblokkeerd",
+                    "title": "Contacten deblokkeren"
+                }
+            },
+            "tabs": {
+                "all": "Alle",
+                "blocked": "Geblokkeerd",
+                "offline": "Offline",
+                "online": "Online",
+                "pending": "In afwachting",
+                "requests": "Verzoeken"
+            },
+            "title": "Contacten"
+        },
+        "events": {
+            "event": "Evenement",
+            "eventInfo": {
+                "2faDisabled": "2FA uitgeschakeld",
+                "2faEnabled": "2FA ingeschakeld",
+                "baseFolderCreated": "Basismap gemaakt",
+                "codeRedeemed": "Code \"{{code}}\" ingewisseld",
+                "deleteAll": "Alle mappen en bestanden permanent verwijderd",
+                "deleteFilePermanently": "{{name}} permanent verwijderd",
+                "deleteFolderPermanently": "{{name}} permanent verwijderd",
+                "deleteUnfinished": "Onafgewerkte uploads verwijderd",
+                "deleteVersioned": "Alle versies van bestanden verwijderd",
+                "emailChangeAttempt": "Poging tot e-mailwijziging",
+                "emailChanged": "E-mail gewijzigd",
+                "failedLogin": "Mislukte inlogpoging",
+                "fileLinkEdited": "Publieke link voor {{name}} bewerkt",
+                "fileMetadataChanged": "Metadata voor {{name}} gewijzigd",
+                "fileMoved": "{{name}} verplaatst",
+                "fileRenamed": "{{oldName}} hernoemd naar {{newName}}",
+                "fileRestored": "{{name}} hersteld",
+                "fileRm": "{{name}} verwijderd",
+                "fileShared": "{{name}} gedeeld met {{email}}",
+                "fileTrash": "{{name}} is naar de prullenbak verplaatst",
+                "fileUploaded": "{{name}} geüpload",
+                "fileVersioned": "{{name}} versie gemaakt",
+                "folderColorChanged": "Kleur van map {{name}} gewijzigd",
+                "folderLinkEdited": "Publieke link van directory bewerkt",
+                "folderMetadataChanged": "Metadata van map {{name}} gewijzigd",
+                "folderMoved": "Directory {{name}} verplaatst",
+                "folderRenamed": "Map {{oldName}} hernoemd naar {{newName}}",
+                "folderRestored": "Directory {{name}} hersteld",
+                "folderShared": "Directory {{name}} gedeeld met {{email}}",
+                "folderTrash": "Directory {{name}} naar prullenbak verplaatst",
+                "itemFavorited": "{{name}} gemarkeerd als favoriet",
+                "itemUnfavorited": "{{name}} niet langer favoriet",
+                "login": "Ingelogd",
+                "passwordChanged": "Wachtwoord gewijzigd",
+                "removedSharedInItems": "Gedeelde items verwijderd van {{email}}",
+                "removedSharedOutItems": "Gedeelde items verwijderd van {{email}}",
+                "requestAccountDeletion": "Accountverwijdering aangevraagd",
+                "subFolderCreated": "Directory {{name}} aangemaakt",
+                "trashEmptied": "Prullenbak geleegd",
+                "versionedFileRestored": "Versie van {{name}} hersteld"
+            },
+            "events": "Evenementen",
+            "listEmpty": {
+                "empty": "Geen evenementen gevonden",
+                "emptySearch": "Geen evenementen gevonden voor deze zoekopdracht",
+                "error": "Er was een fout bij het laden van uw evenementen, probeer het later opnieuw"
+            },
+            "title": "Evenementen"
+        },
+        "index": {
+            "items": {
+                "advanced": "Geavanceerd",
+                "cameraUpload": "Cameraupload",
+                "contacts": "Contacten",
+                "documentsProvider": "Documentenprovider",
+                "documentsProviderInfo": "Schakel de Android Bestanden-integratie in om uw bestanden buiten de app te openen.",
+                "events": "Evenementen",
+                "fileProvider": "Bestandsprovider",
+                "fileProviderInfo": "Schakel de iOS Bestanden-integratie in om toegang te krijgen tot uw bestanden buiten de app.",
+                "security": "Beveiliging",
+                "used": "{{used}} gebruikt van {{max}} ({{percentage}}%)"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "Het inschakelen van de documentenprovider schakelt biometrische authenticatie uit. Dit betekent dat u geen biometrische authenticatie kunt gebruiken om de app te ontgrendelen. Wilt u doorgaan?",
+                    "title": "Biometrische authenticatie ingeschakeld"
+                },
+                "fileProvider": {
+                    "message": "Het inschakelen van de bestandsprovider schakelt biometrische authenticatie uit. Dit betekent dat u geen biometrische authenticatie kunt gebruiken om de app te ontgrendelen. Wilt u doorgaan?",
+                    "title": "Biometrische authenticatie ingeschakeld"
+                }
+            },
+            "title": "Instellingen"
+        },
+        "personal": {
+            "items": {
+                "city": "Stad",
+                "companyName": "Bedrijfsnaam",
+                "country": "Land",
+                "firstName": "Voornaam",
+                "lastName": "Achternaam",
+                "postalCode": "Postcode",
+                "street": "Straat",
+                "streetNumber": "Straatnummer",
+                "vatId": "BTW-ID"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "Bewerken"
+                }
+            },
+            "title": "Persoonlijke informatie"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "De nieuwe wachtwoorden komen niet overeen.",
+                "weak": "Uw nieuwe wachtwoord is te zwak. Kies een sterker wachtwoord van minimaal 10 tekens lang, met een mix van hoofd- en kleine letters, cijfers en speciale tekens."
+            },
+            "items": {
+                "2fa": "Twee-factorenauthenticatie",
+                "biometricAuth": "Biometrische authenticatie",
+                "changePassword": "Wachtwoord wijzigen"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "Na het wijzigen van uw wachtwoord, wordt u uitgelogd en moet u opnieuw inloggen met uw nieuwe wachtwoord.",
+                    "title": "Wachtwoord wijzigen"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "Bevestig wachtwoord",
+                    "title": "Bevestig nieuw wachtwoord"
+                },
+                "currentPassword": {
+                    "placeholder": "Huidig wachtwoord",
+                    "title": "Je huidige wachtwoord"
+                },
+                "newPassword": {
+                    "placeholder": "Nieuw wachtwoord",
+                    "title": "Je nieuwe wachtwoord"
+                }
+            },
+            "title": "Beveiliging"
+        },
+        "twoFactorAuth": {
+            "copied": "Sleutel gekopieerd naar klembord",
+            "copyKey": "Sleutel kopiëren",
+            "items": {
+                "2fa": "Twee-factorenauthenticatie"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "Code",
+                    "title": "Voer code in"
+                }
+            },
+            "title": "Beveiliging"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "Annuleren",
+            "title": "Opslaan naar Filen",
+            "upload": "Uploaden"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "Annuleren",
+            "select": "Selecteer"
+        },
+        "itemInfo": {
+            "creation": "Aangemaakt",
+            "directories": "Mappen",
+            "directory": "Map",
+            "files": "Bestanden",
+            "location": "Locatie",
+            "modified": "Aangepast",
+            "name": "Naam",
+            "notAvailable": "N.V.T.",
+            "size": "Grootte",
+            "type": "Type",
+            "uploaded": "Geüpload"
+        }
+    },
+    "tabBar": {
+        "chats": "Chats",
+        "drive": "Drive",
+        "home": "Home",
+        "notes": "Notities",
+        "photos": "Foto's",
+        "settings": "Instellingen"
+    },
+    "textEditor": {
+        "header": {
+            "back": "Terug"
+        },
+        "saved": "Opgeslagen",
+        "savedSuccess": "Succesvol opgeslagen",
+        "unsavedChanges": "Niet opgeslagen wijzigingen"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "Geen track in de wachtrij",
+            "unknownArtist": "Onbekende artiest",
+            "unknownTitle": "Onbekende titel"
+        },
+        "header": {
+            "title": "Afspeellijsten"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "Aan wachtrij toevoegen",
+                "cancel": "Annuleren",
+                "delete": "Verwijderen",
+                "play": "Afspelen"
+            },
+            "subTitle": "{{count}} nummers, bijgewerkt op {{date}}"
+        },
+        "list": {
+            "empty": "Nog geen afspeellijsten",
+            "emptySearch": "Geen afspeellijsten gevonden voor deze zoekopdracht",
+            "error": "Er was een fout bij het laden van uw afspeellijsten, probeer het later opnieuw",
+            "footer": "{{count}} afspeellijsten"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "Toevoegen aan afspeellijst",
+                    "addToQueue": "Aan wachtrij toevoegen",
+                    "cancel": "Annuleren",
+                    "play": "Afspelen",
+                    "removeFromPlaylist": "Verwijderen uit afspeellijst"
+                }
+            },
+            "list": {
+                "empty": "Nog geen tracks",
+                "emptySearch": "Geen nummers gevonden voor deze zoekopdracht",
+                "error": "Er was een fout bij het laden van uw nummers, probeer het later opnieuw",
+                "footer": "{{count}} nummers"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Afspeellijst naam",
+                "title": "Afspeellijst maken"
+            },
+            "deletePlaylist": {
+                "message": "Weet u zeker dat u deze afspeellijst wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt!",
+                "title": "Afspeellijst verwijderen"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "Terug",
+            "title": "Overdrachten"
+        },
+        "info": "Overdracht van {{ongoingTransfers}} items met {{speed}}, {{remaining}} resterend",
+        "list": {
+            "empty": "Nog geen overdrachten",
+            "emptySearch": "Geen overdrachten gevonden voor deze zoekopdracht",
+            "error": "Er was een fout bij het laden van uw overdrachten, probeer het later opnieuw"
+        },
+        "noOngoingTransfers": "Geen lopende overdrachten",
+        "transfer": {
+            "cancel": "Annuleren",
+            "cancelAll": "Alles annuleren",
+            "pause": "Pauzeren",
+            "resume": "Doorgaan",
+            "stop": "Stop",
+            "stopAll": "Stop alles"
+        }
+    }
+}

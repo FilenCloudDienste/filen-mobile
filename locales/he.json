@@ -1,0 +1,1402 @@
+{
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "ביטול",
+            "okText": "אישור",
+            "title": "כותרת"
+        },
+        "exportMasterKeys": {
+            "cancelText": "מאוחר יותר",
+            "message": "לא ייצאת עדיין את המפתחות הראשיים שלך. מומלץ בחום לייצאם כעת ולאחסנם במקום בטוח.",
+            "okText": "ייצור",
+            "title": "יצוא מפתחות ראשיים"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "מאוחר יותר",
+            "message": "חרגת מהמגבלה של שטח אחסון. אנא תפנה מעט מקום או שדרג את התוכנית שלך כדי למנוע מחיקת נתונים לא רצויה.",
+            "okText": "שדרג",
+            "title": "חריגה בשימוש באחסון"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "מוצפן מקצה לקצה",
+                "second": "פלטפורמת ענן"
+            },
+            "login": "התחבר",
+            "signUp": "הירשם בחינם"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "אנא מלא את כל השדות."
+            },
+            "forgotPassword": "שכחת סיסמה?",
+            "form": {
+                "email": {
+                    "label": "כתובת דוא\"ל",
+                    "placeholder": "הזן את כתובת הדוא\"ל שלך"
+                },
+                "password": {
+                    "label": "סיסמה",
+                    "placeholder": "הזן את הסיסמה שלך"
+                }
+            },
+            "header": {
+                "cancel": "ביטול"
+            },
+            "login": "התחבר",
+            "loginUsingCreds": "היכנס באמצעות האישורים שלך",
+            "next": "הבא",
+            "signUp": "הירשם בחינם",
+            "submit": "התחבר",
+            "title": "התחבר",
+            "welcome": "ברוך שובך!"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "קוד",
+                "title": "אימות שני גורמים"
+            },
+            "forgotPassword": {
+                "placeholder": "כתובת דוא\"ל",
+                "success": "אם כתובת האימייל רשומה, תקבל מייל עם הוראות לאיפוס הסיסמה שלך.",
+                "title": "שכחת סיסמה"
+            },
+            "resendConfirmation": {
+                "placeholder": "כתובת דוא\"ל",
+                "success": "דוא\"ל אישור נשלח ל-{{email}} אם הוא רשום.",
+                "title": "שלח אישור מחדש"
+            }
+        },
+        "register": {
+            "createAccount": "צור חשבון",
+            "errors": {
+                "emailAddressesDoNotMatch": "כתובות האימייל אינן תואמות.",
+                "emptyFields": "אנא מלא את כל השדות.",
+                "passwordsDoNotMatch": "הסיסמאות אינן תואמות.",
+                "weakPassword": "הסיסמה שלך חלשה מדי. אנא בחר סיסמה חזקה יותר. כזו שהיא לפחות 10 תווים ארוכה, מכילה שילוב של אותיות גדולות וקטנות, מספרים, ותווים מיוחדים."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "אשר כתובת דוא\"ל",
+                    "placeholder": "אשר את כתובת הדוא\"ל שלך"
+                },
+                "confirmPassword": {
+                    "label": "לאשר סיסמה",
+                    "placeholder": "אשר את הסיסמה שלך"
+                },
+                "email": {
+                    "label": "כתובת דוא\"ל",
+                    "placeholder": "הזן את כתובת הדוא\"ל שלך"
+                },
+                "password": {
+                    "label": "סיסמה",
+                    "placeholder": "הזן את הסיסמה שלך"
+                }
+            },
+            "header": {
+                "cancel": "ביטול",
+                "title": "הרשמה"
+            },
+            "hero": {
+                "create": "צור חשבון חינמי שלך",
+                "description": "הגדר את האישורים שלך כדי להתחיל להשתמש בחשבון Filen שלך."
+            },
+            "next": "הבא",
+            "passwordStrength": {
+                "best": "הטוב ביותר",
+                "length": "אורך",
+                "lowercase": "אותיות קטנות",
+                "medium": "בינוני",
+                "numbers": "מספרים",
+                "specialCharacters": "תווים מיוחדים",
+                "strong": "חזק",
+                "uppercase": "אותיות גדולות",
+                "weak": "חלש"
+            },
+            "resendConfirmationEmail": "שלח מחדש דואר אלקטרוני לאישור",
+            "title": "הרשמה"
+        },
+        "registrationSuccessful": "ההרשמה הצליחה! אנא בדוק את הדוא\"ל שלך כדי לאשר את חשבונך."
+    },
+    "biometric": {
+        "appLockedFor": "האפליקציה נעולה למשך {{seconds}} שניות",
+        "authenticateUsingPin": "אמת באמצעות מספר הזיהוי האישי שלך",
+        "errors": {
+            "incorrectPin": "קוד PIN שגוי. אנא נסה שוב.",
+            "tooManyIncorrectAttempts": "יותר מדי ניסיונות לא נכונים. אנא נסה שוב מאוחר יותר."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN",
+                "title": "הזן את מספר הזיהוי האישי שלך"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "ב/ש",
+        "eib": "EiB/s",
+        "gib": "GiB/s",
+        "kib": "KiB/s",
+        "mib": "MiB/s",
+        "pib": "PiB/s",
+        "tib": "TiB/s",
+        "yib": "YiB/s",
+        "zib": "ZiB/s"
+    },
+    "chats": {
+        "chat": "צ'אט",
+        "chats": "צ'אטים",
+        "header": {
+            "newMessages": "{{count}} הודעות חדשות",
+            "search": "חפש בצ'אטים...",
+            "title": "צ'אטים"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "הוסף פריטים לכונן",
+                    "addFiles": "הוסף קבצים",
+                    "addMedia": "הוסף מדיה",
+                    "addPhotos": "הוסף תמונות",
+                    "cancel": "ביטול"
+                }
+            },
+            "placeholder": "הקלד הודעה",
+            "send": "שלח",
+            "suggestions": {
+                "emojis": {
+                    "matching": "אימוג'ים התואמים ל-{{query}}"
+                },
+                "mention": {
+                    "matching": "משתמשים התואמים ל-{{query}}"
+                },
+                "replyTo": {
+                    "replyingTo": "מגיב ל-{{name}}"
+                }
+            }
+        },
+        "item": {
+            "draft": "טיוטה",
+            "noMessages": "אין הודעות עדיין",
+            "you": "אתה"
+        },
+        "list": {
+            "empty": "לא נמצאו צ'אטים",
+            "emptySearch": "לא נמצאו צ'אטים לחיפוש זה",
+            "error": "אירעה שגיאה בטעינת הצ'אטים שלך, אנא נסה שוב מאוחר יותר"
+        },
+        "menu": {
+            "archive": "ארכיון",
+            "delete": "מחק",
+            "favorite": "מועדף",
+            "leave": "עזוב",
+            "markAsRead": "סמן כנקרא",
+            "mute": "השתק",
+            "muted": "מושתק",
+            "participants": "משתתפים",
+            "pin": "נעץ",
+            "rename": "שנה שם",
+            "unarchive": "בטל שמירה בארכיון",
+            "unfavorite": "הסר ממועדפים",
+            "unmute": "בטל השתקה",
+            "unpin": "בטל הצמדה"
+        },
+        "messages": {
+            "everyone": "כולם",
+            "menu": {
+                "cancel": "ביטול",
+                "copyId": "העתק מזהה (ID)",
+                "copyText": "העתק טקסט",
+                "delete": "מחק",
+                "disableEmbeds": "השבת הטמעות",
+                "edit": "ערוך",
+                "reply": "השב"
+            },
+            "new": "חדש",
+            "time": {
+                "hourAgo": "לפני {{hours}} שעה",
+                "hoursAgo": "לפני {{hours}} שעות",
+                "minuteAgo": "לפני {{minutes}} דקה",
+                "minutesAgo": "לפני {{minutes}} דקות",
+                "now": "עכשיו",
+                "secondAgo": "לפני {{seconds}} שניה",
+                "secondsAgo": "לפני {{seconds}} שניות",
+                "todayAt": "היום ב-{{date}}",
+                "yesterdayAt": "אתמול ב-{{date}}"
+            },
+            "undecryptable": "לא ניתן לפענח את ההודעה.",
+            "unknown": "לא ידוע"
+        },
+        "participants": {
+            "menu": {
+                "remove": "הסר"
+            },
+            "participant": "משתתף",
+            "participants": "משתתפים",
+            "prompts": {
+                "remove": {
+                    "message": "האם אתה בטוח שברצונך להסיר משתתף זה? הם לא יוכלו עוד לראות או לשלוח הודעות בשיחה זו.",
+                    "success": "{{name}} הוסר",
+                    "title": "הסר משתתף"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "האם אתה בטוח שברצונך למחוק את הצ'אט הזה? הדבר יסיר את הצ'אט מהרשימה שלך ולא תוכל יותר לראות או לשלוח הודעות בצ'אט זה.",
+                "title": "מחק שיחה"
+            },
+            "deleteChats": {
+                "message": "האם אתה בטוח שברצונך למחוק {{count}} צ'אטים? הדבר יסיר את הצ'אטים מהרשימה שלך ולא תוכל יותר לראות או לשלוח הודעות בצ'אטים אלה.",
+                "title": "מחק שיחות"
+            },
+            "deleteMessage": {
+                "message": "האם אתה בטוח שברצונך למחוק הודעה זו? פעולה זו לא ניתנת לביטול!",
+                "title": "מחק הודעה"
+            },
+            "disableEmbeds": {
+                "message": "האם אתה בטוח שברצונך להשבית הטמעת תוכן להודעה זו? זה יסיר תוכן מוחדר.",
+                "title": "השבת הטמעות"
+            },
+            "leaveChat": {
+                "message": "אתה בטוח שברצונך לעזוב את השיחה הזו? לא תוכל עוד לראות או לשלוח הודעות בשיחה זו.",
+                "title": "עזוב שיחה"
+            },
+            "leaveChats": {
+                "message": "האם אתה בטוח שברצונך לעזוב {{count}} שיחות? לא תוכל עוד לראות או לשלוח הודעות בשיחות אלה.",
+                "title": "עזוב שיחות"
+            },
+            "renameChat": {
+                "placeholder": "שם חדש",
+                "title": "שנה שם שיחה"
+            }
+        },
+        "typing": "{{users}} מקלידים..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "קבל",
+            "block": "חסום",
+            "cancel": "ביטול",
+            "decline": "דחה",
+            "remove": "הסר",
+            "unblock": "בטל חסימה"
+        }
+    },
+    "copiedToClipboard": "הועתק ללוח הגזירים",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "ביטול",
+                    "create": {
+                        "created": "{{name}} נוצר",
+                        "directory": "צור תיקייה",
+                        "photo": "צלם תמונה",
+                        "textFile": "צור קובץ טקסט"
+                    },
+                    "directoryNamePlaceholder": "שם ספריה",
+                    "itemsUploaded": "{{count}} פריטים הועלו",
+                    "noMediaPermissions": "אתה צריך להעניק הרשאות מדיה להעלאת תמונות או סרטונים.",
+                    "textFileNamePlaceholder": "שם קובץ טקסט",
+                    "upload": {
+                        "directory": "תיקיית העלאה",
+                        "files": "העלה קבצים",
+                        "media": "העלה מדיה",
+                        "uploaded": "{{name}} העלה"
+                    }
+                },
+                "deselectAll": "בטל בחירה הכל",
+                "dropdown": {
+                    "bulkActions": "פעולות מרובות",
+                    "gridMode": "צפה כגריד",
+                    "listMode": "הצג כ רשימה",
+                    "sortBy": {
+                        "ascending": "עולה",
+                        "descending": "יורד",
+                        "lastModified": {
+                            "ascendingTitle": "הראשון קודם",
+                            "descendingTitle": "האחרון קודם",
+                            "title": "שונה לאחרונה"
+                        },
+                        "name": {
+                            "ascendingTitle": "א' עד ת'",
+                            "descendingTitle": "מ- Z ל-A",
+                            "title": "שם"
+                        },
+                        "size": {
+                            "ascendingTitle": "הקטן ביותר קודם",
+                            "descendingTitle": "הגדול ביותר קודם",
+                            "title": "גודל"
+                        },
+                        "sortBy": "מיין לפי",
+                        "type": {
+                            "ascendingTitle": "עולה",
+                            "descendingTitle": "יורד",
+                            "title": "סוג"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "הראשון קודם",
+                            "descendingTitle": "האחרון קודם",
+                            "title": "תאריך העלאה"
+                        }
+                    },
+                    "transfers": "העברות"
+                },
+                "selectAll": "בחר הכל"
+            },
+            "title": {
+                "drive": "כונן",
+                "favorites": "מועדפים",
+                "links": "קישורים ציבוריים",
+                "offline": "זמין במצב לא מקוון",
+                "recents": "אחרונים",
+                "selected": "{{count}} נבחר",
+                "sharedIn": "שיתוף איתך",
+                "sharedOut": "שותף עם אחרים",
+                "trash": "אשפה"
+            }
+        },
+        "itemShared": "{{name}} שותף",
+        "itemSharedWith": "{{name}} שותף עם {{email}}",
+        "list": {
+            "empty": "לא נמצאו פריטים",
+            "emptySearch": "לא נמצאו פריטים לחיפוש זה",
+            "error": "אירעה שגיאה בטעינת הכונן שלך, אנא נסה שוב מאוחר יותר",
+            "footer": "{{count}} פריטים",
+            "item": {
+                "menu": {
+                    "availableOffline": "זמין במצב לא מקוון",
+                    "clipboard": "לוח גזירים",
+                    "color": "צבע",
+                    "copy": "העתק",
+                    "copyId": "העתק מזהה (ID)",
+                    "copyPath": "העתק נתיב",
+                    "delete": "מחק",
+                    "deletePermanently": "מחק לצמיתות",
+                    "deselect": "בטל בחירה",
+                    "deselectAll": "בטל בחירה הכל",
+                    "disablePublicLink": "השבת קישור",
+                    "download": "הורד",
+                    "downloadFolder": "תיקיית הורדה",
+                    "export": "ייצור",
+                    "favorite": "מועדף",
+                    "favorite_one": "סמן כמועדף",
+                    "favorite_other": "סמן כמועדף {{count}} פריטים",
+                    "favorited": "מועדף",
+                    "id": "מזהה (ID)",
+                    "info": "מידע",
+                    "location": "מיקום",
+                    "makeAvailableOffline": "אפשר במצב לא מקוון",
+                    "move": "העבר",
+                    "move_one": "העבר פריט",
+                    "move_other": "העבר {{count}} פריטים",
+                    "open": "פתח",
+                    "path": "נתיב",
+                    "preview": "תצוגה מקדימה",
+                    "properties": "מאפיינים",
+                    "publicLink": "קישור ציבורי",
+                    "removeOffline": "הסר קובץ לא מקוון",
+                    "removeSharedIn": "הסר",
+                    "removeSharedOut": "הפסק שיתוף",
+                    "rename": "שנה שם",
+                    "restore": "שחזר",
+                    "saveToGallery": "שמור בגלריה",
+                    "select": "בחר",
+                    "selectAll": "בחר הכל",
+                    "share": "שתף",
+                    "share_one": "שתף פריט",
+                    "share_other": "שתף {{count}} פריטים",
+                    "trash": "אשפה",
+                    "trash_one": "פריט בסל",
+                    "trash_other": "העבר לאשפה {{count}} פריטים",
+                    "unfavorite": "הסר ממועדפים",
+                    "versionHistory": "היסטוריית גרסאות",
+                    "withUser": "עם משתמש"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "האם אתה בטוח שברצונך למחוק {{count}} פריטים לצמיתות? פעולה זו לא ניתנת לביטול!",
+                "title": "מחק לצמיתות"
+            },
+            "deletePermanently": {
+                "message": "האם אתה בטוח שברצונך למחוק פריט זה לצמיתות? פעולה זו לא ניתנת לביטול!",
+                "title": "מחק לצמיתות"
+            },
+            "disablePublicLinks": {
+                "message": "האם אתה בטוח שברצונך להשבית קישורים ציבוריים עבור {{count}} פריטים? הקישורים לא יהיו זמינים יותר.",
+                "title": "השבת קישורים ציבוריים"
+            },
+            "removeOfflineFiles": {
+                "message": "האם אתה בטוח שברצונך להסיר {{count}} קבצים לא מקוונים? הם לא יהיו זמינים יותר לא מקוון.",
+                "title": "הסר קבצים לא מקוונים"
+            },
+            "removeSharedInItem": {
+                "message": "האם אתה בטוח שברצונך להסיר פריט זה מהמשותפים שלך? לא תוכל עוד לראות או לגשת אליו.",
+                "title": "הסר"
+            },
+            "removeSharedInItems": {
+                "message": "האם אתה בטוח שברצונך להסיר {{count}} פריטים מהמשותפים שלך? לא תוכל עוד לראות או לגשת אליהם.",
+                "title": "הסר"
+            },
+            "removeSharedOutItem": {
+                "message": "האם אתה בטוח שברצונך להפסיק לשתף פריט זה? המשתמש לא יוכל לגשת אליו יותר.",
+                "title": "הפסק שיתוף"
+            },
+            "removeSharedOutItems": {
+                "message": "האם אתה בטוח שברצונך להפסיק לשתף {{count}} פריטים? המשתמשים לא יוכלו לגשת אליהם יותר.",
+                "title": "הפסק שיתוף"
+            },
+            "renameItem": {
+                "placeholder": "שם חדש",
+                "title": "שנה שם"
+            },
+            "trashItem": {
+                "message": "האם אתה בטוח שברצונך להעביר את הפריט הזה לאשפה? תוכל לשחזר אותו מאוחר יותר.",
+                "title": "העבר לאשפה"
+            },
+            "trashItems": {
+                "message": "האם אתה בטוח שברצונך להעביר {{count}} פריטים לאשפה? תוכל לשחזר אותם מאוחר יותר.",
+                "title": "העבר לאשפה"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "לא נמצאו פריטים",
+                "emptySearch": "לא נמצאו פריטים לחיפוש זה",
+                "error": "אירעה שגיאה בטעינת תוצאות החיפוש, אנא נסה שוב מאוחר יותר",
+                "footer": "{{count}} פריטים"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "ביטול",
+        "items": {
+            "downloadButton": "לחצן הורדה",
+            "edit": "ערוך",
+            "enabled": "מופעל",
+            "expiration": "תפוגה",
+            "expiration12h": "12 שעות",
+            "expiration14d": "14 ימים",
+            "expiration1d": "יום אחד",
+            "expiration1h": "1 שעה",
+            "expiration30d": "30 ימים",
+            "expiration3d": "3 ימים",
+            "expiration6h": "6 שעות",
+            "expiration7d": "7 ימים",
+            "expirationNever": "אף פעם",
+            "password": "סיסמה"
+        },
+        "onlyPro": "תכונה זו זמינה רק למשתמשי Filen Pro. הירשם לכל תוכנית של Filen כדי להפעיל אותה.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "השאר ריק כדי להסיר את הסיסמה",
+                "title": "ערוך סיסמה"
+            }
+        },
+        "shareDialogTile": "קישור ציבורי של Filen",
+        "title": "ערוך קישור ציבורי",
+        "unsavedChanges": "שינויים לא נשמרו"
+    },
+    "errors": {
+        "cannotOpenURL": "לא ניתן לפתוח את ה-URL.",
+        "notEnoughDiskSpace": "אין מספיק מקום בדיסק המקומי.",
+        "sharingNotAvailable": "שיתוף אינו זמין במכשיר זה.",
+        "youAreOffline": "אתה כרגע לא מחובר לאינטרנט. אנא בדוק את החיבור שלך לרשת."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "ביטול",
+                "confirm": "מחק",
+                "message": "האם אתה בטוח שברצונך למחוק גרסה זו? פעולה זו לא ניתנת לביטול!",
+                "title": "מחק גרסה"
+            },
+            "restore": {
+                "cancel": "ביטול",
+                "confirm": "שחזר",
+                "message": "האם אתה בטוח שברצונך לשחזר גרסה זו? זה יחליף את הקובץ הנוכחי.",
+                "title": "שחזר גרסה"
+            }
+        },
+        "header": {
+            "title": "היסטוריית גרסאות"
+        },
+        "list": {
+            "empty": "אין גרסאות עדיין",
+            "emptySearch": "לא נמצאו גרסאות לחיפוש זה",
+            "error": "אירעה שגיאה בטעינת גרסאות הקבצים, אנא נסה שוב מאוחר יותר",
+            "item": {
+                "current": "נוכחי",
+                "delete": "מחק",
+                "restore": "שחזר"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "Bytes",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiB",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "אין תצוגה מקדימה זמינה"
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "מועדפים"
+            },
+            "links": {
+                "title": "קישורים ציבוריים"
+            },
+            "offline": {
+                "title": "זמין במצב לא מקוון"
+            },
+            "recents": {
+                "title": "אחרונים"
+            },
+            "sharedIn": {
+                "title": "שיתוף איתך"
+            },
+            "sharedOut": {
+                "title": "שותף עם אחרים"
+            },
+            "trash": {
+                "title": "אשפה"
+            }
+        },
+        "listEmpty": {
+            "favorites": "אין עדיין מועדפים",
+            "links": "אין קישורים ציבוריים עדיין",
+            "offline": "אין פריטים לא מקוונים עדיין",
+            "recents": "אין עדיין פריטים אחרונים",
+            "sharedIn": "אין פריטים משותפים עדיין",
+            "sharedOut": "אין פריטים משותפים עדיין",
+            "trash": "אין פריטים בפח עדיין"
+        },
+        "title": "בית"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "ביטול",
+            "okText": "אישור",
+            "title": "כותרת"
+        }
+    },
+    "listEmpty": {
+        "empty": "לא נמצא דבר",
+        "emptySearch": "לא נמצא דבר לחיפוש זה",
+        "error": "אירעה שגיאה, אנא נסה שנית מאוחר יותר"
+    },
+    "localAuthentication": {
+        "cancelLabel": "ביטול",
+        "promptMessage": "התחבר כדי להמשיך"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "כתוב כאן את הקוד שלך...",
+                "text": "כתוב כאן את הטקסט שלך..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "בטל בחירה הכל",
+                    "selectAll": "בחר הכל"
+                },
+                "types": {
+                    "checklist": "רשימת תיוג",
+                    "code": "קוד",
+                    "markdown": "Markdown",
+                    "rich": "טקסט עשיר",
+                    "text": "טקסט"
+                }
+            },
+            "menu": {
+                "settings": "הגדרות"
+            },
+            "selected": "{{count}} נבחר",
+            "title": "הערות"
+        },
+        "history": {
+            "list": {
+                "empty": "אין היסטוריה זמינה",
+                "emptySearch": "לא נמצא רישום לחיפוש זה",
+                "error": "אירעה שגיאה בטעינת ההיסטוריה, אנא נסה שוב מאוחר יותר",
+                "footer": "{{count}} פריטים"
+            },
+            "noPreview": "אין תצוגה מקדימה זמינה",
+            "prompts": {
+                "restore": {
+                    "message": "האם אתה בטוח שברצונך לשחזר הערה זו? זה יחליף את ההערה הנוכחית.",
+                    "title": "שחזר הערה"
+                }
+            },
+            "restore": "שחזר",
+            "title": "היסטוריה"
+        },
+        "list": {
+            "empty": "אין עדיין הערות",
+            "emptySearch": "לא נמצאה הערה לחיפוש זה",
+            "error": "אירעה שגיאה בטעינת ההערות שלך, אנא נסה שוב מאוחר יותר",
+            "footer": "{{count}} פריטים"
+        },
+        "menu": {
+            "archive": "ארכיון",
+            "clipboard": "לוח גזירים",
+            "copyId": "העתק מזהה (ID)",
+            "delete": "מחק",
+            "deselect": "בטל בחירה",
+            "duplicate": "משכפל",
+            "export": "ייצור",
+            "favorite": "מועדף",
+            "favorited": "מועדף",
+            "history": "היסטוריה",
+            "leave": "עזוב",
+            "participants": "משתתפים",
+            "pin": "נעץ",
+            "pinned": "נעוץ",
+            "preview": "תצוגה מקדימה",
+            "rename": "שנה שם",
+            "restore": "שחזר",
+            "select": "בחר",
+            "tags": "תוויות",
+            "trash": "אשפה",
+            "type": "סוג",
+            "types": {
+                "checklist": "רשימת תיוג",
+                "code": "קוד",
+                "md": "Markdown",
+                "rich": "טקסט עשיר",
+                "text": "טקסט"
+            },
+            "unfavorite": "הסר ממועדפים",
+            "unpin": "בטל הצמדה"
+        },
+        "participants": {
+            "list": {
+                "empty": "אין עדיין משתתפים",
+                "emptySearch": "לא נמצא משתתף לחיפוש זה",
+                "error": "אירעה שגיאה בטעינת המשתתפים, אנא נסה שוב מאוחר יותר",
+                "footer": "{{count}} משתתפים"
+            },
+            "menu": {
+                "permissionsWrite": "הרשאות כתיבה",
+                "remove": "הסר"
+            },
+            "title": "משתתפים"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "כותרת הערה",
+                "title": "צור הערה"
+            },
+            "createTag": {
+                "placeholder": "שם תג",
+                "title": "צור תג"
+            },
+            "deleteNote": {
+                "message": "האם אתה בטוח שברצונך למחוק הערה זו לצמיתות? פעולה זו לא ניתנת לביטול!",
+                "title": "מחק הערה"
+            },
+            "deleteNotes": {
+                "message": "האם אתה בטוח שברצונך למחוק {{count}} הערות לצמיתות? פעולה זו לא ניתנת לביטול!",
+                "title": "מחק הערות"
+            },
+            "deleteTag": {
+                "message": "האם אתה בטוח שברצונך למחוק תג זה? פעולה זו לא ניתנת לביטול!",
+                "title": "מחק תגית"
+            },
+            "deleteTags": {
+                "message": "האם אתה בטוח שברצונך למחוק {{count}} תגים? פעולה זו לא ניתנת לביטול!",
+                "title": "מחק תגיות"
+            },
+            "leaveNote": {
+                "message": "האם אתה בטוח שברצונך לעזוב את ההערה הזו? לא תוכל עוד לראות או לערוך אותה.",
+                "title": "עזוב הערה"
+            },
+            "leaveNotes": {
+                "message": "האם אתה בטוח שברצונך לעזוב {{count}} הערות? לא תוכל עוד לראות או לערוך אותן.",
+                "title": "עזוב הערות"
+            },
+            "removeParticipant": {
+                "message": "האם אתה בטוח שברצונך להסיר משתתף זה? הם לא יוכלו עוד לראות או לערוך את ההערה הזו.",
+                "title": "הסר משתתף"
+            },
+            "removeParticipants": {
+                "message": "האם אתה בטוח שברצונך להסיר {{count}} משתתפים? הם לא יוכלו עוד לראות או לערוך את ההערות האלה.",
+                "title": "הסר משתתפים"
+            },
+            "renameNote": {
+                "placeholder": "שם חדש",
+                "title": "שנה שם הערה"
+            },
+            "renameTag": {
+                "placeholder": "שם תג חדש",
+                "title": "שנה שם תג"
+            },
+            "trashNote": {
+                "message": "האם אתה בטוח שברצונך להעביר את ההערה הזו לאשפה? תוכל לשחזר אותה מאוחר יותר.",
+                "title": "העבר לאשפה"
+            },
+            "trashNotes": {
+                "message": "האם אתה בטוח שברצונך להעביר {{count}} הערות לאשפה? תוכל לשחזר אותן מאוחר יותר.",
+                "title": "העבר לאשפה"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "מחק",
+                "favorited": "מועדף",
+                "rename": "שנה שם"
+            },
+            "names": {
+                "all": "הכל",
+                "archived": "מאורכב",
+                "favorited": "מועדף",
+                "pinned": "נעוץ",
+                "shared": "משותף",
+                "trash": "אשפה"
+            }
+        },
+        "title": "הערות"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "ביטול",
+            "placeholder": "חיפוש..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "מצב לא מקוון"
+    },
+    "photos": {
+        "header": {
+            "selected": "{{count}} נבחר"
+        },
+        "list": {
+            "empty": "אין עדיין תמונות",
+            "emptySearch": "לא נמצאו תמונות לחיפוש זה",
+            "error": "אירעה שגיאה בטעינת התמונות שלך, אנא נסה שוב מאוחר יותר"
+        },
+        "menu": {
+            "settings": "הגדרות"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} פריטים"
+                },
+                "list": {
+                    "empty": "לא נמצאו אלבומים",
+                    "emptySearch": "לא נמצאו אלבומים לחיפוש זה",
+                    "error": "אירעה שגיאה בטעינת האלבומים שלך, אנא נסה שוב מאוחר יותר"
+                },
+                "title": "אלבומים"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "אתה צריך להעניק הרשאות מדיה כדי לגשת לתמונות שלך."
+                },
+                "items": {
+                    "albums": "אלבומים",
+                    "albumsInfo": "בחר אילו אלבומים לכלול בהעלאת מצלמה.",
+                    "background": "רקע",
+                    "backgroundInfo": "אפשר העלאת מצלמה ברקע. זה יכול לגרום לשימוש גבוה בסוללה. העלאות רקע כוללות רק תמונות. פועל רק כאשר האפליקציה לא נסגרת בכוח.",
+                    "cellular": "סלולרי",
+                    "cellularInfo": "אפשר העלאת מצלמה דרך נתונים סלולריים. זה יכול להוביל לשימוש גבוה בנתונים.",
+                    "cloudDirectory": "תיקיית ענן",
+                    "cloudDirectoryNotSet": "לא מוגדר",
+                    "compress": "כווץ",
+                    "compressInfo": "כווץ תמונות כדי לחסוך מקום אחסון. פעולה זו עשויה להפחית את איכות התמונות. דחיסת JPG באיכות של 80%.",
+                    "enabled": "מופעל",
+                    "lowBattery": "סוללה נמוכה",
+                    "lowBatteryInfo": "השבת העלאת מצלמה כשסוללה נמוכה.",
+                    "permissionsError": "שגיאת הרשאות",
+                    "permissionsErrorInfo": "אנא אפשר לאפליקציה גישה לתמונות ולסרטונים שלך בהגדרות המערכת.",
+                    "videos": "סרטונים",
+                    "videosInfo": "כלול סרטונים בהעלאת המצלמה."
+                },
+                "title": "הגדרות"
+            }
+        },
+        "state": {
+            "synced": "סונכרן",
+            "syncing": "סנכרון",
+            "syncingProgress": "{{done}} מתוך {{total}} פריטים סונכרנו"
+        },
+        "title": "תמונות"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "ביטול",
+            "done": "בוצע",
+            "selectContact": "בחר איש קשר",
+            "selectContacts": "בחר אנשי קשר"
+        },
+        "list": {
+            "empty": "אין עדיין אנשי קשר",
+            "emptySearch": "לא נמצאו אנשי קשר לחיפוש זה",
+            "error": "אירעה שגיאה בטעינת אנשי הקשר שלך, אנא נסה שוב מאוחר יותר",
+            "footer": "{{count}} אנשי קשר"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} נבחר"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "ביטול",
+            "done": "בוצע",
+            "drive": "כונן",
+            "selectDirectories": "בחר ספריות",
+            "selectDirectory": "בחר ספריה",
+            "selectFile": "בחר קובץ",
+            "selectFiles": "בחר קבצים",
+            "selectItem": "בחר פריט",
+            "selectItems": "בחר פריטים",
+            "selectRoot": "בחר כונן ענן"
+        },
+        "list": {
+            "empty": "שום דבר לא הועלה עדיין",
+            "emptySearch": "לא נמצאו פריטים לחיפוש זה",
+            "error": "אירעה שגיאה בטעינת הקבצים שלך, אנא נסה שוב מאוחר יותר",
+            "footer": "{{count}} פריטים"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "שם ספריה",
+                "success": "{{name}} נוצר",
+                "title": "צור תיקייה"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} נבחר"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "ביטול",
+            "done": "בוצע",
+            "selectPlaylist": "בחר רשימת השמעה",
+            "selectPlaylists": "בחר רשימות השמעה"
+        },
+        "item": {
+            "subTitle": "{{count}} מסלולים, עודכן {{date}}"
+        },
+        "list": {
+            "empty": "אין רשימות השמעה עדיין",
+            "emptySearch": "לא נמצאו רשימות השמעה לחיפוש זה",
+            "error": "אירעה שגיאה בטעינת הפלייליסטים שלך, אנא נסה שוב מאוחר יותר",
+            "footer": "{{count}} רשימות השמעה"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "שם רשימת השמעה",
+                "title": "צור פלייליסט"
+            }
+        },
+        "selected": "{{countOrName}} נבחר",
+        "toolbar": {
+            "selected": "{{countOrName}} נבחר"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "גודל תמונת האבטאר חורג מהמגבלה של 3 מגה-בית.",
+                "emailsNotMatching": "כתובות האימייל החדשות אינן תואמות."
+            },
+            "items": {
+                "changeAvatar": "שנה דמות",
+                "deleteAllFilesAndDirectories": "מחק את כל הקבצים והתיקיות",
+                "deleteVersionedFiles": "מחק קבצים מהודרים",
+                "emailAddress": "כתובת דוא\"ל",
+                "fileVersioning": "נשמרת גרסת קובץ",
+                "fileVersioningInfo": "אפשר גרסאות קבצים כדי לעקוב אחר השינויים שבוצעו בקבצים שלך.",
+                "gdpr": "מידע GDPR",
+                "loginAlerts": "התראות כניסה",
+                "loginAlertsInfo": "קבל התראות כאשר יש גישה לחשבון שלך.",
+                "logout": "התנתק",
+                "more": "הגדרות חשבון נוספות",
+                "nickname": "כינוי",
+                "personalInformation": "מידע אישי",
+                "requestAccountDeletion": "בקש מחיקת חשבון",
+                "requestAccountDeletionInfo": "בקש מחיקת חשבון. נשלח לך אימייל עם הוראות נוספות."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "קוד",
+                    "title": "אימות שני גורמים"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "אשר כתובת דוא\"ל חדשה",
+                        "title": "אשר כתובת דוא\"ל חדשה"
+                    },
+                    "newEmail": {
+                        "placeholder": "כתובת אימייל חדשה",
+                        "title": "כתובת אימייל חדשה"
+                    },
+                    "password": {
+                        "placeholder": "סיסמה",
+                        "title": "הסיסמה שלך"
+                    }
+                },
+                "deleteAccount": {
+                    "message": "האם אתה בטוח שברצונך לבקש מחיקת חשבון? תקבל דוא\"ל עם הוראות נוספות.",
+                    "title": "בקש מחיקת חשבון"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "האם אתה בטוח שברצונך למחוק את כל הקבצים והתיקיות? פעולה זו לא ניתנת לביטול!",
+                    "title": "מחק את כל הקבצים והתיקיות"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "האם אתה בטוח באמת? לא ניתן לבטל פעולה זו!",
+                    "title": "מחק את כל הקבצים והתיקיות"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "האם אתה בטוח שברצונך למחוק את כל הקבצים הגרסיים? פעולה זו לא ניתנת לביטול!",
+                    "title": "מחק קבצים מהודרים"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "האם אתה בטוח באמת? לא ניתן לבטל פעולה זו!",
+                    "title": "מחק קבצים מהודרים"
+                },
+                "logout": {
+                    "message": "האם אתה בטוח שברצונך להתנתק? תצטרך להתחבר שוב כדי לגשת לחשבונך.",
+                    "title": "התנתק"
+                },
+                "more": {
+                    "message": "זמינות הגדרות נוספות באפליקציית האינטרנט. האם תרצה לפתוח אותה עכשיו?",
+                    "title": "פתח את האפליקציה באינטרנט"
+                },
+                "updateNickname": {
+                    "placeholder": "כינוי חדש",
+                    "title": "עדכן כינוי"
+                }
+            },
+            "title": "חשבון"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "נקה מטמון",
+                "clearOfflineFiles": "נקה קבצים לא מקוונים",
+                "clearThumbnails": "נקה תמונות ממוזערות",
+                "clearTrackPlayer": "נקה את נגן השירים"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "ניקוי המטמון יסיר קבצים זמניים. זה עלול להפריע להעלאות או להורדות מתבצעות. האם אתה בטוח שברצונך להמשיך?",
+                    "title": "נקה מטמון"
+                },
+                "clearOfflineFiles": {
+                    "message": "ניקוי קבצים לא מקוונים יסיר את כל הקבצים הזמינים לא מקוונים. האם אתה בטוח שברצונך להמשיך?",
+                    "title": "נקה קבצים לא מקוונים"
+                },
+                "clearThumbnails": {
+                    "message": "ניקוי התמונות הממוזערות יגרום לאפליקציה להוריד מחדש כל תמונה ממוזערת גלויה. האם אתה בטוח שברצונך להמשיך?",
+                    "title": "נקה תמונות ממוזערות"
+                },
+                "clearTrackPlayer": {
+                    "message": "ניקוי המטמון של נגן השירים מסיר שירים ותמונות שמורים במטמון. זה יכול להוביל לזמני טעינה ארוכים יותר. האם אתה בטוח שברצונך להמשיך?",
+                    "title": "נקה את נגן השירים"
+                }
+            },
+            "title": "מתקדם"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "אימות ביומטרי אינו זמין במכשיר זה. אנא הפעל אימות באמצעות מספר זיהוי אישי בלבד או השתמש במכשיר עם תמיכה באימות ביומטרי.",
+                "pinNotMatching": "ה-PIN החלופי אינו תואם.",
+                "pinTooLong": "ה-PIN החלופי לא יכול להיות יותר מ-128 ספרות.",
+                "pinTooShort": "קוד הגיבוי חייב להיות באורך מינימום של 4 ספרות."
+            },
+            "items": {
+                "biometricAuth": "אימות ביומטרי",
+                "lockAppAfter": "נעל את האפליקציה לאחר",
+                "pinOnly": "רק PIN"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15 דקות",
+                "fiveMinutes": "5 דקות",
+                "immediately": "מיד",
+                "minutes": "{{minutes}} דקות",
+                "never": "אף פעם",
+                "oneHour": "1 שעה",
+                "oneMinute": "1 דקות",
+                "tenMinutes": "10 דקות",
+                "thirtyMinutes": "30 דקות"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "האם אתה בטוח שברצונך להשבית את האימות הביומטרי?",
+                    "title": "השבת אימות ביומטרי"
+                },
+                "documentsProvider": {
+                    "message": "הפעלת אימות ביומטרי תבטל את ספק המסמכים. משמעות הדבר היא שלא תוכל לגשת לקבצים שלך באפליקציות אחרות באמצעות ספק המסמכים של Filen. האם אתה רוצה להמשיך?",
+                    "title": "ספק המסמכים מופעל"
+                },
+                "enable": {
+                    "placeholder": "קוד גיבוי",
+                    "title": "הגדר קוד PIN חלופי"
+                },
+                "enableConfirm": {
+                    "placeholder": "אשר מספר זיהוי אישי",
+                    "title": "אשר קוד PIN חלופי"
+                },
+                "fileProvider": {
+                    "message": "הפעלת אימות ביומטרי תבטל את ספק הקבצים. משמעות הדבר היא שלא תוכל לגשת לקבצים שלך באפליקציות אחרות באמצעות ספק הקבצים של Filen. האם אתה רוצה להמשיך?",
+                    "title": "ספק הקבצים מופעל"
+                }
+            },
+            "title": "אבטחה"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "לא נמצאו אנשי קשר",
+                    "emptySearch": "לא נמצאו אנשי קשר לחיפוש זה",
+                    "error": "אירעה שגיאה בטעינת אנשי הקשר שלך, אנא נסה שוב מאוחר יותר"
+                },
+                "blocked": {
+                    "empty": "לא נמצאו אנשי קשר חסומים",
+                    "emptySearch": "לא נמצאו אנשי קשר חסומים לחיפוש זה",
+                    "error": "אירעה שגיאה בטעינת אנשי הקשר שלך, אנא נסה שוב מאוחר יותר"
+                },
+                "offline": {
+                    "empty": "לא נמצאו אנשי קשר לא מקוונים",
+                    "emptySearch": "לא נמצאו אנשי קשר לא מקוונים לחיפוש זה",
+                    "error": "אירעה שגיאה בטעינת אנשי הקשר שלך, אנא נסה שוב מאוחר יותר"
+                },
+                "online": {
+                    "empty": "לא נמצאו אנשי קשר מקוונים",
+                    "emptySearch": "לא נמצאו אנשי קשר מחוברים לחיפוש זה",
+                    "error": "אירעה שגיאה בטעינת אנשי הקשר שלך, אנא נסה שוב מאוחר יותר"
+                },
+                "pending": {
+                    "empty": "לא נמצאו בקשות יצירת קשר",
+                    "emptySearch": "לא נמצאו בקשות יצירת קשר לחיפוש זה",
+                    "error": "אירעה שגיאה בטעינת בקשות אנשי הקשר שלך, אנא נסה שוב מאוחר יותר"
+                },
+                "requests": {
+                    "empty": "לא נמצאו בקשות יצירת קשר",
+                    "emptySearch": "לא נמצאו בקשות יצירת קשר לחיפוש זה",
+                    "error": "אירעה שגיאה בטעינת בקשות אנשי הקשר שלך, אנא נסה שוב מאוחר יותר"
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "האם אתה בטוח שברצונך לחסום את איש הקשר הזה?",
+                    "success": "{{email}} נחסם",
+                    "title": "חסום איש קשר"
+                },
+                "blockContacts": {
+                    "message": "האם אתה בטוח שברצונך לחסום {{count}} אנשי קשר?",
+                    "success": "{{count}} אנשי קשר נחסמו",
+                    "title": "חסום אנשי קשר"
+                },
+                "removeContact": {
+                    "message": "האם אתה בטוח שברצונך להסיר את איש הקשר הזה?",
+                    "success": "{{email}} הוסר",
+                    "title": "הסר איש קשר"
+                },
+                "removeContacts": {
+                    "message": "האם אתה בטוח שברצונך להסיר {{count}} אנשי קשר?",
+                    "success": "{{count}} אנשי קשר הוסרו",
+                    "title": "הסר אנשי קשר"
+                },
+                "sendRequest": {
+                    "placeholder": "כתובת אימייל של Filen",
+                    "success": "בקשת יצירת קשר נשלחה ל-{{email}}",
+                    "title": "שלח בקשת קשר"
+                },
+                "unblockContact": {
+                    "message": "האם אתה בטוח שברצונך לבטל את חסימת איש הקשר הזה?",
+                    "success": "{{email}} שוחרר מהחסימה",
+                    "title": "בטל חסימת איש קשר"
+                },
+                "unblockContacts": {
+                    "message": "האם אתה בטוח שברצונך לבטל את חסימת {{count}} אנשי קשר?",
+                    "success": "{{count}} אנשי קשר שוחררו",
+                    "title": "בטל חסימת אנשי קשר"
+                }
+            },
+            "tabs": {
+                "all": "הכל",
+                "blocked": "חסום",
+                "offline": "מנותק",
+                "online": "מחובר",
+                "pending": "בהמתנה",
+                "requests": "בקשות"
+            },
+            "title": "אנשי קשר"
+        },
+        "events": {
+            "event": "אירוע",
+            "eventInfo": {
+                "2faDisabled": "אימות שני גורמים כבוי",
+                "2faEnabled": "אימות שני גורמים מופעל",
+                "baseFolderCreated": "תיקיית בסיס נוצרה",
+                "codeRedeemed": "קוד \"{{code}}\" מומש",
+                "deleteAll": "כל המדריכים והקבצים נמחקו לצמיתות",
+                "deleteFilePermanently": "{{name}} נמחק לצמיתות",
+                "deleteFolderPermanently": "{{name}} נמחק לצמיתות",
+                "deleteUnfinished": "העלאות שלא הסתיימו נמחקו",
+                "deleteVersioned": "כל הקבצים המהודרים נמחקו",
+                "emailChangeAttempt": "ניסיון שינוי דואר אלקטרוני",
+                "emailChanged": "הדוא\"ל שונה",
+                "failedLogin": "ניסיון כניסה כושל",
+                "fileLinkEdited": "הקישור הציבורי עבור {{name}} נערך",
+                "fileMetadataChanged": "המטאדאטה עבור {{name}} שונתה",
+                "fileMoved": "{{name}} הועבר",
+                "fileRenamed": "{{oldName}} שונה ל-{{newName}}",
+                "fileRestored": "{{name}} שוחזר",
+                "fileRm": "{{name}} נמחק",
+                "fileShared": "{{name}} שותף עם {{email}}",
+                "fileTrash": "{{name}} הועבר לאשפה",
+                "fileUploaded": "{{name}} העלה",
+                "fileVersioned": "{{name}} יוצר גרסה",
+                "folderColorChanged": "צבע התיקייה {{name}} שונה",
+                "folderLinkEdited": "הקישור הציבורי של הספריה נערך",
+                "folderMetadataChanged": "המטאדאטה של הספריה {{name}} שונתה",
+                "folderMoved": "הספריה {{name}} הועברה",
+                "folderRenamed": "המדריך {{oldName}} שונה ל-{{newName}}",
+                "folderRestored": "הספריה {{name}} שוחזרה",
+                "folderShared": "התיקיה {{name}} שותפה עם {{email}}",
+                "folderTrash": "הספריה {{name}} הועברה לפח האשפה",
+                "itemFavorited": "{{name}} הוסף למועדפים",
+                "itemUnfavorited": "{{name}} הוסר מהמועדפים",
+                "login": "מחובר",
+                "passwordChanged": "הסיסמה שונתה",
+                "removedSharedInItems": "פריטים משותפים הוסרו מ-{{email}}",
+                "removedSharedOutItems": "פריטים משותפים הוסרו מ-{{email}}",
+                "requestAccountDeletion": "בקשת מחיקת חשבון",
+                "subFolderCreated": "הספריה {{name}} נוצרה",
+                "trashEmptied": "הסל רוקן",
+                "versionedFileRestored": "גרסה של {{name}} שוחזרה"
+            },
+            "events": "אירועים",
+            "listEmpty": {
+                "empty": "לא נמצאו אירועים",
+                "emptySearch": "לא נמצאו אירועים לחיפוש זה",
+                "error": "אירעה שגיאה בטעינת האירועים שלך, אנא נסה שוב מאוחר יותר"
+            },
+            "title": "אירועים"
+        },
+        "index": {
+            "items": {
+                "advanced": "מתקדם",
+                "cameraUpload": "העלאת מצלמה",
+                "contacts": "אנשי קשר",
+                "documentsProvider": "ספק מסמכים",
+                "documentsProviderInfo": "הפעל את שילוב ה-Files של Android כדי לגשת לקבצים שלך מחוץ לאפליקציה.",
+                "events": "אירועים",
+                "fileProvider": "ספק קבצים",
+                "fileProviderInfo": "הפעל את שילוב ה-Files של iOS כדי לגשת לקבצים שלך מחוץ לאפליקציה.",
+                "security": "אבטחה",
+                "used": "{{used}} מתוך {{max}} ({{percentage}}%) בשימוש"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "הפעלת ספק המסמכים תבטל את האימות הביומטרי. משמעות הדבר היא שלא תוכל להשתמש באימות ביומטרי לפתיחת האפליקציה. האם ברצונך להמשיך?",
+                    "title": "אימות ביומטרי הופעל"
+                },
+                "fileProvider": {
+                    "message": "הפעלת ספק הקבצים תבטל את האימות הביומטרי. משמעות הדבר היא שלא תוכל להשתמש באימות ביומטרי לפתיחת האפליקציה. האם ברצונך להמשיך?",
+                    "title": "אימות ביומטרי הופעל"
+                }
+            },
+            "title": "הגדרות"
+        },
+        "personal": {
+            "items": {
+                "city": "עיר",
+                "companyName": "שם חברה",
+                "country": "מדינה",
+                "firstName": "שם פרטי",
+                "lastName": "שם משפחה",
+                "postalCode": "מיקוד",
+                "street": "רחוב",
+                "streetNumber": "מספר רחוב",
+                "vatId": "מזהה מע\"מ"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "ערוך"
+                }
+            },
+            "title": "מידע אישי"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "הסיסמאות החדשות אינן תואמות.",
+                "weak": "הסיסמה החדשה שלך חלשה מדי. אנא בחר סיסמה חזקה יותר. כזו שהיא לפחות 10 תווים ארוכה, מכילה שילוב של אותיות גדולות וקטנות, מספרים, ותווים מיוחדים."
+            },
+            "items": {
+                "2fa": "אימות שני גורמים",
+                "biometricAuth": "אימות ביומטרי",
+                "changePassword": "שנה סיסמה"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "לאחר שינוי הסיסמה שלך, תתבצע יציאה מהחשבון ותצטרך להיכנס שוב עם הסיסמה החדשה שלך.",
+                    "title": "שנה סיסמה"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "לאשר סיסמה",
+                    "title": "לאשר סיסמה חדשה"
+                },
+                "currentPassword": {
+                    "placeholder": "סיסמה נוכחית",
+                    "title": "הסיסמה הנוכחית שלך"
+                },
+                "newPassword": {
+                    "placeholder": "סיסמה חדשה",
+                    "title": "הסיסמה החדשה שלך"
+                }
+            },
+            "title": "אבטחה"
+        },
+        "twoFactorAuth": {
+            "copied": "המפתח הועתק ללוח הגזירים",
+            "copyKey": "העתק מפתח",
+            "items": {
+                "2fa": "אימות שני גורמים"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "קוד",
+                    "title": "הכנס קוד"
+                }
+            },
+            "title": "אבטחה"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "ביטול",
+            "title": "שמור לפיילן (Filen)",
+            "upload": "העלה"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "ביטול",
+            "select": "בחר"
+        },
+        "itemInfo": {
+            "creation": "נוצר",
+            "directories": "ספריות",
+            "directory": "ספרייה",
+            "files": "קבצים",
+            "location": "מיקום",
+            "modified": "שונה",
+            "name": "שם",
+            "notAvailable": "לא זמין",
+            "size": "גודל",
+            "type": "סוג",
+            "uploaded": "הועלה"
+        }
+    },
+    "tabBar": {
+        "chats": "צ'אטים",
+        "drive": "כונן",
+        "home": "בית",
+        "notes": "הערות",
+        "photos": "תמונות",
+        "settings": "הגדרות"
+    },
+    "textEditor": {
+        "header": {
+            "back": "חזור"
+        },
+        "saved": "נשמר",
+        "savedSuccess": "נשמר בהצלחה",
+        "unsavedChanges": "שינויים לא נשמרו"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "אין מסלול בתור",
+            "unknownArtist": "אמן לא ידוע",
+            "unknownTitle": "כותרת לא ידועה"
+        },
+        "header": {
+            "title": "פלייליסטים"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "הוסף לתור",
+                "cancel": "ביטול",
+                "delete": "מחק",
+                "play": "נגן"
+            },
+            "subTitle": "{{count}} מסלולים, עודכן {{date}}"
+        },
+        "list": {
+            "empty": "אין רשימות השמעה עדיין",
+            "emptySearch": "לא נמצאו רשימות השמעה לחיפוש זה",
+            "error": "אירעה שגיאה בטעינת הפלייליסטים שלך, אנא נסה שוב מאוחר יותר",
+            "footer": "{{count}} רשימות השמעה"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "הוסף לרשימת ההשמעה",
+                    "addToQueue": "הוסף לתור",
+                    "cancel": "ביטול",
+                    "play": "נגן",
+                    "removeFromPlaylist": "הסר מרשימת ההשמעה"
+                }
+            },
+            "list": {
+                "empty": "אין מסלולים עדיין",
+                "emptySearch": "לא נמצאו מסלולים לחיפוש זה",
+                "error": "אירעה שגיאה בטעינת הרצועות שלך, אנא נסה שוב מאוחר יותר",
+                "footer": "{{count}} שירים"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "שם רשימת השמעה",
+                "title": "צור פלייליסט"
+            },
+            "deletePlaylist": {
+                "message": "האם אתה בטוח שברצונך למחוק את הפלייליסט הזה? פעולה זו לא ניתנת לביטול!",
+                "title": "מחק רשימת השמעה"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "חזור",
+            "title": "העברות"
+        },
+        "info": "מעביר {{ongoingTransfers}} פריטים במהירות {{speed}}, נשאר {{remaining}}",
+        "list": {
+            "empty": "אין העברות עדיין",
+            "emptySearch": "לא נמצאו העברות לחיפוש זה",
+            "error": "אירעה שגיאה בטעינת ההעברות שלך, אנא נסה שוב מאוחר יותר"
+        },
+        "noOngoingTransfers": "אין העברות פעילות",
+        "transfer": {
+            "cancel": "ביטול",
+            "cancelAll": "בטל הכל",
+            "pause": "השהה",
+            "resume": "המשך",
+            "stop": "עצור",
+            "stopAll": "עצור הכל"
+        }
+    }
+}

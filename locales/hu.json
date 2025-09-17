@@ -1,1384 +1,1402 @@
 {
-	"copiedToClipboard": "Vágólapra másolva",
-	"localAuthentication": {
-		"cancelLabel": "Mégse",
-		"promptMessage": "Hitelesítés a folytatáshoz"
-	},
-	"errors": {
-		"cannotOpenURL": "Az URL nem nyitható meg.",
-		"youAreOffline": "Jelenleg offline állapotban van. Kérjük, ellenőrizze az internetkapcsolatát.",
-		"notEnoughDiskSpace": "Nincs elegendő hely a helyi lemezen.",
-		"sharingNotAvailable": "A megosztás ezen az eszközön nem érhető el."
-	},
-	"alertPrompt": {
-		"defaults": {
-			"title": "Cím",
-			"okText": "OK",
-			"cancelText": "Mégse"
-		},
-		"exportMasterKeys": {
-			"title": "Mesterkulcsok exportálása",
-			"message": "Még nem exportálta a mesterkulcsait. Erősen ajánlott most exportálni és biztonságos helyen tárolni őket.",
-			"okText": "Exportálás",
-			"cancelText": "Később"
-		},
-		"storageUsageOverLimit": {
-			"title": "Tárhelyhasználat túllépve",
-			"message": "Túllépte a tárhelykorlátot. Kérjük, szabadítson fel helyet, vagy frissítse a csomagját, hogy elkerülje az adatok törlését.",
-			"okText": "Frissítés",
-			"cancelText": "Később"
-		}
-	},
-	"inputPrompt": {
-		"defaults": {
-			"title": "Cím",
-			"okText": "OK",
-			"cancelText": "Mégse"
-		}
-	},
-	"drive": {
-		"header": {
-			"title": {
-				"drive": "Meghajtó",
-				"selected": "{{count}} selected",
-				"recents": "Legutóbbiak",
-				"favorites": "Kedvencek",
-				"sharedIn": "Önnel megosztva",
-				"sharedOut": "Másokkal megosztva",
-				"offline": "Elérhető offline",
-				"links": "Nyilvános linkek",
-				"trash": "Kuka"
-			},
-			"rightView": {
-				"actionSheet": {
-					"upload": {
-						"files": "Upload files",
-						"directory": "Upload directory",
-						"media": "Upload media",
-						"uploaded": "{{name}} uploaded"
-					},
-					"create": {
-						"textFile": "Create text file",
-						"directory": "Create directory",
-						"photo": "Take photo",
-						"created": "{{name}} created"
-					},
-					"cancel": "Mégse",
-					"noMediaPermissions": "You need to grant media permissions to upload photos or videos.",
-					"itemsUploaded": "{{count}} items uploaded",
-					"directoryNamePlaceholder": "Directory name",
-					"textFileNamePlaceholder": "Text file name"
-				},
-				"dropdown": {
-					"sortBy": {
-						"sortBy": "Rendezés",
-						"ascending": "Ascending",
-						"descending": "Descending",
-						"name": {
-							"title": "Név"
-						},
-						"uploadDate": {
-							"title": "Feltöltési Idö"
-						},
-						"lastModified": {
-							"title": "Last modified"
-						},
-						"type": {
-							"title": "Type"
-						},
-						"size": {
-							"title": "Méret"
-						}
-					},
-					"transfers": "Transfers",
-					"listMode": "List mode",
-					"gridMode": "Grid mode",
-					"bulkActions": "Bulk actions"
-				},
-				"selectAll": "Select all",
-				"deselectAll": "Deselect all"
-			}
-		},
-		"list": {
-			"footer": "{{count}} items",
-			"empty": "Nincs találat",
-			"emptySearch": "No items found for this search",
-			"error": "There was an error loading your drive, please try again later",
-			"item": {
-				"menu": {
-					"select": "Select",
-					"deselect": "Deselect",
-					"download": "Download",
-					"publicLink": "Public link",
-					"share": "Share",
-					"export": "Exportálás",
-					"favorite": "Favorite",
-					"unfavorite": "Unfavorite",
-					"favorited": "Favorited",
-					"selectAll": "Select all",
-					"deselectAll": "Deselect all",
-					"info": "Info",
-					"rename": "Rename",
-					"move": "Move",
-					"copyId": "Copy ID",
-					"delete": "Törlés",
-					"trash": "Kuka",
-					"restore": "Visszaállítás",
-					"preview": "Preview",
-					"deletePermanently": "Delete permanently",
-					"open": "Open",
-					"color": "Color",
-					"copyPath": "Copy path",
-					"makeAvailableOffline": "Make available offline",
-					"removeOffline": "Remove offline file",
-					"downloadFolder": "Download folder",
-					"saveToGallery": "Save to gallery",
-					"copy": "Copy",
-					"id": "ID",
-					"path": "Path",
-					"location": "Location",
-					"versionHistory": "Version history",
-					"properties": "Properties",
-					"clipboard": "Clipboard",
-					"withUser": "With user",
-					"removeSharedIn": "Remove",
-					"removeSharedOut": "Stop sharing",
-					"disablePublicLink": "Disable link",
-					"availableOffline": "Elérhető offline"
-				}
-			}
-		},
-		"search": {
-			"list": {
-				"footer": "{{count}} items",
-				"empty": "Nincs találat",
-				"emptySearch": "No items found for this search",
-				"error": "There was an error loading search results, please try again later"
-			}
-		},
-		"prompts": {
-			"renameItem": {
-				"title": "Rename",
-				"placeholder": "New name"
-			},
-			"trashItem": {
-				"title": "Move to trash",
-				"message": "Are you sure you want to move this item to the trash? You can restore it later."
-			},
-			"removeSharedInItem": {
-				"title": "Remove",
-				"message": "Are you sure you want to remove this item from your shared items? You will no longer be able to see or access it."
-			},
-			"removeSharedOutItem": {
-				"title": "Stop sharing",
-				"message": "Are you sure you want to stop sharing this item? The user will no longer be able to access it."
-			},
-			"deletePermanently": {
-				"title": "Delete permanently",
-				"message": "Are you sure you want to delete this item permanently? This action cannot be undone!"
-			},
-			"trashItems": {
-				"title": "Move to trash",
-				"message": "Are you sure you want to move {{count}} items to the trash? You can restore them later."
-			},
-			"deleteItemsPermanently": {
-				"title": "Delete permanently",
-				"message": "Are you sure you want to delete {{count}} items permanently? This action cannot be undone!"
-			},
-			"removeSharedInItems": {
-				"title": "Remove",
-				"message": "Are you sure you want to remove {{count}} items from your shared items? You will no longer be able to see or access them."
-			},
-			"removeSharedOutItems": {
-				"title": "Stop sharing",
-				"message": "Are you sure you want to stop sharing {{count} items? The users will no longer be able to access them."
-			},
-			"disablePublicLinks": {
-				"title": "Disable public links",
-				"message": "Are you sure you want to disable public links for {{count}} items? The links will no longer be accessible."
-			},
-			"removeOfflineFiles": {
-				"title": "Remove offline files",
-				"message": "Are you sure you want to remove {{count}} offline files? They will no longer be available offline."
-			}
-		},
-		"itemSharedWith": "{{name}} shared with {{email}}",
-		"itemShared": "{{name}} shared"
-	},
-	"gallery": {
-		"noPreviewAvailable": "No preview available"
-	},
-	"nwui": {
-		"search": {
-			"placeholder": "Search...",
-			"cancel": "Mégse"
-		}
-	},
-	"sheets": {
-		"itemInfo": {
-			"name": "Name",
-			"size": "Size",
-			"type": "Type",
-			"location": "Location",
-			"modified": "Modified",
-			"uploaded": "Uploaded",
-			"directories": "Directories",
-			"files": "Files",
-			"notAvailable": "N/A",
-			"creation": "Created",
-			"directory": "Directory"
-		},
-		"colorPicker": {
-			"select": "Select",
-			"cancel": "Mégse"
-		}
-	},
-	"fileVersionHistory": {
-		"header": {
-			"title": "Version history"
-		},
-		"list": {
-			"item": {
-				"current": "Current",
-				"delete": "Törlés",
-				"restore": "Visszaállítás"
-			},
-			"empty": "No versions yet",
-			"emptySearch": "No versions found for this search",
-			"error": "There was an error loading file versions, please try again later"
-		},
-		"alerts": {
-			"delete": {
-				"title": "Delete version",
-				"message": "Are you sure you want to delete this version? This action cannot be undone!",
-				"confirm": "Törlés",
-				"cancel": "Mégse"
-			},
-			"restore": {
-				"title": "Restore version",
-				"message": "Are you sure you want to restore this version? This will overwrite the current file.",
-				"confirm": "Visszaállítás",
-				"cancel": "Mégse"
-			}
-		}
-	},
-	"home": {
-		"title": "Otthon",
-		"container": {
-			"recents": {
-				"title": "Legutóbbiak"
-			},
-			"favorites": {
-				"title": "Kedvencek"
-			},
-			"sharedIn": {
-				"title": "Önnel megosztva"
-			},
-			"sharedOut": {
-				"title": "Másokkal megosztva"
-			},
-			"offline": {
-				"title": "Elérhető offline"
-			},
-			"links": {
-				"title": "Nyilvános linkek"
-			},
-			"trash": {
-				"title": "Kuka"
-			}
-		},
-		"listEmpty": {
-			"recents": "No recents yet",
-			"favorites": "No favorites yet",
-			"sharedIn": "No shared items yet",
-			"sharedOut": "No shared items yet",
-			"offline": "No offline items yet",
-			"links": "No public links yet",
-			"trash": "No trashed items yet"
-		}
-	},
-	"chats": {
-		"chat": "Chat",
-		"chats": "Chats",
-		"typing": "{{users}} typing...",
-		"messages": {
-			"menu": {
-				"copyText": "Copy text",
-				"copyId": "Copy ID",
-				"reply": "Reply",
-				"edit": "Edit",
-				"delete": "Törlés",
-				"disableEmbeds": "Disable embeds",
-				"cancel": "Mégse"
-			},
-			"time": {
-				"now": "Now",
-				"todayAt": "Today at {{date}}",
-				"yesterdayAt": "Yesterday at {{date}}",
-				"secondAgo": "{{seconds}} second ago",
-				"secondsAgo": "{{seconds}} seconds ago",
-				"minuteAgo": "{{minutes}} minute ago",
-				"minutesAgo": "{{minutes}} minutes ago",
-				"hourAgo": "{{hours}} hour ago",
-				"hoursAgo": "{{hours}} hours ago"
-			},
-			"new": "New",
-			"everyone": "Everyone",
-			"unknown": "Unknown",
-			"undecryptable": "Cannot decrypt message."
-		},
-		"menu": {
-			"leave": "Leave",
-			"delete": "Törlés",
-			"rename": "Rename",
-			"mute": "Mute",
-			"unmute": "Unmute",
-			"archive": "Archive",
-			"unarchive": "Unarchive",
-			"pin": "Pin",
-			"unpin": "Unpin",
-			"favorite": "Favorite",
-			"unfavorite": "Unfavorite",
-			"markAsRead": "Mark as read",
-			"participants": "Participants",
-			"muted": "Muted"
-		},
-		"prompts": {
-			"deleteMessage": {
-				"title": "Delete message",
-				"message": "Are you sure you want to delete this message? This action cannot be undone!"
-			},
-			"disableEmbeds": {
-				"title": "Disable embeds",
-				"message": "Are you sure you want to disable embeds for this message? This will remove any embedded content."
-			},
-			"leaveChat": {
-				"title": "Leave chat",
-				"message": "Are you sure you want to leave this chat? You will no longer be able to see or send messages in this chat."
-			},
-			"deleteChat": {
-				"title": "Delete chat",
-				"message": "Are you sure you want to delete this chat? This will remove the chat from your list and you will no longer be able to see or send messages in this chat."
-			},
-			"leaveChats": {
-				"title": "Leave chats",
-				"message": "Are you sure you want to leave {{count}} chats? You will no longer be able to see or send messages in these chats."
-			},
-			"deleteChats": {
-				"title": "Delete chats",
-				"message": "Are you sure you want to delete {{count}} chats? This will remove the chats from your list and you will no longer be able to see or send messages in these chats."
-			},
-			"renameChat": {
-				"title": "Rename chat",
-				"placeholder": "New name"
-			}
-		},
-		"participants": {
-			"menu": {
-				"remove": "Remove"
-			},
-			"participants": "Participants",
-			"participant": "Participant",
-			"prompts": {
-				"remove": {
-					"title": "Remove participant",
-					"message": "Are you sure you want to remove this participant? They will no longer be able to see or send messages in this chat.",
-					"success": "{{name}} removed"
-				}
-			}
-		},
-		"list": {
-			"empty": "No chats found",
-			"emptySearch": "No chats found for this search",
-			"error": "There was an error loading your chats, please try again later"
-		},
-		"input": {
-			"placeholder": "Type a message",
-			"send": "Send",
-			"suggestions": {
-				"emojis": {
-					"matching": "Emojis matching {{query}}"
-				},
-				"mention": {
-					"matching": "Users matching {{query}}"
-				},
-				"replyTo": {
-					"replyingTo": "Replying to {{name}}"
-				}
-			},
-			"attachment": {
-				"options": {
-					"addMedia": "Add media",
-					"addPhotos": "Add photos",
-					"addFiles": "Add files",
-					"addDriveItems": "Add drive items",
-					"cancel": "Mégse"
-				}
-			}
-		},
-		"header": {
-			"newMessages": "{{count}} new messages",
-			"search": "Search chats...",
-			"title": "Chats"
-		},
-		"item": {
-			"draft": "Draft",
-			"you": "You",
-			"noMessages": "No messages yet"
-		}
-	},
-	"notes": {
-		"title": "Notes",
-		"list": {
-			"footer": "{{count}} items",
-			"empty": "No notes yet",
-			"emptySearch": "No note found for this search",
-			"error": "There was an error loading your notes, please try again later"
-		},
-		"menu": {
-			"history": "History",
-			"participants": "Participants",
-			"type": "Type",
-			"types": {
-				"text": "Text",
-				"checklist": "Checklist",
-				"rich": "Rich text",
-				"md": "Markdown",
-				"code": "Code"
-			},
-			"pin": "Pin",
-			"unpin": "Unpin",
-			"favorite": "Favorite",
-			"unfavorite": "Unfavorite",
-			"tags": "Tags",
-			"duplicate": "Duplicate",
-			"export": "Exportálás",
-			"clipboard": "Clipboard",
-			"copyId": "Copy ID",
-			"archive": "Archive",
-			"trash": "Kuka",
-			"restore": "Visszaállítás",
-			"delete": "Törlés",
-			"pinned": "Pinned",
-			"favorited": "Favorited",
-			"leave": "Leave",
-			"preview": "Preview",
-			"rename": "Rename",
-			"select": "Select",
-			"deselect": "Deselect"
-		},
-		"participants": {
-			"title": "Participants",
-			"menu": {
-				"remove": "Remove",
-				"permissionsWrite": "Write permissions"
-			},
-			"list": {
-				"footer": "{{count}} participants",
-				"empty": "No participants yet",
-				"emptySearch": "No participant found for this search",
-				"error": "There was an error loading the participants, please try again later"
-			}
-		},
-		"tags": {
-			"names": {
-				"all": "All",
-				"favorited": "Favorited",
-				"archived": "Archived",
-				"pinned": "Pinned",
-				"shared": "Shared",
-				"trash": "Kuka"
-			},
-			"menu": {
-				"rename": "Rename",
-				"delete": "Törlés",
-				"favorited": "Favorited"
-			}
-		},
-		"history": {
-			"title": "History",
-			"noPreview": "No preview available",
-			"list": {
-				"footer": "{{count}} items",
-				"empty": "No history available",
-				"emptySearch": "No entry found for this search",
-				"error": "There was an error loading the history, please try again later"
-			},
-			"restore": "Visszaállítás",
-			"prompts": {
-				"restore": {
-					"title": "Restore note",
-					"message": "Are you sure you want to restore this note? This will overwrite the current note."
-				}
-			}
-		},
-		"prompts": {
-			"createNote": {
-				"title": "Create note",
-				"placeholder": "Note title"
-			},
-			"trashNote": {
-				"title": "Move to trash",
-				"message": "Are you sure you want to move this note to the trash? You can restore it later."
-			},
-			"trashNotes": {
-				"title": "Move to trash",
-				"message": "Are you sure you want to move {{count}} notes to the trash? You can restore them later."
-			},
-			"renameNote": {
-				"title": "Rename note",
-				"placeholder": "New name"
-			},
-			"deleteNote": {
-				"title": "Delete note",
-				"message": "Are you sure you want to delete this note permanently? This action cannot be undone!"
-			},
-			"deleteNotes": {
-				"title": "Delete notes",
-				"message": "Are you sure you want to delete {{count}} notes permanently? This action cannot be undone!"
-			},
-			"leaveNote": {
-				"title": "Leave note",
-				"message": "Are you sure you want to leave this note? You will no longer be able to see or edit it."
-			},
-			"leaveNotes": {
-				"title": "Leave notes",
-				"message": "Are you sure you want to leave {{count}} notes? You will no longer be able to see or edit them."
-			},
-			"removeParticipant": {
-				"title": "Remove participant",
-				"message": "Are you sure you want to remove this participant? They will no longer be able to see or edit this note."
-			},
-			"removeParticipants": {
-				"title": "Remove participants",
-				"message": "Are you sure you want to remove {{count}} participants? They will no longer be able to see or edit these notes."
-			},
-			"createTag": {
-				"title": "Create tag",
-				"placeholder": "Tag name"
-			},
-			"deleteTag": {
-				"title": "Delete tag",
-				"message": "Are you sure you want to delete this tag? This action cannot be undone!"
-			},
-			"deleteTags": {
-				"title": "Delete tags",
-				"message": "Are you sure you want to delete {{count}} tags? This action cannot be undone!"
-			},
-			"renameTag": {
-				"title": "Rename tag",
-				"placeholder": "New tag name"
-			}
-		},
-		"header": {
-			"title": "Notes",
-			"selected": "{{count}} selected",
-			"menu": {
-				"settings": "Settings"
-			},
-			"dropdown": {
-				"types": {
-					"markdown": "Markdown",
-					"checklist": "Checklist",
-					"text": "Text",
-					"rich": "Rich text",
-					"code": "Code"
-				},
-				"items": {
-					"selectAll": "Select all",
-					"deselectAll": "Deselect all"
-				}
-			}
-		},
-		"content": {
-			"placeholders": {
-				"text": "Write your text here...",
-				"code": "Write your code here..."
-			}
-		}
-	},
-	"listEmpty": {
-		"error": "There was an error, please try again later",
-		"empty": "Nothing found",
-		"emptySearch": "Nothing found for this search"
-	},
-	"settings": {
-		"advanced": {
-			"title": "Advanced",
-			"prompts": {
-				"clearCache": {
-					"title": "Clear cache",
-					"message": "Clearing the cache will remove temporary files. This can interrupt ongoing uploads or downloads. Are you sure you want to continue?"
-				},
-				"clearThumbnails": {
-					"title": "Clear thumbnails",
-					"message": "Clearing the thumbnails will make the app download every visible thumbnail again. Are you sure you want to continue?"
-				},
-				"clearTrackPlayer": {
-					"title": "Clear track player",
-					"message": "Clearing the track player cache removes cached tracks and pictures. This can lead to increased loading times. Are you sure you want to continue?"
-				},
-				"clearOfflineFiles": {
-					"title": "Clear offline files",
-					"message": "Clearing offline files will remove all offline available files. Are you sure you want to continue?"
-				}
-			},
-			"items": {
-				"clearCache": "Clear cache",
-				"clearThumbnails": "Clear thumbnails",
-				"clearTrackPlayer": "Clear track player",
-				"clearOfflineFiles": "Clear offline files"
-			}
-		},
-		"contacts": {
-			"title": "Contacts",
-			"tabs": {
-				"all": "All",
-				"online": "Online",
-				"offline": "Offline",
-				"blocked": "Blocked",
-				"requests": "Requests",
-				"pending": "Pending"
-			},
-			"listEmpty": {
-				"all": {
-					"error": "There was an error loading your contacts, please try again later",
-					"empty": "No contacts found",
-					"emptySearch": "No contacts found for this search"
-				},
-				"online": {
-					"error": "There was an error loading your contacts, please try again later",
-					"empty": "No online contacts found",
-					"emptySearch": "No online contacts found for this search"
-				},
-				"offline": {
-					"error": "There was an error loading your contacts, please try again later",
-					"empty": "No offline contacts found",
-					"emptySearch": "No offline contacts found for this search"
-				},
-				"blocked": {
-					"error": "There was an error loading your contacts, please try again later",
-					"empty": "No blocked contacts found",
-					"emptySearch": "No blocked contacts found for this search"
-				},
-				"requests": {
-					"error": "There was an error loading your contact requests, please try again later",
-					"empty": "No contact requests found",
-					"emptySearch": "No contact requests found for this search"
-				},
-				"pending": {
-					"error": "There was an error loading your contact requests, please try again later",
-					"empty": "No contact requests found",
-					"emptySearch": "No contact requests found for this search"
-				}
-			},
-			"prompts": {
-				"removeContact": {
-					"title": "Remove contact",
-					"message": "Are you sure you want to remove this contact?",
-					"success": "{{email}} removed"
-				},
-				"removeContacts": {
-					"title": "Remove contacts",
-					"message": "Are you sure you want to remove {{count}} contacts?",
-					"success": "{{count}} contacts removed"
-				},
-				"blockContact": {
-					"title": "Block contact",
-					"message": "Are you sure you want to block this contact?",
-					"success": "{{email}} blocked"
-				},
-				"blockContacts": {
-					"title": "Block contacts",
-					"message": "Are you sure you want to block {{count}} contacts?",
-					"success": "{{count}} contacts blocked"
-				},
-				"unblockContact": {
-					"title": "Unblock contact",
-					"message": "Are you sure you want to unblock this contact?",
-					"success": "{{email}} unblocked"
-				},
-				"unblockContacts": {
-					"title": "Unblock contacts",
-					"message": "Are you sure you want to unblock {{count}} contacts?",
-					"success": "{{count}} contacts unblocked"
-				},
-				"sendRequest": {
-					"title": "Send contact request",
-					"placeholder": "Filen email address",
-					"success": "Contact request sent to {{email}}"
-				}
-			}
-		},
-		"events": {
-			"title": "Events",
-			"event": "Event",
-			"events": "Events",
-			"listEmpty": {
-				"error": "There was an error loading your events, please try again later",
-				"empty": "No events found",
-				"emptySearch": "No events found for this search"
-			},
-			"eventInfo": {
-				"2faDisabled": "2FA disabled",
-				"2faEnabled": "2FA enabled",
-				"deleteFilePermanently": "{{name}} deleted permanently",
-				"deleteAll": "All directories and files deleted permanently",
-				"codeRedeemed": "Code \"{{code}}\" redeemed",
-				"baseFolderCreated": "Base folder created",
-				"deleteFolderPermanently": "{{name}} deleted permanently",
-				"deleteUnfinished": "Unfinished uploads deleted",
-				"login": "Logged in",
-				"deleteVersioned": "All versioned files deleted",
-				"emailChangeAttempt": "Email change attempted",
-				"emailChanged": "Email changed",
-				"passwordChanged": "Password changed",
-				"failedLogin": "Failed login attempt",
-				"fileLinkEdited": "Public link for {{name}} edited",
-				"fileMetadataChanged": "Metadata for {{name}} changed",
-				"fileMoved": "{{name}} moved",
-				"fileRenamed": "{{oldName}} renamed to {{newName}}",
-				"fileShared": "{{name}} shared with {{email}}",
-				"fileUploaded": "{{name}} uploaded",
-				"fileRestored": "{{name}} restored",
-				"fileRm": "{{name}} deleted",
-				"fileTrash": "{{name}} moved to trash",
-				"fileVersioned": "{{name}} versioned",
-				"folderColorChanged": "Color of directory {{name}} changed",
-				"folderLinkEdited": "Directory public link edited",
-				"folderMetadataChanged": "Metadata of directory {{name}} changed",
-				"folderMoved": "Directory {{name}} moved",
-				"folderRenamed": "Directory {{oldName}} renamed to {{newName}}",
-				"folderShared": "Directory {{name}} shared with {{email}}",
-				"folderRestored": "Directory {{name}} restored",
-				"folderTrash": "Directory {{name}} moved to trash",
-				"itemFavorited": "{{name}} favorited",
-				"itemUnfavorited": "{{name}} unfavorited",
-				"removedSharedInItems": "Shared items removed from {{email}}",
-				"removedSharedOutItems": "Shared items removed from {{email}}",
-				"requestAccountDeletion": "Account deletion requested",
-				"subFolderCreated": "Directory {{name}} created",
-				"trashEmptied": "Trash emptied",
-				"versionedFileRestored": "Version of {{name}} restored"
-			}
-		},
-		"biometric": {
-			"title": "Security",
-			"lockAppAfter": {
-				"never": "Never",
-				"immediately": "Immediately",
-				"60": "1 minute",
-				"300": "5 minutes",
-				"600": "10 minutes",
-				"900": "15 minutes",
-				"1800": "30 minutes",
-				"3600": "1 hour",
-				"minutes": "{{minutes}} minutes"
-			},
-			"items": {
-				"biometricAuth": "Biometric authentication",
-				"lockAppAfter": "Lock app after",
-				"pinOnly": "PIN only"
-			},
-			"prompts": {
-				"enable": {
-					"title": "Setup fallback PIN",
-					"placeholder": "Fallback PIN"
-				},
-				"enableConfirm": {
-					"title": "Confirm fallback PIN",
-					"placeholder": "Confirm PIN"
-				},
-				"disable": {
-					"title": "Disable biometric authentication",
-					"message": "Are you sure you want to disable biometric authentication?"
-				},
-				"fileProvider": {
-					"title": "File provider enabled",
-					"message": "Enabling biometric authentication will disable the file provider. This means you will not be able to access your files in other apps using the Filen file provider. Do you want to continue?"
-				},
-				"documentsProvider": {
-					"title": "Documents provider enabled",
-					"message": "Enabling biometric authentication will disable the documents provider. This means you will not be able to access your files in other apps using the Filen documents provider. Do you want to continue?"
-				}
-			},
-			"errors": {
-				"pinTooShort": "The fallback PIN must be at least 4 digits long.",
-				"pinTooLong": "The fallback PIN must not be longer than 128 digits.",
-				"pinNotMatching": "The fallback PINs do not match.",
-				"biometricAuthNotAvailable": "Biometric authentication is not available on this device. Please enable PIN only authentication or use a device with biometric authentication support."
-			}
-		},
-		"security": {
-			"title": "Security",
-			"items": {
-				"changePassword": "Change password",
-				"2fa": "Two Factor Authentication",
-				"biometricAuth": "Biometric authentication"
-			},
-			"prompts": {
-				"changePassword1": {
-					"title": "Change password",
-					"message": "After changing your password, you will be logged out and need to log in again with your new password."
-				},
-				"currentPassword": {
-					"title": "Your current password",
-					"placeholder": "Current password"
-				},
-				"newPassword": {
-					"title": "Your new password",
-					"placeholder": "New password"
-				},
-				"confirmNewPassword": {
-					"title": "Confirm new password",
-					"placeholder": "Confirm password"
-				}
-			},
-			"errors": {
-				"passwordsDoNotMatch": "The new passwords do not match.",
-				"weak": "Your new password is too weak. Please choose a stronger password. One that is at least 10 characters long, contains a mix of uppercase and lowercase letters, numbers, and special characters."
-			}
-		},
-		"twoFactorAuth": {
-			"title": "Security",
-			"copyKey": "Copy key",
-			"copied": "Key copied to clipboard",
-			"items": {
-				"2fa": "Two Factor Authentication"
-			},
-			"prompts": {
-				"enable": {
-					"title": "Enter code",
-					"placeholder": "Code"
-				}
-			}
-		},
-		"account": {
-			"title": "Account",
-			"items": {
-				"changeAvatar": "Change avatar",
-				"emailAddress": "Email address",
-				"personalInformation": "Personal information",
-				"nickname": "Nickname",
-				"gdpr": "GDPR information",
-				"more": "More account settings",
-				"fileVersioning": "File versioning",
-				"fileVersioningInfo": "Enable file versioning to keep track of changes made to your files.",
-				"loginAlerts": "Login alerts",
-				"loginAlertsInfo": "Receive alerts when your account is accessed.",
-				"deleteVersionedFiles": "Delete versioned files",
-				"deleteAllFilesAndDirectories": "Delete all files and directories",
-				"logout": "Logout",
-				"requestAccountDeletion": "Request account deletion",
-				"requestAccountDeletionInfo": "Request account deletion. We will send you an email with further instructions."
-			},
-			"prompts": {
-				"logout": {
-					"title": "Logout",
-					"message": "Are you sure you want to logout? You will need to login again to access your account."
-				},
-				"deleteAccount": {
-					"title": "Request account deletion",
-					"message": "Are you sure you want to request account deletion? You will receive an email with further instructions."
-				},
-				"2fa": {
-					"title": "Two Factor Authentication",
-					"placeholder": "Code"
-				},
-				"deleteAllFilesAndDirectories1": {
-					"title": "Delete all files and directories",
-					"message": "Are you sure you want to delete all files and directories? This action cannot be undone!"
-				},
-				"deleteAllFilesAndDirectories2": {
-					"title": "Delete all files and directories",
-					"message": "Are you really sure? This action cannot be undone!"
-				},
-				"deleteVersionedFiles1": {
-					"title": "Delete versioned files",
-					"message": "Are you sure you want to delete all versioned files? This action cannot be undone!"
-				},
-				"deleteVersionedFiles2": {
-					"title": "Delete versioned files",
-					"message": "Are you really sure? This action cannot be undone!"
-				},
-				"changeEmail": {
-					"newEmail": {
-						"title": "New email address",
-						"placeholder": "New email address"
-					},
-					"confirmEmail": {
-						"title": "Confirm new email address",
-						"placeholder": "Confirm new email address"
-					},
-					"password": {
-						"title": "Your password",
-						"placeholder": "Password"
-					}
-				},
-				"updateNickname": {
-					"title": "Update nickname",
-					"placeholder": "New nickname"
-				},
-				"more": {
-					"title": "Open Web App",
-					"message": "More settings are available in the web app. Do you want to open it now?"
-				}
-			},
-			"errors": {
-				"emailsNotMatching": "The new email addresses do not match.",
-				"avatarLimit": "The avatar image size exceeds the limit of 3 MiB."
-			}
-		},
-		"index": {
-			"title": "Settings",
-			"items": {
-				"used": "{{used}} used of {{max}} ({{percentage}}%)",
-				"security": "Security",
-				"events": "Events",
-				"cameraUpload": "Camera upload",
-				"fileProvider": "File provider",
-				"fileProviderInfo": "Enable the iOS Files integration to access your files outside of the app.",
-				"documentsProvider": "Documents provider",
-				"documentsProviderInfo": "Enable the Android Files integration to access your files outside of the app.",
-				"contacts": "Contacts",
-				"advanced": "Advanced"
-			},
-			"prompts": {
-				"fileProvider": {
-					"title": "Biometric authentication enabled",
-					"message": "Enabling the file provider will disable biometric authentication. This means you will not be able to use biometric authentication to unlock the app. Do you want to continue?"
-				},
-				"documentsProvider": {
-					"title": "Biometric authentication enabled",
-					"message": "Enabling the documents provider will disable biometric authentication. This means you will not be able to use biometric authentication to unlock the app. Do you want to continue?"
-				}
-			}
-		},
-		"personal": {
-			"title": "Personal information",
-			"items": {
-				"firstName": "First name",
-				"lastName": "Last name",
-				"city": "City",
-				"country": "Country",
-				"companyName": "Company name",
-				"vatId": "VAT ID",
-				"street": "Street",
-				"postalCode": "Postal code",
-				"streetNumber": "Street number"
-			},
-			"prompts": {
-				"edit": {
-					"title": "Edit"
-				}
-			}
-		}
-	},
-	"photos": {
-		"title": "Photos",
-		"list": {
-			"empty": "No photos yet",
-			"emptySearch": "No photos found for this search",
-			"error": "There was an error loading your photos, please try again later"
-		},
-		"state": {
-			"synced": "Synced",
-			"syncing": "Syncing",
-			"syncingProgress": "{{done}} of {{total}} items synced"
-		},
-		"menu": {
-			"settings": "Settings"
-		},
-		"header": {
-			"selected": "{{count}} selected"
-		},
-		"settings": {
-			"albums": {
-				"title": "Albums",
-				"item": {
-					"subTitle": "{{count}} items"
-				},
-				"list": {
-					"empty": "No albums found",
-					"emptySearch": "No albums found for this search",
-					"error": "There was an error loading your albums, please try again later"
-				}
-			},
-			"index": {
-				"title": "Settings",
-				"items": {
-					"enabled": "Enabled",
-					"albums": "Albums",
-					"albumsInfo": "Select which albums to include in the camera upload.",
-					"cloudDirectory": "Cloud directory",
-					"cloudDirectoryNotSet": "Not set",
-					"videos": "Videos",
-					"videosInfo": "Include videos in the camera upload.",
-					"cellular": "Cellular",
-					"cellularInfo": "Allow camera upload over cellular data. This can lead to high data usage.",
-					"background": "Background",
-					"backgroundInfo": "Allow camera upload in the background. This can lead to high battery usage. Background uploads only include images. Only works when app is not force closed.",
-					"lowBattery": "Low battery",
-					"lowBatteryInfo": "Disable camera upload when the battery is low.",
-					"compress": "Compress",
-					"compressInfo": "Compress photos to save storage space. This can reduce the quality of the photos. JPG compression at 80% quality.",
-					"permissionsError": "Permissions error",
-					"permissionsErrorInfo": "Please allow the app to access your photos and videos in the system settings."
-				},
-				"errors": {
-					"noPermissions": "You need to grant media permissions to access your photos."
-				}
-			}
-		}
-	},
-	"tabBar": {
-		"home": "Home",
-		"drive": "Meghajtó",
-		"photos": "Photos",
-		"notes": "Notes",
-		"chats": "Chats",
-		"settings": "Settings"
-	},
-	"auth": {
-		"prompts": {
-			"2fa": {
-				"title": "Two Factor Authentication",
-				"placeholder": "Code"
-			},
-			"resendConfirmation": {
-				"title": "Resend confirmation",
-				"placeholder": "Email address",
-				"success": "Confirmation email sent to {{email}} if it is registered."
-			},
-			"forgotPassword": {
-				"title": "Forgot password",
-				"placeholder": "Email address",
-				"success": "If the email address is registered, you will receive an email with instructions to reset your password."
-			}
-		},
-		"registrationSuccessful": "Registration successful! Please check your email to confirm your account.",
-		"index": {
-			"hero": {
-				"1": "End-to-end encrypted",
-				"2": "Cloud Platform"
-			},
-			"signUp": "Sign up for free",
-			"login": "Log in"
-		},
-		"login": {
-			"title": "Log in",
-			"header": {
-				"cancel": "Mégse"
-			},
-			"welcome": "Welcome back!",
-			"loginUsingCreds": "Log in using your credentials",
-			"forgotPassword": "Forgot password?",
-			"login": "Log in",
-			"signUp": "Sign up for free",
-			"next": "Next",
-			"submit": "Log in",
-			"errors": {
-				"emptyFields": "Please fill out all fields."
-			},
-			"form": {
-				"email": {
-					"label": "Email address",
-					"placeholder": "Enter your email address"
-				},
-				"password": {
-					"label": "Password",
-					"placeholder": "Enter your password"
-				}
-			}
-		},
-		"register": {
-			"title": "Sign up",
-			"header": {
-				"cancel": "Mégse",
-				"title": "Sign up"
-			},
-			"hero": {
-				"create": "Create your free account",
-				"description": "Set up your credentials to get started with your Filen account."
-			},
-			"form": {
-				"email": {
-					"label": "Email address",
-					"placeholder": "Enter your email address"
-				},
-				"confirmEmail": {
-					"label": "Confirm email address",
-					"placeholder": "Confirm your email address"
-				},
-				"password": {
-					"label": "Password",
-					"placeholder": "Enter your password"
-				},
-				"confirmPassword": {
-					"label": "Confirm password",
-					"placeholder": "Confirm your password"
-				}
-			},
-			"passwordStrength": {
-				"length": "Length",
-				"uppercase": "Uppercase letters",
-				"lowercase": "Lowercase letters",
-				"numbers": "Numbers",
-				"specialCharacters": "Special characters",
-				"weak": "Weak",
-				"medium": "Medium",
-				"strong": "Strong",
-				"best": "Best"
-			},
-			"errors": {
-				"emptyFields": "Please fill out all fields.",
-				"passwordsDoNotMatch": "The passwords do not match.",
-				"emailAddressesDoNotMatch": "The email addresses do not match.",
-				"weakPassword": "Your password is too weak. Please choose a stronger password. One that is at least 10 characters long, contains a mix of uppercase and lowercase letters, numbers, and special characters."
-			},
-			"createAccount": "Create account",
-			"resendConfirmationEmail": "Resend confirmation email",
-			"next": "Next"
-		}
-	},
-	"editPublicLink": {
-		"title": "Edit public link",
-		"cancel": "Mégse",
-		"prompts": {
-			"editPassword": {
-				"title": "Edit password",
-				"placeholder": "Leave empty to remove password"
-			}
-		},
-		"shareDialogTile": "Filen public link",
-		"items": {
-			"enabled": "Enabled",
-			"password": "Password",
-			"edit": "Edit",
-			"expiration": "Expiration",
-			"expirationNever": "Never",
-			"expiration1h": "1 hour",
-			"expiration6h": "6 hours",
-			"expiration12h": "12 hours",
-			"expiration1d": "1 day",
-			"expiration3d": "3 days",
-			"expiration7d": "7 days",
-			"expiration14d": "14 days",
-			"expiration30d": "30 days",
-			"downloadButton": "Download button"
-		},
-		"onlyPro": "This feature is only available for Filen Pro users. Subscribe to any Filen plan to enable it.",
-		"unsavedChanges": "Unsaved changes"
-	},
-	"selectContacts": {
-		"header": {
-			"selectContacts": "Select contacts",
-			"cancel": "Mégse",
-			"done": "Done",
-			"selectContact": "Select contact"
-		},
-		"toolbar": {
-			"selected": "{{countOrName}} selected"
-		},
-		"list": {
-			"footer": "{{count}} contacts",
-			"empty": "No contacts yet",
-			"emptySearch": "No contacts found for this search",
-			"error": "There was an error loading your contacts, please try again later"
-		}
-	},
-	"selectDriveItems": {
-		"header": {
-			"selectItems": "Select items",
-			"cancel": "Mégse",
-			"done": "Done",
-			"selectItem": "Select item",
-			"selectFile": "Select file",
-			"selectDirectory": "Select directory",
-			"selectFiles": "Select files",
-			"selectDirectories": "Select directories",
-			"drive": "Meghajtó",
-			"selectRoot": "Select cloud drive"
-		},
-		"toolbar": {
-			"selected": "{{countOrName}} selected"
-		},
-		"list": {
-			"footer": "{{count}} items",
-			"empty": "Nothing uploaded yet",
-			"emptySearch": "No items found for this search",
-			"error": "There was an error loading your files, please try again later"
-		},
-		"prompts": {
-			"createDirectory": {
-				"title": "Create directory",
-				"placeholder": "Directory name",
-				"success": "{{name}} created"
-			}
-		}
-	},
-	"selectTrackPlayerPlaylists": {
-		"selected": "{{countOrName}} selected",
-		"header": {
-			"selectPlaylists": "Select playlists",
-			"cancel": "Mégse",
-			"done": "Done",
-			"selectPlaylist": "Select playlist"
-		},
-		"toolbar": {
-			"selected": "{{countOrName}} selected"
-		},
-		"list": {
-			"footer": "{{count}} playlists",
-			"empty": "No playlists yet",
-			"emptySearch": "No playlists found for this search",
-			"error": "There was an error loading your playlists, please try again later"
-		},
-		"item": {
-			"subTitle": "{{count}} tracks, updated {{date}}"
-		},
-		"prompts": {
-			"createPlaylist": {
-				"title": "Create playlist",
-				"placeholder": "Playlist name"
-			}
-		}
-	},
-	"shareIntent": {
-		"header": {
-			"title": "Save to Filen",
-			"cancel": "Mégse",
-			"upload": "Upload"
-		}
-	},
-	"trackPlayer": {
-		"item": {
-			"subTitle": "{{count}} tracks, updated {{date}}",
-			"menu": {
-				"play": "Play",
-				"delete": "Törlés",
-				"addToQueue": "Add to queue",
-				"cancel": "Mégse"
-			}
-		},
-		"list": {
-			"footer": "{{count}} playlists",
-			"empty": "No playlists yet",
-			"emptySearch": "No playlists found for this search",
-			"error": "There was an error loading your playlists, please try again later"
-		},
-		"playlist": {
-			"item": {
-				"menu": {
-					"play": "Play",
-					"addToPlaylist": "Add to playlist",
-					"addToQueue": "Add to queue",
-					"removeFromPlaylist": "Remove from playlist",
-					"cancel": "Mégse"
-				}
-			},
-			"list": {
-				"footer": "{{count}} tracks",
-				"empty": "No tracks yet",
-				"emptySearch": "No tracks found for this search",
-				"error": "There was an error loading your tracks, please try again later"
-			}
-		},
-		"bottom": {
-			"unknownTitle": "Unknown title",
-			"unknownArtist": "Unknown artist",
-			"noTrackQueued": "No track queued"
-		},
-		"prompts": {
-			"createPlaylist": {
-				"title": "Create playlist",
-				"placeholder": "Playlist name"
-			},
-			"deletePlaylist": {
-				"title": "Delete playlist",
-				"message": "Are you sure you want to delete this playlist? This action cannot be undone!"
-			}
-		},
-		"header": {
-			"title": "Playlists"
-		}
-	},
-	"transfers": {
-		"header": {
-			"title": "Transfers",
-			"back": "Back"
-		},
-		"info": "Transferring {{ongoingTransfers}} items at {{speed}}, {{remaining}} remaining",
-		"noOngoingTransfers": "No ongoing transfers",
-		"list": {
-			"empty": "No transfers yet",
-			"emptySearch": "No transfers found for this search",
-			"error": "There was an error loading your transfers, please try again later"
-		},
-		"transfer": {
-			"resume": "Resume",
-			"pause": "Pause",
-			"cancel": "Mégse",
-			"cancelAll": "Cancel all",
-			"stop": "Stop",
-			"stopAll": "Stop all"
-		}
-	},
-	"textEditor": {
-		"header": {
-			"back": "Back"
-		},
-		"unsavedChanges": "Unsaved changes",
-		"savedSuccess": "Saved successfully",
-		"saved": "Saved"
-	},
-	"contacts": {
-		"menu": {
-			"remove": "Remove",
-			"block": "Block",
-			"unblock": "Unblock",
-			"cancel": "Mégse",
-			"accept": "Accept",
-			"decline": "Decline"
-		}
-	},
-	"biometric": {
-		"appLockedFor": "App locked for {{seconds}} seconds",
-		"authenticateUsingPin": "Authenticate using your PIN",
-		"prompts": {
-			"pin": {
-				"title": "Enter your PIN",
-				"placeholder": "PIN"
-			}
-		},
-		"errors": {
-			"tooManyIncorrectAttempts": "Too many incorrect attempts. Please try again later.",
-			"incorrectPin": "Incorrect PIN. Please try again."
-		}
-	},
-	"offlineListHeader": {
-		"title": "Offline mode"
-	},
-	"formatBytes": {
-		"b": "Bytes",
-		"kib": "KiB",
-		"mib": "MiB",
-		"gib": "GiB",
-		"tib": "TiB",
-		"pib": "PiB",
-		"eib": "EiB",
-		"zib": "ZiB",
-		"yib": "YiB"
-	},
-	"bpsToReadable": {
-		"b": "B/s",
-		"kib": "KiB/s",
-		"mib": "MiB/s",
-		"gib": "GiB/s",
-		"tib": "TiB/s",
-		"pib": "PiB/s",
-		"eib": "EiB/s",
-		"zib": "ZiB/s",
-		"yib": "YiB/s"
-	}
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "Mégsem",
+            "okText": "OK",
+            "title": "Cím"
+        },
+        "exportMasterKeys": {
+            "cancelText": "Később",
+            "message": "Még nem exportálta a mesterkulcsait. Erősen ajánlott, hogy most exportálja őket, és biztonságos helyen tárolja.",
+            "okText": "Exportálás",
+            "title": "Fő kulcsok exportálása"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "Később",
+            "message": "Túllépte a tárhely korlátját. Kérjük, szabadítson fel helyet vagy frissítse csomagját az adatvesztés megelőzése érdekében.",
+            "okText": "Frissítés",
+            "title": "Tárolóhely túllépés"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "Végponttól végpontig titkosítva",
+                "second": "Felhő platform"
+            },
+            "login": "Bejelentkezés",
+            "signUp": "Ingyenes regisztráció"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "Kérjük, töltsön ki minden mezőt."
+            },
+            "forgotPassword": "Elfelejtett jelszó?",
+            "form": {
+                "email": {
+                    "label": "Email cím",
+                    "placeholder": "Adja meg az email címét"
+                },
+                "password": {
+                    "label": "Jelszó",
+                    "placeholder": "Adja meg a jelszavát"
+                }
+            },
+            "header": {
+                "cancel": "Mégsem"
+            },
+            "login": "Bejelentkezés",
+            "loginUsingCreds": "Jelentkezzen be hitelesítő adataival",
+            "next": "Következő",
+            "signUp": "Ingyenes regisztráció",
+            "submit": "Bejelentkezés",
+            "title": "Bejelentkezés",
+            "welcome": "Üdvözlünk újra!"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "Kód",
+                "title": "Kéttényezős hitelesítés"
+            },
+            "forgotPassword": {
+                "placeholder": "Email cím",
+                "success": "Ha az email cím regisztrálva van, kap egy emailt a jelszava visszaállításához szükséges utasításokkal.",
+                "title": "Elfelejtett jelszó"
+            },
+            "resendConfirmation": {
+                "placeholder": "Email cím",
+                "success": "Megerősítő e-mail elküldve ide: {{email}}, ha regisztrálva van.",
+                "title": "Visszaigazolás újraküldése"
+            }
+        },
+        "register": {
+            "createAccount": "Fiók létrehozása",
+            "errors": {
+                "emailAddressesDoNotMatch": "Az e-mail címek nem egyeznek.",
+                "emptyFields": "Kérjük, töltsön ki minden mezőt.",
+                "passwordsDoNotMatch": "A jelszavak nem egyeznek.",
+                "weakPassword": "A jelszava túl gyenge. Kérjük, válasszon erősebb jelszót. Olyat, amely legalább 10 karakter hosszú, nagy- és kisbetűket, számokat és speciális karaktereket tartalmaz."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "Email cím megerősítése",
+                    "placeholder": "Erősítse meg az email címét"
+                },
+                "confirmPassword": {
+                    "label": "Jelszó megerősítése",
+                    "placeholder": "Erősítse meg jelszavát"
+                },
+                "email": {
+                    "label": "Email cím",
+                    "placeholder": "Adja meg az email címét"
+                },
+                "password": {
+                    "label": "Jelszó",
+                    "placeholder": "Adja meg a jelszavát"
+                }
+            },
+            "header": {
+                "cancel": "Mégsem",
+                "title": "Regisztráció"
+            },
+            "hero": {
+                "create": "Hozd létre ingyenes fiókodat",
+                "description": "Állítsa be a hitelesítési adatait, hogy elkezdhesse használni Filen fiókját."
+            },
+            "next": "Következő",
+            "passwordStrength": {
+                "best": "Legjobb",
+                "length": "Hossz",
+                "lowercase": "Kisbetűs karakterek",
+                "medium": "Közepes",
+                "numbers": "Számok",
+                "specialCharacters": "Különleges karakterek",
+                "strong": "Erős",
+                "uppercase": "Nagybetűs karakterek",
+                "weak": "Gyenge"
+            },
+            "resendConfirmationEmail": "Megerősítő email újraküldése",
+            "title": "Regisztráció"
+        },
+        "registrationSuccessful": "Sikeres regisztráció! Kérjük, ellenőrizze az e-mailjét a fiók megerősítéséhez."
+    },
+    "biometric": {
+        "appLockedFor": "Az alkalmazás zárolva {{seconds}} másodpercig",
+        "authenticateUsingPin": "Hitelesítsen a PIN kódjával",
+        "errors": {
+            "incorrectPin": "Helytelen PIN. Kérjük, próbálja újra.",
+            "tooManyIncorrectAttempts": "Túl sok helytelen próbálkozás. Próbálja újra később."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN",
+                "title": "Adja meg a PIN kódját"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "B/s",
+        "eib": "EiB/s",
+        "gib": "GiB/s",
+        "kib": "KiB/s",
+        "mib": "MiB/s",
+        "pib": "PiB/s",
+        "tib": "TiB/s",
+        "yib": "YiB/s",
+        "zib": "ZiB/s"
+    },
+    "chats": {
+        "chat": "Csevegés",
+        "chats": "Csevegések",
+        "header": {
+            "newMessages": "{{count}} új üzenet",
+            "search": "Beszélgetések keresése...",
+            "title": "Csevegések"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "Meghajtó elemek hozzáadása",
+                    "addFiles": "Fájlok hozzáadása",
+                    "addMedia": "Média hozzáadása",
+                    "addPhotos": "Fotók hozzáadása",
+                    "cancel": "Mégsem"
+                }
+            },
+            "placeholder": "Üzenet írása",
+            "send": "Küldés",
+            "suggestions": {
+                "emojis": {
+                    "matching": "{{query}}-hez illeszkedő emojik"
+                },
+                "mention": {
+                    "matching": "{{query}}-hez illeszkedő felhasználók"
+                },
+                "replyTo": {
+                    "replyingTo": "Válasz {{name}} részére"
+                }
+            }
+        },
+        "item": {
+            "draft": "Vázlat",
+            "noMessages": "Még nincs üzenet",
+            "you": "Te"
+        },
+        "list": {
+            "empty": "Nem találhatók csevegések",
+            "emptySearch": "Nem találhatók csevegések ehhez a kereséshez",
+            "error": "Hiba történt a csevegések betöltése során, kérem, próbálja meg később újra"
+        },
+        "menu": {
+            "archive": "Archívum",
+            "delete": "Törlés",
+            "favorite": "Kedvenc",
+            "leave": "Kilépés",
+            "markAsRead": "Megjelölés olvasottként",
+            "mute": "Némítás",
+            "muted": "Némítva",
+            "participants": "Résztvevők",
+            "pin": "Tűzve",
+            "rename": "Átnevezés",
+            "unarchive": "Kitömörítés",
+            "unfavorite": "Kedvencekből eltávolítás",
+            "unmute": "Némítás feloldása",
+            "unpin": "Rögzítés megszüntetése"
+        },
+        "messages": {
+            "everyone": "Mindenki",
+            "menu": {
+                "cancel": "Mégsem",
+                "copyId": "Azonosító másolása",
+                "copyText": "Szöveg másolása",
+                "delete": "Törlés",
+                "disableEmbeds": "Megosztások letiltása",
+                "edit": "Szerkesztés",
+                "reply": "Válasz"
+            },
+            "new": "Új",
+            "time": {
+                "hourAgo": "{{hours}} órával ezelőtt",
+                "hoursAgo": "{{hours}} órával ezelőtt",
+                "minuteAgo": "{{minutes}} perce",
+                "minutesAgo": "{{minutes}} perccel ezelőtt",
+                "now": "Most",
+                "secondAgo": "{{seconds}} másodperce",
+                "secondsAgo": "{{seconds}} másodperccel ezelőtt",
+                "todayAt": "Ma, {{date}}-kor",
+                "yesterdayAt": "Tegnap, {{date}}-kor"
+            },
+            "undecryptable": "Az üzenet nem dekriptálható.",
+            "unknown": "Ismeretlen"
+        },
+        "participants": {
+            "menu": {
+                "remove": "Eltávolítás"
+            },
+            "participant": "Résztvevő",
+            "participants": "Résztvevők",
+            "prompts": {
+                "remove": {
+                    "message": "Biztosan eltávolítja ezt a résztvevőt? Többé nem fogja tudni megtekinteni vagy küldeni az üzeneteket ebben a beszélgetésben.",
+                    "success": "{{name}} eltávolítva",
+                    "title": "Résztvevő eltávolítása"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "Biztosan törölni szeretné ezt a csevegést? Ez eltávolítja a csevegést a listájáról, és nem fog tudni többé üzeneteket látni vagy küldeni ebben a csevegésben.",
+                "title": "Csevegés törlése"
+            },
+            "deleteChats": {
+                "message": "Biztosan törölni szeretné {{count}} csevegést? Ez eltávolítja a csevegéseket a listájáról, és nem fog tudni többé üzeneteket látni vagy küldeni ezekben a csevegésekben.",
+                "title": "Csevegések törlése"
+            },
+            "deleteMessage": {
+                "message": "Biztosan törölni szeretné ezt az üzenetet? Ez a művelet nem vonható vissza!",
+                "title": "Üzenet törlése"
+            },
+            "disableEmbeds": {
+                "message": "Biztos le szeretné tiltani a beágyazásokat ehhez az üzenethez? Ez minden beágyazott tartalmat eltávolít.",
+                "title": "Megosztások letiltása"
+            },
+            "leaveChat": {
+                "message": "Biztosan elhagyja ezt a beszélgetést? Többé nem tudja megtekinteni vagy küldeni az üzeneteket ebben a beszélgetésben.",
+                "title": "Kilépés a csevegésből"
+            },
+            "leaveChats": {
+                "message": "Biztosan elhagyja a(z) {{count}} beszélgetést? Többé nem tudja megtekinteni vagy küldeni az üzeneteket ezekben a beszélgetésekben.",
+                "title": "Kilépés a csevegésekből"
+            },
+            "renameChat": {
+                "placeholder": "Új név",
+                "title": "Csevegés átnevezése"
+            }
+        },
+        "typing": "{{users}} gépel..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "Elfogadás",
+            "block": "Tiltás",
+            "cancel": "Mégsem",
+            "decline": "Elutasítás",
+            "remove": "Eltávolítás",
+            "unblock": "Feloldás"
+        }
+    },
+    "copiedToClipboard": "Vágólapra másolva",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "Mégsem",
+                    "create": {
+                        "created": "{{name}} létrehozva",
+                        "directory": "Könyvtár létrehozása",
+                        "photo": "Fotó készítése",
+                        "textFile": "Szövegfájl létrehozása"
+                    },
+                    "directoryNamePlaceholder": "Könyvtár neve",
+                    "itemsUploaded": "{{count}} elem feltöltve",
+                    "noMediaPermissions": "Engedélyezze a média elérést a fotók vagy videók feltöltéséhez.",
+                    "textFileNamePlaceholder": "Szövegfájl neve",
+                    "upload": {
+                        "directory": "Könyvtár feltöltése",
+                        "files": "Fájlok feltöltése",
+                        "media": "Média feltöltése",
+                        "uploaded": "{{name}} feltöltve"
+                    }
+                },
+                "deselectAll": "Az összes kiválasztásának megszüntetése",
+                "dropdown": {
+                    "bulkActions": "Tömeges műveletek",
+                    "gridMode": "Rácsként jelenik meg",
+                    "listMode": "Nézet lista formátumban",
+                    "sortBy": {
+                        "ascending": "Növekvő sorrend",
+                        "descending": "Csökkenő sorrend",
+                        "lastModified": {
+                            "ascendingTitle": "Legrégebbi Először",
+                            "descendingTitle": "Legújabb Először",
+                            "title": "Legutóbbi módosítás"
+                        },
+                        "name": {
+                            "ascendingTitle": "A-tól Z-ig",
+                            "descendingTitle": "Z-től A-ig",
+                            "title": "Név"
+                        },
+                        "size": {
+                            "ascendingTitle": "Legkisebb elöl",
+                            "descendingTitle": "Legnagyobb elöl",
+                            "title": "Méret"
+                        },
+                        "sortBy": "Rendezés",
+                        "type": {
+                            "ascendingTitle": "Növekvő sorrend",
+                            "descendingTitle": "Csökkenő sorrend",
+                            "title": "Típus"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "Legrégebbi Először",
+                            "descendingTitle": "Legújabb Először",
+                            "title": "Feltöltés dátuma"
+                        }
+                    },
+                    "transfers": "Átvitelek"
+                },
+                "selectAll": "Az összes kiválasztása"
+            },
+            "title": {
+                "drive": "Meghajtó",
+                "favorites": "Kedvencek",
+                "links": "Nyilvános linkek",
+                "offline": "Elérhető offline",
+                "recents": "Legutóbbiak",
+                "selected": "{{count}} kiválasztva",
+                "sharedIn": "Önnel megosztva",
+                "sharedOut": "Megosztva másokkal",
+                "trash": "Lomtár"
+            }
+        },
+        "itemShared": "{{name}} megosztva",
+        "itemSharedWith": "{{name}} megosztva a(z) {{email}} címről",
+        "list": {
+            "empty": "Nincsenek elemek",
+            "emptySearch": "Nem találhatók elemek ehhez a kereséshez",
+            "error": "Hiba történt a meghajtó betöltése során, kérem, próbálja meg később újra",
+            "footer": "{{count}} elem",
+            "item": {
+                "menu": {
+                    "availableOffline": "Elérhető offline",
+                    "clipboard": "Vágólap",
+                    "color": "Szín",
+                    "copy": "Másolás",
+                    "copyId": "Azonosító másolása",
+                    "copyPath": "Elérési út másolása",
+                    "delete": "Törlés",
+                    "deletePermanently": "Végleges törlés",
+                    "deselect": "Kijelölés megszüntetése",
+                    "deselectAll": "Az összes kiválasztásának megszüntetése",
+                    "disablePublicLink": "Kapcsolat letiltása",
+                    "download": "Letöltés",
+                    "downloadFolder": "Mappa letöltése",
+                    "export": "Exportálás",
+                    "favorite": "Kedvenc",
+                    "favorite_one": "Kedvenc elem",
+                    "favorite_other": "{{count}} elem kedvencek közé",
+                    "favorited": "Kedvencként megjelölve",
+                    "id": "ID",
+                    "info": "Információ",
+                    "location": "Helyszín",
+                    "makeAvailableOffline": "Tegye elérhetővé offline",
+                    "move": "Áthelyezés",
+                    "move_one": "Elem áthelyezése",
+                    "move_other": "{{count}} elem mozgatása",
+                    "open": "Megnyitás",
+                    "path": "Útvonal",
+                    "preview": "Előnézet",
+                    "properties": "Tulajdonságok",
+                    "publicLink": "Nyilvános link",
+                    "removeOffline": "Offline fájl eltávolítása",
+                    "removeSharedIn": "Eltávolítás",
+                    "removeSharedOut": "Megosztás leállítása",
+                    "rename": "Átnevezés",
+                    "restore": "Visszaállítás",
+                    "saveToGallery": "Mentés a galériába",
+                    "select": "Kiválasztás",
+                    "selectAll": "Az összes kiválasztása",
+                    "share": "Megosztás",
+                    "share_one": "Elem megosztása",
+                    "share_other": "{{count}} elem megosztása",
+                    "trash": "Lomtár",
+                    "trash_one": "Kuka elem",
+                    "trash_other": "{{count}} elem kukába helyezése",
+                    "unfavorite": "Kedvencekből eltávolítás",
+                    "versionHistory": "Verzióelőzmények",
+                    "withUser": "Felhasználóval"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "Biztosan véglegesen törölni szeretné {{count}} elemet? Ez a művelet nem vonható vissza!",
+                "title": "Végleges törlés"
+            },
+            "deletePermanently": {
+                "message": "Biztosan véglegesen törölni szeretné ezt az elemet? Ez a művelet nem vonható vissza!",
+                "title": "Végleges törlés"
+            },
+            "disablePublicLinks": {
+                "message": "Biztosan szeretné letiltani a {{count}} elemhez tartozó nyilvános linkeket? A linkek már nem lesznek elérhetők.",
+                "title": "Nyilvános linkek letiltása"
+            },
+            "removeOfflineFiles": {
+                "message": "Biztosan törölni szeretné a(z) {{count}} offline fájlokat? Többé nem lesznek elérhetők offline.",
+                "title": "Offline fájlok eltávolítása"
+            },
+            "removeSharedInItem": {
+                "message": "Biztosan el szeretné távolítani ezt az elemet a megosztott elemei közül? Többé nem fogja tudni látni, vagy hozzáférni.",
+                "title": "Eltávolítás"
+            },
+            "removeSharedInItems": {
+                "message": "Biztosan el szeretné távolítani {{count}} elemet a megosztott elemei közül? Többé nem fogja tudni látni, vagy hozzáférni.",
+                "title": "Eltávolítás"
+            },
+            "removeSharedOutItem": {
+                "message": "Biztosan meg akarja szüntetni ennek az elemnek a megosztását? A felhasználó többé nem tud hozzáférni.",
+                "title": "Megosztás leállítása"
+            },
+            "removeSharedOutItems": {
+                "message": "Biztosan meg akarja szüntetni {{count}} elem megosztását? A felhasználók többé nem tudnak hozzáférni.",
+                "title": "Megosztás leállítása"
+            },
+            "renameItem": {
+                "placeholder": "Új név",
+                "title": "Átnevezés"
+            },
+            "trashItem": {
+                "message": "Biztosan a kukába helyezi ezt az elemet? Később visszaállíthatja.",
+                "title": "Áthelyezés a kukába"
+            },
+            "trashItems": {
+                "message": "Biztosan a kukába helyezi a(z) {{count}} elemet? Később visszaállíthatja őket.",
+                "title": "Áthelyezés a kukába"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "Nincsenek elemek",
+                "emptySearch": "Nem találhatók elemek ehhez a kereséshez",
+                "error": "Hiba történt a keresési eredmények betöltése során, kérem, próbálja meg később újra",
+                "footer": "{{count}} elem"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "Mégsem",
+        "items": {
+            "downloadButton": "Letöltés gomb",
+            "edit": "Szerkesztés",
+            "enabled": "Engedélyezve",
+            "expiration": "Lejárat",
+            "expiration12h": "12 óra",
+            "expiration14d": "14 nap",
+            "expiration1d": "1 nap",
+            "expiration1h": "1 óra",
+            "expiration30d": "30 nap",
+            "expiration3d": "3 nap",
+            "expiration6h": "6 óra",
+            "expiration7d": "7 nap",
+            "expirationNever": "Soha",
+            "password": "Jelszó"
+        },
+        "onlyPro": "Ez a funkció csak a Filen Pro felhasználók számára érhető el. Iratkozzon fel bármelyik Filen csomagra, hogy engedélyezze.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "Hagyja üresen a jelszó eltávolításához",
+                "title": "Jelszó szerkesztése"
+            }
+        },
+        "shareDialogTile": "Filen nyilvános link",
+        "title": "Nyilvános link szerkesztése",
+        "unsavedChanges": "Nem mentett változtatások"
+    },
+    "errors": {
+        "cannotOpenURL": "Nem lehet megnyitni az URL-t.",
+        "notEnoughDiskSpace": "Nincs elég hely a helyi lemezen.",
+        "sharingNotAvailable": "A megosztás ezen az eszközön nem érhető el.",
+        "youAreOffline": "Jelenleg offline módban van. Kérjük, ellenőrizze az internetkapcsolatát."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "Mégsem",
+                "confirm": "Törlés",
+                "message": "Biztosan törölni szeretné ezt a verziót? Ez a művelet nem vonható vissza!",
+                "title": "Verzió törlése"
+            },
+            "restore": {
+                "cancel": "Mégsem",
+                "confirm": "Visszaállítás",
+                "message": "Biztos, hogy vissza szeretné állítani ezt a verziót? Ez felülírja a jelenlegi fájlt.",
+                "title": "Verzió visszaállítása"
+            }
+        },
+        "header": {
+            "title": "Verzióelőzmények"
+        },
+        "list": {
+            "empty": "Még nincsenek verziók",
+            "emptySearch": "Nem találhatók verziók ehhez a kereséshez",
+            "error": "Hiba történt a fájlverziók betöltése során, kérem, próbálja meg később újra",
+            "item": {
+                "current": "Aktuális",
+                "delete": "Törlés",
+                "restore": "Visszaállítás"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "Bájtok",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiB",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "Nincs elérhető előnézet"
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "Kedvencek"
+            },
+            "links": {
+                "title": "Nyilvános linkek"
+            },
+            "offline": {
+                "title": "Elérhető offline"
+            },
+            "recents": {
+                "title": "Legutóbbiak"
+            },
+            "sharedIn": {
+                "title": "Önnel megosztva"
+            },
+            "sharedOut": {
+                "title": "Megosztva másokkal"
+            },
+            "trash": {
+                "title": "Lomtár"
+            }
+        },
+        "listEmpty": {
+            "favorites": "Nincsenek kedvencek",
+            "links": "Még nincsenek nyilvános linkek",
+            "offline": "Még nincsenek offline elemek",
+            "recents": "Még nincsenek legutóbbiak",
+            "sharedIn": "Még nincsenek megosztott elemek",
+            "sharedOut": "Még nincsenek megosztott elemek",
+            "trash": "Még nincsenek a kukába helyezett elemek"
+        },
+        "title": "Kezdőlap"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "Mégsem",
+            "okText": "OK",
+            "title": "Cím"
+        }
+    },
+    "listEmpty": {
+        "empty": "Nincs találat",
+        "emptySearch": "Nincs találat ehhez a kereséshez",
+        "error": "Hiba történt, kérem, próbálja meg később újra"
+    },
+    "localAuthentication": {
+        "cancelLabel": "Mégsem",
+        "promptMessage": "Hitelesítés a folytatáshoz"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "Ide írja a kódot...",
+                "text": "Ide írja a szöveget..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "Az összes kiválasztásának megszüntetése",
+                    "selectAll": "Az összes kiválasztása"
+                },
+                "types": {
+                    "checklist": "Teendőlista",
+                    "code": "Kód",
+                    "markdown": "Markdown",
+                    "rich": "Formázott szöveg",
+                    "text": "Szöveg"
+                }
+            },
+            "menu": {
+                "settings": "Beállítások"
+            },
+            "selected": "{{count}} kiválasztva",
+            "title": "Jegyzetek"
+        },
+        "history": {
+            "list": {
+                "empty": "Nincs elérhető előzmény",
+                "emptySearch": "Nem található bejegyzés ehhez a kereséshez",
+                "error": "Hiba történt az előzmények betöltése során, kérem, próbálja meg később újra",
+                "footer": "{{count}} elem"
+            },
+            "noPreview": "Nincs elérhető előnézet",
+            "prompts": {
+                "restore": {
+                    "message": "Biztos, hogy vissza szeretné állítani ezt a jegyzetet? Ez felülírja a jelenlegi jegyzetet.",
+                    "title": "Jegyzet visszaállítása"
+                }
+            },
+            "restore": "Visszaállítás",
+            "title": "Előzmények"
+        },
+        "list": {
+            "empty": "Még nincsenek jegyzetek",
+            "emptySearch": "Nem található jegyzet ehhez a kereséshez",
+            "error": "Hiba történt a jegyzetek betöltése során, kérem, próbálja meg később újra",
+            "footer": "{{count}} elem"
+        },
+        "menu": {
+            "archive": "Archívum",
+            "clipboard": "Vágólap",
+            "copyId": "Azonosító másolása",
+            "delete": "Törlés",
+            "deselect": "Kijelölés megszüntetése",
+            "duplicate": "Duplikálás",
+            "export": "Exportálás",
+            "favorite": "Kedvenc",
+            "favorited": "Kedvencként megjelölve",
+            "history": "Előzmények",
+            "leave": "Kilépés",
+            "participants": "Résztvevők",
+            "pin": "Tűzve",
+            "pinned": "Kitűzött",
+            "preview": "Előnézet",
+            "rename": "Átnevezés",
+            "restore": "Visszaállítás",
+            "select": "Kiválasztás",
+            "tags": "Címkék",
+            "trash": "Lomtár",
+            "type": "Típus",
+            "types": {
+                "checklist": "Teendőlista",
+                "code": "Kód",
+                "md": "Markdown",
+                "rich": "Formázott szöveg",
+                "text": "Szöveg"
+            },
+            "unfavorite": "Kedvencekből eltávolítás",
+            "unpin": "Rögzítés megszüntetése"
+        },
+        "participants": {
+            "list": {
+                "empty": "Még nincsenek résztvevők",
+                "emptySearch": "Nem található résztvevő ehhez a kereséshez",
+                "error": "Hiba történt a résztvevők betöltése során, kérem, próbálja meg később újra",
+                "footer": "{{count}} résztvevő"
+            },
+            "menu": {
+                "permissionsWrite": "Írási engedélyek",
+                "remove": "Eltávolítás"
+            },
+            "title": "Résztvevők"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "Jegyzet címe",
+                "title": "Jegyzet létrehozása"
+            },
+            "createTag": {
+                "placeholder": "Címke neve",
+                "title": "Címke létrehozása"
+            },
+            "deleteNote": {
+                "message": "Biztosan véglegesen törölni szeretné ezt a jegyzetet? Ez a művelet nem vonható vissza!",
+                "title": "Jegyzet törlése"
+            },
+            "deleteNotes": {
+                "message": "Biztosan véglegesen törölni szeretné {{count}} jegyzetet? Ez a művelet nem vonható vissza!",
+                "title": "Jegyzetek törlése"
+            },
+            "deleteTag": {
+                "message": "Biztosan törölni szeretné ezt a címkét? Ez a művelet nem vonható vissza!",
+                "title": "Címke törlése"
+            },
+            "deleteTags": {
+                "message": "Biztosan törölni szeretné {{count}} címkét? Ez a művelet nem vonható vissza!",
+                "title": "Címkék törlése"
+            },
+            "leaveNote": {
+                "message": "Biztosan el szeretné hagyni ezt a jegyzetet? Többé nem fogja tudni látni vagy szerkeszteni.",
+                "title": "Jegyzet elhagyása"
+            },
+            "leaveNotes": {
+                "message": "Biztosan el szeretné hagyni {{count}} jegyzetet? Többé nem fogja tudni látni vagy szerkeszteni.",
+                "title": "Jegyzetek elhagyása"
+            },
+            "removeParticipant": {
+                "message": "Biztosan el szeretné távolítani ezt a résztvevőt? Többé nem fogja tudni látni vagy szerkeszteni ezt a jegyzetet.",
+                "title": "Résztvevő eltávolítása"
+            },
+            "removeParticipants": {
+                "message": "Biztosan el szeretné távolítani {{count}} résztvevőt? Többé nem fogják tudni látni vagy szerkeszteni ezeket a jegyzeteket.",
+                "title": "Résztvevők eltávolítása"
+            },
+            "renameNote": {
+                "placeholder": "Új név",
+                "title": "Jegyzet átnevezése"
+            },
+            "renameTag": {
+                "placeholder": "Új címke neve",
+                "title": "Címke átnevezése"
+            },
+            "trashNote": {
+                "message": "Biztosan a kukába helyezi ezt a jegyzetet? Később visszaállíthatja.",
+                "title": "Áthelyezés a kukába"
+            },
+            "trashNotes": {
+                "message": "Biztosan a kukába helyezi a(z) {{count}} jegyzetet? Később visszaállíthatja őket.",
+                "title": "Áthelyezés a kukába"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "Törlés",
+                "favorited": "Kedvencként megjelölve",
+                "rename": "Átnevezés"
+            },
+            "names": {
+                "all": "Összes",
+                "archived": "Archiválva",
+                "favorited": "Kedvencként megjelölve",
+                "pinned": "Kitűzött",
+                "shared": "Megosztva",
+                "trash": "Lomtár"
+            }
+        },
+        "title": "Jegyzetek"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "Mégsem",
+            "placeholder": "Keresés..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "Offline mód"
+    },
+    "photos": {
+        "header": {
+            "selected": "{{count}} kiválasztva"
+        },
+        "list": {
+            "empty": "Még nincsenek fotók",
+            "emptySearch": "Nem találhatók fotók ehhez a kereséshez",
+            "error": "Hiba történt a fényképek betöltése során, kérem, próbálja meg később újra"
+        },
+        "menu": {
+            "settings": "Beállítások"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} elem"
+                },
+                "list": {
+                    "empty": "Nem találhatók albumok",
+                    "emptySearch": "Nem találhatók albumok ehhez a kereséshez",
+                    "error": "Hiba történt az albumok betöltése során, kérem, próbálja meg később újra"
+                },
+                "title": "Albumok"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "Engedélyezze a média elérést a fotók megtekintéséhez."
+                },
+                "items": {
+                    "albums": "Albumok",
+                    "albumsInfo": "Válassza ki, mely albumokat szeretné belefoglalni a kamerás feltöltésbe.",
+                    "background": "Háttér",
+                    "backgroundInfo": "Engedélyezze a kamera hátterében történő feltöltését. Ez magas akkumulátorhasználathoz vezethet. A háttérfeltöltések csak a képeket tartalmazzák. Csak akkor működik, ha az alkalmazást nem zárta be kényszerített bezárással.",
+                    "cellular": "Mobilhálózat",
+                    "cellularInfo": "Engedélyezi a kamera feltöltést mobilhálózaton keresztül. Ez magas adatfelhasználáshoz vezethet.",
+                    "cloudDirectory": "Felhő könyvtár",
+                    "cloudDirectoryNotSet": "Nincs beállítva",
+                    "compress": "Tömörítés",
+                    "compressInfo": "Fotók tömörítése a tárolóhely takarékossága érdekében. Ez csökkentheti a fotók minőségét. JPG tömörítés 80%-os minőségen.",
+                    "enabled": "Engedélyezve",
+                    "lowBattery": "Alacsony akkumulátor",
+                    "lowBatteryInfo": "Disable camera upload when the battery is low.",
+                    "permissionsError": "Engedélyek hiba",
+                    "permissionsErrorInfo": "Kérjük, engedélyezze az alkalmazásnak a fényképeinek és videóinak elérését a rendszerbeállításokban.",
+                    "videos": "Videók",
+                    "videosInfo": "Videók feltöltése is a kamerából."
+                },
+                "title": "Beállítások"
+            }
+        },
+        "state": {
+            "synced": "Szinkronizálva",
+            "syncing": "Szinkronizálás",
+            "syncingProgress": "{{done}} a(z) {{total}} elemből szinkronizálva"
+        },
+        "title": "Fotók"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "Mégsem",
+            "done": "Kész",
+            "selectContact": "Kapcsolat kiválasztása",
+            "selectContacts": "Kapcsolatok kiválasztása"
+        },
+        "list": {
+            "empty": "Még nincsenek névjegyek",
+            "emptySearch": "Nem találhatók névjegyek ehhez a kereséshez",
+            "error": "Hiba történt a kapcsolatok betöltése során, kérem, próbálja meg később újra",
+            "footer": "{{count}} kapcsolat"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} kiválasztva"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "Mégsem",
+            "done": "Kész",
+            "drive": "Meghajtó",
+            "selectDirectories": "Könyvtárak kiválasztása",
+            "selectDirectory": "Könyvtár kiválasztása",
+            "selectFile": "Fájl kiválasztása",
+            "selectFiles": "Fájlok kiválasztása",
+            "selectItem": "Elem kiválasztása",
+            "selectItems": "Elemek kiválasztása",
+            "selectRoot": "Válassza ki a felhő meghajtót"
+        },
+        "list": {
+            "empty": "Még semmi sincs feltöltve",
+            "emptySearch": "Nem találhatók elemek ehhez a kereséshez",
+            "error": "Hiba történt a fájlok betöltése során, kérem, próbálja meg később újra",
+            "footer": "{{count}} elem"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "Könyvtár neve",
+                "success": "{{name}} létrehozva",
+                "title": "Könyvtár létrehozása"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} kiválasztva"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "Mégsem",
+            "done": "Kész",
+            "selectPlaylist": "Lejátszási lista kiválasztása",
+            "selectPlaylists": "Lejátszási listák kiválasztása"
+        },
+        "item": {
+            "subTitle": "{{count}} szám, frissítve: {{date}}"
+        },
+        "list": {
+            "empty": "Még nincsenek lejátszási listák",
+            "emptySearch": "Nem találhatók lejátszási listák ehhez a kereséshez",
+            "error": "Hiba történt a lejátszási listák betöltése során, kérem, próbálja meg később újra",
+            "footer": "{{count}} lejátszási lista"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Lejátszási lista neve",
+                "title": "Lejátszási lista létrehozása"
+            }
+        },
+        "selected": "{{countOrName}} kiválasztva",
+        "toolbar": {
+            "selected": "{{countOrName}} kiválasztva"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "Az avatarkép mérete meghaladja a 3 MiB korlátot.",
+                "emailsNotMatching": "Az új e-mail címek nem egyeznek."
+            },
+            "items": {
+                "changeAvatar": "Avatár megváltoztatása",
+                "deleteAllFilesAndDirectories": "Összes fájl és könyvtár törlése",
+                "deleteVersionedFiles": "Verziózott fájlok törlése",
+                "emailAddress": "Email cím",
+                "fileVersioning": "Fájl verziózás",
+                "fileVersioningInfo": "Engedélyezze a fájl verziózását, hogy nyomon követhesse a fájlokon végzett változtatásokat.",
+                "gdpr": "GDPR információ",
+                "loginAlerts": "Bejelentkezési figyelmeztetések",
+                "loginAlertsInfo": "Értesítéseket kap, amikor a fiókjához hozzáférnek.",
+                "logout": "Kijelentkezés",
+                "more": "További fiókbeállítások",
+                "nickname": "Becenév",
+                "personalInformation": "Személyes adatok",
+                "requestAccountDeletion": "Számla törlésének kérése",
+                "requestAccountDeletionInfo": "Számla törlésének kérése. E-mailben további útmutatást küldünk."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "Kód",
+                    "title": "Kéttényezős hitelesítés"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "Új email cím megerősítése",
+                        "title": "Új email cím megerősítése"
+                    },
+                    "newEmail": {
+                        "placeholder": "Új email cím",
+                        "title": "Új email cím"
+                    },
+                    "password": {
+                        "placeholder": "Jelszó",
+                        "title": "Jelszava"
+                    }
+                },
+                "deleteAccount": {
+                    "message": "Biztos, hogy kéri a számla törlését? E-mailben további útmutatást fog kapni.",
+                    "title": "Számla törlésének kérése"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "Biztosan törölni szeretné az összes fájlt és könyvtárat? Ez a művelet nem vonható vissza!",
+                    "title": "Összes fájl és könyvtár törlése"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "Biztos benne? Ez a művelet nem vonható vissza!",
+                    "title": "Összes fájl és könyvtár törlése"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "Biztosan törölni szeretné az összes verziókövetett fájlt? Ez a művelet nem vonható vissza!",
+                    "title": "Verziózott fájlok törlése"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "Biztos benne? Ez a művelet nem vonható vissza!",
+                    "title": "Verziózott fájlok törlése"
+                },
+                "logout": {
+                    "message": "Biztosan kijelentkezik? Újra be kell jelentkeznie, hogy hozzáférjen a fiókjához.",
+                    "title": "Kijelentkezés"
+                },
+                "more": {
+                    "message": "További beállítások érhetők el a webes alkalmazásban. Meg szeretné most nyitni?",
+                    "title": "Web applikáció megnyitása"
+                },
+                "updateNickname": {
+                    "placeholder": "Új becenév",
+                    "title": "Becenév frissítése"
+                }
+            },
+            "title": "Fiók"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "Gyorsítótár törlése",
+                "clearOfflineFiles": "Offline fájlok törlése",
+                "clearThumbnails": "Miniatűrök törlése",
+                "clearTrackPlayer": "Zeneszám lejátszó kiürítése"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "A gyorsítótár törlése eltávolítja az ideiglenes fájlokat. Ez megszakíthatja a folyamatban lévő feltöltéseket vagy letöltéseket. Biztosan folytatni szeretné?",
+                    "title": "Gyorsítótár törlése"
+                },
+                "clearOfflineFiles": {
+                    "message": "Az offline fájlok törlése eltávolítja az összes offline elérhető fájlt. Biztosan folytatni szeretné?",
+                    "title": "Offline fájlok törlése"
+                },
+                "clearThumbnails": {
+                    "message": "A miniatűrök törlésével az alkalmazás minden látható miniatűrt újra letölt. Biztosan folytatni szeretné?",
+                    "title": "Miniatűrök törlése"
+                },
+                "clearTrackPlayer": {
+                    "message": "A sávlejátszó gyorsítótárának törlése eltávolítja a gyorsítótárazott számokat és képeket. Ez megnövelheti a betöltési időt. Biztosan folytatni szeretné?",
+                    "title": "Zeneszám lejátszó kiürítése"
+                }
+            },
+            "title": "Fejlett"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "A biometrikus hitelesítés nem érhető el ezen az eszközön. Kérjük, engedélyezze a PIN-kód alapú hitelesítést, vagy használjon biometrikus hitelesítést támogató eszközt.",
+                "pinNotMatching": "A tartalék PIN-kódok nem egyeznek.",
+                "pinTooLong": "A biztonsági PIN nem lehet hosszabb, mint 128 számjegy.",
+                "pinTooShort": "A tartalék PIN-kódnak legalább 4 számjegyből kell állnia."
+            },
+            "items": {
+                "biometricAuth": "Biometrikus hitelesítés",
+                "lockAppAfter": "Alkalmazás zárolása ezután",
+                "pinOnly": "Csak PIN"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15 perc",
+                "fiveMinutes": "5 perc",
+                "immediately": "Azonnal",
+                "minutes": "{{minutes}} perc",
+                "never": "Soha",
+                "oneHour": "1 óra",
+                "oneMinute": "1 perc",
+                "tenMinutes": "10 perc",
+                "thirtyMinutes": "30 perc"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "Biztosan le szeretné tiltani a biometrikus hitelesítést?",
+                    "title": "Biometrikus hitelesítés letiltása"
+                },
+                "documentsProvider": {
+                    "message": "A biometrikus hitelesítés engedélyezése letiltja a dokumentum szolgáltatót. Ez azt jelenti, hogy más alkalmazásokban nem fogja tudni elérni a fájljait a Filen dokumentum szolgáltatóval. Folytatja?",
+                    "title": "Dokumentum szolgáltató engedélyezve"
+                },
+                "enable": {
+                    "placeholder": "Tartalék PIN",
+                    "title": "Biztonsági PIN beállítása"
+                },
+                "enableConfirm": {
+                    "placeholder": "PIN megerősítése",
+                    "title": "Biztonsági PIN megerősítése"
+                },
+                "fileProvider": {
+                    "message": "A biometrikus hitelesítés engedélyezése letiltja a fájlszolgáltatót. Ez azt jelenti, hogy más alkalmazásokban nem fogja tudni elérni a fájljait a Filen fájlszolgáltatóval. Folytatja?",
+                    "title": "Fájl szolgáltató engedélyezve"
+                }
+            },
+            "title": "Biztonság"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "Nem találhatók névjegyek",
+                    "emptySearch": "Nem találhatók névjegyek ehhez a kereséshez",
+                    "error": "Hiba történt a kapcsolatok betöltése során, kérem, próbálja meg később újra"
+                },
+                "blocked": {
+                    "empty": "Nem található blokkolt névjegy",
+                    "emptySearch": "Nem található blokkolt névjegy ehhez a kereséshez",
+                    "error": "Hiba történt a kapcsolatok betöltése során, kérem, próbálja meg később újra"
+                },
+                "offline": {
+                    "empty": "Nem található offline névjegy",
+                    "emptySearch": "Nem található offline névjegy ehhez a kereséshez",
+                    "error": "Hiba történt a kapcsolatok betöltése során, kérem, próbálja meg később újra"
+                },
+                "online": {
+                    "empty": "Nem található online névjegy",
+                    "emptySearch": "Nem található online névjegy ehhez a kereséshez",
+                    "error": "Hiba történt a kapcsolatok betöltése során, kérem, próbálja meg később újra"
+                },
+                "pending": {
+                    "empty": "Nem található kapcsolatfelvételi kérés",
+                    "emptySearch": "Nem található névjegykérés ehhez a kereséshez",
+                    "error": "Hiba történt a kapcsolatfelvételek betöltése során, kérem, próbálja meg később újra"
+                },
+                "requests": {
+                    "empty": "Nem található kapcsolatfelvételi kérés",
+                    "emptySearch": "Nem található névjegykérés ehhez a kereséshez",
+                    "error": "Hiba történt a kapcsolatfelvételek betöltése során, kérem, próbálja meg később újra"
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "Biztos, hogy le szeretné tiltani ezt a névjegyet?",
+                    "success": "{{email}} letiltva",
+                    "title": "Kapcsolat letiltása"
+                },
+                "blockContacts": {
+                    "message": "Biztos, hogy le szeretne tiltani {{count}} névjegyet?",
+                    "success": "{{count}} kapcsolat letiltva",
+                    "title": "Kapcsolatok letiltása"
+                },
+                "removeContact": {
+                    "message": "Biztos, hogy szeretné eltávolítani ezt a névjegyet?",
+                    "success": "{{email}} eltávolítva",
+                    "title": "Kapcsolat eltávolítása"
+                },
+                "removeContacts": {
+                    "message": "Biztos, hogy szeretne eltávolítani {{count}} névjegyet?",
+                    "success": "{{count}} kapcsolat eltávolítva",
+                    "title": "Kapcsolatok eltávolítása"
+                },
+                "sendRequest": {
+                    "placeholder": "Filen email cím",
+                    "success": "Kapcsolatfelvételi kérelem elküldve a(z) {{email}} címre",
+                    "title": "Kapcsolati kérelem küldése"
+                },
+                "unblockContact": {
+                    "message": "Biztos, hogy fel szeretné oldani a tiltást erről a névjegyről?",
+                    "success": "{{email}} feloldva",
+                    "title": "Kapcsolat feloldása"
+                },
+                "unblockContacts": {
+                    "message": "Biztos, hogy fel szeretné oldani a tiltási zárolást {{count}} névjegynél?",
+                    "success": "{{count}} kapcsolat feloldva",
+                    "title": "Kapcsolatok feloldása"
+                }
+            },
+            "tabs": {
+                "all": "Összes",
+                "blocked": "Letiltva",
+                "offline": "Offline",
+                "online": "Online",
+                "pending": "Függőben",
+                "requests": "Kérések"
+            },
+            "title": "Kapcsolatok"
+        },
+        "events": {
+            "event": "Esemény",
+            "eventInfo": {
+                "2faDisabled": "2FA letiltva",
+                "2faEnabled": "2FA engedélyezve",
+                "baseFolderCreated": "Alap mappa létrehozva",
+                "codeRedeemed": "A \"{{code}}\" kód beváltva",
+                "deleteAll": "Minden könyvtár és fájl véglegesen törölve",
+                "deleteFilePermanently": "{{name}} végleg törölve",
+                "deleteFolderPermanently": "{{name}} végleg törölve",
+                "deleteUnfinished": "Befejezetlen feltöltések törölve",
+                "deleteVersioned": "Minden verziózott fájl törölve",
+                "emailChangeAttempt": "E-mail cím módosításának kísérlete",
+                "emailChanged": "E-mail megváltozott",
+                "failedLogin": "Sikertelen bejelentkezési kísérlet",
+                "fileLinkEdited": "Nyilvános link a(z) {{name}} szerkesztve",
+                "fileMetadataChanged": "{{name}} metaadatai megváltoztak",
+                "fileMoved": "{{name}} áthelyezve",
+                "fileRenamed": "{{oldName}} átnevezve erre: {{newName}}",
+                "fileRestored": "{{name}} visszaállítva",
+                "fileRm": "{{name}} törölve",
+                "fileShared": "{{name}} megosztva a(z) {{email}} címről",
+                "fileTrash": "{{name}} lomtárba helyezve",
+                "fileUploaded": "{{name}} feltöltve",
+                "fileVersioned": "{{name}} verziózott",
+                "folderColorChanged": "{{name}} könyvtár színe megváltozott",
+                "folderLinkEdited": "Nyilvános könyvtár hivatkozás szerkesztve",
+                "folderMetadataChanged": "{{name}} könyvtár metadatai megváltoztak",
+                "folderMoved": "A {{name}} könyvtár áthelyezve",
+                "folderRenamed": "{{oldName}} könyvtár átnevezve erre: {{newName}}",
+                "folderRestored": "A {{name}} könyvtár vissza lett állítva",
+                "folderShared": "{{name}} könyvtár megosztva a(z) {{email}} címről",
+                "folderTrash": "A {{name}} könyvtár kukába került",
+                "itemFavorited": "{{name}} kedvencként megjelölve",
+                "itemUnfavorited": "{{name}} eltávolítva a kedvencek közül",
+                "login": "Bejelentkezve",
+                "passwordChanged": "Jelszó megváltoztatva",
+                "removedSharedInItems": "Megosztott elemek eltávolítva innen: {{email}}",
+                "removedSharedOutItems": "Megosztott elemek eltávolítva innen: {{email}}",
+                "requestAccountDeletion": "Fiók törlésének kérése",
+                "subFolderCreated": "A {{name}} könyvtár létrehozva",
+                "trashEmptied": "Kuka kiürítve",
+                "versionedFileRestored": "A(z) {{name}} verziója visszaállítva"
+            },
+            "events": "Események",
+            "listEmpty": {
+                "empty": "Nem találhatók események",
+                "emptySearch": "Nem találhatók események ehhez a kereséshez",
+                "error": "Hiba történt az események betöltése során, kérem, próbálja meg később újra"
+            },
+            "title": "Események"
+        },
+        "index": {
+            "items": {
+                "advanced": "Fejlett",
+                "cameraUpload": "Kamera feltöltés",
+                "contacts": "Kapcsolatok",
+                "documentsProvider": "Dokumentumok szolgáltató",
+                "documentsProviderInfo": "Engedélyezze az Android Files integrációt a fájlok alkalmazáson kívüli eléréséhez.",
+                "events": "Események",
+                "fileProvider": "Fájl szolgáltató",
+                "fileProviderInfo": "Engedélyezze az iOS Files integrációt a fájlok alkalmazáson kívüli eléréséhez.",
+                "security": "Biztonság",
+                "used": "{{used}} használva a(z) {{max}}-ből ({{percentage}}%)"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "A dokumentum szolgáltató engedélyezése letiltja a biometrikus hitelesítést. Ez azt jelenti, hogy nem tudja használni a biometrikus hitelesítést az app feloldásához. Folytatni szeretné?",
+                    "title": "Biometrikus hitelesítés engedélyezve"
+                },
+                "fileProvider": {
+                    "message": "A fájl szolgáltató engedélyezése letiltja a biometrikus hitelesítést. Ez azt jelenti, hogy nem tudja használni a biometrikus hitelesítést az app feloldásához. Folytatni szeretné?",
+                    "title": "Biometrikus hitelesítés engedélyezve"
+                }
+            },
+            "title": "Beállítások"
+        },
+        "personal": {
+            "items": {
+                "city": "Város",
+                "companyName": "Cégnév",
+                "country": "Ország",
+                "firstName": "Keresztnév",
+                "lastName": "Vezetéknév",
+                "postalCode": "Irányítószám",
+                "street": "Utca",
+                "streetNumber": "Utca száma",
+                "vatId": "Adószám (ÁFA ID)"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "Szerkesztés"
+                }
+            },
+            "title": "Személyes adatok"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "Az új jelszavak nem egyeznek.",
+                "weak": "Az új jelszava túl gyenge. Kérjük, válasszon erősebb jelszót. Olyat, amely legalább 10 karakter hosszú, nagy- és kisbetűket, számokat és speciális karaktereket tartalmaz."
+            },
+            "items": {
+                "2fa": "Kéttényezős hitelesítés",
+                "biometricAuth": "Biometrikus hitelesítés",
+                "changePassword": "Jelszó megváltoztatása"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "Jelszó megváltoztatása után ki lesz jelentkezve, és újra be kell jelentkeznie az új jelszóval.",
+                    "title": "Jelszó megváltoztatása"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "Jelszó megerősítése",
+                    "title": "Új jelszó megerősítése"
+                },
+                "currentPassword": {
+                    "placeholder": "Jelenlegi jelszó",
+                    "title": "Jelenlegi jelszava"
+                },
+                "newPassword": {
+                    "placeholder": "Új jelszó",
+                    "title": "Új jelszava"
+                }
+            },
+            "title": "Biztonság"
+        },
+        "twoFactorAuth": {
+            "copied": "Kulcs vágólapra másolva",
+            "copyKey": "Kulcs másolása",
+            "items": {
+                "2fa": "Kéttényezős hitelesítés"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "Kód",
+                    "title": "Kód megadása"
+                }
+            },
+            "title": "Biztonság"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "Mégsem",
+            "title": "Mentés a Filen-re",
+            "upload": "Feltöltés"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "Mégsem",
+            "select": "Kiválasztás"
+        },
+        "itemInfo": {
+            "creation": "Létrehozva",
+            "directories": "Könyvtárak",
+            "directory": "Könyvtár",
+            "files": "Fájlok",
+            "location": "Helyszín",
+            "modified": "Módosítva",
+            "name": "Név",
+            "notAvailable": "N/A",
+            "size": "Méret",
+            "type": "Típus",
+            "uploaded": "Feltöltve"
+        }
+    },
+    "tabBar": {
+        "chats": "Csevegések",
+        "drive": "Meghajtó",
+        "home": "Kezdőlap",
+        "notes": "Jegyzetek",
+        "photos": "Fotók",
+        "settings": "Beállítások"
+    },
+    "textEditor": {
+        "header": {
+            "back": "Vissza"
+        },
+        "saved": "Mentve",
+        "savedSuccess": "Sikeresen mentve",
+        "unsavedChanges": "Nem mentett változtatások"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "Nincs sorban lévő szám",
+            "unknownArtist": "Ismeretlen előadó",
+            "unknownTitle": "Ismeretlen cím"
+        },
+        "header": {
+            "title": "Lejátszási listák"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "Hozzáadás a sorhoz",
+                "cancel": "Mégsem",
+                "delete": "Törlés",
+                "play": "Lejátszás"
+            },
+            "subTitle": "{{count}} szám, frissítve: {{date}}"
+        },
+        "list": {
+            "empty": "Még nincsenek lejátszási listák",
+            "emptySearch": "Nem találhatók lejátszási listák ehhez a kereséshez",
+            "error": "Hiba történt a lejátszási listák betöltése során, kérem, próbálja meg később újra",
+            "footer": "{{count}} lejátszási lista"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "Hozzáadás a lejátszási listához",
+                    "addToQueue": "Hozzáadás a sorhoz",
+                    "cancel": "Mégsem",
+                    "play": "Lejátszás",
+                    "removeFromPlaylist": "Eltávolítás a lejátszási listáról"
+                }
+            },
+            "list": {
+                "empty": "Még nincsenek zeneszámok",
+                "emptySearch": "Nem találhatók számok ehhez a kereséshez",
+                "error": "Hiba történt a zeneszámok betöltése során, kérem, próbálja meg később újra",
+                "footer": "{{count}} zeneszám"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Lejátszási lista neve",
+                "title": "Lejátszási lista létrehozása"
+            },
+            "deletePlaylist": {
+                "message": "Biztosan törölni szeretné ezt a lejátszási listát? Ez a művelet nem vonható vissza!",
+                "title": "Lejátszási lista törlése"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "Vissza",
+            "title": "Átvitelek"
+        },
+        "info": "{{ongoingTransfers}} elem átvitele {{speed}} sebességgel, {{remaining}} hátravan",
+        "list": {
+            "empty": "Még nincs átvitel",
+            "emptySearch": "Nem találhatók átvitelek ehhez a kereséshez",
+            "error": "Hiba történt az átvitelek betöltése során, kérem, próbálja meg később újra"
+        },
+        "noOngoingTransfers": "Nincsenek folyamatban lévő átvitelek",
+        "transfer": {
+            "cancel": "Mégsem",
+            "cancelAll": "Összes törlése",
+            "pause": "Szünet",
+            "resume": "Folytatás",
+            "stop": "Megállítás",
+            "stopAll": "Összes leállítása"
+        }
+    }
 }

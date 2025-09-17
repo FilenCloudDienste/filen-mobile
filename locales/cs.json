@@ -1,0 +1,1402 @@
+{
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "Zrušit",
+            "okText": "OK",
+            "title": "Název"
+        },
+        "exportMasterKeys": {
+            "cancelText": "Později",
+            "message": "Ještě jste neexportovali své hlavní klíče. Doporučujeme je nyní exportovat a uložit na bezpečné místo.",
+            "okText": "Exportovat",
+            "title": "Exportovat hlavní klíče"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "Později",
+            "message": "Překročili jste svůj limit úložiště. Uvolněte prosím nějaké místo nebo upgradujte svůj plán, aby se předešlo nežádoucímu smazání dat.",
+            "okText": "Vylepšit",
+            "title": "Použití úložiště nad limit"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "End-to-end šifrováno",
+                "second": "Cloud Platforma"
+            },
+            "login": "Přihlásit se",
+            "signUp": "Zaregistrujte se zdarma"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "Vyplňte prosím všechna pole."
+            },
+            "forgotPassword": "Zapomněli jste heslo?",
+            "form": {
+                "email": {
+                    "label": "Emailová adresa",
+                    "placeholder": "Zadejte svou e-mailovou adresu"
+                },
+                "password": {
+                    "label": "Heslo",
+                    "placeholder": "Zadejte své heslo"
+                }
+            },
+            "header": {
+                "cancel": "Zrušit"
+            },
+            "login": "Přihlásit se",
+            "loginUsingCreds": "Přihlaste se pomocí svých přihlašovacích údajů",
+            "next": "Další",
+            "signUp": "Zaregistrujte se zdarma",
+            "submit": "Přihlásit se",
+            "title": "Přihlásit se",
+            "welcome": "Vítejte zpět!"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "Kód",
+                "title": "Dvoufaktorové ověřování"
+            },
+            "forgotPassword": {
+                "placeholder": "Emailová adresa",
+                "success": "Pokud je e-mailová adresa registrována, obdržíte e-mail s pokyny k resetování hesla.",
+                "title": "Zapomenuté heslo"
+            },
+            "resendConfirmation": {
+                "placeholder": "Emailová adresa",
+                "success": "Potvrzovací email odeslán na {{email}}, pokud je registrován.",
+                "title": "Znovu odeslat potvrzení"
+            }
+        },
+        "register": {
+            "createAccount": "Vytvořit účet",
+            "errors": {
+                "emailAddressesDoNotMatch": "Emailové adresy se neshodují.",
+                "emptyFields": "Vyplňte prosím všechna pole.",
+                "passwordsDoNotMatch": "Hesla se neshodují.",
+                "weakPassword": "Vaše heslo je příliš slabé. Zvolte si prosím silnější heslo. Takové, které má alespoň 10 znaků a obsahuje směs velkých a malých písmen, čísel a speciálních znaků."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "Potvrdit emailovou adresu",
+                    "placeholder": "Potvrďte svou emailovou adresu"
+                },
+                "confirmPassword": {
+                    "label": "Potvrdit heslo",
+                    "placeholder": "Potvrďte své heslo"
+                },
+                "email": {
+                    "label": "Emailová adresa",
+                    "placeholder": "Zadejte svou e-mailovou adresu"
+                },
+                "password": {
+                    "label": "Heslo",
+                    "placeholder": "Zadejte své heslo"
+                }
+            },
+            "header": {
+                "cancel": "Zrušit",
+                "title": "Zaregistrovat se"
+            },
+            "hero": {
+                "create": "Vytvořte si zdarma účet",
+                "description": "Nastavte si své přihlašovací údaje, abyste mohli začít používat svůj účet Filen."
+            },
+            "next": "Další",
+            "passwordStrength": {
+                "best": "Nejlepší",
+                "length": "Délka",
+                "lowercase": "Malá písmena",
+                "medium": "Střední",
+                "numbers": "Čísla",
+                "specialCharacters": "Speciální znaky",
+                "strong": "Silné",
+                "uppercase": "Velká písmena",
+                "weak": "Slabé"
+            },
+            "resendConfirmationEmail": "Znovu odeslat potvrzovací email",
+            "title": "Zaregistrovat se"
+        },
+        "registrationSuccessful": "Registrace úspěšná! Prosím, zkontrolujte svůj email, abyste potvrdili svůj účet."
+    },
+    "biometric": {
+        "appLockedFor": "Aplikace uzamčena na {{seconds}} sekund",
+        "authenticateUsingPin": "Autorizujte použitím PINu",
+        "errors": {
+            "incorrectPin": "Nesprávný PIN. Prosím, zkuste to znovu.",
+            "tooManyIncorrectAttempts": "Příliš mnoho nesprávných pokusů. Zkuste to prosím později."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN",
+                "title": "Zadejte svůj PIN"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "B/s",
+        "eib": "EiB/s",
+        "gib": "GiB/s",
+        "kib": "KiB/s",
+        "mib": "MiB/s",
+        "pib": "PiB/s",
+        "tib": "TiB/s",
+        "yib": "YiB/s",
+        "zib": "ZiB/s"
+    },
+    "chats": {
+        "chat": "Chat",
+        "chats": "Chaty",
+        "header": {
+            "newMessages": "{{count}} nových zpráv",
+            "search": "Prohledat chaty...",
+            "title": "Chaty"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "Přidat položky disku",
+                    "addFiles": "Přidat soubory",
+                    "addMedia": "Přidat média",
+                    "addPhotos": "Přidat fotografie",
+                    "cancel": "Zrušit"
+                }
+            },
+            "placeholder": "Napište zprávu",
+            "send": "Odeslat",
+            "suggestions": {
+                "emojis": {
+                    "matching": "Emoji odpovídající {{query}}"
+                },
+                "mention": {
+                    "matching": "Uživatelé odpovídající {{query}}"
+                },
+                "replyTo": {
+                    "replyingTo": "Odpovídáte na {{name}}"
+                }
+            }
+        },
+        "item": {
+            "draft": "Koncept",
+            "noMessages": "Zatím žádné zprávy",
+            "you": "Vy"
+        },
+        "list": {
+            "empty": "Nenalezeny žádné chaty",
+            "emptySearch": "Pro toto hledání nebyly nalezeny žádné chaty",
+            "error": "Došlo k chybě při načítání vašich chatů, zkuste to prosím později"
+        },
+        "menu": {
+            "archive": "Archiv",
+            "delete": "Smazat",
+            "favorite": "Oblíbená",
+            "leave": "Opustit",
+            "markAsRead": "Označit jako přečtené",
+            "mute": "Ztlumit",
+            "muted": "Ztlumeno",
+            "participants": "Účastníci",
+            "pin": "Připnout",
+            "rename": "Přejmenovat",
+            "unarchive": "Obnovit z archivu",
+            "unfavorite": "Odebrat z oblíbených",
+            "unmute": "Zrušit ztlumení",
+            "unpin": "Odepnout"
+        },
+        "messages": {
+            "everyone": "Kdokoliv",
+            "menu": {
+                "cancel": "Zrušit",
+                "copyId": "Kopírovat ID",
+                "copyText": "Kopírovat text",
+                "delete": "Smazat",
+                "disableEmbeds": "Zakázat vložení",
+                "edit": "Upravit",
+                "reply": "Odpovědět"
+            },
+            "new": "Nové",
+            "time": {
+                "hourAgo": "Před {{hours}} hodinou",
+                "hoursAgo": "Před {{hours}} hodinami",
+                "minuteAgo": "před {{minutes}} minutou",
+                "minutesAgo": "před {{minutes}} minutami",
+                "now": "Nyní",
+                "secondAgo": "před {{seconds}} sekundou",
+                "secondsAgo": "před {{seconds}} sekundami",
+                "todayAt": "Dnes v {{date}}",
+                "yesterdayAt": "Včera v {{date}}"
+            },
+            "undecryptable": "Nelze dešifrovat zprávu.",
+            "unknown": "Neznámé"
+        },
+        "participants": {
+            "menu": {
+                "remove": "Odstranit"
+            },
+            "participant": "Účastník",
+            "participants": "Účastníci",
+            "prompts": {
+                "remove": {
+                    "message": "Opravdu chcete odstranit tohoto účastníka? Nebude již moci vidět ani posílat zprávy v tomto chatu.",
+                    "success": "{{name}} odstraněno",
+                    "title": "Odebrat účastníka"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "Opravdu chcete smazat tento chat? Tím odstraníte chat ze svého seznamu a již nebudete moci tento chat vidět ani posílat zprávy.",
+                "title": "Smazat chat"
+            },
+            "deleteChats": {
+                "message": "Opravdu chcete smazat {{count}} chatů? Tím odstraníte chaty ze svého seznamu a již nebudete moci tyto chaty vidět ani posílat zprávy.",
+                "title": "Smazat chaty"
+            },
+            "deleteMessage": {
+                "message": "Opravdu chcete tuto zprávu smazat? Tuto akci nelze vrátit zpět!",
+                "title": "Smazat zprávu"
+            },
+            "disableEmbeds": {
+                "message": "Opravdu chcete deaktivovat vložené obsahy pro tuto zprávu? Tím odstraníte veškerý vložený obsah.",
+                "title": "Zakázat vložení"
+            },
+            "leaveChat": {
+                "message": "Opravdu chcete opustit tento chat? Nebudete již moci vidět ani posílat zprávy v tomto chatu.",
+                "title": "Opustit chat"
+            },
+            "leaveChats": {
+                "message": "Opravdu chcete opustit {{count}} chaty? Nebudete již moci vidět ani posílat zprávy v těchto chatech.",
+                "title": "Opustit chaty"
+            },
+            "renameChat": {
+                "placeholder": "Nový název",
+                "title": "Přejmenovat chat"
+            }
+        },
+        "typing": "{{users}} píší..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "Přijmout",
+            "block": "Zablokovat",
+            "cancel": "Zrušit",
+            "decline": "Odmítnout",
+            "remove": "Odstranit",
+            "unblock": "Odblokovat"
+        }
+    },
+    "copiedToClipboard": "Zkopírováno do schránky",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "Zrušit",
+                    "create": {
+                        "created": "{{name}} vytvořeno",
+                        "directory": "Vytvořit adresář",
+                        "photo": "Pořídit fotografii",
+                        "textFile": "Vytvořit textový soubor"
+                    },
+                    "directoryNamePlaceholder": "Název adresáře",
+                    "itemsUploaded": "{{count}} položek nahráno",
+                    "noMediaPermissions": "Chcete-li nahrát fotky nebo videa, musíte udělit oprávnění pro média.",
+                    "textFileNamePlaceholder": "Název textového souboru",
+                    "upload": {
+                        "directory": "Nahrát adresář",
+                        "files": "Nahrát soubory",
+                        "media": "Nahrát média",
+                        "uploaded": "{{name}} nahráno"
+                    }
+                },
+                "deselectAll": "Zrušit výběr všeho",
+                "dropdown": {
+                    "bulkActions": "Hromadné akce",
+                    "gridMode": "Zobrazit jako mřížku",
+                    "listMode": "Zobrazit jako seznam",
+                    "sortBy": {
+                        "ascending": "Vzestupně",
+                        "descending": "Sestupně",
+                        "lastModified": {
+                            "ascendingTitle": "Nejstarší nejdřív",
+                            "descendingTitle": "Nejnovější nejdřív",
+                            "title": "Poslední úprava"
+                        },
+                        "name": {
+                            "ascendingTitle": "A až Z",
+                            "descendingTitle": "Z do A",
+                            "title": "Název"
+                        },
+                        "size": {
+                            "ascendingTitle": "Nejmenší nejdřív",
+                            "descendingTitle": "Největší nejdřív",
+                            "title": "Velikost"
+                        },
+                        "sortBy": "Seřadit podle",
+                        "type": {
+                            "ascendingTitle": "Vzestupně",
+                            "descendingTitle": "Sestupně",
+                            "title": "Typ"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "Nejstarší nejdřív",
+                            "descendingTitle": "Nejnovější nejdřív",
+                            "title": "Datum nahrání"
+                        }
+                    },
+                    "transfers": "Přenosy"
+                },
+                "selectAll": "Vybrat vše"
+            },
+            "title": {
+                "drive": "Disk",
+                "favorites": "Oblíbené",
+                "links": "Veřejné odkazy",
+                "offline": "Dostupné offline",
+                "recents": "Nedávné",
+                "selected": "{{count}} vybráno",
+                "sharedIn": "Sdíleno s vámi",
+                "sharedOut": "Sdílené s ostatními",
+                "trash": "Koš"
+            }
+        },
+        "itemShared": "{{name}} sdíleno",
+        "itemSharedWith": "{{name}} sdíleno s {{email}}",
+        "list": {
+            "empty": "Nenalezeny žádné položky",
+            "emptySearch": "Pro toto hledání nebyly nalezeny žádné položky",
+            "error": "Došlo k chybě při načítání vašeho disku, zkuste to prosím později",
+            "footer": "{{count}} položek",
+            "item": {
+                "menu": {
+                    "availableOffline": "Dostupné offline",
+                    "clipboard": "Schránka",
+                    "color": "Barva",
+                    "copy": "Kopírovat",
+                    "copyId": "Kopírovat ID",
+                    "copyPath": "Kopírovat cestu",
+                    "delete": "Smazat",
+                    "deletePermanently": "Trvale smazat",
+                    "deselect": "Odznačit",
+                    "deselectAll": "Zrušit výběr všeho",
+                    "disablePublicLink": "Deaktivovat odkaz",
+                    "download": "Stáhnout",
+                    "downloadFolder": "Stáhnout složku",
+                    "export": "Exportovat",
+                    "favorite": "Oblíbená",
+                    "favorite_one": "Oblíbená položka",
+                    "favorite_other": "Oblíbené {{count}} položky",
+                    "favorited": "Přidáno k oblíbeným",
+                    "id": "ID",
+                    "info": "Info",
+                    "location": "Umístění",
+                    "makeAvailableOffline": "Udělat dostupné offline",
+                    "move": "Přesunout",
+                    "move_one": "Přesunout položku",
+                    "move_other": "Přesunout {{count}} položky",
+                    "open": "Otevřít",
+                    "path": "Cesta",
+                    "preview": "Náhled",
+                    "properties": "Vlastnosti",
+                    "publicLink": "Veřejný odkaz",
+                    "removeOffline": "Odstranit offline soubor",
+                    "removeSharedIn": "Odstranit",
+                    "removeSharedOut": "Zastavit sdílení",
+                    "rename": "Přejmenovat",
+                    "restore": "Obnovit",
+                    "saveToGallery": "Uložit do galerie",
+                    "select": "Vybrat",
+                    "selectAll": "Vybrat vše",
+                    "share": "Sdílet",
+                    "share_one": "Sdílet položku",
+                    "share_other": "Sdílet {{count}} položky",
+                    "trash": "Koš",
+                    "trash_one": "Košová položka",
+                    "trash_other": "Vyhodit {{count}} položky",
+                    "unfavorite": "Odebrat z oblíbených",
+                    "versionHistory": "Historie verzí",
+                    "withUser": "S uživatelem"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "Opravdu chcete {{count}} položek trvale smazat? Tuto akci nelze vrátit zpět!",
+                "title": "Trvale smazat"
+            },
+            "deletePermanently": {
+                "message": "Opravdu chcete tento položku trvale smazat? Tuto akci nelze vrátit zpět!",
+                "title": "Trvale smazat"
+            },
+            "disablePublicLinks": {
+                "message": "Opravdu chcete deaktivovat veřejné odkazy pro {{count}} položek? Odkazy již nebudou přístupné.",
+                "title": "Zakázat veřejné odkazy"
+            },
+            "removeOfflineFiles": {
+                "message": "Opravdu chcete odstranit {{count}} offline souborů? Nebudou již dostupné offline.",
+                "title": "Odstranit offline soubory"
+            },
+            "removeSharedInItem": {
+                "message": "Opravdu chcete tuto položku odebrat ze sdílených položek? Již ji nebudete moci zobrazit ani k ní přistupovat.",
+                "title": "Odstranit"
+            },
+            "removeSharedInItems": {
+                "message": "Opravdu chcete odebrat {{count}} položek ze sdílených položek? Už je nebudete moci zobrazit ani k nim přistupovat.",
+                "title": "Odstranit"
+            },
+            "removeSharedOutItem": {
+                "message": "Opravdu chcete přestat sdílet tuto položku? Uživatel již nebude mít k ní přístup.",
+                "title": "Zastavit sdílení"
+            },
+            "removeSharedOutItems": {
+                "message": "Opravdu chcete přestat sdílet {{count}} položek? Uživatelé již k nim nebudou mít přístup.",
+                "title": "Zastavit sdílení"
+            },
+            "renameItem": {
+                "placeholder": "Nový název",
+                "title": "Přejmenovat"
+            },
+            "trashItem": {
+                "message": "Opravdu chcete přesunout tuto položku do koše? Můžete ji později obnovit.",
+                "title": "Přesunout do koše"
+            },
+            "trashItems": {
+                "message": "Opravdu chcete přesunout {{count}} položek do koše? Můžete je později obnovit.",
+                "title": "Přesunout do koše"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "Nenalezeny žádné položky",
+                "emptySearch": "Pro toto hledání nebyly nalezeny žádné položky",
+                "error": "Došlo k chybě při načítání výsledků vyhledávání, zkuste to prosím později",
+                "footer": "{{count}} položek"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "Zrušit",
+        "items": {
+            "downloadButton": "Tlačítko pro stažení",
+            "edit": "Upravit",
+            "enabled": "Povoleno",
+            "expiration": "Platnost",
+            "expiration12h": "12 hodin",
+            "expiration14d": "14 dnů",
+            "expiration1d": "1 den",
+            "expiration1h": "1 hodina",
+            "expiration30d": "30 dnů",
+            "expiration3d": "3 dny",
+            "expiration6h": "6 hodin",
+            "expiration7d": "7 dnů",
+            "expirationNever": "Nikdy",
+            "password": "Heslo"
+        },
+        "onlyPro": "Tato funkce je k dispozici pouze pro uživatele Filen Pro. Přihlaste se k libovolnému plánu Filen a aktivujte ji.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "Nechte prázdné pro odstranění hesla",
+                "title": "Upravit heslo"
+            }
+        },
+        "shareDialogTile": "Filen veřejný odkaz",
+        "title": "Upravit veřejný odkaz",
+        "unsavedChanges": "Neuložené změny"
+    },
+    "errors": {
+        "cannotOpenURL": "Nelze otevřít URL.",
+        "notEnoughDiskSpace": "Není dostupné dostatek místa na místním disku.",
+        "sharingNotAvailable": "Sdílení není na tomto zařízení dostupné.",
+        "youAreOffline": "Jste momentálně offline. Zkontrolujte prosím své internetové připojení."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "Zrušit",
+                "confirm": "Smazat",
+                "message": "Opravdu chcete tuto verzi smazat? Tuto akci nelze vrátit zpět!",
+                "title": "Smazat verzi"
+            },
+            "restore": {
+                "cancel": "Zrušit",
+                "confirm": "Obnovit",
+                "message": "Jste si jisti, že chcete obnovit tuto verzi? Tento krok přepíše aktuální soubor.",
+                "title": "Obnovit verzi"
+            }
+        },
+        "header": {
+            "title": "Historie verzí"
+        },
+        "list": {
+            "empty": "Žádné verze zatím",
+            "emptySearch": "Pro toto hledání nebyly nalezeny žádné verze",
+            "error": "Došlo k chybě při načítání verzí souboru, zkuste to prosím později",
+            "item": {
+                "current": "Aktuální",
+                "delete": "Smazat",
+                "restore": "Obnovit"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "Byty",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiB",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "Náhled není k dispozici"
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "Oblíbené"
+            },
+            "links": {
+                "title": "Veřejné odkazy"
+            },
+            "offline": {
+                "title": "Dostupné offline"
+            },
+            "recents": {
+                "title": "Nedávné"
+            },
+            "sharedIn": {
+                "title": "Sdíleno s vámi"
+            },
+            "sharedOut": {
+                "title": "Sdílené s ostatními"
+            },
+            "trash": {
+                "title": "Koš"
+            }
+        },
+        "listEmpty": {
+            "favorites": "Zatím žádné oblíbené",
+            "links": "Žádné veřejné odkazy zatím neexistují",
+            "offline": "Zatím žádné offline položky",
+            "recents": "Zatím žádné nedávné",
+            "sharedIn": "Žádné sdílené položky zatím nejsou",
+            "sharedOut": "Žádné sdílené položky zatím nejsou",
+            "trash": "Žádné položky v koši zatím nejsou"
+        },
+        "title": "Domů"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "Zrušit",
+            "okText": "OK",
+            "title": "Název"
+        }
+    },
+    "listEmpty": {
+        "empty": "Nic nenalezeno",
+        "emptySearch": "Pro toto hledání nebylo nic nalezeno",
+        "error": "Došlo k chybě, zkuste to prosím později znovu"
+    },
+    "localAuthentication": {
+        "cancelLabel": "Zrušit",
+        "promptMessage": "Ověření pro pokračování"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "Napište svůj kód sem...",
+                "text": "Napište svůj text sem..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "Zrušit výběr všeho",
+                    "selectAll": "Vybrat vše"
+                },
+                "types": {
+                    "checklist": "Kontrolní seznam",
+                    "code": "Kód",
+                    "markdown": "Markdown",
+                    "rich": "Bohatý text",
+                    "text": "Text"
+                }
+            },
+            "menu": {
+                "settings": "Nastavení"
+            },
+            "selected": "{{count}} vybráno",
+            "title": "Poznámky"
+        },
+        "history": {
+            "list": {
+                "empty": "Žádná historie není k dispozici",
+                "emptySearch": "Pro toto hledání nebyl nalezen žádný záznam",
+                "error": "Došlo k chybě při načítání historie, zkuste to prosím později",
+                "footer": "{{count}} položek"
+            },
+            "noPreview": "Náhled není k dispozici",
+            "prompts": {
+                "restore": {
+                    "message": "Jste si jisti, že chcete obnovit tuto poznámku? Tento krok přepíše aktuální poznámku.",
+                    "title": "Obnovit poznámku"
+                }
+            },
+            "restore": "Obnovit",
+            "title": "Historie"
+        },
+        "list": {
+            "empty": "Zatím žádné poznámky",
+            "emptySearch": "Pro toto hledání nebyla nalezena žádná poznámka",
+            "error": "Došlo k chybě při načítání vašich poznámek, zkuste to prosím později",
+            "footer": "{{count}} položek"
+        },
+        "menu": {
+            "archive": "Archiv",
+            "clipboard": "Schránka",
+            "copyId": "Kopírovat ID",
+            "delete": "Smazat",
+            "deselect": "Odznačit",
+            "duplicate": "Duplikovat",
+            "export": "Exportovat",
+            "favorite": "Oblíbená",
+            "favorited": "Přidáno k oblíbeným",
+            "history": "Historie",
+            "leave": "Opustit",
+            "participants": "Účastníci",
+            "pin": "Připnout",
+            "pinned": "Připnuto",
+            "preview": "Náhled",
+            "rename": "Přejmenovat",
+            "restore": "Obnovit",
+            "select": "Vybrat",
+            "tags": "Štítky",
+            "trash": "Koš",
+            "type": "Typ",
+            "types": {
+                "checklist": "Kontrolní seznam",
+                "code": "Kód",
+                "md": "Markdown",
+                "rich": "Bohatý text",
+                "text": "Text"
+            },
+            "unfavorite": "Odebrat z oblíbených",
+            "unpin": "Odepnout"
+        },
+        "participants": {
+            "list": {
+                "empty": "Zatím žádní účastníci",
+                "emptySearch": "Pro toto hledání nebyl nalezen žádný účastník",
+                "error": "Došlo k chybě při načítání účastníků, zkuste to prosím později",
+                "footer": "{{count}} účastníků"
+            },
+            "menu": {
+                "permissionsWrite": "Oprávnění k zápisu",
+                "remove": "Odstranit"
+            },
+            "title": "Účastníci"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "Název poznámky",
+                "title": "Vytvořit poznámku"
+            },
+            "createTag": {
+                "placeholder": "Název tagu",
+                "title": "Vytvořit štítek"
+            },
+            "deleteNote": {
+                "message": "Opravdu chcete tuto poznámku trvale smazat? Tuto akci nelze vrátit zpět!",
+                "title": "Smazat poznámku"
+            },
+            "deleteNotes": {
+                "message": "Opravdu chcete {{count}} poznámek trvale smazat? Tuto akci nelze vrátit zpět!",
+                "title": "Smazat poznámky"
+            },
+            "deleteTag": {
+                "message": "Opravdu chcete tento štítek smazat? Tuto akci nelze vrátit zpět!",
+                "title": "Smazat štítek"
+            },
+            "deleteTags": {
+                "message": "Opravdu chcete {{count}} štítků smazat? Tuto akci nelze vrátit zpět!",
+                "title": "Smazat štítky"
+            },
+            "leaveNote": {
+                "message": "Opravdu chcete opustit tuto poznámku? Již ji nebudete moci zobrazit ani upravit.",
+                "title": "Opustit poznámku"
+            },
+            "leaveNotes": {
+                "message": "Opravdu chcete opustit {{count}} poznámek? Nebudete je již moci zobrazit ani upravit.",
+                "title": "Opustit poznámky"
+            },
+            "removeParticipant": {
+                "message": "Opravdu chcete odebrat tohoto účastníka? Již nebudou moci tuto poznámku zobrazovat ani upravovat.",
+                "title": "Odebrat účastníka"
+            },
+            "removeParticipants": {
+                "message": "Opravdu chcete odstranit {{count}} účastníků? Již nebudou moci tyto poznámky zobrazovat ani upravovat.",
+                "title": "Odebrat účastníky"
+            },
+            "renameNote": {
+                "placeholder": "Nový název",
+                "title": "Přejmenovat poznámku"
+            },
+            "renameTag": {
+                "placeholder": "Nový název štítku",
+                "title": "Přejmenovat štítek"
+            },
+            "trashNote": {
+                "message": "Opravdu chcete přesunout tuto poznámku do koše? Můžete ji později obnovit.",
+                "title": "Přesunout do koše"
+            },
+            "trashNotes": {
+                "message": "Opravdu chcete přesunout {{count}} poznámek do koše? Můžete je později obnovit.",
+                "title": "Přesunout do koše"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "Smazat",
+                "favorited": "Přidáno k oblíbeným",
+                "rename": "Přejmenovat"
+            },
+            "names": {
+                "all": "Vše",
+                "archived": "Archivováno",
+                "favorited": "Přidáno k oblíbeným",
+                "pinned": "Připnuto",
+                "shared": "Sdíleno",
+                "trash": "Koš"
+            }
+        },
+        "title": "Poznámky"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "Zrušit",
+            "placeholder": "Hledat..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "Offline režim"
+    },
+    "photos": {
+        "header": {
+            "selected": "{{count}} vybráno"
+        },
+        "list": {
+            "empty": "Zatím žádné fotky",
+            "emptySearch": "Pro toto hledání nebyly nalezeny žádné fotografie",
+            "error": "Došlo k chybě při načítání vašich fotografií, zkuste to prosím později"
+        },
+        "menu": {
+            "settings": "Nastavení"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} položek"
+                },
+                "list": {
+                    "empty": "Nenalezeny žádné alba",
+                    "emptySearch": "Pro toto hledání nebyla nalezena žádná alba",
+                    "error": "Došlo k chybě při načítání vašich alb, zkuste to prosím později"
+                },
+                "title": "Alba"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "Chcete-li získat přístup k vašim fotkám, musíte udělit oprávnění pro média."
+                },
+                "items": {
+                    "albums": "Alba",
+                    "albumsInfo": "Vyberte, které alba chcete zahrnout do nahrávání z fotoaparátu.",
+                    "background": "Pozadí",
+                    "backgroundInfo": "Povolit nahrávání z kamery na pozadí. To může vést k vysoké spotřebě baterie. Nahrávání na pozadí zahrnuje pouze obrázky. Funguje, pouze když aplikace není nuceně ukončena.",
+                    "cellular": "Mobilní síť",
+                    "cellularInfo": "Povolit nahrávání z kamery přes mobilní data. To může vést k vysoké spotřebě dat.",
+                    "cloudDirectory": "Cloudový adresář",
+                    "cloudDirectoryNotSet": "Není nastaveno",
+                    "compress": "Komprimovat",
+                    "compressInfo": "Komprese fotek pro úsporu místa na úložišti. Může to snížit kvalitu fotek. Komprese JPG na 80 % kvality.",
+                    "enabled": "Povoleno",
+                    "lowBattery": "Nízká baterie",
+                    "lowBatteryInfo": "Zakázat nahrávání z fotoaparátu, když je baterie vybitá.",
+                    "permissionsError": "Chyba oprávnění",
+                    "permissionsErrorInfo": "Povolte aplikaci přístup k vašim fotografiím a videím v systémových nastaveních.",
+                    "videos": "Videa",
+                    "videosInfo": "Zahrnout videa při nahrávání z kamery."
+                },
+                "title": "Nastavení"
+            }
+        },
+        "state": {
+            "synced": "Synchronizováno",
+            "syncing": "Synchronizace",
+            "syncingProgress": "{{done}} z {{total}} položek synchronizováno"
+        },
+        "title": "Fotografie"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "Zrušit",
+            "done": "Hotovo",
+            "selectContact": "Vybrat kontakt",
+            "selectContacts": "Vybrat kontakty"
+        },
+        "list": {
+            "empty": "Zatím žádné kontakty",
+            "emptySearch": "Pro toto hledání nebyly nalezeny žádné kontakty",
+            "error": "Došlo k chybě při načítání vašich kontaktů, zkuste to prosím později",
+            "footer": "{{count}} kontaktů"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} vybráno"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "Zrušit",
+            "done": "Hotovo",
+            "drive": "Disk",
+            "selectDirectories": "Vybrat adresáře",
+            "selectDirectory": "Vybrat adresář",
+            "selectFile": "Vybrat soubor",
+            "selectFiles": "Vybrat soubory",
+            "selectItem": "Vybrat položku",
+            "selectItems": "Vybrat položky",
+            "selectRoot": "Vyberte cloud disk"
+        },
+        "list": {
+            "empty": "Zatím nic nebylo nahráno",
+            "emptySearch": "Pro toto hledání nebyly nalezeny žádné položky",
+            "error": "Došlo k chybě při načítání vašich souborů, zkuste to prosím později",
+            "footer": "{{count}} položek"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "Název adresáře",
+                "success": "{{name}} vytvořeno",
+                "title": "Vytvořit adresář"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} vybráno"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "Zrušit",
+            "done": "Hotovo",
+            "selectPlaylist": "Vybrat playlist",
+            "selectPlaylists": "Vybrat playlisty"
+        },
+        "item": {
+            "subTitle": "{{count}} skladeb, aktualizováno {{date}}"
+        },
+        "list": {
+            "empty": "Zatím žádné playlisty",
+            "emptySearch": "Pro toto hledání nebyly nalezeny žádné playlisty",
+            "error": "Došlo k chybě při načítání vašich playlistů, zkuste to prosím později",
+            "footer": "{{count}} playlistů"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Název playlistu",
+                "title": "Vytvořit playlist"
+            }
+        },
+        "selected": "{{countOrName}} vybráno",
+        "toolbar": {
+            "selected": "{{countOrName}} vybráno"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "Velikost obrázku avatara překračuje limit 3 MiB.",
+                "emailsNotMatching": "Nové emailové adresy se neshodují."
+            },
+            "items": {
+                "changeAvatar": "Změnit avatar",
+                "deleteAllFilesAndDirectories": "Smazat všechny soubory a adresáře",
+                "deleteVersionedFiles": "Smazat verzované soubory",
+                "emailAddress": "Emailová adresa",
+                "fileVersioning": "Verzování souborů",
+                "fileVersioningInfo": "Povolte verzování souborů, abyste mohli sledovat změny ve svých souborech.",
+                "gdpr": "Informace o GDPR",
+                "loginAlerts": "Upozornění na přihlášení",
+                "loginAlertsInfo": "Dostávejte upozornění, když je váš účet přístupný.",
+                "logout": "Odhlásit se",
+                "more": "Další nastavení účtu",
+                "nickname": "Přezdívka",
+                "personalInformation": "Osobní údaje",
+                "requestAccountDeletion": "Požádat o smazání účtu",
+                "requestAccountDeletionInfo": "Žádat o smazání účtu. Pošleme vám email s dalšími instrukcemi."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "Kód",
+                    "title": "Dvoufaktorové ověřování"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "Potvrdit novou emailovou adresu",
+                        "title": "Potvrdit novou emailovou adresu"
+                    },
+                    "newEmail": {
+                        "placeholder": "Nová emailová adresa",
+                        "title": "Nová emailová adresa"
+                    },
+                    "password": {
+                        "placeholder": "Heslo",
+                        "title": "Vaše heslo"
+                    }
+                },
+                "deleteAccount": {
+                    "message": "Jste si jisti, že chcete požádat o smazání účtu? Obdržíte e-mail s dalšími pokyny.",
+                    "title": "Požádat o smazání účtu"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "Opravdu chcete smazat všechny soubory a adresáře? Tuto akci nelze vrátit zpět!",
+                    "title": "Smazat všechny soubory a adresáře"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "Jste si opravdu jisti? Tuto akci nelze vrátit zpět!",
+                    "title": "Smazat všechny soubory a adresáře"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "Opravdu chcete smazat všechny verze souborů? Tuto akci nelze vrátit zpět!",
+                    "title": "Smazat verzované soubory"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "Jste si opravdu jisti? Tuto akci nelze vrátit zpět!",
+                    "title": "Smazat verzované soubory"
+                },
+                "logout": {
+                    "message": "Opravdu se chcete odhlásit? Pro přístup k účtu se budete muset znovu přihlásit.",
+                    "title": "Odhlásit se"
+                },
+                "more": {
+                    "message": "Další nastavení jsou k dispozici ve webové aplikaci. Chcete ji otevřít nyní?",
+                    "title": "Otevřít webovou aplikaci"
+                },
+                "updateNickname": {
+                    "placeholder": "Nová přezdívka",
+                    "title": "Aktualizovat přezdívku"
+                }
+            },
+            "title": "Účet"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "Vyčistit cache",
+                "clearOfflineFiles": "Vymazat offline soubory",
+                "clearThumbnails": "Vymazat náhledy",
+                "clearTrackPlayer": "Vyčistit přehrávač skladeb"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "Vyprázdněním mezipaměti odstraníte dočasné soubory. To může přerušit probíhající nahrávání nebo stahování. Opravdu chcete pokračovat?",
+                    "title": "Vyčistit cache"
+                },
+                "clearOfflineFiles": {
+                    "message": "Vymazání offline souborů odstraní všechny offline dostupné soubory. Opravdu chcete pokračovat?",
+                    "title": "Vymazat offline soubory"
+                },
+                "clearThumbnails": {
+                    "message": "Vymazáním náhledů donutíte aplikaci stáhnout znovu každý viditelný náhled. Opravdu chcete pokračovat?",
+                    "title": "Vymazat náhledy"
+                },
+                "clearTrackPlayer": {
+                    "message": "Vymazání vyrovnávací paměti přehrávače skladeb odstraní uložené skladby a obrázky. To může vést k delšímu času načítání. Opravdu chcete pokračovat?",
+                    "title": "Vyčistit přehrávač skladeb"
+                }
+            },
+            "title": "Pokročilé"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "Na tomto zařízení není dostupná biometrická autentizace. Prosím, povolte pouze autentizaci pomocí PINu, nebo použijte zařízení s podporou biometrické autentizace.",
+                "pinNotMatching": "Náhradní PINy se neshodují.",
+                "pinTooLong": "Náhradní PIN nesmí být delší než 128 číslic.",
+                "pinTooShort": "Záložní PIN musí mít alespoň 4 číslice."
+            },
+            "items": {
+                "biometricAuth": "Biometrická autentizace",
+                "lockAppAfter": "Uzamknout aplikaci po",
+                "pinOnly": "Pouze PIN"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15 minut",
+                "fiveMinutes": "5 minut",
+                "immediately": "Okamžitě",
+                "minutes": "{{minutes}} minut",
+                "never": "Nikdy",
+                "oneHour": "1 hodina",
+                "oneMinute": "1 minuta",
+                "tenMinutes": "10 minut",
+                "thirtyMinutes": "30 minut"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "Jste si jisti, že chcete zakázat biometrii?",
+                    "title": "Deaktivovat biometrickou autentizaci"
+                },
+                "documentsProvider": {
+                    "message": "Povolení biometrického ověřování zakáže poskytovatele dokumentů. To znamená, že v jiných aplikacích nebudete moci přistupovat ke svým souborům pomocí poskytovatele dokumentů Filen. Chcete pokračovat?",
+                    "title": "Poskytovatel dokumentů povolen"
+                },
+                "enable": {
+                    "placeholder": "Záložní PIN",
+                    "title": "Nastavit záložní PIN"
+                },
+                "enableConfirm": {
+                    "placeholder": "Potvrdit PIN",
+                    "title": "Potvrdit záložní PIN"
+                },
+                "fileProvider": {
+                    "message": "Povolení biometrického ověřování zakáže poskytovatele souborů. To znamená, že v jiných aplikacích nebudete moci přistupovat ke svým souborům pomocí poskytovatele souborů Filen. Chcete pokračovat?",
+                    "title": "Poskytovatel souborů povolen"
+                }
+            },
+            "title": "Zabezpečení"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "Nenalezeny žádné kontakty",
+                    "emptySearch": "Pro toto hledání nebyly nalezeny žádné kontakty",
+                    "error": "Došlo k chybě při načítání vašich kontaktů, zkuste to prosím později"
+                },
+                "blocked": {
+                    "empty": "Nenalezeny žádné blokované kontakty",
+                    "emptySearch": "Pro toto hledání nebyly nalezeny žádné blokované kontakty",
+                    "error": "Došlo k chybě při načítání vašich kontaktů, zkuste to prosím později"
+                },
+                "offline": {
+                    "empty": "Nenalezeny žádné offline kontakty",
+                    "emptySearch": "Pro toto hledání nebyly nalezeny žádné offline kontakty",
+                    "error": "Došlo k chybě při načítání vašich kontaktů, zkuste to prosím později"
+                },
+                "online": {
+                    "empty": "Nenalezeny žádné online kontakty",
+                    "emptySearch": "Pro toto hledání nebyly nalezeny žádné online kontakty",
+                    "error": "Došlo k chybě při načítání vašich kontaktů, zkuste to prosím později"
+                },
+                "pending": {
+                    "empty": "Nebyla nalezena žádná žádost o kontakt",
+                    "emptySearch": "Pro toto hledání nebyly nalezeny žádné žádosti o kontakt",
+                    "error": "Došlo k chybě při načítání vašich žádostí o kontakt, zkuste to prosím později"
+                },
+                "requests": {
+                    "empty": "Nebyla nalezena žádná žádost o kontakt",
+                    "emptySearch": "Pro toto hledání nebyly nalezeny žádné žádosti o kontakt",
+                    "error": "Došlo k chybě při načítání vašich žádostí o kontakt, zkuste to prosím později"
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "Opravdu chcete zablokovat tento kontakt?",
+                    "success": "{{email}} blokováno",
+                    "title": "Blokovat kontakt"
+                },
+                "blockContacts": {
+                    "message": "Opravdu chcete zablokovat {{count}} kontaktů?",
+                    "success": "{{count}} kontaktů zablokováno",
+                    "title": "Blokovat kontakty"
+                },
+                "removeContact": {
+                    "message": "Opravdu chcete odstranit tento kontakt?",
+                    "success": "{{email}} odstraněno",
+                    "title": "Odstranit kontakt"
+                },
+                "removeContacts": {
+                    "message": "Opravdu chcete odstranit {{count}} kontaktů?",
+                    "success": "{{count}} kontaktů odstraněno",
+                    "title": "Odstranit kontakty"
+                },
+                "sendRequest": {
+                    "placeholder": "Emailová adresa Filen",
+                    "success": "Žádost o kontakt odeslána na {{email}}",
+                    "title": "Odeslat žádost o kontakt"
+                },
+                "unblockContact": {
+                    "message": "Opravdu chcete odblokovat tento kontakt?",
+                    "success": "{{email}} odblokováno",
+                    "title": "Odblokovat kontakt"
+                },
+                "unblockContacts": {
+                    "message": "Opravdu chcete odblokovat {{count}} kontaktů?",
+                    "success": "{{count}} kontaktů odblokováno",
+                    "title": "Odblokovat kontakty"
+                }
+            },
+            "tabs": {
+                "all": "Vše",
+                "blocked": "Zablokováno",
+                "offline": "Offline",
+                "online": "Online",
+                "pending": "Čeká na vyřízení",
+                "requests": "Žádosti"
+            },
+            "title": "Kontakty"
+        },
+        "events": {
+            "event": "Událost",
+            "eventInfo": {
+                "2faDisabled": "2FA deaktivováno",
+                "2faEnabled": "2FA aktivováno",
+                "baseFolderCreated": "Základní složka vytvořena",
+                "codeRedeemed": "Kód \"{{code}}\" uplatněn",
+                "deleteAll": "Všechny adresáře a soubory byly trvale smazány",
+                "deleteFilePermanently": "{{name}} trvale smazáno",
+                "deleteFolderPermanently": "{{name}} trvale smazáno",
+                "deleteUnfinished": "Neúspěšné nahrávání bylo smazáno",
+                "deleteVersioned": "Všechny verzované soubory smazány",
+                "emailChangeAttempt": "Pokus o změnu e-mailu",
+                "emailChanged": "E-mail změněn",
+                "failedLogin": "Neúspěšný pokus o přihlášení",
+                "fileLinkEdited": "Veřejný odkaz pro {{name}} upraven",
+                "fileMetadataChanged": "Metadata pro {{name}} změněna",
+                "fileMoved": "{{name}} přesunuto",
+                "fileRenamed": "{{oldName}} přejmenováno na {{newName}}",
+                "fileRestored": "{{name}} obnoveno",
+                "fileRm": "{{name}} smazáno",
+                "fileShared": "{{name}} sdíleno s {{email}}",
+                "fileTrash": "{{name}} přesunuto do koše",
+                "fileUploaded": "{{name}} nahráno",
+                "fileVersioned": "{{name}} verzováno",
+                "folderColorChanged": "Barva adresáře {{name}} změněna",
+                "folderLinkEdited": "Veřejný odkaz adresáře upraven",
+                "folderMetadataChanged": "Metadata adresáře {{name}} změněna",
+                "folderMoved": "Adresář {{name}} přesunut",
+                "folderRenamed": "Adresář {{oldName}} přejmenovaný na {{newName}}",
+                "folderRestored": "Adresář {{name}} obnoven",
+                "folderShared": "Adresář {{name}} sdílený s {{email}}",
+                "folderTrash": "Adresář {{name}} přesunut do koše",
+                "itemFavorited": "{{name}} přidáno k oblíbeným",
+                "itemUnfavorited": "{{name}} odstraněno z oblíbených",
+                "login": "Přihlášeno",
+                "passwordChanged": "Heslo změněno",
+                "removedSharedInItems": "Sdílené položky odstraněny od {{email}}",
+                "removedSharedOutItems": "Sdílené položky odstraněny od {{email}}",
+                "requestAccountDeletion": "Žádost o smazání účtu",
+                "subFolderCreated": "Adresář {{name}} vytvořen",
+                "trashEmptied": "Koš vyprázdněn",
+                "versionedFileRestored": "Verze {{name}} obnovena"
+            },
+            "events": "Události",
+            "listEmpty": {
+                "empty": "Nenalezeny žádné události",
+                "emptySearch": "Pro toto hledání nebyly nalezeny žádné události",
+                "error": "Došlo k chybě při načítání vašich událostí, zkuste to prosím později"
+            },
+            "title": "Události"
+        },
+        "index": {
+            "items": {
+                "advanced": "Pokročilé",
+                "cameraUpload": "Nahrávání z kamery",
+                "contacts": "Kontakty",
+                "documentsProvider": "Poskytovatel dokumentů",
+                "documentsProviderInfo": "Povolit integraci souborů Android pro přístup k vašim souborům mimo aplikaci.",
+                "events": "Události",
+                "fileProvider": "Provozovatel souborů",
+                "fileProviderInfo": "Povolit integraci souborů iOS pro přístup k vašim souborům mimo aplikaci.",
+                "security": "Zabezpečení",
+                "used": "{{used}} využito z {{max}} ({{percentage}}%)"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "Povolení poskytovatele dokumentů zakáže biometrické ověřování. To znamená, že nebudete moci používat biometrické ověřování k odemčení aplikace. Chcete pokračovat?",
+                    "title": "Biometrická autentizace povolena"
+                },
+                "fileProvider": {
+                    "message": "Povolení poskytovatele souborů zakáže biometrické ověřování. To znamená, že nebudete moci používat biometrické ověřování k odemčení aplikace. Chcete pokračovat?",
+                    "title": "Biometrická autentizace povolena"
+                }
+            },
+            "title": "Nastavení"
+        },
+        "personal": {
+            "items": {
+                "city": "Město",
+                "companyName": "Název společnosti",
+                "country": "Země",
+                "firstName": "Jméno",
+                "lastName": "Příjmení",
+                "postalCode": "PSČ",
+                "street": "Ulice",
+                "streetNumber": "Číslo ulice",
+                "vatId": "DIČ"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "Upravit"
+                }
+            },
+            "title": "Osobní údaje"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "Nová hesla se neshodují.",
+                "weak": "Vaše nové heslo je příliš slabé. Zvolte si prosím silnější heslo. Takové, které má alespoň 10 znaků a obsahuje směs velkých a malých písmen, čísel a speciálních znaků."
+            },
+            "items": {
+                "2fa": "Dvoufaktorové ověřování",
+                "biometricAuth": "Biometrická autentizace",
+                "changePassword": "Změnit heslo"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "Po změně hesla budete odhlášeni a musíte se znovu přihlásit s novým heslem.",
+                    "title": "Změnit heslo"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "Potvrdit heslo",
+                    "title": "Potvrdit nové heslo"
+                },
+                "currentPassword": {
+                    "placeholder": "Aktuální heslo",
+                    "title": "Vaše aktuální heslo"
+                },
+                "newPassword": {
+                    "placeholder": "Nové heslo",
+                    "title": "Vaše nové heslo"
+                }
+            },
+            "title": "Zabezpečení"
+        },
+        "twoFactorAuth": {
+            "copied": "Klíč zkopírován do schránky",
+            "copyKey": "Kopírovat klíč",
+            "items": {
+                "2fa": "Dvoufaktorové ověřování"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "Kód",
+                    "title": "Zadejte kód"
+                }
+            },
+            "title": "Zabezpečení"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "Zrušit",
+            "title": "Uložit do Filen",
+            "upload": "Nahrát"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "Zrušit",
+            "select": "Vybrat"
+        },
+        "itemInfo": {
+            "creation": "Vytvořeno",
+            "directories": "Adresáře",
+            "directory": "Adresář",
+            "files": "Soubory",
+            "location": "Umístění",
+            "modified": "Upraveno",
+            "name": "Název",
+            "notAvailable": "N/A",
+            "size": "Velikost",
+            "type": "Typ",
+            "uploaded": "Nahráno"
+        }
+    },
+    "tabBar": {
+        "chats": "Chaty",
+        "drive": "Disk",
+        "home": "Domů",
+        "notes": "Poznámky",
+        "photos": "Fotografie",
+        "settings": "Nastavení"
+    },
+    "textEditor": {
+        "header": {
+            "back": "Zpět"
+        },
+        "saved": "Uloženo",
+        "savedSuccess": "Úspěšně uloženo",
+        "unsavedChanges": "Neuložené změny"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "Žádná skladba ve frontě",
+            "unknownArtist": "Neznámý umělec",
+            "unknownTitle": "Neznámý název"
+        },
+        "header": {
+            "title": "Seznamy skladeb"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "Přidat do fronty",
+                "cancel": "Zrušit",
+                "delete": "Smazat",
+                "play": "Přehrát"
+            },
+            "subTitle": "{{count}} skladeb, aktualizováno {{date}}"
+        },
+        "list": {
+            "empty": "Zatím žádné playlisty",
+            "emptySearch": "Pro toto hledání nebyly nalezeny žádné playlisty",
+            "error": "Došlo k chybě při načítání vašich playlistů, zkuste to prosím později",
+            "footer": "{{count}} playlistů"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "Přidat do playlistu",
+                    "addToQueue": "Přidat do fronty",
+                    "cancel": "Zrušit",
+                    "play": "Přehrát",
+                    "removeFromPlaylist": "Odstranit z playlistu"
+                }
+            },
+            "list": {
+                "empty": "Zatím žádné skladby",
+                "emptySearch": "Pro toto hledání nebyly nalezeny žádné skladby",
+                "error": "Došlo k chybě při načítání vašich skladeb, zkuste to prosím později",
+                "footer": "{{count}} skladeb"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Název playlistu",
+                "title": "Vytvořit playlist"
+            },
+            "deletePlaylist": {
+                "message": "Opravdu chcete smazat tento playlist? Tuto akci nelze vrátit zpět!",
+                "title": "Smazat playlist"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "Zpět",
+            "title": "Přenosy"
+        },
+        "info": "Přenos {{ongoingTransfers}} položek rychlostí {{speed}}, zbývá {{remaining}}",
+        "list": {
+            "empty": "Zatím žádné přenosy",
+            "emptySearch": "Pro toto hledání nebyly nalezeny žádné přenosy",
+            "error": "Došlo k chybě při načítání vašich přenosů, zkuste to prosím později"
+        },
+        "noOngoingTransfers": "Žádné probíhající přenosy",
+        "transfer": {
+            "cancel": "Zrušit",
+            "cancelAll": "Zrušit vše",
+            "pause": "Pozastavit",
+            "resume": "Pokračovat",
+            "stop": "Zastavit",
+            "stopAll": "Zastavit vše"
+        }
+    }
+}

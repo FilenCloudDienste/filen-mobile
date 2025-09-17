@@ -1,0 +1,1402 @@
+{
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "Annuller",
+            "okText": "OK",
+            "title": "Titel"
+        },
+        "exportMasterKeys": {
+            "cancelText": "Senere",
+            "message": "Du har endnu ikke eksporteret dine hovednøgler. Det anbefales stærkt at eksportere dem nu og opbevare dem på et sikkert sted.",
+            "okText": "Eksportér",
+            "title": "Eksportér hovednøgler"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "Senere",
+            "message": "Du har overskredet din lagergrænse. Venligst frigør noget plads eller opgrader din plan for at forhindre uønsket sletning af data.",
+            "okText": "Opgradér",
+            "title": "Lagerforbrug over grænsen"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "End-to-end krypteret",
+                "second": "Cloud Platform"
+            },
+            "login": "Log ind",
+            "signUp": "Tilmeld dig gratis"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "Udfyld venligst alle felter."
+            },
+            "forgotPassword": "Glemt adgangskode?",
+            "form": {
+                "email": {
+                    "label": "E-mailadresse",
+                    "placeholder": "Indtast din emailadresse"
+                },
+                "password": {
+                    "label": "Adgangskode",
+                    "placeholder": "Indtast din adgangskode"
+                }
+            },
+            "header": {
+                "cancel": "Annuller"
+            },
+            "login": "Log ind",
+            "loginUsingCreds": "Log ind ved hjælp af dine legitimationsoplysninger",
+            "next": "Næste",
+            "signUp": "Tilmeld dig gratis",
+            "submit": "Log ind",
+            "title": "Log ind",
+            "welcome": "Velkommen tilbage!"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "Kode",
+                "title": "Tofaktorgodkendelse"
+            },
+            "forgotPassword": {
+                "placeholder": "E-mailadresse",
+                "success": "Hvis e-mail-adressen er registreret, vil du modtage en e-mail med instruktioner til at nulstille din adgangskode.",
+                "title": "Glemt adgangskode"
+            },
+            "resendConfirmation": {
+                "placeholder": "E-mailadresse",
+                "success": "Bekræftelses-email sendt til {{email}}, hvis den er registreret.",
+                "title": "Send bekræftelse igen"
+            }
+        },
+        "register": {
+            "createAccount": "Opret konto",
+            "errors": {
+                "emailAddressesDoNotMatch": "E-mailadresserne stemmer ikke overens.",
+                "emptyFields": "Udfyld venligst alle felter.",
+                "passwordsDoNotMatch": "Adgangskoderne stemmer ikke overens.",
+                "weakPassword": "Din adgangskode er for svag. Vælg venligst en stærkere adgangskode, som er mindst 10 tegn lang og indeholder en blanding af store og små bogstaver, tal og specialtegn."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "Bekræft email-adresse",
+                    "placeholder": "Bekræft din email-adresse"
+                },
+                "confirmPassword": {
+                    "label": "Bekræft adgangskode",
+                    "placeholder": "Bekræft din adgangskode"
+                },
+                "email": {
+                    "label": "E-mailadresse",
+                    "placeholder": "Indtast din emailadresse"
+                },
+                "password": {
+                    "label": "Adgangskode",
+                    "placeholder": "Indtast din adgangskode"
+                }
+            },
+            "header": {
+                "cancel": "Annuller",
+                "title": "Opret konto"
+            },
+            "hero": {
+                "create": "Opret din gratis konto",
+                "description": "Opsæt dine loginoplysninger for at komme i gang med din Filen-konto."
+            },
+            "next": "Næste",
+            "passwordStrength": {
+                "best": "Bedste",
+                "length": "Længde",
+                "lowercase": "Små bogstaver",
+                "medium": "Medium",
+                "numbers": "Tal",
+                "specialCharacters": "Specialtegn",
+                "strong": "Stærk",
+                "uppercase": "Store bogstaver",
+                "weak": "Svag"
+            },
+            "resendConfirmationEmail": "Send bekræftelses-email igen",
+            "title": "Opret konto"
+        },
+        "registrationSuccessful": "Registrering vellykket! Tjek venligst din e-mail for at bekræfte din konto."
+    },
+    "biometric": {
+        "appLockedFor": "App låst i {{seconds}} sekunder",
+        "authenticateUsingPin": "Godkend med din PIN",
+        "errors": {
+            "incorrectPin": "Forkert PIN. Prøv venligst igen.",
+            "tooManyIncorrectAttempts": "For mange forkerte forsøg. Prøv igen senere."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN",
+                "title": "Indtast din PIN-kode"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "B/s",
+        "eib": "EiB/s",
+        "gib": "GiB/s",
+        "kib": "KiB/s",
+        "mib": "MiB/s",
+        "pib": "PiB/s",
+        "tib": "TiB/s",
+        "yib": "YiB/s",
+        "zib": "ZiB/s"
+    },
+    "chats": {
+        "chat": "Chat",
+        "chats": "Chats",
+        "header": {
+            "newMessages": "{{count}} nye beskeder",
+            "search": "Søg i chats...",
+            "title": "Chats"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "Tilføj drev elementer",
+                    "addFiles": "Tilføj filer",
+                    "addMedia": "Tilføj medier",
+                    "addPhotos": "Tilføj billeder",
+                    "cancel": "Annuller"
+                }
+            },
+            "placeholder": "Skriv en besked",
+            "send": "Send",
+            "suggestions": {
+                "emojis": {
+                    "matching": "Emojis, der matcher {{query}}"
+                },
+                "mention": {
+                    "matching": "Brugere, der matcher {{query}}"
+                },
+                "replyTo": {
+                    "replyingTo": "Svar til {{name}}"
+                }
+            }
+        },
+        "item": {
+            "draft": "Kladde",
+            "noMessages": "Ingen beskeder endnu",
+            "you": "Du"
+        },
+        "list": {
+            "empty": "Ingen chats fundet",
+            "emptySearch": "Ingen chats fundet for denne søgning",
+            "error": "Der opstod en fejl ved indlæsning af dine chats, prøv venligst igen senere"
+        },
+        "menu": {
+            "archive": "Arkiv",
+            "delete": "Slet",
+            "favorite": "Favorit",
+            "leave": "Forlad",
+            "markAsRead": "Markér som læst",
+            "mute": "Mute",
+            "muted": "Lydløs",
+            "participants": "Deltagere",
+            "pin": "Fastgør",
+            "rename": "Omdøb",
+            "unarchive": "Afarkivér",
+            "unfavorite": "Fjern fra favoritter",
+            "unmute": "Aktiver lyd",
+            "unpin": "Frigør"
+        },
+        "messages": {
+            "everyone": "Alle",
+            "menu": {
+                "cancel": "Annuller",
+                "copyId": "Kopiér ID",
+                "copyText": "Kopier tekst",
+                "delete": "Slet",
+                "disableEmbeds": "Deaktiver indlejringer",
+                "edit": "Rediger",
+                "reply": "Svar"
+            },
+            "new": "Ny",
+            "time": {
+                "hourAgo": "For {{hours}} time siden",
+                "hoursAgo": "For {{hours}} timer siden",
+                "minuteAgo": "{{minutes}} minut siden",
+                "minutesAgo": "{{minutes}} minutter siden",
+                "now": "Nu",
+                "secondAgo": "{{seconds}} sekund siden",
+                "secondsAgo": "{{seconds}} sekunder siden",
+                "todayAt": "I dag kl. {{date}}",
+                "yesterdayAt": "I går kl. {{date}}"
+            },
+            "undecryptable": "Kan ikke dekryptere besked.",
+            "unknown": "Ukendt"
+        },
+        "participants": {
+            "menu": {
+                "remove": "Fjern"
+            },
+            "participant": "Deltager",
+            "participants": "Deltagere",
+            "prompts": {
+                "remove": {
+                    "message": "Er du sikker på, at du vil fjerne denne deltager? De vil ikke længere kunne se eller sende beskeder i denne chat.",
+                    "success": "{{name}} fjernet",
+                    "title": "Fjern deltager"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "Er du sikker på, at du vil slette denne chat? Dette vil fjerne chatten fra din liste, og du vil ikke længere kunne se eller sende beskeder i denne chat.",
+                "title": "Slet chat"
+            },
+            "deleteChats": {
+                "message": "Er du sikker på, at du vil slette {{count}} chats? Dette vil fjerne chatsene fra din liste, og du vil ikke længere kunne se eller sende beskeder i disse chats.",
+                "title": "Slet chats"
+            },
+            "deleteMessage": {
+                "message": "Er du sikker på, at du vil slette denne besked? Denne handling kan ikke fortrydes!",
+                "title": "Slet besked"
+            },
+            "disableEmbeds": {
+                "message": "Er du sikker på, at du vil deaktivere indlejringer for denne besked? Dette vil fjerne alt indlejret indhold.",
+                "title": "Deaktiver indlejringer"
+            },
+            "leaveChat": {
+                "message": "Er du sikker på, at du vil forlade denne chat? Du vil ikke længere kunne se eller sende beskeder i denne chat.",
+                "title": "Forlad chat"
+            },
+            "leaveChats": {
+                "message": "Er du sikker på, at du vil forlade {{count}} chats? Du vil ikke længere kunne se eller sende beskeder i disse chats.",
+                "title": "Forlad chats"
+            },
+            "renameChat": {
+                "placeholder": "Nyt navn",
+                "title": "Omdøb chat"
+            }
+        },
+        "typing": "{{users}} skriver..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "Accepter",
+            "block": "Bloker",
+            "cancel": "Annuller",
+            "decline": "Afvis",
+            "remove": "Fjern",
+            "unblock": "Fjern blokering"
+        }
+    },
+    "copiedToClipboard": "Kopieret til udklipsholder",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "Annuller",
+                    "create": {
+                        "created": "{{name}} oprettet",
+                        "directory": "Opret bibliotek",
+                        "photo": "Tag billede",
+                        "textFile": "Opret tekstfil"
+                    },
+                    "directoryNamePlaceholder": "Mappenavn",
+                    "itemsUploaded": "{{count}} elementer uploadet",
+                    "noMediaPermissions": "Du skal give medietilladelser for at uploade fotos eller videoer.",
+                    "textFileNamePlaceholder": "Tekstfilnavn",
+                    "upload": {
+                        "directory": "Upload mappe",
+                        "files": "Upload filer",
+                        "media": "Upload medier",
+                        "uploaded": "{{name}} uploadet"
+                    }
+                },
+                "deselectAll": "Fravælg alt",
+                "dropdown": {
+                    "bulkActions": "Massehandlinger",
+                    "gridMode": "Vis som gitter",
+                    "listMode": "Se som liste",
+                    "sortBy": {
+                        "ascending": "Stigende",
+                        "descending": "Faldende",
+                        "lastModified": {
+                            "ascendingTitle": "Ældste først",
+                            "descendingTitle": "Nyeste først",
+                            "title": "Sidst ændret"
+                        },
+                        "name": {
+                            "ascendingTitle": "A til Z",
+                            "descendingTitle": "Z til A",
+                            "title": "Navn"
+                        },
+                        "size": {
+                            "ascendingTitle": "Mindste først",
+                            "descendingTitle": "Største først",
+                            "title": "Størrelse"
+                        },
+                        "sortBy": "Sorter efter",
+                        "type": {
+                            "ascendingTitle": "Stigende",
+                            "descendingTitle": "Faldende",
+                            "title": "Type"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "Ældste først",
+                            "descendingTitle": "Nyeste først",
+                            "title": "Upload Dato"
+                        }
+                    },
+                    "transfers": "Overførsler"
+                },
+                "selectAll": "Vælg alt"
+            },
+            "title": {
+                "drive": "Drev",
+                "favorites": "Favoritter",
+                "links": "Offentlige links",
+                "offline": "Tilgængelig offline",
+                "recents": "Seneste",
+                "selected": "{{count}} valgt",
+                "sharedIn": "Delt med dig",
+                "sharedOut": "Delt med andre",
+                "trash": "Papirkurv"
+            }
+        },
+        "itemShared": "{{name}} delt",
+        "itemSharedWith": "{{name}} delt med {{email}}",
+        "list": {
+            "empty": "Ingen elementer fundet",
+            "emptySearch": "Ingen emner fundet for denne søgning",
+            "error": "Der opstod en fejl ved indlæsning af din disk, prøv venligst igen senere",
+            "footer": "{{count}} elementer",
+            "item": {
+                "menu": {
+                    "availableOffline": "Tilgængelig offline",
+                    "clipboard": "Udklipsholder",
+                    "color": "Farve",
+                    "copy": "Kopier",
+                    "copyId": "Kopiér ID",
+                    "copyPath": "Kopier sti",
+                    "delete": "Slet",
+                    "deletePermanently": "Slet permanent",
+                    "deselect": "Fravælg",
+                    "deselectAll": "Fravælg alt",
+                    "disablePublicLink": "Deaktiver link",
+                    "download": "Download",
+                    "downloadFolder": "Download mappe",
+                    "export": "Eksportér",
+                    "favorite": "Favorit",
+                    "favorite_one": "Favorit Element",
+                    "favorite_other": "Favorit {{count}} elementer",
+                    "favorited": "Favoritteret",
+                    "id": "ID",
+                    "info": "Info",
+                    "location": "Placering",
+                    "makeAvailableOffline": "Gør tilgængelig offline",
+                    "move": "Flyt",
+                    "move_one": "Flyt element",
+                    "move_other": "Flyt {{count}} elementer",
+                    "open": "Åben",
+                    "path": "Sti",
+                    "preview": "Forhåndsvisning",
+                    "properties": "Egenskaber",
+                    "publicLink": "Offentligt link",
+                    "removeOffline": "Fjern offline-fil",
+                    "removeSharedIn": "Fjern",
+                    "removeSharedOut": "Stop deling",
+                    "rename": "Omdøb",
+                    "restore": "Gendan",
+                    "saveToGallery": "Gem til galleri",
+                    "select": "Vælg",
+                    "selectAll": "Vælg alt",
+                    "share": "Del",
+                    "share_one": "Del element",
+                    "share_other": "Del {{count}} elementer",
+                    "trash": "Papirkurv",
+                    "trash_one": "Papirkurv Element",
+                    "trash_other": "Papirkurv {{count}} elementer",
+                    "unfavorite": "Fjern fra favoritter",
+                    "versionHistory": "Versionshistorik",
+                    "withUser": "Med bruger"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "Er du sikker på, at du vil slette {{count}} elementer permanent? Denne handling kan ikke fortrydes!",
+                "title": "Slet permanent"
+            },
+            "deletePermanently": {
+                "message": "Er du sikker på, at du vil slette dette element permanent? Denne handling kan ikke fortrydes!",
+                "title": "Slet permanent"
+            },
+            "disablePublicLinks": {
+                "message": "Er du sikker på, at du vil deaktivere offentlige links for {{count}} elementer? Linksene vil ikke længere være tilgængelige.",
+                "title": "Deaktiver offentlige links"
+            },
+            "removeOfflineFiles": {
+                "message": "Er du sikker på, at du vil fjerne {{count}} offlinefiler? De vil ikke længere være tilgængelige offline.",
+                "title": "Fjern offline-filer"
+            },
+            "removeSharedInItem": {
+                "message": "Er du sikker på, at du vil fjerne dette element fra dine delte elementer? Du vil ikke længere kunne se eller få adgang til det.",
+                "title": "Fjern"
+            },
+            "removeSharedInItems": {
+                "message": "Er du sikker på, at du vil fjerne {{count}} elementer fra dine delte elementer? Du vil ikke længere kunne se eller få adgang til dem.",
+                "title": "Fjern"
+            },
+            "removeSharedOutItem": {
+                "message": "Er du sikker på, at du vil stoppe deling af dette element? Brugeren vil ikke længere have adgang til det.",
+                "title": "Stop deling"
+            },
+            "removeSharedOutItems": {
+                "message": "Er du sikker på, at du vil stoppe deling af {{count}} elementer? Brugerne vil ikke længere have adgang til dem.",
+                "title": "Stop deling"
+            },
+            "renameItem": {
+                "placeholder": "Nyt navn",
+                "title": "Omdøb"
+            },
+            "trashItem": {
+                "message": "Er du sikker på, at du vil flytte dette element til papirkurven? Du kan gendanne det senere.",
+                "title": "Flyt til papirkurv"
+            },
+            "trashItems": {
+                "message": "Er du sikker på, at du vil flytte {{count}} elementer til papirkurven? Du kan gendanne dem senere.",
+                "title": "Flyt til papirkurv"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "Ingen elementer fundet",
+                "emptySearch": "Ingen emner fundet for denne søgning",
+                "error": "Der opstod en fejl ved indlæsning af søgeresultater, prøv venligst igen senere",
+                "footer": "{{count}} elementer"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "Annuller",
+        "items": {
+            "downloadButton": "Download-knap",
+            "edit": "Rediger",
+            "enabled": "Aktiveret",
+            "expiration": "Udløbsdato",
+            "expiration12h": "12 timer",
+            "expiration14d": "14 dage",
+            "expiration1d": "1 dag",
+            "expiration1h": "1 time",
+            "expiration30d": "30 dage",
+            "expiration3d": "3 dage",
+            "expiration6h": "6 timer",
+            "expiration7d": "7 dage",
+            "expirationNever": "Aldrig",
+            "password": "Adgangskode"
+        },
+        "onlyPro": "Denne funktion er kun tilgængelig for Filen Pro brugere. Abonner på en hvilken som helst Filen plan for at aktivere den.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "Efterlad tom for at fjerne adgangskoden",
+                "title": "Rediger adgangskode"
+            }
+        },
+        "shareDialogTile": "Filen offentlig link",
+        "title": "Rediger offentlig link",
+        "unsavedChanges": "Usaved ændringer"
+    },
+    "errors": {
+        "cannotOpenURL": "Kan ikke åbne URL.",
+        "notEnoughDiskSpace": "Ikke nok lokal diskplads tilgængelig.",
+        "sharingNotAvailable": "Deling er ikke tilgængelig på denne enhed.",
+        "youAreOffline": "Du er i øjeblikket offline. Tjek venligst din internetforbindelse."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "Annuller",
+                "confirm": "Slet",
+                "message": "Er du sikker på, at du vil slette denne version? Denne handling kan ikke fortrydes!",
+                "title": "Slet version"
+            },
+            "restore": {
+                "cancel": "Annuller",
+                "confirm": "Gendan",
+                "message": "Er du sikker på, at du vil genskabe denne version? Dette vil overskrive den nuværende fil.",
+                "title": "Gendan version"
+            }
+        },
+        "header": {
+            "title": "Versionshistorik"
+        },
+        "list": {
+            "empty": "Ingen versioner endnu",
+            "emptySearch": "Ingen versioner fundet for denne søgning",
+            "error": "Der opstod en fejl ved indlæsning af filversioner, prøv venligst igen senere",
+            "item": {
+                "current": "Nuværende",
+                "delete": "Slet",
+                "restore": "Gendan"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "Bytes",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiB",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "Intet forhåndsvisning tilgængelig"
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "Favoritter"
+            },
+            "links": {
+                "title": "Offentlige links"
+            },
+            "offline": {
+                "title": "Tilgængelig offline"
+            },
+            "recents": {
+                "title": "Seneste"
+            },
+            "sharedIn": {
+                "title": "Delt med dig"
+            },
+            "sharedOut": {
+                "title": "Delt med andre"
+            },
+            "trash": {
+                "title": "Papirkurv"
+            }
+        },
+        "listEmpty": {
+            "favorites": "Ingen favoritter endnu",
+            "links": "Ingen offentlige links endnu",
+            "offline": "Ingen offline-elementer endnu",
+            "recents": "Ingen nylige endnu",
+            "sharedIn": "Ingen delte elementer endnu",
+            "sharedOut": "Ingen delte elementer endnu",
+            "trash": "Ingen elementer i papirkurven endnu"
+        },
+        "title": "Hjem"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "Annuller",
+            "okText": "OK",
+            "title": "Titel"
+        }
+    },
+    "listEmpty": {
+        "empty": "Intet fundet",
+        "emptySearch": "Intet fundet for denne søgning",
+        "error": "Der opstod en fejl, prøv venligst igen senere"
+    },
+    "localAuthentication": {
+        "cancelLabel": "Annuller",
+        "promptMessage": "Godkend for at fortsætte"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "Skriv din kode her...",
+                "text": "Skriv din tekst her..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "Fravælg alt",
+                    "selectAll": "Vælg alt"
+                },
+                "types": {
+                    "checklist": "Tjekliste",
+                    "code": "Kode",
+                    "markdown": "Markdown",
+                    "rich": "Rigt tekst",
+                    "text": "Tekst"
+                }
+            },
+            "menu": {
+                "settings": "Indstillinger"
+            },
+            "selected": "{{count}} valgt",
+            "title": "Noter"
+        },
+        "history": {
+            "list": {
+                "empty": "Ingen historik tilgængelig",
+                "emptySearch": "Ingen poster fundet for denne søgning",
+                "error": "Der opstod en fejl ved indlæsning af historikken, prøv venligst igen senere",
+                "footer": "{{count}} elementer"
+            },
+            "noPreview": "Intet forhåndsvisning tilgængelig",
+            "prompts": {
+                "restore": {
+                    "message": "Er du sikker på, at du vil genskabe denne note? Dette vil overskrive den nuværende note.",
+                    "title": "Gendan note"
+                }
+            },
+            "restore": "Gendan",
+            "title": "Historik"
+        },
+        "list": {
+            "empty": "Ingen noter endnu",
+            "emptySearch": "Ingen note fundet for denne søgning",
+            "error": "Der opstod en fejl ved indlæsning af dine noter, prøv venligst igen senere",
+            "footer": "{{count}} elementer"
+        },
+        "menu": {
+            "archive": "Arkiv",
+            "clipboard": "Udklipsholder",
+            "copyId": "Kopiér ID",
+            "delete": "Slet",
+            "deselect": "Fravælg",
+            "duplicate": "Duplikér",
+            "export": "Eksportér",
+            "favorite": "Favorit",
+            "favorited": "Favoritteret",
+            "history": "Historik",
+            "leave": "Forlad",
+            "participants": "Deltagere",
+            "pin": "Fastgør",
+            "pinned": "Fastgjort",
+            "preview": "Forhåndsvisning",
+            "rename": "Omdøb",
+            "restore": "Gendan",
+            "select": "Vælg",
+            "tags": "Tags",
+            "trash": "Papirkurv",
+            "type": "Type",
+            "types": {
+                "checklist": "Tjekliste",
+                "code": "Kode",
+                "md": "Markdown",
+                "rich": "Rigt tekst",
+                "text": "Tekst"
+            },
+            "unfavorite": "Fjern fra favoritter",
+            "unpin": "Frigør"
+        },
+        "participants": {
+            "list": {
+                "empty": "Ingen deltagere endnu",
+                "emptySearch": "Ingen deltagere fundet for denne søgning",
+                "error": "Der opstod en fejl ved indlæsning af deltagerne, prøv venligst igen senere",
+                "footer": "{{count}} deltagere"
+            },
+            "menu": {
+                "permissionsWrite": "Skrivetilladelser",
+                "remove": "Fjern"
+            },
+            "title": "Deltagere"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "Notetitel",
+                "title": "Opret note"
+            },
+            "createTag": {
+                "placeholder": "Tag navn",
+                "title": "Opret tag"
+            },
+            "deleteNote": {
+                "message": "Er du sikker på, at du vil slette denne note permanent? Denne handling kan ikke fortrydes!",
+                "title": "Slet note"
+            },
+            "deleteNotes": {
+                "message": "Er du sikker på, at du vil slette {{count}} noter permanent? Denne handling kan ikke fortrydes!",
+                "title": "Slet noter"
+            },
+            "deleteTag": {
+                "message": "Er du sikker på, at du vil slette dette tag? Denne handling kan ikke fortrydes!",
+                "title": "Slet tag"
+            },
+            "deleteTags": {
+                "message": "Er du sikker på, at du vil slette {{count}} tags? Denne handling kan ikke fortrydes!",
+                "title": "Slet tags"
+            },
+            "leaveNote": {
+                "message": "Er du sikker på, at du vil forlade denne note? Du vil ikke længere kunne se eller redigere den.",
+                "title": "Forlad note"
+            },
+            "leaveNotes": {
+                "message": "Er du sikker på, at du vil forlade {{count}} noter? Du vil ikke længere kunne se eller redigere dem.",
+                "title": "Forlad noter"
+            },
+            "removeParticipant": {
+                "message": "Er du sikker på, at du vil fjerne denne deltager? De vil ikke længere kunne se eller redigere denne note.",
+                "title": "Fjern deltager"
+            },
+            "removeParticipants": {
+                "message": "Er du sikker på, at du vil fjerne {{count}} deltagere? De vil ikke længere kunne se eller redigere disse noter.",
+                "title": "Fjern deltagere"
+            },
+            "renameNote": {
+                "placeholder": "Nyt navn",
+                "title": "Omdøb note"
+            },
+            "renameTag": {
+                "placeholder": "Nyt tag-navn",
+                "title": "Omdøb tag"
+            },
+            "trashNote": {
+                "message": "Er du sikker på, at du vil flytte denne note til papirkurven? Du kan gendanne den senere.",
+                "title": "Flyt til papirkurv"
+            },
+            "trashNotes": {
+                "message": "Er du sikker på, at du vil flytte {{count}} noter til papirkurven? Du kan gendanne dem senere.",
+                "title": "Flyt til papirkurv"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "Slet",
+                "favorited": "Favoritteret",
+                "rename": "Omdøb"
+            },
+            "names": {
+                "all": "Alle",
+                "archived": "Arkiveret",
+                "favorited": "Favoritteret",
+                "pinned": "Fastgjort",
+                "shared": "Delt",
+                "trash": "Papirkurv"
+            }
+        },
+        "title": "Noter"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "Annuller",
+            "placeholder": "Søg..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "Offline-tilstand"
+    },
+    "photos": {
+        "header": {
+            "selected": "{{count}} valgt"
+        },
+        "list": {
+            "empty": "Ingen billeder endnu",
+            "emptySearch": "Ingen fotos fundet for denne søgning",
+            "error": "Der opstod en fejl ved indlæsning af dine fotos, prøv venligst igen senere"
+        },
+        "menu": {
+            "settings": "Indstillinger"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} elementer"
+                },
+                "list": {
+                    "empty": "Ingen albums fundet",
+                    "emptySearch": "Ingen albums fundet for denne søgning",
+                    "error": "Der opstod en fejl ved indlæsning af dine album, prøv venligst igen senere"
+                },
+                "title": "Album"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "Du skal give medietilladelser for at få adgang til dine fotos."
+                },
+                "items": {
+                    "albums": "Album",
+                    "albumsInfo": "Vælg hvilke albums der skal inkluderes i kamera-upload.",
+                    "background": "Baggrund",
+                    "backgroundInfo": "Tillad kamera-upload i baggrunden. Dette kan føre til høj batteriforbrug. Baggrundsuploads inkluderer kun billeder. Fungerer kun når appen ikke er lukket med tvang.",
+                    "cellular": "Mobil",
+                    "cellularInfo": "Tillad kamera upload over mobildata. Dette kan føre til højt dataforbrug.",
+                    "cloudDirectory": "Cloud mappe",
+                    "cloudDirectoryNotSet": "Ikke indstillet",
+                    "compress": "Komprimer",
+                    "compressInfo": "Komprimer fotos for at spare lagerplads. Dette kan reducere kvaliteten af ​​billederne. JPG-komprimering ved 80% kvalitet.",
+                    "enabled": "Aktiveret",
+                    "lowBattery": "Lavt batteri",
+                    "lowBatteryInfo": "Deaktiver kamera-upload, når batteriet er lavt.",
+                    "permissionsError": "Tilladelsesfejl",
+                    "permissionsErrorInfo": "Tillad venligst appen at få adgang til dine fotos og videoer i systemindstillingerne.",
+                    "videos": "Videoer",
+                    "videosInfo": "Inkluder videoer i kamera-upload."
+                },
+                "title": "Indstillinger"
+            }
+        },
+        "state": {
+            "synced": "Synkroniseret",
+            "syncing": "Synkronisering",
+            "syncingProgress": "{{done}} af {{total}} emner synkroniseret"
+        },
+        "title": "Fotos"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "Annuller",
+            "done": "Færdig",
+            "selectContact": "Vælg kontakt",
+            "selectContacts": "Vælg kontakter"
+        },
+        "list": {
+            "empty": "Ingen kontakter endnu",
+            "emptySearch": "Ingen kontakter fundet for denne søgning",
+            "error": "Der opstod en fejl ved indlæsning af dine kontakter, prøv venligst igen senere",
+            "footer": "{{count}} kontakter"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} valgt"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "Annuller",
+            "done": "Færdig",
+            "drive": "Drev",
+            "selectDirectories": "Vælg biblioteker",
+            "selectDirectory": "Vælg bibliotek",
+            "selectFile": "Vælg fil",
+            "selectFiles": "Vælg filer",
+            "selectItem": "Vælg element",
+            "selectItems": "Vælg elementer",
+            "selectRoot": "Vælg cloud-drev"
+        },
+        "list": {
+            "empty": "Intet uploadet endnu",
+            "emptySearch": "Ingen emner fundet for denne søgning",
+            "error": "Der opstod en fejl ved indlæsning af dine filer, prøv venligst igen senere",
+            "footer": "{{count}} elementer"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "Mappenavn",
+                "success": "{{name}} oprettet",
+                "title": "Opret bibliotek"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} valgt"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "Annuller",
+            "done": "Færdig",
+            "selectPlaylist": "Vælg playliste",
+            "selectPlaylists": "Vælg playlister"
+        },
+        "item": {
+            "subTitle": "{{count}} numre, opdateret {{date}}"
+        },
+        "list": {
+            "empty": "Ingen playlister endnu",
+            "emptySearch": "Ingen playlister fundet for denne søgning",
+            "error": "Der opstod en fejl ved indlæsning af dine playlister, prøv venligst igen senere",
+            "footer": "{{count}} playlister"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Playliste navn",
+                "title": "Opret playliste"
+            }
+        },
+        "selected": "{{countOrName}} valgt",
+        "toolbar": {
+            "selected": "{{countOrName}} valgt"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "Avatarbilledets størrelse overstiger grænsen på 3 MiB.",
+                "emailsNotMatching": "De nye e-mailadresser stemmer ikke overens."
+            },
+            "items": {
+                "changeAvatar": "Skift avatar",
+                "deleteAllFilesAndDirectories": "Slet alle filer og mapper",
+                "deleteVersionedFiles": "Slet versionerede filer",
+                "emailAddress": "E-mailadresse",
+                "fileVersioning": "Fil versionering",
+                "fileVersioningInfo": "Aktiver versionskontrol for filer for at holde styr på ændringer foretaget i dine filer.",
+                "gdpr": "GDPR-information",
+                "loginAlerts": "Login-advarsler",
+                "loginAlertsInfo": "Modtag advarsler, når din konto bliver tilgået.",
+                "logout": "Log ud",
+                "more": "Flere kontoindstillinger",
+                "nickname": "Kaldenavn",
+                "personalInformation": "Personlig information",
+                "requestAccountDeletion": "Anmod om kontosletning",
+                "requestAccountDeletionInfo": "Anmod om sletning af konto. Vi vil sende dig en email med yderligere instruktioner."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "Kode",
+                    "title": "Tofaktorgodkendelse"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "Bekræft ny email-adresse",
+                        "title": "Bekræft ny email-adresse"
+                    },
+                    "newEmail": {
+                        "placeholder": "Ny e-mail adresse",
+                        "title": "Ny e-mail adresse"
+                    },
+                    "password": {
+                        "placeholder": "Adgangskode",
+                        "title": "Din adgangskode"
+                    }
+                },
+                "deleteAccount": {
+                    "message": "Er du sikker på, at du vil anmode om sletning af konto? Du vil modtage en e-mail med yderligere instruktioner.",
+                    "title": "Anmod om kontosletning"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "Er du sikker på, at du vil slette alle filer og mapper? Denne handling kan ikke fortrydes!",
+                    "title": "Slet alle filer og mapper"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "Er du virkelig sikker? Denne handling kan ikke fortrydes!",
+                    "title": "Slet alle filer og mapper"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "Er du sikker på, at du vil slette alle versionerede filer? Denne handling kan ikke fortrydes!",
+                    "title": "Slet versionerede filer"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "Er du virkelig sikker? Denne handling kan ikke fortrydes!",
+                    "title": "Slet versionerede filer"
+                },
+                "logout": {
+                    "message": "Er du sikker på, at du vil logge ud? Du skal logge ind igen for at få adgang til din konto.",
+                    "title": "Log ud"
+                },
+                "more": {
+                    "message": "Flere indstillinger er tilgængelige i webappen. Vil du åbne den nu?",
+                    "title": "Åbn Web App"
+                },
+                "updateNickname": {
+                    "placeholder": "Nyt kaldenavn",
+                    "title": "Opdater kaldenavn"
+                }
+            },
+            "title": "Konto"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "Ryd cache",
+                "clearOfflineFiles": "Ryd offline filer",
+                "clearThumbnails": "Ryd miniaturebilleder",
+                "clearTrackPlayer": "Ryd spor afspiller"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "Sletning af cache vil fjerne midlertidige filer. Dette kan afbryde igangværende uploads eller downloads. Er du sikker på, at du vil fortsætte?",
+                    "title": "Ryd cache"
+                },
+                "clearOfflineFiles": {
+                    "message": "Rydning af offlinefiler vil fjerne alle offline-tilgængelige filer. Er du sikker på, at du vil fortsætte?",
+                    "title": "Ryd offline filer"
+                },
+                "clearThumbnails": {
+                    "message": "Ved at rydde miniaturebillederne vil appen downloade hver synlig miniature igen. Er du sikker på, at du vil fortsætte?",
+                    "title": "Ryd miniaturebilleder"
+                },
+                "clearTrackPlayer": {
+                    "message": "Det at rydde sporafspillerens cache fjerner cachede spor og billeder. Dette kan føre til øgede indlæsningstider. Er du sikker på, at du vil fortsætte?",
+                    "title": "Ryd spor afspiller"
+                }
+            },
+            "title": "Avanceret"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "Biometrisk autentifikation er ikke tilgængelig på denne enhed. Aktiver venligst kun PIN-autentifikation eller brug en enhed med understøttelse af biometrisk autentifikation.",
+                "pinNotMatching": "Backup PIN-koderne stemmer ikke overens.",
+                "pinTooLong": "Nød-PIN'en må ikke være længere end 128 cifre.",
+                "pinTooShort": "Nød-PIN skal være mindst 4 cifre lang."
+            },
+            "items": {
+                "biometricAuth": "Biometrisk godkendelse",
+                "lockAppAfter": "Lås app efter",
+                "pinOnly": "Kun PIN"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15 minutter",
+                "fiveMinutes": "5 minutter",
+                "immediately": "Straks",
+                "minutes": "{{minutes}} minutter",
+                "never": "Aldrig",
+                "oneHour": "1 time",
+                "oneMinute": "1 minut",
+                "tenMinutes": "10 minutter",
+                "thirtyMinutes": "30 minutter"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "Er du sikker på, at du vil deaktivere biometrisk godkendelse?",
+                    "title": "Deaktiver biometrisk godkendelse"
+                },
+                "documentsProvider": {
+                    "message": "Aktivering af biometrisk godkendelse vil deaktivere dokumentudbyderen. Dette betyder, at du ikke vil kunne få adgang til dine filer i andre apps ved hjælp af Filen dokumentudbyderen. Ønsker du at fortsætte?",
+                    "title": "Documents provider aktiveret"
+                },
+                "enable": {
+                    "placeholder": "Fallback PIN",
+                    "title": "Opsæt nød-PIN"
+                },
+                "enableConfirm": {
+                    "placeholder": "Bekræft PIN",
+                    "title": "Bekræft sikkerhedspinkode"
+                },
+                "fileProvider": {
+                    "message": "Aktivering af biometrisk godkendelse vil deaktivere filudbyderen. Dette betyder, at du ikke vil kunne få adgang til dine filer i andre apps ved hjælp af Filen filudbyderen. Ønsker du at fortsætte?",
+                    "title": "Filudbyder aktiveret"
+                }
+            },
+            "title": "Sikkerhed"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "Ingen kontakter fundet",
+                    "emptySearch": "Ingen kontakter fundet for denne søgning",
+                    "error": "Der opstod en fejl ved indlæsning af dine kontakter, prøv venligst igen senere"
+                },
+                "blocked": {
+                    "empty": "Ingen blokerede kontakter fundet",
+                    "emptySearch": "Ingen blokerede kontakter fundet for denne søgning",
+                    "error": "Der opstod en fejl ved indlæsning af dine kontakter, prøv venligst igen senere"
+                },
+                "offline": {
+                    "empty": "Ingen offline-kontakter fundet",
+                    "emptySearch": "Ingen offline kontakter fundet for denne søgning",
+                    "error": "Der opstod en fejl ved indlæsning af dine kontakter, prøv venligst igen senere"
+                },
+                "online": {
+                    "empty": "Ingen online-kontakter fundet",
+                    "emptySearch": "Ingen online kontakter fundet for denne søgning",
+                    "error": "Der opstod en fejl ved indlæsning af dine kontakter, prøv venligst igen senere"
+                },
+                "pending": {
+                    "empty": "Ingen kontaktanmodninger fundet",
+                    "emptySearch": "Ingen kontaktanmodninger fundet for denne søgning",
+                    "error": "Der opstod en fejl ved indlæsning af dine kontaktanmodninger, prøv venligst igen senere"
+                },
+                "requests": {
+                    "empty": "Ingen kontaktanmodninger fundet",
+                    "emptySearch": "Ingen kontaktanmodninger fundet for denne søgning",
+                    "error": "Der opstod en fejl ved indlæsning af dine kontaktanmodninger, prøv venligst igen senere"
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "Er du sikker på, at du vil blokere denne kontakt?",
+                    "success": "{{email}} blokeret",
+                    "title": "Bloker kontakt"
+                },
+                "blockContacts": {
+                    "message": "Er du sikker på, at du vil blokere {{count}} kontakter?",
+                    "success": "{{count}} kontakter blokeret",
+                    "title": "Bloker kontakter"
+                },
+                "removeContact": {
+                    "message": "Er du sikker på, at du vil fjerne denne kontakt?",
+                    "success": "{{email}} fjernet",
+                    "title": "Fjern kontakt"
+                },
+                "removeContacts": {
+                    "message": "Er du sikker på, at du vil fjerne {{count}} kontakter?",
+                    "success": "{{count}} kontakter fjernet",
+                    "title": "Fjern kontakter"
+                },
+                "sendRequest": {
+                    "placeholder": "Filen e-mail adresse",
+                    "success": "Kontaktanmodning sendt til {{email}}",
+                    "title": "Send kontaktanmodning"
+                },
+                "unblockContact": {
+                    "message": "Er du sikker på, at du vil fjerne blokering af denne kontakt?",
+                    "success": "{{email}} ikke længere blokeret",
+                    "title": "Fjern blokering af kontakt"
+                },
+                "unblockContacts": {
+                    "message": "Er du sikker på, at du vil fjerne blokeringen af {{count}} kontakter?",
+                    "success": "{{count}} kontakter ophævet blokering af",
+                    "title": "Fjern blokering af kontakter"
+                }
+            },
+            "tabs": {
+                "all": "Alle",
+                "blocked": "Blokeret",
+                "offline": "Offline",
+                "online": "Online",
+                "pending": "Afventer",
+                "requests": "Anmodninger"
+            },
+            "title": "Kontakter"
+        },
+        "events": {
+            "event": "Begivenhed",
+            "eventInfo": {
+                "2faDisabled": "2FA deaktiveret",
+                "2faEnabled": "2FA aktiveret",
+                "baseFolderCreated": "Basis mappe oprettet",
+                "codeRedeemed": "Kode \"{{code}}\" indløst",
+                "deleteAll": "Alle mapper og filer slettet permanent",
+                "deleteFilePermanently": "{{name}} slettet permanent",
+                "deleteFolderPermanently": "{{name}} slettet permanent",
+                "deleteUnfinished": "Uafsluttede uploads slettet",
+                "deleteVersioned": "Alle versionerede filer slettet",
+                "emailChangeAttempt": "Forsøg på at ændre e-mail",
+                "emailChanged": "Email ændret",
+                "failedLogin": "Mislykket loginforsøg",
+                "fileLinkEdited": "Offentlig link for {{name}} redigeret",
+                "fileMetadataChanged": "Metadata for {{name}} ændret",
+                "fileMoved": "{{name}} flyttet",
+                "fileRenamed": "{{oldName}} omdøbt til {{newName}}",
+                "fileRestored": "{{name}} gendannet",
+                "fileRm": "{{name}} slettet",
+                "fileShared": "{{name}} delt med {{email}}",
+                "fileTrash": "{{name}} flyttet til papirkurven",
+                "fileUploaded": "{{name}} uploadet",
+                "fileVersioned": "{{name}} versioneret",
+                "folderColorChanged": "Farve på bibliotek {{name}} ændret",
+                "folderLinkEdited": "Offentlig link til mappe redigeret",
+                "folderMetadataChanged": "Metadata for biblioteket {{name}} ændret",
+                "folderMoved": "Mappe {{name}} flyttet",
+                "folderRenamed": "Mappe {{oldName}} omdøbt til {{newName}}",
+                "folderRestored": "Mappe {{name}} gendannet",
+                "folderShared": "Mappe {{name}} delt med {{email}}",
+                "folderTrash": "Mappe {{name}} flyttet til papirkurven",
+                "itemFavorited": "{{name}} tilføjet til favoritter",
+                "itemUnfavorited": "{{name}} fjernet fra favoritter",
+                "login": "Logget ind",
+                "passwordChanged": "Adgangskode ændret",
+                "removedSharedInItems": "Delte emner fjernet fra {{email}}",
+                "removedSharedOutItems": "Delte emner fjernet fra {{email}}",
+                "requestAccountDeletion": "Anmodning om sletning af konto",
+                "subFolderCreated": "Mappe {{name}} oprettet",
+                "trashEmptied": "Papirkurv tømt",
+                "versionedFileRestored": "Version af {{name}} gendannet"
+            },
+            "events": "Begivenheder",
+            "listEmpty": {
+                "empty": "Ingen begivenheder fundet",
+                "emptySearch": "Ingen begivenheder fundet for denne søgning",
+                "error": "Der opstod en fejl ved indlæsning af dine begivenheder, prøv venligst igen senere"
+            },
+            "title": "Begivenheder"
+        },
+        "index": {
+            "items": {
+                "advanced": "Avanceret",
+                "cameraUpload": "Kamera-upload",
+                "contacts": "Kontakter",
+                "documentsProvider": "Dokumentudbyder",
+                "documentsProviderInfo": "Aktivér Android-filintegration for at få adgang til dine filer uden for appen.",
+                "events": "Begivenheder",
+                "fileProvider": "Filudbyder",
+                "fileProviderInfo": "Aktivér iOS-filintegration for at få adgang til dine filer uden for appen.",
+                "security": "Sikkerhed",
+                "used": "{{used}} brugt af {{max}} ({{percentage}}%)"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "Aktivering af dokumentudbyderen vil deaktivere biometrisk autentifikation. Dette betyder, at du ikke vil kunne bruge biometrisk autentifikation til at låse op for appen. Ønsker du at fortsætte?",
+                    "title": "Biometrisk godkendelse aktiveret"
+                },
+                "fileProvider": {
+                    "message": "Aktivering af filudbyderen vil deaktivere biometrisk autentifikation. Dette betyder, at du ikke vil kunne bruge biometrisk autentifikation til at låse op for appen. Ønsker du at fortsætte?",
+                    "title": "Biometrisk godkendelse aktiveret"
+                }
+            },
+            "title": "Indstillinger"
+        },
+        "personal": {
+            "items": {
+                "city": "By",
+                "companyName": "Firmanavn",
+                "country": "Land",
+                "firstName": "Fornavn",
+                "lastName": "Efternavn",
+                "postalCode": "Postnummer",
+                "street": "Gade",
+                "streetNumber": "Gadenummer",
+                "vatId": "Moms ID"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "Rediger"
+                }
+            },
+            "title": "Personlig information"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "De nye adgangskoder stemmer ikke overens.",
+                "weak": "Din nye adgangskode er for svag. Vælg venligst en stærkere adgangskode, som er mindst 10 tegn lang og indeholder en blanding af store og små bogstaver, tal og specialtegn."
+            },
+            "items": {
+                "2fa": "Tofaktorgodkendelse",
+                "biometricAuth": "Biometrisk godkendelse",
+                "changePassword": "Skift adgangskode"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "Efter ændring af din adgangskode bliver du logget ud og skal logge ind igen med din nye adgangskode.",
+                    "title": "Skift adgangskode"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "Bekræft adgangskode",
+                    "title": "Bekræft ny adgangskode"
+                },
+                "currentPassword": {
+                    "placeholder": "Nuværende adgangskode",
+                    "title": "Din nuværende adgangskode"
+                },
+                "newPassword": {
+                    "placeholder": "Ny adgangskode",
+                    "title": "Din nye adgangskode"
+                }
+            },
+            "title": "Sikkerhed"
+        },
+        "twoFactorAuth": {
+            "copied": "Nøgle kopieret til udklipsholder",
+            "copyKey": "Kopier nøgle",
+            "items": {
+                "2fa": "Tofaktorgodkendelse"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "Kode",
+                    "title": "Indtast kode"
+                }
+            },
+            "title": "Sikkerhed"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "Annuller",
+            "title": "Gem til Filen",
+            "upload": "Upload"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "Annuller",
+            "select": "Vælg"
+        },
+        "itemInfo": {
+            "creation": "Oprettet",
+            "directories": "Mapper",
+            "directory": "Mappe",
+            "files": "Filer",
+            "location": "Placering",
+            "modified": "Ændret",
+            "name": "Navn",
+            "notAvailable": "N/A",
+            "size": "Størrelse",
+            "type": "Type",
+            "uploaded": "Uploadet"
+        }
+    },
+    "tabBar": {
+        "chats": "Chats",
+        "drive": "Drev",
+        "home": "Hjem",
+        "notes": "Noter",
+        "photos": "Fotos",
+        "settings": "Indstillinger"
+    },
+    "textEditor": {
+        "header": {
+            "back": "Tilbage"
+        },
+        "saved": "Gemt",
+        "savedSuccess": "Gemt med succes",
+        "unsavedChanges": "Usaved ændringer"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "Ingen spor i køen",
+            "unknownArtist": "Ukendt kunstner",
+            "unknownTitle": "Ukendt titel"
+        },
+        "header": {
+            "title": "Playlister"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "Tilføj til kø",
+                "cancel": "Annuller",
+                "delete": "Slet",
+                "play": "Afspil"
+            },
+            "subTitle": "{{count}} numre, opdateret {{date}}"
+        },
+        "list": {
+            "empty": "Ingen playlister endnu",
+            "emptySearch": "Ingen playlister fundet for denne søgning",
+            "error": "Der opstod en fejl ved indlæsning af dine playlister, prøv venligst igen senere",
+            "footer": "{{count}} playlister"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "Tilføj til playliste",
+                    "addToQueue": "Tilføj til kø",
+                    "cancel": "Annuller",
+                    "play": "Afspil",
+                    "removeFromPlaylist": "Fjern fra playliste"
+                }
+            },
+            "list": {
+                "empty": "Ingen spor endnu",
+                "emptySearch": "Ingen spor fundet for denne søgning",
+                "error": "Der opstod en fejl ved indlæsning af dine spor, prøv venligst igen senere",
+                "footer": "{{count}} spor"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Playliste navn",
+                "title": "Opret playliste"
+            },
+            "deletePlaylist": {
+                "message": "Er du sikker på, at du vil slette denne playliste? Denne handling kan ikke fortrydes!",
+                "title": "Slet playliste"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "Tilbage",
+            "title": "Overførsler"
+        },
+        "info": "Overfører {{ongoingTransfers}} emner med {{speed}}, {{remaining}} tilbage",
+        "list": {
+            "empty": "Ingen overførsler endnu",
+            "emptySearch": "Ingen overførsler fundet for denne søgning",
+            "error": "Der opstod en fejl ved indlæsning af dine overførsler, prøv venligst igen senere"
+        },
+        "noOngoingTransfers": "Ingen igangværende overførsler",
+        "transfer": {
+            "cancel": "Annuller",
+            "cancelAll": "Annuller alle",
+            "pause": "Pause",
+            "resume": "Genoptag",
+            "stop": "Stop",
+            "stopAll": "Stop alle"
+        }
+    }
+}

@@ -1,0 +1,1402 @@
+{
+    "alertPrompt": {
+        "defaults": {
+            "cancelText": "Annuler",
+            "okText": "OK",
+            "title": "Titre"
+        },
+        "exportMasterKeys": {
+            "cancelText": "Plus tard",
+            "message": "Vous n'avez pas encore exporté vos clés maîtresses. Il est fortement recommandé de les exporter maintenant et de les stocker dans un endroit sûr.",
+            "okText": "Exporter",
+            "title": "Exporter les clés maîtresses"
+        },
+        "storageUsageOverLimit": {
+            "cancelText": "Plus tard",
+            "message": "Vous avez dépassé votre limite de stockage. Veuillez libérer de l'espace ou mettre à jour votre plan pour éviter une suppression indésirable de données.",
+            "okText": "Améliorer",
+            "title": "Utilisation de stockage dépassée"
+        }
+    },
+    "auth": {
+        "index": {
+            "hero": {
+                "first": "Chiffré de bout en bout",
+                "second": "Plateforme Cloud"
+            },
+            "login": "Se connecter",
+            "signUp": "Inscrivez-vous gratuitement"
+        },
+        "login": {
+            "errors": {
+                "emptyFields": "Veuillez remplir tous les champs."
+            },
+            "forgotPassword": "Mot de passe oublié ?",
+            "form": {
+                "email": {
+                    "label": "Adresse e-mail",
+                    "placeholder": "Entrez votre adresse e-mail"
+                },
+                "password": {
+                    "label": "Mot de passe",
+                    "placeholder": "Entrez votre mot de passe"
+                }
+            },
+            "header": {
+                "cancel": "Annuler"
+            },
+            "login": "Se connecter",
+            "loginUsingCreds": "Connectez-vous en utilisant vos identifiants",
+            "next": "Suivant",
+            "signUp": "Inscrivez-vous gratuitement",
+            "submit": "Se connecter",
+            "title": "Se connecter",
+            "welcome": "Bon retour !"
+        },
+        "prompts": {
+            "2fa": {
+                "placeholder": "Code",
+                "title": "Authentification à deux facteurs"
+            },
+            "forgotPassword": {
+                "placeholder": "Adresse e-mail",
+                "success": "Si l'adresse e-mail est enregistrée, vous recevrez un e-mail avec des instructions pour réinitialiser votre mot de passe.",
+                "title": "Mot de passe oublié"
+            },
+            "resendConfirmation": {
+                "placeholder": "Adresse e-mail",
+                "success": "E-mail de confirmation envoyé à {{email}} s'il est enregistré.",
+                "title": "Renvoyer la confirmation"
+            }
+        },
+        "register": {
+            "createAccount": "Créer un compte",
+            "errors": {
+                "emailAddressesDoNotMatch": "Les adresses e-mail ne correspondent pas.",
+                "emptyFields": "Veuillez remplir tous les champs.",
+                "passwordsDoNotMatch": "Les mots de passe ne correspondent pas.",
+                "weakPassword": "Votre mot de passe est trop faible. Veuillez choisir un mot de passe plus robuste. Il doit comporter au moins 10 caractères, inclure un mélange de majuscules et minuscules, des chiffres et des caractères spéciaux."
+            },
+            "form": {
+                "confirmEmail": {
+                    "label": "Confirmer l'adresse e-mail",
+                    "placeholder": "Confirmez votre adresse e-mail"
+                },
+                "confirmPassword": {
+                    "label": "Confirmez le mot de passe",
+                    "placeholder": "Confirmez votre mot de passe"
+                },
+                "email": {
+                    "label": "Adresse e-mail",
+                    "placeholder": "Entrez votre adresse e-mail"
+                },
+                "password": {
+                    "label": "Mot de passe",
+                    "placeholder": "Entrez votre mot de passe"
+                }
+            },
+            "header": {
+                "cancel": "Annuler",
+                "title": "S'inscrire"
+            },
+            "hero": {
+                "create": "Créez votre compte gratuit",
+                "description": "Configurez vos identifiants pour commencer avec votre compte Filen."
+            },
+            "next": "Suivant",
+            "passwordStrength": {
+                "best": "Meilleur",
+                "length": "Longueur",
+                "lowercase": "Lettres minuscules",
+                "medium": "Moyen",
+                "numbers": "Nombres",
+                "specialCharacters": "Caractères spéciaux",
+                "strong": "Fort",
+                "uppercase": "Lettres majuscules",
+                "weak": "Faible"
+            },
+            "resendConfirmationEmail": "Renvoyer l'email de confirmation",
+            "title": "S'inscrire"
+        },
+        "registrationSuccessful": "Inscription réussie ! Veuillez vérifier votre e-mail pour confirmer votre compte."
+    },
+    "biometric": {
+        "appLockedFor": "Application verrouillée pendant {{seconds}} secondes",
+        "authenticateUsingPin": "Authentifiez-vous en utilisant votre PIN",
+        "errors": {
+            "incorrectPin": "PIN incorrect. Veuillez réessayer.",
+            "tooManyIncorrectAttempts": "Trop de tentatives incorrectes. Veuillez réessayer plus tard."
+        },
+        "prompts": {
+            "pin": {
+                "placeholder": "PIN",
+                "title": "Entrez votre PIN"
+            }
+        }
+    },
+    "bpsToReadable": {
+        "b": "B/s",
+        "eib": "EiO/s",
+        "gib": "GiO/s",
+        "kib": "KiO/s",
+        "mib": "MiO/s",
+        "pib": "PiO/s",
+        "tib": "TiO/s",
+        "yib": "YiO/s",
+        "zib": "ZiO/s"
+    },
+    "chats": {
+        "chat": "Discussion",
+        "chats": "Discussions",
+        "header": {
+            "newMessages": "{{count}} nouveaux messages",
+            "search": "Rechercher dans les discussions...",
+            "title": "Discussions"
+        },
+        "input": {
+            "attachment": {
+                "options": {
+                    "addDriveItems": "Ajouter des éléments du lecteur",
+                    "addFiles": "Ajouter des fichiers",
+                    "addMedia": "Ajouter des médias",
+                    "addPhotos": "Ajouter des photos",
+                    "cancel": "Annuler"
+                }
+            },
+            "placeholder": "Tapez un message",
+            "send": "Envoyer",
+            "suggestions": {
+                "emojis": {
+                    "matching": "Émojis correspondant à {{query}}"
+                },
+                "mention": {
+                    "matching": "Utilisateurs correspondant à {{query}}"
+                },
+                "replyTo": {
+                    "replyingTo": "Répondre à {{name}}"
+                }
+            }
+        },
+        "item": {
+            "draft": "Brouillon",
+            "noMessages": "Pas encore de messages",
+            "you": "Vous"
+        },
+        "list": {
+            "empty": "Aucune discussion trouvée",
+            "emptySearch": "Aucun chat trouvé pour cette recherche",
+            "error": "Une erreur est survenue lors du chargement de vos discussions, veuillez réessayer plus tard"
+        },
+        "menu": {
+            "archive": "Archiver",
+            "delete": "Supprimer",
+            "favorite": "Favori",
+            "leave": "Quitter",
+            "markAsRead": "Marquer comme lu",
+            "mute": "Muet",
+            "muted": "Sourdine",
+            "participants": "Participants",
+            "pin": "Épingler",
+            "rename": "Renommer",
+            "unarchive": "Désarchiver",
+            "unfavorite": "Retirer des favoris",
+            "unmute": "Réactiver le son",
+            "unpin": "Détacher"
+        },
+        "messages": {
+            "everyone": "Tout le monde",
+            "menu": {
+                "cancel": "Annuler",
+                "copyId": "Copier l'ID",
+                "copyText": "Copier le texte",
+                "delete": "Supprimer",
+                "disableEmbeds": "Désactiver les intégrations",
+                "edit": "Modifier",
+                "reply": "Répondre"
+            },
+            "new": "Nouveau",
+            "time": {
+                "hourAgo": "Il y a {{hours}} heure",
+                "hoursAgo": "Il y a {{hours}} heures",
+                "minuteAgo": "Il y a {{minutes}} minute",
+                "minutesAgo": "Il y a {{minutes}} minutes",
+                "now": "Maintenant",
+                "secondAgo": "Il y a {{seconds}} seconde",
+                "secondsAgo": "Il y a {{seconds}} secondes",
+                "todayAt": "Aujourd'hui à {{date}}",
+                "yesterdayAt": "Hier à {{date}}"
+            },
+            "undecryptable": "Impossible de déchiffrer le message.",
+            "unknown": "Inconnu"
+        },
+        "participants": {
+            "menu": {
+                "remove": "Supprimer"
+            },
+            "participant": "Participant",
+            "participants": "Participants",
+            "prompts": {
+                "remove": {
+                    "message": "Êtes-vous sûr de vouloir retirer ce participant ? Il ne pourra plus voir ni envoyer de messages dans cette discussion.",
+                    "success": "{{name}} supprimé",
+                    "title": "Supprimer le participant"
+                }
+            }
+        },
+        "prompts": {
+            "deleteChat": {
+                "message": "Êtes-vous sûr de vouloir supprimer cette discussion ? Cela retirera la discussion de votre liste et vous ne pourrez plus voir ni envoyer de messages dans cette discussion.",
+                "title": "Supprimer le chat"
+            },
+            "deleteChats": {
+                "message": "Êtes-vous sûr de vouloir supprimer {{count}} discussions ? Cela retirera les discussions de votre liste et vous ne pourrez plus voir ni envoyer de messages dans ces discussions.",
+                "title": "Supprimer les chats"
+            },
+            "deleteMessage": {
+                "message": "Êtes-vous sûr de vouloir supprimer ce message ? Cette action ne peut pas être annulée !",
+                "title": "Supprimer le message"
+            },
+            "disableEmbeds": {
+                "message": "Êtes-vous sûr de vouloir désactiver l'intégration pour ce message ? Cela supprimera tout contenu intégré.",
+                "title": "Désactiver les intégrations"
+            },
+            "leaveChat": {
+                "message": "Êtes-vous sûr de vouloir quitter cette discussion ? Vous ne pourrez plus voir ni envoyer de messages dans cette discussion.",
+                "title": "Quitter la discussion"
+            },
+            "leaveChats": {
+                "message": "Êtes-vous sûr de vouloir quitter {{count}} discussions ? Vous ne pourrez plus voir ni envoyer de messages dans ces discussions.",
+                "title": "Quitter les discussions"
+            },
+            "renameChat": {
+                "placeholder": "Nouveau nom",
+                "title": "Renommer la discussion"
+            }
+        },
+        "typing": "{{users}} en train d'écrire..."
+    },
+    "contacts": {
+        "menu": {
+            "accept": "Accepter",
+            "block": "Bloquer",
+            "cancel": "Annuler",
+            "decline": "Refuser",
+            "remove": "Supprimer",
+            "unblock": "Débloquer"
+        }
+    },
+    "copiedToClipboard": "Copié dans le presse-papiers",
+    "drive": {
+        "header": {
+            "rightView": {
+                "actionSheet": {
+                    "cancel": "Annuler",
+                    "create": {
+                        "created": "{{name}} créé",
+                        "directory": "Créer un répertoire",
+                        "photo": "Prendre une photo",
+                        "textFile": "Créer un fichier texte"
+                    },
+                    "directoryNamePlaceholder": "Nom du répertoire",
+                    "itemsUploaded": "{{count}} éléments téléchargés",
+                    "noMediaPermissions": "Vous devez accorder les autorisations multimédia pour téléverser des photos ou des vidéos.",
+                    "textFileNamePlaceholder": "Nom du fichier texte",
+                    "upload": {
+                        "directory": "Télécharger un répertoire",
+                        "files": "Uploader des fichiers",
+                        "media": "Téléverser des médias",
+                        "uploaded": "{{name}} téléversé"
+                    }
+                },
+                "deselectAll": "Tout désélectionner",
+                "dropdown": {
+                    "bulkActions": "Actions groupées",
+                    "gridMode": "Voir sous forme de grille",
+                    "listMode": "Afficher comme Liste",
+                    "sortBy": {
+                        "ascending": "Ascendant",
+                        "descending": "Descendant",
+                        "lastModified": {
+                            "ascendingTitle": "Le plus ancien d'abord",
+                            "descendingTitle": "Le plus récent d'abord",
+                            "title": "Dernière modification"
+                        },
+                        "name": {
+                            "ascendingTitle": "De A à Z",
+                            "descendingTitle": "Z à A",
+                            "title": "Nom"
+                        },
+                        "size": {
+                            "ascendingTitle": "Le plus petit d'abord",
+                            "descendingTitle": "Le plus grand d'abord",
+                            "title": "Taille"
+                        },
+                        "sortBy": "Trier par",
+                        "type": {
+                            "ascendingTitle": "Ascendant",
+                            "descendingTitle": "Descendant",
+                            "title": "Type"
+                        },
+                        "uploadDate": {
+                            "ascendingTitle": "Le plus ancien d'abord",
+                            "descendingTitle": "Le plus récent d'abord",
+                            "title": "Date de téléchargement"
+                        }
+                    },
+                    "transfers": "Transferts"
+                },
+                "selectAll": "Tout sélectionner"
+            },
+            "title": {
+                "drive": "Disque",
+                "favorites": "Favoris",
+                "links": "Liens publics",
+                "offline": "Disponible hors ligne",
+                "recents": "Récents",
+                "selected": "{{count}} sélectionné(s)",
+                "sharedIn": "Partagé avec vous",
+                "sharedOut": "Partagé avec d'autres",
+                "trash": "Corbeille"
+            }
+        },
+        "itemShared": "{{name}} partagé",
+        "itemSharedWith": "{{name}} partagé avec {{email}}",
+        "list": {
+            "empty": "Aucun élément trouvé",
+            "emptySearch": "Aucun élément trouvé pour cette recherche",
+            "error": "Une erreur est survenue lors du chargement de votre disque, veuillez réessayer plus tard",
+            "footer": "{{count}} éléments",
+            "item": {
+                "menu": {
+                    "availableOffline": "Disponible hors ligne",
+                    "clipboard": "Presse-papiers",
+                    "color": "Couleur",
+                    "copy": "Copier",
+                    "copyId": "Copier l'ID",
+                    "copyPath": "Copier le chemin",
+                    "delete": "Supprimer",
+                    "deletePermanently": "Supprimer définitivement",
+                    "deselect": "Désélectionner",
+                    "deselectAll": "Tout désélectionner",
+                    "disablePublicLink": "Désactiver le lien",
+                    "download": "Télécharger",
+                    "downloadFolder": "Télécharger le dossier",
+                    "export": "Exporter",
+                    "favorite": "Favori",
+                    "favorite_one": "Élément favori",
+                    "favorite_other": "Préféré {{count}} éléments",
+                    "favorited": "Mis en favori",
+                    "id": "ID",
+                    "info": "Info",
+                    "location": "Emplacement",
+                    "makeAvailableOffline": "Rendre disponible hors ligne",
+                    "move": "Déplacer",
+                    "move_one": "Déplacer l'élément",
+                    "move_other": "Déplacer {{count}} éléments",
+                    "open": "Ouvrir",
+                    "path": "Chemin",
+                    "preview": "Aperçu",
+                    "properties": "Propriétés",
+                    "publicLink": "Lien public",
+                    "removeOffline": "Supprimer le fichier hors ligne",
+                    "removeSharedIn": "Supprimer",
+                    "removeSharedOut": "Arrêter le partage",
+                    "rename": "Renommer",
+                    "restore": "Restaurer",
+                    "saveToGallery": "Enregistrer dans la galerie",
+                    "select": "Sélectionner",
+                    "selectAll": "Tout sélectionner",
+                    "share": "Partager",
+                    "share_one": "Partager l'élément",
+                    "share_other": "Partager {{count}} éléments",
+                    "trash": "Corbeille",
+                    "trash_one": "Corbeille Élement",
+                    "trash_other": "Corbeille {{count}} éléments",
+                    "unfavorite": "Retirer des favoris",
+                    "versionHistory": "Historique des versions",
+                    "withUser": "Avec utilisateur"
+                }
+            }
+        },
+        "prompts": {
+            "deleteItemsPermanently": {
+                "message": "Êtes-vous sûr de vouloir supprimer {{count}} éléments définitivement ? Cette action ne peut pas être annulée !",
+                "title": "Supprimer définitivement"
+            },
+            "deletePermanently": {
+                "message": "Êtes-vous sûr de vouloir supprimer cet élément définitivement ? Cette action ne peut pas être annulée !",
+                "title": "Supprimer définitivement"
+            },
+            "disablePublicLinks": {
+                "message": "Êtes-vous sûr de vouloir désactiver les liens publics pour {{count}} éléments ? Les liens ne seront plus accessibles.",
+                "title": "Désactiver les liens publics"
+            },
+            "removeOfflineFiles": {
+                "message": "Êtes-vous sûr de vouloir supprimer {{count}} fichiers hors ligne ? Ils ne seront plus disponibles hors ligne.",
+                "title": "Supprimer les fichiers hors ligne"
+            },
+            "removeSharedInItem": {
+                "message": "Êtes-vous sûr de vouloir retirer cet élément de vos éléments partagés ? Vous ne pourrez plus le voir ni y accéder.",
+                "title": "Supprimer"
+            },
+            "removeSharedInItems": {
+                "message": "Êtes-vous sûr de vouloir retirer {{count}} éléments de vos éléments partagés ? Vous ne pourrez plus les voir ni y accéder.",
+                "title": "Supprimer"
+            },
+            "removeSharedOutItem": {
+                "message": "Êtes-vous sûr de vouloir arrêter de partager cet élément ? L'utilisateur ne pourra plus y accéder.",
+                "title": "Arrêter le partage"
+            },
+            "removeSharedOutItems": {
+                "message": "Êtes-vous sûr de vouloir arrêter de partager {{count}} éléments ? Les utilisateurs ne pourront plus y accéder.",
+                "title": "Arrêter le partage"
+            },
+            "renameItem": {
+                "placeholder": "Nouveau nom",
+                "title": "Renommer"
+            },
+            "trashItem": {
+                "message": "Êtes-vous sûr de vouloir déplacer cet élément à la corbeille ? Vous pouvez le restaurer plus tard.",
+                "title": "Déplacer vers la corbeille"
+            },
+            "trashItems": {
+                "message": "Êtes-vous sûr de vouloir déplacer {{count}} éléments à la corbeille ? Vous pouvez les restaurer plus tard.",
+                "title": "Déplacer vers la corbeille"
+            }
+        },
+        "search": {
+            "list": {
+                "empty": "Aucun élément trouvé",
+                "emptySearch": "Aucun élément trouvé pour cette recherche",
+                "error": "Une erreur est survenue lors du chargement des résultats de recherche, veuillez réessayer plus tard",
+                "footer": "{{count}} éléments"
+            }
+        }
+    },
+    "editPublicLink": {
+        "cancel": "Annuler",
+        "items": {
+            "downloadButton": "Bouton de téléchargement",
+            "edit": "Modifier",
+            "enabled": "Activé",
+            "expiration": "Expiration",
+            "expiration12h": "12 heures",
+            "expiration14d": "14 jours",
+            "expiration1d": "1 jour",
+            "expiration1h": "1 heure",
+            "expiration30d": "30 jours",
+            "expiration3d": "3 jours",
+            "expiration6h": "6 heures",
+            "expiration7d": "7 jours",
+            "expirationNever": "Jamais",
+            "password": "Mot de passe"
+        },
+        "onlyPro": "Cette fonctionnalité est uniquement disponible pour les utilisateurs de Filen Pro. Abonnez-vous à un plan Filen pour l'activer.",
+        "prompts": {
+            "editPassword": {
+                "placeholder": "Laissez vide pour supprimer le mot de passe",
+                "title": "Modifier le mot de passe"
+            }
+        },
+        "shareDialogTile": "Lien public Filen",
+        "title": "Modifier le lien public",
+        "unsavedChanges": "Modifications non enregistrées"
+    },
+    "errors": {
+        "cannotOpenURL": "Impossible d'ouvrir l'URL.",
+        "notEnoughDiskSpace": "Pas assez d'espace disque local disponible.",
+        "sharingNotAvailable": "Le partage n'est pas disponible sur cet appareil.",
+        "youAreOffline": "Vous êtes actuellement hors ligne. Veuillez vérifier votre connexion Internet."
+    },
+    "fileVersionHistory": {
+        "alerts": {
+            "delete": {
+                "cancel": "Annuler",
+                "confirm": "Supprimer",
+                "message": "Êtes-vous sûr de vouloir supprimer cette version ? Cette action ne peut pas être annulée !",
+                "title": "Supprimer la version"
+            },
+            "restore": {
+                "cancel": "Annuler",
+                "confirm": "Restaurer",
+                "message": "Êtes-vous sûr de vouloir restaurer cette version ? Cela écrasera le fichier actuel.",
+                "title": "Restaurer la version"
+            }
+        },
+        "header": {
+            "title": "Historique des versions"
+        },
+        "list": {
+            "empty": "Pas encore de versions",
+            "emptySearch": "Aucune version trouvée pour cette recherche",
+            "error": "Une erreur est survenue lors du chargement des versions de fichier, veuillez réessayer plus tard",
+            "item": {
+                "current": "Actuel",
+                "delete": "Supprimer",
+                "restore": "Restaurer"
+            }
+        }
+    },
+    "formatBytes": {
+        "b": "Octets",
+        "eib": "EiB",
+        "gib": "GiB",
+        "kib": "KiB",
+        "mib": "MiB",
+        "pib": "PiB",
+        "tib": "TiO",
+        "yib": "YiB",
+        "zib": "ZiB"
+    },
+    "gallery": {
+        "noPreviewAvailable": "Aucun aperçu disponible"
+    },
+    "home": {
+        "container": {
+            "favorites": {
+                "title": "Favoris"
+            },
+            "links": {
+                "title": "Liens publics"
+            },
+            "offline": {
+                "title": "Disponible hors ligne"
+            },
+            "recents": {
+                "title": "Récents"
+            },
+            "sharedIn": {
+                "title": "Partagé avec vous"
+            },
+            "sharedOut": {
+                "title": "Partagé avec d'autres"
+            },
+            "trash": {
+                "title": "Corbeille"
+            }
+        },
+        "listEmpty": {
+            "favorites": "Pas encore de favoris",
+            "links": "Aucun lien public pour le moment",
+            "offline": "Aucun élément hors ligne pour le moment",
+            "recents": "Aucun récent pour le moment",
+            "sharedIn": "Aucun élément partagé pour le moment",
+            "sharedOut": "Aucun élément partagé pour le moment",
+            "trash": "Aucun élément dans la corbeille pour le moment"
+        },
+        "title": "Accueil"
+    },
+    "inputPrompt": {
+        "defaults": {
+            "cancelText": "Annuler",
+            "okText": "OK",
+            "title": "Titre"
+        }
+    },
+    "listEmpty": {
+        "empty": "Rien trouvé",
+        "emptySearch": "Rien trouvé pour cette recherche",
+        "error": "Une erreur est survenue, veuillez réessayer plus tard"
+    },
+    "localAuthentication": {
+        "cancelLabel": "Annuler",
+        "promptMessage": "Authentifiez-vous pour continuer"
+    },
+    "notes": {
+        "content": {
+            "placeholders": {
+                "code": "Écrivez votre code ici...",
+                "text": "Écrivez votre texte ici..."
+            }
+        },
+        "header": {
+            "dropdown": {
+                "items": {
+                    "deselectAll": "Tout désélectionner",
+                    "selectAll": "Tout sélectionner"
+                },
+                "types": {
+                    "checklist": "Liste de contrôle",
+                    "code": "Code",
+                    "markdown": "Markdown",
+                    "rich": "Texte enrichi",
+                    "text": "Texte"
+                }
+            },
+            "menu": {
+                "settings": "Paramètres"
+            },
+            "selected": "{{count}} sélectionné(s)",
+            "title": "Notes"
+        },
+        "history": {
+            "list": {
+                "empty": "Aucun historique disponible",
+                "emptySearch": "Aucune entrée trouvée pour cette recherche",
+                "error": "Une erreur est survenue lors du chargement de l'historique, veuillez réessayer plus tard",
+                "footer": "{{count}} éléments"
+            },
+            "noPreview": "Aucun aperçu disponible",
+            "prompts": {
+                "restore": {
+                    "message": "Êtes-vous sûr de vouloir restaurer cette note ? Cela écrasera la note actuelle.",
+                    "title": "Restaurer la note"
+                }
+            },
+            "restore": "Restaurer",
+            "title": "Historique"
+        },
+        "list": {
+            "empty": "Pas encore de notes",
+            "emptySearch": "Aucune note trouvée pour cette recherche",
+            "error": "Une erreur est survenue lors du chargement de vos notes, veuillez réessayer plus tard",
+            "footer": "{{count}} éléments"
+        },
+        "menu": {
+            "archive": "Archiver",
+            "clipboard": "Presse-papiers",
+            "copyId": "Copier l'ID",
+            "delete": "Supprimer",
+            "deselect": "Désélectionner",
+            "duplicate": "Dupliquer",
+            "export": "Exporter",
+            "favorite": "Favori",
+            "favorited": "Mis en favori",
+            "history": "Historique",
+            "leave": "Quitter",
+            "participants": "Participants",
+            "pin": "Épingler",
+            "pinned": "Épinglé",
+            "preview": "Aperçu",
+            "rename": "Renommer",
+            "restore": "Restaurer",
+            "select": "Sélectionner",
+            "tags": "Tags",
+            "trash": "Corbeille",
+            "type": "Type",
+            "types": {
+                "checklist": "Liste de contrôle",
+                "code": "Code",
+                "md": "Markdown",
+                "rich": "Texte enrichi",
+                "text": "Texte"
+            },
+            "unfavorite": "Retirer des favoris",
+            "unpin": "Détacher"
+        },
+        "participants": {
+            "list": {
+                "empty": "Pas encore de participants",
+                "emptySearch": "Aucun participant trouvé pour cette recherche",
+                "error": "Une erreur est survenue lors du chargement des participants, veuillez réessayer plus tard",
+                "footer": "{{count}} participants"
+            },
+            "menu": {
+                "permissionsWrite": "Autorisations d'écriture",
+                "remove": "Supprimer"
+            },
+            "title": "Participants"
+        },
+        "prompts": {
+            "createNote": {
+                "placeholder": "Titre de la note",
+                "title": "Créer une note"
+            },
+            "createTag": {
+                "placeholder": "Nom de l'étiquette",
+                "title": "Créer une étiquette"
+            },
+            "deleteNote": {
+                "message": "Êtes-vous sûr de vouloir supprimer cette note définitivement ? Cette action ne peut pas être annulée !",
+                "title": "Supprimer la note"
+            },
+            "deleteNotes": {
+                "message": "Êtes-vous sûr de vouloir supprimer {{count}} notes définitivement ? Cette action ne peut pas être annulée !",
+                "title": "Supprimer les notes"
+            },
+            "deleteTag": {
+                "message": "Êtes-vous sûr de vouloir supprimer cette étiquette ? Cette action ne peut pas être annulée !",
+                "title": "Supprimer le tag"
+            },
+            "deleteTags": {
+                "message": "Êtes-vous sûr de vouloir supprimer {{count}} étiquettes ? Cette action ne peut pas être annulée !",
+                "title": "Supprimer les tags"
+            },
+            "leaveNote": {
+                "message": "Êtes-vous sûr de vouloir quitter cette note ? Vous ne pourrez plus la voir ni la modifier.",
+                "title": "Quitter la note"
+            },
+            "leaveNotes": {
+                "message": "Êtes-vous sûr de vouloir quitter {{count}} notes ? Vous ne pourrez plus les voir ni les modifier.",
+                "title": "Quitter les notes"
+            },
+            "removeParticipant": {
+                "message": "Êtes-vous sûr de vouloir supprimer ce participant ? Il ne pourra plus voir ni modifier cette note.",
+                "title": "Supprimer le participant"
+            },
+            "removeParticipants": {
+                "message": "Êtes-vous sûr de vouloir supprimer {{count}} participants ? Ils ne pourront plus voir ni modifier ces notes.",
+                "title": "Supprimer les participants"
+            },
+            "renameNote": {
+                "placeholder": "Nouveau nom",
+                "title": "Renommer la note"
+            },
+            "renameTag": {
+                "placeholder": "Nouveau nom de tag",
+                "title": "Renommer l'étiquette"
+            },
+            "trashNote": {
+                "message": "Êtes-vous sûr de vouloir déplacer cette note à la corbeille ? Vous pouvez la restaurer plus tard.",
+                "title": "Déplacer vers la corbeille"
+            },
+            "trashNotes": {
+                "message": "Êtes-vous sûr de vouloir déplacer {{count}} notes à la corbeille ? Vous pouvez les restaurer plus tard.",
+                "title": "Déplacer vers la corbeille"
+            }
+        },
+        "tags": {
+            "menu": {
+                "delete": "Supprimer",
+                "favorited": "Mis en favori",
+                "rename": "Renommer"
+            },
+            "names": {
+                "all": "Tout",
+                "archived": "Archivé",
+                "favorited": "Mis en favori",
+                "pinned": "Épinglé",
+                "shared": "Partagé",
+                "trash": "Corbeille"
+            }
+        },
+        "title": "Notes"
+    },
+    "nwui": {
+        "search": {
+            "cancel": "Annuler",
+            "placeholder": "Rechercher..."
+        }
+    },
+    "offlineListHeader": {
+        "title": "Mode hors ligne"
+    },
+    "photos": {
+        "header": {
+            "selected": "{{count}} sélectionné(s)"
+        },
+        "list": {
+            "empty": "Pas encore de photos",
+            "emptySearch": "Aucune photo trouvée pour cette recherche",
+            "error": "Une erreur est survenue lors du chargement de vos photos, veuillez réessayer plus tard"
+        },
+        "menu": {
+            "settings": "Paramètres"
+        },
+        "settings": {
+            "albums": {
+                "item": {
+                    "subTitle": "{{count}} éléments"
+                },
+                "list": {
+                    "empty": "Aucun album trouvé",
+                    "emptySearch": "Aucun album trouvé pour cette recherche",
+                    "error": "Une erreur est survenue lors du chargement de vos albums, veuillez réessayer plus tard"
+                },
+                "title": "Albums"
+            },
+            "index": {
+                "errors": {
+                    "noPermissions": "Vous devez accorder les autorisations multimédia pour accéder à vos photos."
+                },
+                "items": {
+                    "albums": "Albums",
+                    "albumsInfo": "Sélectionner les albums à inclure dans le téléchargement de la caméra.",
+                    "background": "Arrière-plan",
+                    "backgroundInfo": "Autoriser le téléchargement de la caméra en arrière-plan. Cela peut entraîner une utilisation élevée de la batterie. Les téléchargements en arrière-plan n'incluent que les images. Fonctionne uniquement lorsque l'application n'est pas fermée de force.",
+                    "cellular": "Cellulaire",
+                    "cellularInfo": "Autoriser le téléchargement de la caméra via les données cellulaires. Cela peut entraîner une utilisation élevée des données.",
+                    "cloudDirectory": "Répertoire Cloud",
+                    "cloudDirectoryNotSet": "Non défini",
+                    "compress": "Compresser",
+                    "compressInfo": "Compressez les photos pour économiser de l'espace de stockage. Cela peut réduire la qualité des photos. Compression JPG à 80% de qualité.",
+                    "enabled": "Activé",
+                    "lowBattery": "Batterie faible",
+                    "lowBatteryInfo": "Désactiver le téléversement de la caméra lorsque la batterie est faible.",
+                    "permissionsError": "Erreur de permissions",
+                    "permissionsErrorInfo": "Veuillez autoriser l'application à accéder à vos photos et vidéos dans les paramètres du système.",
+                    "videos": "Vidéos",
+                    "videosInfo": "Inclure les vidéos dans le téléchargement de l'appareil photo."
+                },
+                "title": "Paramètres"
+            }
+        },
+        "state": {
+            "synced": "Synchronisé",
+            "syncing": "Synchronisation",
+            "syncingProgress": "{{done}} sur {{total}} éléments synchronisés"
+        },
+        "title": "Photos"
+    },
+    "selectContacts": {
+        "header": {
+            "cancel": "Annuler",
+            "done": "Terminé",
+            "selectContact": "Sélectionner un contact",
+            "selectContacts": "Sélectionner les contacts"
+        },
+        "list": {
+            "empty": "Pas encore de contacts",
+            "emptySearch": "Aucun contact trouvé pour cette recherche",
+            "error": "Une erreur est survenue lors du chargement de vos contacts, veuillez réessayer plus tard",
+            "footer": "{{count}} contacts"
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} sélectionné(s)"
+        }
+    },
+    "selectDriveItems": {
+        "header": {
+            "cancel": "Annuler",
+            "done": "Terminé",
+            "drive": "Disque",
+            "selectDirectories": "Sélectionner des répertoires",
+            "selectDirectory": "Sélectionner un répertoire",
+            "selectFile": "Sélectionner le fichier",
+            "selectFiles": "Sélectionner les fichiers",
+            "selectItem": "Sélectionner un élément",
+            "selectItems": "Sélectionner des éléments",
+            "selectRoot": "Sélectionner le disque Cloud"
+        },
+        "list": {
+            "empty": "Rien n'a encore été téléversé",
+            "emptySearch": "Aucun élément trouvé pour cette recherche",
+            "error": "Une erreur est survenue lors du chargement de vos fichiers, veuillez réessayer plus tard",
+            "footer": "{{count}} éléments"
+        },
+        "prompts": {
+            "createDirectory": {
+                "placeholder": "Nom du répertoire",
+                "success": "{{name}} créé",
+                "title": "Créer un répertoire"
+            }
+        },
+        "toolbar": {
+            "selected": "{{countOrName}} sélectionné(s)"
+        }
+    },
+    "selectTrackPlayerPlaylists": {
+        "header": {
+            "cancel": "Annuler",
+            "done": "Terminé",
+            "selectPlaylist": "Sélectionner une playlist",
+            "selectPlaylists": "Sélectionner des playlists"
+        },
+        "item": {
+            "subTitle": "{{count}} pistes, mis à jour le {{date}}"
+        },
+        "list": {
+            "empty": "Pas encore de playlists",
+            "emptySearch": "Aucune playlist trouvée pour cette recherche",
+            "error": "Une erreur est survenue lors du chargement de vos playlists, veuillez réessayer plus tard",
+            "footer": "{{count}} playlists"
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Nom de la playlist",
+                "title": "Créer une playlist"
+            }
+        },
+        "selected": "{{countOrName}} sélectionné(s)",
+        "toolbar": {
+            "selected": "{{countOrName}} sélectionné(s)"
+        }
+    },
+    "settings": {
+        "account": {
+            "errors": {
+                "avatarLimit": "La taille de l'image de l'avatar dépasse la limite de 3 MiB.",
+                "emailsNotMatching": "Les nouvelles adresses e-mail ne correspondent pas."
+            },
+            "items": {
+                "changeAvatar": "Changer d'avatar",
+                "deleteAllFilesAndDirectories": "Supprimer tous les fichiers et répertoires",
+                "deleteVersionedFiles": "Supprimer les fichiers versionnés",
+                "emailAddress": "Adresse e-mail",
+                "fileVersioning": "Versionnage des fichiers",
+                "fileVersioningInfo": "Activer la version des fichiers pour suivre les modifications apportées à vos fichiers.",
+                "gdpr": "Informations RGPD",
+                "loginAlerts": "Alertes de connexion",
+                "loginAlertsInfo": "Recevez des alertes lorsque votre compte est accédé.",
+                "logout": "Déconnexion",
+                "more": "Plus de paramètres de compte",
+                "nickname": "Surnom",
+                "personalInformation": "Informations personnelles",
+                "requestAccountDeletion": "Demander la suppression du compte",
+                "requestAccountDeletionInfo": "Demander la suppression du compte. Nous vous enverrons un e-mail avec des instructions supplémentaires."
+            },
+            "prompts": {
+                "2fa": {
+                    "placeholder": "Code",
+                    "title": "Authentification à deux facteurs"
+                },
+                "changeEmail": {
+                    "confirmEmail": {
+                        "placeholder": "Confirmer la nouvelle adresse e-mail",
+                        "title": "Confirmer la nouvelle adresse e-mail"
+                    },
+                    "newEmail": {
+                        "placeholder": "Nouvelle adresse e-mail",
+                        "title": "Nouvelle adresse e-mail"
+                    },
+                    "password": {
+                        "placeholder": "Mot de passe",
+                        "title": "Votre mot de passe"
+                    }
+                },
+                "deleteAccount": {
+                    "message": "Êtes-vous sûr de vouloir demander la suppression du compte ? Vous recevrez un e-mail avec de plus amples instructions.",
+                    "title": "Demander la suppression du compte"
+                },
+                "deleteAllFilesAndDirectories1": {
+                    "message": "Êtes-vous sûr de vouloir supprimer tous les fichiers et répertoires ? Cette action ne peut pas être annulée !",
+                    "title": "Supprimer tous les fichiers et répertoires"
+                },
+                "deleteAllFilesAndDirectories2": {
+                    "message": "Êtes-vous vraiment sûr ? Cette action est irréversible !",
+                    "title": "Supprimer tous les fichiers et répertoires"
+                },
+                "deleteVersionedFiles1": {
+                    "message": "Êtes-vous sûr de vouloir supprimer tous les fichiers versionnés ? Cette action ne peut pas être annulée !",
+                    "title": "Supprimer les fichiers versionnés"
+                },
+                "deleteVersionedFiles2": {
+                    "message": "Êtes-vous vraiment sûr ? Cette action est irréversible !",
+                    "title": "Supprimer les fichiers versionnés"
+                },
+                "logout": {
+                    "message": "Êtes-vous sûr de vouloir vous déconnecter ? Vous aurez besoin de vous reconnecter pour accéder à votre compte.",
+                    "title": "Déconnexion"
+                },
+                "more": {
+                    "message": "Plus de paramètres sont disponibles dans l'application web. Voulez-vous l'ouvrir maintenant ?",
+                    "title": "Ouvrir l'application Web"
+                },
+                "updateNickname": {
+                    "placeholder": "Nouveau surnom",
+                    "title": "Mise à jour du surnom"
+                }
+            },
+            "title": "Compte"
+        },
+        "advanced": {
+            "items": {
+                "clearCache": "Vider le cache",
+                "clearOfflineFiles": "Effacer les fichiers hors ligne",
+                "clearThumbnails": "Effacer les vignettes",
+                "clearTrackPlayer": "Effacer le lecteur de piste"
+            },
+            "prompts": {
+                "clearCache": {
+                    "message": "Effacer le cache supprimera les fichiers temporaires. Cela peut interrompre les téléversements ou téléchargements en cours. Êtes-vous sûr de vouloir continuer?",
+                    "title": "Vider le cache"
+                },
+                "clearOfflineFiles": {
+                    "message": "La suppression des fichiers hors ligne supprimera tous les fichiers disponibles hors ligne. Êtes-vous sûr de vouloir continuer ?",
+                    "title": "Effacer les fichiers hors ligne"
+                },
+                "clearThumbnails": {
+                    "message": "Effacer les vignettes obligera l'application à télécharger de nouveau chaque vignette visible. Êtes-vous sûr de vouloir continuer ?",
+                    "title": "Effacer les vignettes"
+                },
+                "clearTrackPlayer": {
+                    "message": "La suppression du cache du lecteur de pistes efface les pistes et images mises en cache. Cela peut entraîner des temps de chargement accrus. Êtes-vous sûr de vouloir continuer ?",
+                    "title": "Effacer le lecteur de piste"
+                }
+            },
+            "title": "Avancé"
+        },
+        "biometric": {
+            "errors": {
+                "biometricAuthNotAvailable": "L'authentification biométrique n'est pas disponible sur cet appareil. Veuillez activer uniquement l'authentification par NIP ou utiliser un appareil avec support d'authentification biométrique.",
+                "pinNotMatching": "Les codes PIN de secours ne correspondent pas.",
+                "pinTooLong": "Le code PIN de secours ne doit pas dépasser 128 chiffres.",
+                "pinTooShort": "Le code PIN de secours doit comporter au moins 4 chiffres."
+            },
+            "items": {
+                "biometricAuth": "Authentification biométrique",
+                "lockAppAfter": "Verrouiller l'application après",
+                "pinOnly": "PIN seulement"
+            },
+            "lockAppAfter": {
+                "fifteenMinutes": "15 minutes",
+                "fiveMinutes": "5 minutes",
+                "immediately": "Immédiatement",
+                "minutes": "{{minutes}} minutes",
+                "never": "Jamais",
+                "oneHour": "1 heure",
+                "oneMinute": "1 minute",
+                "tenMinutes": "10 minutes",
+                "thirtyMinutes": "30 minutes"
+            },
+            "prompts": {
+                "disable": {
+                    "message": "Êtes-vous sûr de vouloir désactiver l'authentification biométrique ?",
+                    "title": "Désactiver l'authentification biométrique"
+                },
+                "documentsProvider": {
+                    "message": "Activer l'authentification biométrique désactivera le fournisseur de documents. Cela signifie que vous ne pourrez pas accéder à vos fichiers dans d'autres applications utilisant le fournisseur de documents Filen. Voulez-vous continuer ?",
+                    "title": "Fournisseur de documents activé"
+                },
+                "enable": {
+                    "placeholder": "PIN de secours",
+                    "title": "Configurer le PIN de secours"
+                },
+                "enableConfirm": {
+                    "placeholder": "Confirmer le PIN",
+                    "title": "Confirmer le PIN de secours"
+                },
+                "fileProvider": {
+                    "message": "Activer l'authentification biométrique désactivera le fournisseur de fichiers. Cela signifie que vous ne pourrez pas accéder à vos fichiers dans d'autres applications utilisant le fournisseur de fichiers Filen. Voulez-vous continuer ?",
+                    "title": "Fournisseur de fichiers activé"
+                }
+            },
+            "title": "Sécurité"
+        },
+        "contacts": {
+            "listEmpty": {
+                "all": {
+                    "empty": "Aucun contact trouvé",
+                    "emptySearch": "Aucun contact trouvé pour cette recherche",
+                    "error": "Une erreur est survenue lors du chargement de vos contacts, veuillez réessayer plus tard"
+                },
+                "blocked": {
+                    "empty": "Aucun contact bloqué trouvé",
+                    "emptySearch": "Aucun contact bloqué trouvé pour cette recherche",
+                    "error": "Une erreur est survenue lors du chargement de vos contacts, veuillez réessayer plus tard"
+                },
+                "offline": {
+                    "empty": "Aucun contact hors ligne trouvé",
+                    "emptySearch": "Aucun contact hors ligne trouvé pour cette recherche",
+                    "error": "Une erreur est survenue lors du chargement de vos contacts, veuillez réessayer plus tard"
+                },
+                "online": {
+                    "empty": "Aucun contact en ligne trouvé",
+                    "emptySearch": "Aucun contact en ligne trouvé pour cette recherche",
+                    "error": "Une erreur est survenue lors du chargement de vos contacts, veuillez réessayer plus tard"
+                },
+                "pending": {
+                    "empty": "Aucune demande de contact trouvée",
+                    "emptySearch": "Aucune demande de contact trouvée pour cette recherche",
+                    "error": "Une erreur est survenue lors du chargement de vos demandes de contact, veuillez réessayer plus tard"
+                },
+                "requests": {
+                    "empty": "Aucune demande de contact trouvée",
+                    "emptySearch": "Aucune demande de contact trouvée pour cette recherche",
+                    "error": "Une erreur est survenue lors du chargement de vos demandes de contact, veuillez réessayer plus tard"
+                }
+            },
+            "prompts": {
+                "blockContact": {
+                    "message": "Êtes-vous sûr de vouloir bloquer ce contact?",
+                    "success": "{{email}} bloqué",
+                    "title": "Bloquer le contact"
+                },
+                "blockContacts": {
+                    "message": "Êtes-vous sûr de vouloir bloquer {{count}} contacts?",
+                    "success": "{{count}} contacts bloqués",
+                    "title": "Bloquer les contacts"
+                },
+                "removeContact": {
+                    "message": "Êtes-vous sûr de vouloir supprimer ce contact?",
+                    "success": "{{email}} supprimé",
+                    "title": "Supprimer le contact"
+                },
+                "removeContacts": {
+                    "message": "Êtes-vous sûr de vouloir supprimer {{count}} contacts?",
+                    "success": "{{count}} contacts supprimés",
+                    "title": "Supprimer les contacts"
+                },
+                "sendRequest": {
+                    "placeholder": "Adresse e-mail Filen",
+                    "success": "Demande de contact envoyée à {{email}}",
+                    "title": "Envoyer une demande de contact"
+                },
+                "unblockContact": {
+                    "message": "Êtes-vous sûr de vouloir débloquer ce contact?",
+                    "success": "{{email}} débloqué",
+                    "title": "Débloquer le contact"
+                },
+                "unblockContacts": {
+                    "message": "Êtes-vous sûr de vouloir débloquer {{count}} contacts?",
+                    "success": "{{count}} contacts débloqués",
+                    "title": "Débloquer les contacts"
+                }
+            },
+            "tabs": {
+                "all": "Tout",
+                "blocked": "Bloqué",
+                "offline": "Hors ligne",
+                "online": "En ligne",
+                "pending": "En attente",
+                "requests": "Demandes"
+            },
+            "title": "Contacts"
+        },
+        "events": {
+            "event": "Événement",
+            "eventInfo": {
+                "2faDisabled": "2FA désactivée",
+                "2faEnabled": "2FA activée",
+                "baseFolderCreated": "Dossier de base créé",
+                "codeRedeemed": "Code \"{{code}}\" utilisé",
+                "deleteAll": "Tous les répertoires et fichiers supprimés définitivement",
+                "deleteFilePermanently": "{{name}} supprimé définitivement",
+                "deleteFolderPermanently": "{{name}} supprimé définitivement",
+                "deleteUnfinished": "Téléversements non finis supprimés",
+                "deleteVersioned": "Tous les fichiers versionnés supprimés",
+                "emailChangeAttempt": "Tentative de changement d'email",
+                "emailChanged": "E-mail modifié",
+                "failedLogin": "Tentative de connexion échouée",
+                "fileLinkEdited": "Lien public pour {{name}} modifié",
+                "fileMetadataChanged": "Les métadonnées pour {{name}} ont changé",
+                "fileMoved": "{{name}} déplacé",
+                "fileRenamed": "{{oldName}} renommé en {{newName}}",
+                "fileRestored": "{{name}} restauré",
+                "fileRm": "{{name}} supprimé",
+                "fileShared": "{{name}} partagé avec {{email}}",
+                "fileTrash": "{{name}} déplacé dans la corbeille",
+                "fileUploaded": "{{name}} téléversé",
+                "fileVersioned": "{{name}} versionné",
+                "folderColorChanged": "Couleur du répertoire {{name}} modifiée",
+                "folderLinkEdited": "Lien public du répertoire modifié",
+                "folderMetadataChanged": "Les métadonnées du répertoire {{name}} ont changé",
+                "folderMoved": "Répertoire {{name}} déplacé",
+                "folderRenamed": "Répertoire {{oldName}} renommé en {{newName}}",
+                "folderRestored": "Répertoire {{name}} restauré",
+                "folderShared": "Répertoire {{name}} partagé avec {{email}}",
+                "folderTrash": "Répertoire {{name}} déplacé à la corbeille",
+                "itemFavorited": "{{name}} ajouté aux favoris",
+                "itemUnfavorited": "{{name}} retiré des favoris",
+                "login": "Connecté",
+                "passwordChanged": "Mot de passe changé",
+                "removedSharedInItems": "Éléments partagés retirés de {{email}}",
+                "removedSharedOutItems": "Éléments partagés retirés de {{email}}",
+                "requestAccountDeletion": "Suppression de compte demandée",
+                "subFolderCreated": "Répertoire {{name}} créé",
+                "trashEmptied": "Corbeille vidée",
+                "versionedFileRestored": "Version de {{name}} restaurée"
+            },
+            "events": "Événements",
+            "listEmpty": {
+                "empty": "Aucun événement trouvé",
+                "emptySearch": "Aucun événement trouvé pour cette recherche",
+                "error": "Une erreur est survenue lors du chargement de vos événements, veuillez réessayer plus tard"
+            },
+            "title": "Événements"
+        },
+        "index": {
+            "items": {
+                "advanced": "Avancé",
+                "cameraUpload": "Téléchargement de la caméra",
+                "contacts": "Contacts",
+                "documentsProvider": "Fournisseur de documents",
+                "documentsProviderInfo": "Activez l'intégration des fichiers Android pour accéder à vos fichiers en dehors de l'application.",
+                "events": "Événements",
+                "fileProvider": "Fournisseur de fichiers",
+                "fileProviderInfo": "Activez l'intégration des fichiers iOS pour accéder à vos fichiers en dehors de l'application.",
+                "security": "Sécurité",
+                "used": "{{used}} utilisés sur {{max}} ({{percentage}}%)"
+            },
+            "prompts": {
+                "documentsProvider": {
+                    "message": "Activer le fournisseur de documents désactivera l'authentification biométrique. Cela signifie que vous ne pourrez pas utiliser l'authentification biométrique pour déverrouiller l'application. Voulez-vous continuer ?",
+                    "title": "Authentification biométrique activée"
+                },
+                "fileProvider": {
+                    "message": "Activer le fournisseur de fichiers désactivera l'authentification biométrique. Cela signifie que vous ne pourrez pas utiliser l'authentification biométrique pour déverrouiller l'application. Voulez-vous continuer ?",
+                    "title": "Authentification biométrique activée"
+                }
+            },
+            "title": "Paramètres"
+        },
+        "personal": {
+            "items": {
+                "city": "Ville",
+                "companyName": "Nom de l'entreprise",
+                "country": "Pays",
+                "firstName": "Prénom",
+                "lastName": "Nom de famille",
+                "postalCode": "Code postal",
+                "street": "Rue",
+                "streetNumber": "Numéro de rue",
+                "vatId": "Numéro de TVA"
+            },
+            "prompts": {
+                "edit": {
+                    "title": "Modifier"
+                }
+            },
+            "title": "Informations personnelles"
+        },
+        "security": {
+            "errors": {
+                "passwordsDoNotMatch": "Les nouveaux mots de passe ne correspondent pas.",
+                "weak": "Votre nouveau mot de passe est trop faible. Veuillez choisir un mot de passe plus robuste. Il doit comporter au moins 10 caractères, inclure un mélange de majuscules et minuscules, des chiffres et des caractères spéciaux."
+            },
+            "items": {
+                "2fa": "Authentification à deux facteurs",
+                "biometricAuth": "Authentification biométrique",
+                "changePassword": "Changer le mot de passe"
+            },
+            "prompts": {
+                "changePassword1": {
+                    "message": "Après avoir changé votre mot de passe, vous serez déconnecté et devrez vous reconnecter avec votre nouveau mot de passe.",
+                    "title": "Changer le mot de passe"
+                },
+                "confirmNewPassword": {
+                    "placeholder": "Confirmez le mot de passe",
+                    "title": "Confirmez le nouveau mot de passe"
+                },
+                "currentPassword": {
+                    "placeholder": "Mot de passe actuel",
+                    "title": "Votre mot de passe actuel"
+                },
+                "newPassword": {
+                    "placeholder": "Nouveau mot de passe",
+                    "title": "Votre nouveau mot de passe"
+                }
+            },
+            "title": "Sécurité"
+        },
+        "twoFactorAuth": {
+            "copied": "Clé copiée dans le presse-papiers",
+            "copyKey": "Copier la clé",
+            "items": {
+                "2fa": "Authentification à deux facteurs"
+            },
+            "prompts": {
+                "enable": {
+                    "placeholder": "Code",
+                    "title": "Entrer le code"
+                }
+            },
+            "title": "Sécurité"
+        }
+    },
+    "shareIntent": {
+        "header": {
+            "cancel": "Annuler",
+            "title": "Enregistrer sur Filen",
+            "upload": "Télécharger"
+        }
+    },
+    "sheets": {
+        "colorPicker": {
+            "cancel": "Annuler",
+            "select": "Sélectionner"
+        },
+        "itemInfo": {
+            "creation": "Créé",
+            "directories": "Répertoires",
+            "directory": "Répertoire",
+            "files": "Fichiers",
+            "location": "Emplacement",
+            "modified": "Modifié",
+            "name": "Nom",
+            "notAvailable": "N/A",
+            "size": "Taille",
+            "type": "Type",
+            "uploaded": "Téléchargé"
+        }
+    },
+    "tabBar": {
+        "chats": "Discussions",
+        "drive": "Disque",
+        "home": "Accueil",
+        "notes": "Notes",
+        "photos": "Photos",
+        "settings": "Paramètres"
+    },
+    "textEditor": {
+        "header": {
+            "back": "Retour"
+        },
+        "saved": "Enregistré",
+        "savedSuccess": "Enregistré avec succès",
+        "unsavedChanges": "Modifications non enregistrées"
+    },
+    "trackPlayer": {
+        "bottom": {
+            "noTrackQueued": "Aucune piste en file d'attente",
+            "unknownArtist": "Artiste inconnu",
+            "unknownTitle": "Titre inconnu"
+        },
+        "header": {
+            "title": "Playlists"
+        },
+        "item": {
+            "menu": {
+                "addToQueue": "Ajouter à la file d'attente",
+                "cancel": "Annuler",
+                "delete": "Supprimer",
+                "play": "Lire"
+            },
+            "subTitle": "{{count}} pistes, mis à jour le {{date}}"
+        },
+        "list": {
+            "empty": "Pas encore de playlists",
+            "emptySearch": "Aucune playlist trouvée pour cette recherche",
+            "error": "Une erreur est survenue lors du chargement de vos playlists, veuillez réessayer plus tard",
+            "footer": "{{count}} playlists"
+        },
+        "playlist": {
+            "item": {
+                "menu": {
+                    "addToPlaylist": "Ajouter à la playlist",
+                    "addToQueue": "Ajouter à la file d'attente",
+                    "cancel": "Annuler",
+                    "play": "Lire",
+                    "removeFromPlaylist": "Retirer de la playlist"
+                }
+            },
+            "list": {
+                "empty": "Pas de pistes pour le moment",
+                "emptySearch": "Aucune piste trouvée pour cette recherche",
+                "error": "Une erreur est survenue lors du chargement de vos pistes, veuillez réessayer plus tard",
+                "footer": "{{count}} pistes"
+            }
+        },
+        "prompts": {
+            "createPlaylist": {
+                "placeholder": "Nom de la playlist",
+                "title": "Créer une playlist"
+            },
+            "deletePlaylist": {
+                "message": "Êtes-vous sûr de vouloir supprimer cette playlist ? Cette action ne peut pas être annulée !",
+                "title": "Supprimer la playlist"
+            }
+        }
+    },
+    "transfers": {
+        "header": {
+            "back": "Retour",
+            "title": "Transferts"
+        },
+        "info": "Transfert de {{ongoingTransfers}} éléments à {{speed}}, {{remaining}} restants",
+        "list": {
+            "empty": "Pas encore de transferts",
+            "emptySearch": "Aucun transfert trouvé pour cette recherche",
+            "error": "Une erreur est survenue lors du chargement de vos transferts, veuillez réessayer plus tard"
+        },
+        "noOngoingTransfers": "Aucun transfert en cours",
+        "transfer": {
+            "cancel": "Annuler",
+            "cancelAll": "Tout annuler",
+            "pause": "Pause",
+            "resume": "Reprendre",
+            "stop": "Arrêter",
+            "stopAll": "Tout arrêter"
+        }
+    }
+}

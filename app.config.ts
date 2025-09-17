@@ -77,7 +77,35 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			UIRequiredDeviceCapabilities: ["arm64"],
 			// Localization
 			CFBundleAllowMixedLocalizations: true,
-			CFBundleLocalizations: ["en", "de", "hu", "zh"],
+			CFBundleLocalizations: [
+				"en",
+				"de",
+				"fr",
+				"id",
+				"it",
+				"ja",
+				"ko",
+				"nl",
+				"no",
+				"pl",
+				"pt",
+				"ro",
+				"ru",
+				"sv",
+				"th",
+				"uk",
+				"ur",
+				"vi",
+				"zh",
+				"es",
+				"hi",
+				"hu",
+				"cs",
+				"da",
+				"bn",
+				"fi",
+				"he"
+			],
 			CFBundleDevelopmentRegion: "en",
 			UIPrefersShowingLanguageSettings: true
 		},
@@ -277,11 +305,5 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		router: {
 			origin: false
 		}
-	},
-	locales: {
-		en: "./locales/en.json",
-		de: "./locales/de.json",
-		hu: "./locales/hu.json",
-		zh: "./locales/zh.json"
 	}
 })

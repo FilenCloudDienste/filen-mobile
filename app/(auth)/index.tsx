@@ -31,8 +31,8 @@ export const Index = memo(() => {
 					/>
 				</View>
 				<View className="pb-5 pt-2">
-					<Text className="ios:font-extrabold text-center text-3xl font-medium">{t("auth.index.hero.1")}</Text>
-					<Text className="ios:font-extrabold text-center text-3xl font-medium">{t("auth.index.hero.2")}</Text>
+					<Text className="ios:font-extrabold text-center text-3xl font-medium">{t("auth.index.hero.first")}</Text>
+					<Text className="ios:font-extrabold text-center text-3xl font-medium">{t("auth.index.hero.second")}</Text>
 				</View>
 				<Link
 					href="/(auth)/register"
