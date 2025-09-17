@@ -305,11 +305,5 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		router: {
 			origin: false
 		}
-	},
-	locales: {
-		en: "./locales/en.json",
-		de: "./locales/de.json",
-		hu: "./locales/hu.json",
-		zh: "./locales/zh.json"
 	}
 })
