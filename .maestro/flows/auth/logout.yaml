@@ -1,10 +1,9 @@
 appId: io.filen.app
+name: "Auth: User can log out"
+tags:
+  - auth
 ---
-- launchApp
-- tapOn:
-    text: Later
-    optional: true
-- tapOn: Home
+- runFlow: ./login_success.yaml
 - tapOn:
     id: home.avatar
 - tapOn:

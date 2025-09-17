@@ -1,0 +1,24 @@
+appId: io.filen.app
+name: "Auth: User cannot login with incorrect credentials"
+tags:
+  - auth
+env:
+  EMAIL: someone@nonexistent.com
+  PASSWORD: 1
+---
+- launchApp:
+    clearState: true
+- tapOn: Log in
+- tapOn:
+    id: email
+- inputText:
+    label: Enter the test user's email
+    text: ${EMAIL}
+- tapOn:
+    id: password
+- inputText:
+    label: Enter the test user's password
+    text: ${PASSWORD}
+- tapOn:
+    id: login
+- assertNotVisible: Home

@@ -1,4 +1,7 @@
 appId: io.filen.app
+name: "Drive: User can create a directory"
+tags:
+  - drive
 env:
   DIRNAME: new_dir
 onFlowComplete:

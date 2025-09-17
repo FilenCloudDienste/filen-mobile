@@ -1,6 +1,7 @@
 flows:
+  - flows/auth/*
   - flows/drive/*
-  - flows/photos/enable_photos_sync.yaml
+  - flows/photos/*
   - flows/notes/*
 
 platform:

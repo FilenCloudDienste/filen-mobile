@@ -4,6 +4,8 @@ appId: io.filen.app
 - tapOn: Notes
 - tapOn:
     id: notes.header.rightView.plus
-- tapOn: ${NOTE_TYPE}
+- tapOn:
+    text: ${NOTE_TYPE}
+    index: 0
 - inputText: ${NOTE_NAME}
 - tapOn: OK

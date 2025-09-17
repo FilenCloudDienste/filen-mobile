@@ -9,6 +9,12 @@ appId: io.filen.app
 - scrollUntilVisible:
     element:
       text: Trash
+# TODO: come up with better way to click on the right trash icon (testID)
+# right now the trahs at index 0 could be the filter button
+- tapOn:
+    text: Trash
+    index: 1
+    optional: true
 - tapOn: Trash
 - tapOn: OK
 # Permanently delete

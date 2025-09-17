@@ -1,4 +1,7 @@
 appId: io.filen.app
+name: "Drive: User can create a text file"
+tags:
+  - drive
 env:
   FILENAME: new_text
   CONTENT: some new content here
@@ -40,5 +43,9 @@ env:
       - tapOn: Back
 - runFlow:
     file: ../common/drive_item_delete.yaml
+    env:
+      ITEM: ${FILENAME}.txt
+- runFlow:
+    file: ../common/drive_item_delete_permanently.yaml
     env:
       ITEM: ${FILENAME}.txt

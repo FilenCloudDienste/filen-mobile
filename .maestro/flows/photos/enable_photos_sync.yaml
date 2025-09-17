@@ -1,5 +1,8 @@
 # This user flow simulates the process where a user enables the photo sync feature by creating and setting up a cloud directory for photo synchronization, selecting a photo album, and enabling the photo sync feature.
 appId: io.filen.app
+name: "Photos: User can sync photos on device to a selected cloud directory"
+tags:
+  - photos
 env:
   DIRNAME: dir_for_photos
 onFlowComplete:

@@ -1,18 +1,25 @@
 appId: io.filen.app
+name: "Notes: User can create a checklist note"
+tags:
+  - notes
 env:
   NOTE_TYPE: Checklist
   NOTE_NAME: new_checklist_note
 ---
+- runFlow: ../login.yaml
+- tapOn: Notes
 - runFlow:
-    file: ./create_note.yaml
+    file: ../common/create_note.yaml
     env:
       NOTE_TYPE: ${NOTE_TYPE}
       NOTE_NAME: ${NOTE_NAME}
+- waitForAnimationToEnd
 - runFlow:
     file: ../common/back.yaml
     env:
       IOS_BACK_BUTTON: Notes
+# TODO: add confirm step that reopens the note and checks content
 - runFlow:
-    file: ./delete_note.yaml
+    file: ../common/delete_note.yaml
     env:
       NOTE_NAME: ${NOTE_NAME}

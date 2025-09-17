@@ -1,11 +1,10 @@
 appId: io.filen.app
-name: "Notes: User can create a text note"
+name: "Notes: User can create a rich text note"
 tags:
   - notes
 env:
-  NOTE_TYPE: Text
-  NOTE_NAME: new_text_note
-  NOTE_CONTENT: Hello there this is a new note
+  NOTE_TYPE: Rich text
+  NOTE_NAME: new_richtext_note
 ---
 - runFlow: ../login.yaml
 - tapOn: Notes
@@ -14,7 +13,7 @@ env:
     env:
       NOTE_TYPE: ${NOTE_TYPE}
       NOTE_NAME: ${NOTE_NAME}
-- assertVisible: Write your text here....*
+- waitForAnimationToEnd
 - runFlow:
     file: ../common/back.yaml
     env:
