@@ -34,19 +34,14 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: 🦀 Setup Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
-          profile: minimal
-          override: true
+          toolchain: nightly-2025-08-14
+          components: clippy,rustfmt
+          targets: aarch64-linux-android,x86_64-linux-android
 
       - name: 🦀 Install Cargo NDK
         run: cargo install cargo-ndk
-
-      - name: 🦀 Install Rust targets
-        run: |
-          rustup target add aarch64-linux-android
-          rustup target add x86_64-linux-android
 
       - name: 🔧 Install Expo CLI
         run: npm install -g --include=dev @expo/cli@latest
