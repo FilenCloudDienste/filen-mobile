@@ -1,4 +1,4 @@
-import { memo, useState, Fragment, useMemo, useCallback } from "react"
+import { memo, useState, Fragment, useMemo, useCallback, useEffect } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -21,6 +21,7 @@ import Dropdown from "@/components/home/header/dropdown"
 import useIsProUser from "@/hooks/useIsProUser"
 import assets from "@/lib/assets"
 import { useDriveStore } from "@/stores/drive.store"
+import { foregroundCameraUpload } from "@/lib/cameraUpload"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -171,7 +172,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: recents.data.filter(item => item.type === "file").slice(0, 12),
 					type: "uploadDateDesc"
-			  })
+				})
 			: []
 	}, [recents.status, recents.data])
 
@@ -180,7 +181,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: favorites.data.filter(item => item.type === "file").slice(0, 12),
 					type: "lastModifiedDesc"
-			  })
+				})
 			: []
 	}, [favorites.status, favorites.data])
 
@@ -193,7 +194,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: links.data.slice(0, 12),
 					type: "lastModifiedDesc"
-			  })
+				})
 			: []
 	}, [links.status, links.data, isProUser])
 
@@ -202,7 +203,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: sharedIn.data.slice(0, 12),
 					type: "lastModifiedDesc"
-			  })
+				})
 			: []
 	}, [sharedIn.status, sharedIn.data])
 
@@ -211,7 +212,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: sharedOut.data.slice(0, 12),
 					type: "lastModifiedDesc"
-			  })
+				})
 			: []
 	}, [sharedOut.status, sharedOut.data])
 
@@ -220,7 +221,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: offline.data.slice(0, 12),
 					type: "lastModifiedDesc"
-			  })
+				})
 			: []
 	}, [offline.status, offline.data])
 
@@ -229,7 +230,7 @@ export const Home = memo(() => {
 			? orderItemsByType({
 					items: trash.data.slice(0, 12),
 					type: "lastModifiedDesc"
-			  })
+				})
 			: []
 	}, [trash.status, trash.data])
 
@@ -271,7 +272,7 @@ export const Home = memo(() => {
 							</Button>
 						</View>
 					)
-			  }
+				}
 			: undefined
 	}, [account.status, hasInternet, avatarSource, openSettings])
 
@@ -360,18 +361,18 @@ export const Home = memo(() => {
 						type === "recents"
 							? recentsItems
 							: type === "favorites"
-							? favoritesItems
-							: type === "links"
-							? linksItems
-							: type === "sharedIn"
-							? sharedInItems
-							: type === "sharedOut"
-							? sharedOutItems
-							: type === "offline"
-							? offlineItems
-							: type === "trash"
-							? trashItems
-							: []
+								? favoritesItems
+								: type === "links"
+									? linksItems
+									: type === "sharedIn"
+										? sharedInItems
+										: type === "sharedOut"
+											? sharedOutItems
+											: type === "offline"
+												? offlineItems
+												: type === "trash"
+													? trashItems
+													: []
 					}
 				/>
 			)
@@ -408,6 +409,10 @@ export const Home = memo(() => {
 				...trashItems.map(item => item.uuid)
 			])
 	}, [recentsItems, favoritesItems, linksItems, sharedInItems, sharedOutItems, offlineItems, trashItems])
+
+	useEffect(() => {
+		foregroundCameraUpload.run().catch(console.error)
+	}, [])
 
 	useFocusEffect(
 		useCallback(() => {
