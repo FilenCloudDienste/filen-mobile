@@ -41,7 +41,10 @@ jobs:
           targets: aarch64-linux-android,x86_64-linux-android
 
       - name: 🦀 Install Cargo NDK
-        run: cargo install cargo-ndk
+        uses: taiki-e/cache-cargo-install-action@v2
+        with:
+          # using specific version due to https://github.com/bbqsrc/cargo-ndk/issues/181
+          tool: cargo-ndk@3.5.4
 
       - name: 🔧 Install Expo CLI
         run: npm install -g --include=dev @expo/cli@latest
