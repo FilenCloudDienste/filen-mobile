@@ -17,12 +17,12 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: recursive
 
       - name: 🔧 Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "16.4"
+          xcode-version: '16.4'
 
       - name: 🔐 Setup distribution certificate
         uses: apple-actions/import-codesign-certs@v2
@@ -61,16 +61,11 @@ jobs:
           node-version: 24
 
       - name: 🦀 Setup Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
-          profile: minimal
-          override: true
-
-      - name: 🦀 Install Rust targets
-        run: |
-          rustup target add aarch64-apple-ios
-          rustup target add aarch64-apple-ios-sim
+          toolchain: nightly-2025-08-14
+          components: clippy,rustfmt
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim
 
       - name: 🔧 Install Expo CLI
         run: npm install -g --include=dev @expo/cli@latest

@@ -1,8 +1,6 @@
-name: Build Android
+name: Build Android (Without Publishing)
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
 
 env:
@@ -10,7 +8,7 @@ env:
   APP_ENV: production
 
 jobs:
-  build-android:
+  build-android-without-publish:
     runs-on: macos-15
 
     steps:
@@ -69,9 +67,12 @@ jobs:
         run: |
           npm run prebuild:ci:android
 
-      - name: 📱 Build Android Release APK & AAB
+      - name: 📱 Build Android Release APK
         run: |
-          cd android && chmod +x ./gradlew && ./gradlew app:bundleRelease && ./gradlew app:assembleRelease && cd ..
+          cd android
+          chmod +x ./gradlew
+          ./gradlew app:assembleRelease
+          cd ..
 
       - name: 🧹 Cleanup
         if: always()
@@ -82,42 +83,6 @@ jobs:
       - name: 📤 Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: android-release-apk-${{ github.run_number }}
+          name: android-release-apk-test-${{ github.run_number }}
           path: android/app/build/outputs/apk/release/*.apk
           retention-days: 90
-
-      - name: 📤 Upload Release AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-release-aab-${{ github.run_number }}
-          path: android/app/build/outputs/bundle/release/*.aab
-          retention-days: 90
-
-      - name: 📤 Upload to Google Play
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
-          packageName: io.filen.app
-          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
-          track: internal
-          changesNotSentForReview: true
-
-      - name: 📊 Build Summary
-        run: |
-          echo "## 🚀 Build Complete!" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📱 Built artifacts:" >> $GITHUB_STEP_SUMMARY
-
-          if [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
-            APK_SIZE=$(du -h "android/app/build/outputs/apk/release/app-release.apk" | cut -f1)
-            echo "- ✅ Release APK (${APK_SIZE})" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          if [ -f "android/app/build/outputs/bundle/release/app-release.aab" ]; then
-            AAB_SIZE=$(du -h "android/app/build/outputs/bundle/release/app-release.aab" | cut -f1)
-            echo "- ✅ Release AAB (${AAB_SIZE})" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📦 Download artifacts from the Actions tab above" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔗 Build #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
