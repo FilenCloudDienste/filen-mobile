@@ -3,6 +3,9 @@ name: Run End-to-End Tests (Android)
 on:
   workflow_dispatch:
     inputs:
+      artifact_run_id:
+        description: 'ID of the workflow run that produced the APK'
+        required: true
       apk_name:
         description: 'Name of the APK artifact to download'
         required: true
@@ -10,36 +13,44 @@ on:
 
 jobs:
   run-maestro-tests:
-    runs-on: macos-15
+    runs-on: ubuntu-latest
 
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
-      - name: 📦 Download APK
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ github.event.inputs.apk_name }}
-          path: ./build-artifacts
+      - name: 🔍 Download APK from specific workflow run
+        run: |
+          echo "Downloading artifact '${{ github.event.inputs.apk_name }}' from run ID ${{ github.event.inputs.artifact_run_id }}"
+          gh run download ${{ github.event.inputs.artifact_run_id }} \
+            --name "${{ github.event.inputs.apk_name }}" \
+            -D ./build-artifacts
 
-      - name: 🚀 Start Android emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          target: google_apis
-          arch: x86_64
-          profile: pixel_4
-          script: |
-            echo "Android emulator ready"
-            APK_PATH=$(ls ./build-artifacts/*.apk | head -n 1)
-            echo "Installing APK: $APK_PATH"
-            adb install -r "$APK_PATH"
+          echo "APK_PATH=$(ls ./build-artifacts/*.apk | head -n 1)" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🔧 Install Maestro
-        run: curl -Ls "https://get.maestro.mobile.dev" | bash
-
-      - name: 🧪 Run Maestro tests
         run: |
-          APK_PATH=$(ls ./build-artifacts/*.apk | head -n 1)
-          echo "Using APK: $APK_PATH"
-          maestro test .maestro
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: 🚀 Start Android emulator | Install App | Run Maestro Tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_9
+          script: |
+            echo "Android emulator ready"
+            echo "Installing APK: $APK_PATH"
+            adb install -r "$APK_PATH"
+            echo "Running Maestro Tests"
+            maestro test .maestro

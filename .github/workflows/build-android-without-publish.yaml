@@ -86,3 +86,38 @@ jobs:
           name: android-release-apk-test-${{ github.run_number }}
           path: android/app/build/outputs/apk/release/*.apk
           retention-days: 90
+
+  run-maestro-tests:
+    runs-on: macos-15
+    needs: build-android-without-publish
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v4
+
+      - name: 📦 Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: android-release-apk-test-${{ github.run_number }}
+          path: ./build-artifacts
+
+      - name: 🚀 Start Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_4
+          script: |
+            echo "Android emulator ready"
+            APK_PATH=$(ls ./build-artifacts/*.apk | head -n 1)
+            echo "Installing APK: $APK_PATH"
+            adb install -r "$APK_PATH"
+
+      - name: 🔧 Install Maestro
+        run: curl -fsSL "https://get.maestro.mobile.dev" | bash
+
+      - name: 🧪 Run Maestro tests
+        run: |
+          APK_PATH=$(ls ./build-artifacts/*.apk | head -n 1)
+          echo "Using APK: $APK_PATH"
+          maestro test .maestro
