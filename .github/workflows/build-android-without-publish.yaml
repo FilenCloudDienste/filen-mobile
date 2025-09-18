@@ -1,0 +1,88 @@
+name: Build Android (Without Publishing)
+
+on:
+  workflow_dispatch:
+
+env:
+  NODE_ENV: production
+  APP_ENV: production
+
+jobs:
+  build-android-without-publish:
+    runs-on: macos-15
+
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: 🏗 Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: 🏗 Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 🦀 Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2025-08-14
+          components: clippy,rustfmt
+          targets: aarch64-linux-android,x86_64-linux-android
+
+      - name: 🦀 Install Cargo NDK
+        uses: taiki-e/cache-cargo-install-action@v2
+        with:
+          # using specific version due to https://github.com/bbqsrc/cargo-ndk/issues/181
+          tool: cargo-ndk@3.5.4
+
+      - name: 🔧 Install Expo CLI
+        run: npm install -g --include=dev @expo/cli@latest
+
+      - name: 🔧 Install patch-package
+        run: npm install -g --include=dev patch-package@latest
+
+      - name: 📦 Install nodeThread dependencies
+        run: cd nodejs-assets/nodejs-project && npm install --force --include=dev && cd .. && cd ..
+
+      - name: 📦 Install main dependencies
+        run: npm install --force --include=dev
+
+      - name: 🔐 Setup Expo Credentials
+        run: |
+          echo "${{ secrets.EXPO_CREDENTIALS }}" | base64 --decode > credentials.json
+
+      - name: 📦 Build nodeThread
+        run: npm run buildNodeThread
+
+      - name: 🛠 Prebuild
+        run: |
+          npm run prebuild:ci:android
+
+      - name: 📱 Build Android Release APK
+        run: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew app:assembleRelease
+          cd ..
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: |
+          rm -f android/app/release.keystore
+          rm -f credentials.json
+
+      - name: 📤 Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-apk-test-${{ github.run_number }}
+          path: android/app/build/outputs/apk/release/*.apk
+          retention-days: 90
