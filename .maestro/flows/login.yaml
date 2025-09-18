@@ -25,4 +25,4 @@ env:
     text: Later
     optional: true
 - assertVisible:
-    text: Home
+    id: screen.tabs

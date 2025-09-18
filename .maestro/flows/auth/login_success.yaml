@@ -24,4 +24,5 @@ env:
 - tapOn:
     text: Later
     optional: true
-- assertVisible: Home
+- assertVisible:
+    id: screen.tabs

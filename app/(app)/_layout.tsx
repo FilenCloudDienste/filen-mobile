@@ -4,7 +4,7 @@ import { useMemo } from "react"
 import useChatUnreadQuery from "@/queries/useChatUnreadQuery"
 import Tabs from "@/components/tabs"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { Platform } from "react-native"
+import { Platform, View } from "react-native"
 import { type NativeBottomTabNavigationOptions } from "@bottom-tabs/react-navigation"
 import { useTranslation } from "react-i18next"
 
@@ -39,10 +39,10 @@ export default function TabsLayout() {
 				Platform.OS === "ios"
 					? {
 							sfSymbol: focused ? "house.fill" : "house"
-					  }
+						}
 					: focused
-					? require("../../assets/android_tabs/home_fill.png")
-					: require("../../assets/android_tabs/home.png")
+						? require("../../assets/android_tabs/home_fill.png")
+						: require("../../assets/android_tabs/home.png")
 		} satisfies NativeBottomTabNavigationOptions
 	}, [t])
 
@@ -54,10 +54,10 @@ export default function TabsLayout() {
 				Platform.OS === "ios"
 					? {
 							sfSymbol: focused ? "folder.fill" : "folder"
-					  }
+						}
 					: focused
-					? require("../../assets/android_tabs/folder_fill.png")
-					: require("../../assets/android_tabs/folder.png")
+						? require("../../assets/android_tabs/folder_fill.png")
+						: require("../../assets/android_tabs/folder.png")
 		} satisfies NativeBottomTabNavigationOptions
 	}, [t])
 
@@ -69,10 +69,10 @@ export default function TabsLayout() {
 				Platform.OS === "ios"
 					? {
 							sfSymbol: focused ? "photo.fill" : "photo"
-					  }
+						}
 					: focused
-					? require("../../assets/android_tabs/image_fill.png")
-					: require("../../assets/android_tabs/image.png")
+						? require("../../assets/android_tabs/image_fill.png")
+						: require("../../assets/android_tabs/image.png")
 		} satisfies NativeBottomTabNavigationOptions
 	}, [t])
 
@@ -84,10 +84,10 @@ export default function TabsLayout() {
 				Platform.OS === "ios"
 					? {
 							sfSymbol: focused ? "book.fill" : "book"
-					  }
+						}
 					: focused
-					? require("../../assets/android_tabs/notes_fill.png")
-					: require("../../assets/android_tabs/notes.png")
+						? require("../../assets/android_tabs/notes_fill.png")
+						: require("../../assets/android_tabs/notes.png")
 		} satisfies NativeBottomTabNavigationOptions
 	}, [t])
 
@@ -100,10 +100,10 @@ export default function TabsLayout() {
 				Platform.OS === "ios"
 					? {
 							sfSymbol: focused ? "message.fill" : "message"
-					  }
+						}
 					: focused
-					? require("../../assets/android_tabs/chat_fill.png")
-					: require("../../assets/android_tabs/chat.png")
+						? require("../../assets/android_tabs/chat_fill.png")
+						: require("../../assets/android_tabs/chat.png")
 		} satisfies NativeBottomTabNavigationOptions
 	}, [chatUnread, t])
 
@@ -112,30 +112,35 @@ export default function TabsLayout() {
 	}
 
 	return (
-		<Tabs
-			initialRouteName="home"
-			screenOptions={tabsOptions}
+		<View
+			testID="screen.tabs"
+			className="flex-1"
 		>
-			<Tabs.Screen
-				name="home"
-				options={homeOptions}
-			/>
-			<Tabs.Screen
-				name="drive"
-				options={driveOptions}
-			/>
-			<Tabs.Screen
-				name="photos"
-				options={photosOptions}
-			/>
-			<Tabs.Screen
-				name="notes"
-				options={notesOptions}
-			/>
-			<Tabs.Screen
-				name="chats"
-				options={chatsOptions}
-			/>
-		</Tabs>
+			<Tabs
+				initialRouteName="home"
+				screenOptions={tabsOptions}
+			>
+				<Tabs.Screen
+					name="home"
+					options={homeOptions}
+				/>
+				<Tabs.Screen
+					name="drive"
+					options={driveOptions}
+				/>
+				<Tabs.Screen
+					name="photos"
+					options={photosOptions}
+				/>
+				<Tabs.Screen
+					name="notes"
+					options={notesOptions}
+				/>
+				<Tabs.Screen
+					name="chats"
+					options={chatsOptions}
+				/>
+			</Tabs>
+		</View>
 	)
 }

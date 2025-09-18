@@ -1,7 +1,6 @@
 import { Stack, Redirect } from "expo-router"
 import useIsAuthed from "@/hooks/useIsAuthed"
-import { Platform } from "react-native"
-import { Fragment } from "react"
+import { Platform, View } from "react-native"
 import useLockOrientation from "@/hooks/useLockOrientation"
 import { SCREEN_OPTIONS } from "@/lib/constants"
 
@@ -22,7 +21,10 @@ export default function AuthLayout() {
 	}
 
 	return (
-		<Fragment>
+		<View
+			testID="screen.auth"
+			className="flex-1"
+		>
 			<Stack screenOptions={SCREEN_OPTIONS.base}>
 				<Stack.Screen
 					name="index"
@@ -37,6 +39,6 @@ export default function AuthLayout() {
 					options={screenOptions}
 				/>
 			</Stack>
-		</Fragment>
+		</View>
 	)
 }

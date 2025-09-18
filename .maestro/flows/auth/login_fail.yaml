@@ -21,4 +21,7 @@ env:
     text: ${PASSWORD}
 - tapOn:
     id: login
-- assertNotVisible: Home
+- assertVisible:
+    id: screen.auth
+- assertNotVisible:
+    id: screen.tabs
