@@ -182,7 +182,8 @@ export class CameraUpload {
 						mediaType: this.mediaTypes.includes("video") && !state.videos ? ["photo"] : this.mediaTypes,
 						album: album.id,
 						first: 1024,
-						after
+						after,
+						sortBy: [[MediaLibrary.SortBy.creationTime, false]]
 					})
 
 					assets.push(...result.assets)
