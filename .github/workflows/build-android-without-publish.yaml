@@ -31,17 +31,15 @@ jobs:
       - name: 🏗 Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: 🛠 Install native deps for CMake projects
+      - name: Install C++ Build Dependencies
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            clang \
-            pkg-config \
-            libssl-dev \
-            libc6-dev \
-            cmake \
-            ninja-build
+          sudo apt-get install -y cmake clang libc++-dev libc++abi-dev
+      - name: Install dependencies for avif-decoder (linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y libdav1d-dev pkg-config
 
       - name: 🦀 Setup Rust
         uses: dtolnay/rust-toolchain@master
