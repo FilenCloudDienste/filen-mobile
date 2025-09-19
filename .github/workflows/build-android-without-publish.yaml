@@ -31,6 +31,18 @@ jobs:
       - name: 🏗 Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: 🛠 Install native deps for CMake projects
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            clang \
+            pkg-config \
+            libssl-dev \
+            libc6-dev \
+            cmake \
+            ninja-build
+
       - name: 🦀 Setup Rust
         uses: dtolnay/rust-toolchain@master
         with:
