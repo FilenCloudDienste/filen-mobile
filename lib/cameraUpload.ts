@@ -17,6 +17,7 @@ import { type FileMetadata } from "@filen/sdk"
 import { getSDK } from "./sdk"
 import upload from "@/lib/upload"
 import queryUtils from "@/queries/utils"
+import { xxHash32 } from "js-xxhash"
 
 export type TreeItem = (
 	| {
@@ -169,9 +170,53 @@ export class CameraUpload {
 		return Math.floor(timestamp / 1000)
 	}
 
+	private modifyLocalAssetPathOnDuplicate(iteration: number, asset: MediaLibrary.Asset, albumTitle: string): string {
+		const ext = FileSystem.Paths.extname(asset.filename)
+		const basename = FileSystem.Paths.basename(asset.filename, ext)
+
+		switch (iteration) {
+			case 0: {
+				return this.normalizePath(FileSystem.Paths.join(albumTitle, `${basename}_${asset.creationTime}${ext}`))
+			}
+
+			case 1: {
+				return this.normalizePath(FileSystem.Paths.join(albumTitle, `${basename}_${xxHash32(asset.id).toString(16)}${ext}`))
+			}
+
+			case 2: {
+				return this.normalizePath(
+					FileSystem.Paths.join(albumTitle, `${basename}_${xxHash32(`${asset.id}:${asset.filename}`).toString(16)}${ext}`)
+				)
+			}
+
+			case 3: {
+				return this.normalizePath(
+					FileSystem.Paths.join(
+						albumTitle,
+						`${basename}_${xxHash32(`${asset.id}:${asset.filename}:${asset.creationTime}`).toString(16)}${ext}`
+					)
+				)
+			}
+
+			case 4: {
+				return this.normalizePath(
+					FileSystem.Paths.join(
+						albumTitle,
+						`${basename}_${xxHash32(`${asset.id}:${asset.filename}:${asset.creationTime}:${asset.mediaType}`).toString(16)}${ext}`
+					)
+				)
+			}
+
+			default: {
+				return this.normalizePath(FileSystem.Paths.join(albumTitle, asset.filename))
+			}
+		}
+	}
+
 	public async fetchLocalItems(): Promise<Tree> {
 		const state = getCameraUploadState()
 		const items: Tree = {}
+		const existingPaths: Record<string, true> = {}
 
 		await Promise.all(
 			state.albums.map(async album => {
@@ -195,27 +240,29 @@ export class CameraUpload {
 				await fetch()
 
 				for (const asset of assets.sort((a, b) =>
-					`${a.id}:${a.filename}:${a.creationTime}`.localeCompare(`${b.id}:${b.filename}:${b.creationTime}`, "en", {
-						numeric: true
-					})
+					`${a.id}:${a.filename}:${a.creationTime}:${a.mediaType}`.localeCompare(
+						`${b.id}:${b.filename}:${b.creationTime}:${b.mediaType}`,
+						"en",
+						{
+							numeric: true
+						}
+					)
 				)) {
-					let name = asset.filename
-					let path = this.normalizePath(FileSystem.Paths.join(album.title, name))
-					let iteration = 1
+					let path = this.normalizePath(FileSystem.Paths.join(album.title, asset.filename))
+					let iteration = 0
 
-					while (items[path]) {
-						const ext = FileSystem.Paths.extname(name)
-
-						name = `${FileSystem.Paths.basename(name, ext)} (${iteration})${ext}`
-						path = this.normalizePath(FileSystem.Paths.join(album.title, name))
+					while (existingPaths[path.trim().toLowerCase()]) {
+						path = this.modifyLocalAssetPathOnDuplicate(iteration, asset, album.title)
 
 						iteration++
 					}
 
+					existingPaths[path.trim().toLowerCase()] = true
+
 					items[path] = {
 						type: "local",
 						asset,
-						name,
+						name: FileSystem.Paths.basename(path),
 						creation: convertTimestampToMs(Math.floor(asset.creationTime)),
 						lastModified: convertTimestampToMs(Math.floor(asset.modificationTime)),
 						path
