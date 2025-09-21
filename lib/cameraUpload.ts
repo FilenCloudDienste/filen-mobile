@@ -182,8 +182,7 @@ export class CameraUpload {
 						mediaType: this.mediaTypes.includes("video") && !state.videos ? ["photo"] : this.mediaTypes,
 						album: album.id,
 						first: 1024,
-						after,
-						sortBy: [[MediaLibrary.SortBy.creationTime, false]]
+						after
 					})
 
 					assets.push(...result.assets)
@@ -195,15 +194,19 @@ export class CameraUpload {
 
 				await fetch()
 
-				for (const asset of assets) {
-					let path = this.normalizePath(FileSystem.Paths.join(album.title, asset.filename))
+				for (const asset of assets.sort((a, b) =>
+					`${a.id}:${a.filename}:${a.creationTime}`.localeCompare(`${b.id}:${b.filename}:${b.creationTime}`, "en", {
+						numeric: true
+					})
+				)) {
 					let name = asset.filename
+					let path = this.normalizePath(FileSystem.Paths.join(album.title, name))
 					let iteration = 1
 
 					while (items[path]) {
-						const ext = FileSystem.Paths.extname(asset.filename)
+						const ext = FileSystem.Paths.extname(name)
 
-						name = `${FileSystem.Paths.basename(asset.filename, ext)}_(${iteration})${ext}`
+						name = `${FileSystem.Paths.basename(name, ext)} (${iteration})${ext}`
 						path = this.normalizePath(FileSystem.Paths.join(album.title, name))
 
 						iteration++
@@ -265,7 +268,7 @@ export class CameraUpload {
 		return items
 	}
 
-	public async deltas({ localItems, remoteItems }: { localItems: Tree; remoteItems: Tree }): Promise<Delta[]> {
+	public deltas({ localItems, remoteItems }: { localItems: Tree; remoteItems: Tree }): Delta[] {
 		const deltas: Delta[] = []
 
 		for (const path in localItems) {
@@ -633,7 +636,7 @@ export class CameraUpload {
 				throw new Error("Aborted")
 			}
 
-			const deltas = await this.deltas({
+			const deltas = this.deltas({
 				localItems,
 				remoteItems
 			})
