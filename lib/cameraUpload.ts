@@ -388,18 +388,14 @@ export class CameraUpload {
 		try {
 			const errorKey = `${delta.type}:${delta.item.path}`
 
-			if (this.deltaErrors[errorKey] && this.deltaErrors[errorKey] >= 3) {
-				return
-			}
-
-			if (abortSignal?.aborted) {
+			if ((this.deltaErrors[errorKey] && this.deltaErrors[errorKey] >= 3) || abortSignal?.aborted) {
 				throw new Error("Aborted")
 			}
 
 			const state = getCameraUploadState()
 
 			if (!state.remote || !validateUUID(state.remote.uuid)) {
-				return
+				throw new Error("Invalid remote state")
 			}
 
 			if (abortSignal?.aborted) {
@@ -411,7 +407,7 @@ export class CameraUpload {
 			try {
 				if (delta.type === "upload") {
 					if (delta.item.type !== "local") {
-						return
+						throw new Error(`Invalid delta item type "${delta.item.type}" (${delta.item.path}) for upload.`)
 					}
 
 					if (abortSignal?.aborted) {
@@ -458,7 +454,7 @@ export class CameraUpload {
 						})
 
 						if (!stat.localUri) {
-							return
+							throw new Error(`Could not get local URI for asset with ID "${delta.item.asset.id}" (${delta.item.path}).`)
 						}
 
 						if (abortSignal?.aborted) {
@@ -468,7 +464,7 @@ export class CameraUpload {
 						const localFile = new FileSystem.File(stat.localUri)
 
 						if (!localFile.exists || !localFile.size || localFile.size > this.maxSize) {
-							return
+							throw new Error(`File at "${localFile.uri}" is too large or does not exist.`)
 						}
 
 						if (abortSignal?.aborted) {
@@ -562,14 +558,14 @@ export class CameraUpload {
 								]
 							})
 						}
+
+						delete this.deltaErrors[errorKey]
 					} finally {
 						if (tmpFile.exists) {
 							tmpFile.delete()
 						}
 					}
 				}
-
-				delete this.deltaErrors[errorKey]
 			} catch (e) {
 				console.error(e)
 
@@ -713,7 +709,7 @@ export class CameraUpload {
 
 						added++
 
-						await this.processDelta(delta, abortController.signal)
+						await this.processDelta(delta, abortController.signal).catch(console.error)
 
 						done++
 
