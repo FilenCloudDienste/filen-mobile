@@ -47,7 +47,7 @@ jobs:
           api-level: 36
           target: google_apis
           arch: x86_64
-          profile: pixel_9
+          profile: pixel
           script: |
             echo "Android emulator ready"
             echo "Installing APK: $APK_PATH"
