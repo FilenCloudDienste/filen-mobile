@@ -6,11 +6,17 @@ env:
 - launchApp:
     clearState: true
 - tapOn: Log in
+- scrollUntilVisible:
+    element:
+      id: email
 - tapOn:
     id: email
 - inputText: 
     label: Enter the test user's email
     text: ${EMAIL}
+- scrollUntilVisible:
+    element:
+      id: password
 - tapOn:
     id: password
 - inputText:

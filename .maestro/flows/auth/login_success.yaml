@@ -6,23 +6,8 @@ env:
   EMAIL: ${EMAIL}
   PASSWORD: ${PASSWORD}
 ---
-- launchApp:
-    clearState: true
-- tapOn: Log in
-- tapOn:
-    id: email
-- inputText: 
-    label: Enter the test user's email
-    text: ${EMAIL}
-- tapOn:
-    id: password
-- inputText:
-    label: Enter the test user's password
-    text: ${PASSWORD}
-- tapOn:
-    id: login
-- tapOn:
-    text: Later
-    optional: true
-- assertVisible:
-    id: screen.tabs
+- runFlow:
+    file: ../login.yaml
+    env:
+      EMAIL: ${EMAIL}
+      PASSWORD: ${PASSWORD}
