@@ -1,5 +1,5 @@
 appId: io.filen.app
-name: "Notes: User can create a checklist note"
+name: "Notes, User can create a checklist note"
 tags:
   - notes
 env:

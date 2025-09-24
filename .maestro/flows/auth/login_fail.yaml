@@ -1,5 +1,5 @@
 appId: io.filen.app
-name: "Auth: User cannot login with incorrect credentials"
+name: "Auth, User cannot login with incorrect credentials"
 tags:
   - auth
 ---

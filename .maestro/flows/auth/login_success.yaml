@@ -1,5 +1,5 @@
 appId: io.filen.app
-name: "Auth: User can login with correct credentials"
+name: "Auth, User can login with correct credentials"
 tags:
   - auth
 env:

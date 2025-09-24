@@ -1,5 +1,5 @@
 appId: io.filen.app
-name: "Notes: User can create a text note"
+name: "Notes, User can create a text note"
 tags:
   - notes
 env:
