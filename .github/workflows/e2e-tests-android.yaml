@@ -56,3 +56,10 @@ jobs:
             adb install -r "$APK_PATH"
             echo "Running Maestro Tests"
             maestro test .maestro/flows/login.yaml -e EMAIL="${{ secrets.FILEN_MOBILE_TEST_EMAIL }}" -e PASSWORD="${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}"
+
+      - name: 📦 Upload Maestro debug output
+        if: always() # Always run, even if previous steps fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-debug-output
+          path: /home/runner/.maestro/tests/
