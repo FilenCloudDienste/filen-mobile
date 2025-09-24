@@ -47,7 +47,7 @@ jobs:
           api-level: 36
           target: google_apis
           arch: x86_64
-          profile: pixel
+          profile: pixel_7_pro
           script: |
             echo "Android emulator ready"
             adb wait-for-device
