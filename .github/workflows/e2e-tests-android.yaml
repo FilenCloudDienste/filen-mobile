@@ -55,12 +55,8 @@ jobs:
             echo "Installing APK: $APK_PATH"
             adb install -r "$APK_PATH"
             echo "Running Maestro Tests"
-            maestro test .maestro \
-              --include-tags=notes \
-              -e EMAIL="${{ secrets.FILEN_MOBILE_TEST_EMAIL }}" \
-              -e PASSWORD="${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}"
-        env:
-          MAESTRO_CLI_NO_ANALYTICS: true
+            export MAESTRO_CLI_NO_ANALYTICS=true
+            maestro test .maestro --include-tags=notes -e EMAIL="${{ secrets.FILEN_MOBILE_TEST_EMAIL }}" -e PASSWORD="${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}"
 
       - name: 📦 Upload Maestro debug output
         if: always() # Always run, even if previous steps fail
