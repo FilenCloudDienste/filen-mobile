@@ -1,0 +1,10 @@
+# Required env:
+#   TEXT
+appId: ${APP_ID}
+---
+- retry:
+    maxRetries: 5
+    commands:
+      - eraseText
+      - inputText: ${TEXT}
+      - assertVisible: ${TEXT}

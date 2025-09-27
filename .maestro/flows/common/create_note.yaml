@@ -7,5 +7,8 @@ appId: io.filen.app
 - tapOn:
     text: ${NOTE_TYPE}
     index: 0
-- inputText: ${NOTE_NAME}
+- runFlow:
+    file: "input-text-retry.yaml"
+    env: 
+      TEXT: ${NOTE_NAME}
 - tapOn: OK

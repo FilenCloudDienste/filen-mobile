@@ -11,12 +11,18 @@ env:
 - tapOn:                                  # Create new text file
     id: drive.header.rightView.plus
 - tapOn: Create text file
-- inputText: ${FILENAME}                  # Name text file
+- runFlow:
+    file: "../common/input-text-retry.yaml"
+    env: 
+      TEXT: ${FILENAME}
 - tapOn: OK
 - waitForAnimationToEnd
 - tapOn:
     point: 50%,50%
-- inputText: ${CONTENT}                   # Add content into text file
+- runFlow:
+    file: "../common/input-text-retry.yaml"
+    env: 
+      TEXT: ${CONTENT}
 - runFlow:                                # Dismiss keyboard on iOS
     when:
       platform: iOS
