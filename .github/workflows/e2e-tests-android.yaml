@@ -53,11 +53,12 @@ jobs:
             echo "Installing APK: $APK_PATH"
             adb install -r "$APK_PATH"
 
+            echo "Uploading test image to emulator"
             chmod +x .maestro/scripts/upload-test-image-android.sh
             .maestro/scripts/upload-test-image-android.sh
 
             echo "Running Maestro Tests"
-            export MAESTRO_CLI_NO_ANALYTICS=true && maestro test .maestro --include-tags=photos -e EMAIL="${{ secrets.FILEN_MOBILE_TEST_EMAIL }}" -e PASSWORD="${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}"
+            maestro test .maestro -e EMAIL="${{ secrets.FILEN_MOBILE_TEST_EMAIL }}" -e PASSWORD="${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}"
 
       - name: 📦 Upload Maestro debug output
         if: always() # Always run, even if previous steps fail
