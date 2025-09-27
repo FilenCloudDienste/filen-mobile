@@ -253,15 +253,15 @@ export class CameraUpload {
 					let path = this.normalizePath(FileSystem.Paths.join(album.title, asset.filename))
 					let iteration = 0
 
-					while (existingPaths[path.trim().toLowerCase()]) {
+					while (existingPaths[path.toLowerCase()]) {
 						path = this.modifyLocalAssetPathOnDuplicate(iteration, asset, album.title)
 
 						iteration++
 					}
 
-					existingPaths[path.trim().toLowerCase()] = true
+					existingPaths[path.toLowerCase()] = true
 
-					items[path.trim().toLowerCase()] = {
+					items[path.toLowerCase()] = {
 						type: "local",
 						asset,
 						name: FileSystem.Paths.basename(path),
@@ -302,9 +302,9 @@ export class CameraUpload {
 				continue
 			}
 
-			const pathNormalized = this.normalizePath(path).trim().toLowerCase()
+			const pathNormalized = this.normalizePath(path)
 
-			items[pathNormalized] = {
+			items[pathNormalized.toLowerCase()] = {
 				type: "remote",
 				name: file.name,
 				uuid: file.uuid,
