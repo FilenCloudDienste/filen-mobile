@@ -1,0 +1,44 @@
+appId: io.filen.app
+env:
+  NOTE_ID: notes.item..*
+---
+- tapOn: Notes
+- tapOn: All
+- repeat:
+    while:
+      visible:
+        id: ${NOTE_ID}
+    commands:
+      - longPressOn:
+          id: ${NOTE_ID}
+      - scrollUntilVisible:
+          centerElement: true
+          element:
+            text: Export
+      # Delete if already trashed
+      - runFlow:
+          when:
+            visible: Delete
+          commands:
+            - tapOn: Delete
+            - tapOn: OK
+      # Trash when categroy filter Trash is also visible (larger screens)
+      - runFlow:
+          when:
+            visible:
+              text: Trash
+              index: 1
+          commands:
+            - tapOn:
+                text: Trash
+                index: 1
+            - tapOn: OK
+      # Trash when categroy filter Trash is not visible (smaller screens)
+      - runFlow:
+          when:
+            visible:
+              text: Export
+          commands:
+            - tapOn:
+                text: Trash
+            - tapOn: OK

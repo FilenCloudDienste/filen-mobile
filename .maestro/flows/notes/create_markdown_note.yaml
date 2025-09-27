@@ -1,10 +1,12 @@
 appId: io.filen.app
-name: "Notes, User can create a markdown note"
+name: 'Notes, User can create a markdown note'
 tags:
   - notes
 env:
   NOTE_TYPE: Markdown
   NOTE_NAME: new_markdown_note
+onFlowComplete:
+  - runFlow: ../common/delete_all_notes.yaml
 ---
 - runFlow: ../login.yaml
 - tapOn: Notes
@@ -19,7 +21,3 @@ env:
     env:
       IOS_BACK_BUTTON: Notes
 # TODO: add confirm step that reopens the note and checks content
-- runFlow:
-    file: ../common/delete_note.yaml
-    env:
-      NOTE_NAME: ${NOTE_NAME}
