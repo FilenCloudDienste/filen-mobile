@@ -4,6 +4,9 @@ appId: io.filen.app
 - tapOn:
     id: drive.header.rightView.plus
 - tapOn: Create directory
-- inputText: ${DIRNAME}
+- runFlow:
+    file: input-text-retry.yaml
+    env: 
+      TEXT: ${DIRNAME}
 - tapOn: OK
 - assertVisible: ${DIRNAME} created
