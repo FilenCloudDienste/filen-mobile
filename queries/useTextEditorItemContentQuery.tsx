@@ -13,13 +13,14 @@ export type UseTextEditorItemContentQuery = {
 
 export default function useTextEditorItemContentQuery({
 	uri,
+	maxSize,
 	refetchOnMount = false,
 	refetchOnReconnect = false,
 	refetchOnWindowFocus = false,
 	staleTime = Infinity,
 	gcTime = Infinity,
 	enabled
-}: { uri: string } & {
+}: { uri: string; maxSize?: number } & {
 	refetchOnMount?: boolean | "always"
 	refetchOnReconnect?: boolean | "always"
 	refetchOnWindowFocus?: boolean | "always"
@@ -31,15 +32,23 @@ export default function useTextEditorItemContentQuery({
 	const isFocused = useQueryFocusAware()
 	const notifyOnChangeProps = useFocusNotifyOnChangeProps()
 	const query = useQuery({
-		queryKey: ["useTextEditorItemContentQuery", uri],
+		queryKey: ["useTextEditorItemContentQuery", uri, maxSize],
 		queryFn: async () => {
+			const cancelToken = axios.CancelToken.source()
 			const request = await axios.get(uri, {
 				timeout: 60000,
-				responseType: "arraybuffer"
+				responseType: "arraybuffer",
+				cancelToken: cancelToken.token,
+				maxContentLength: maxSize,
+				onDownloadProgress(progressEvent) {
+					if (maxSize && (progressEvent.loaded > maxSize || (progressEvent.total && progressEvent.total > maxSize))) {
+						cancelToken.cancel("File size exceeds the maximum limit.")
+					}
+				}
 			})
 
 			if (request.status !== 200) {
-				throw new Error("Failed to fetch YouTube data.")
+				throw new Error("Failed to fetch text data.")
 			}
 
 			return Buffer.from(request.data).toString("utf-8")

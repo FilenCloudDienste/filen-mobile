@@ -93,7 +93,8 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 
 	const query = useTextEditorItemContentQuery({
 		uri,
-		enabled: uri.length > 0
+		enabled: uri.length > 0,
+		maxSize: 10 * 1024 * 1024
 	})
 
 	const itemName = useMemo(() => {
