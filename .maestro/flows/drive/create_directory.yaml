@@ -1,5 +1,5 @@
 appId: io.filen.app
-name: "Drive, User can create a directory"
+name: 'Drive, User can create a directory'
 tags:
   - drive
 env:
@@ -21,8 +21,12 @@ onFlowComplete:
     id: drive.header.rightView.plus
 - tapOn: Create directory
 - runFlow:
-    file: "../common/input-text-retry.yaml"
-    env: 
+    file: '../common/input-text-retry.yaml'
+    env:
       TEXT: ${DIRNAME}
 - tapOn: OK
+- extendedWaitUntil:
+    notVisible:
+      id: fullScreenLoadingModal
+    timeout: 60000
 - assertVisible: ${DIRNAME} created

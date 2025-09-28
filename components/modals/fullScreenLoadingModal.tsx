@@ -61,6 +61,7 @@ export const FullScreenLoadingModal = memo(() => {
 			{Platform.OS === "ios" ? (
 				<FullWindowOverlay>
 					<Animated.View
+						testID="fullScreenLoadingModal"
 						className="flex-1 absolute top-0 left-0 bottom-0 right-0 z-[9999] w-full h-full justify-center items-center pointer-events-none"
 						style={style}
 						entering={FadeIn}
@@ -74,6 +75,7 @@ export const FullScreenLoadingModal = memo(() => {
 				</FullWindowOverlay>
 			) : (
 				<Modal
+					testID="fullScreenLoadingModal"
 					visible={visible}
 					transparent={true}
 					animationType="fade"
