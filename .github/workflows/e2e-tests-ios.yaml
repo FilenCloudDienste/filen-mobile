@@ -25,9 +25,11 @@ jobs:
             --name "${{ github.event.inputs.app_name }}" \
             -D ./build-artifacts
 
-          # Find the .app bundle path
-          APP_BUNDLE_PATH=$(find ./build-artifacts -type d -name "*.app" | head -n 1)
-          echo "APP_BUNDLE_PATH=$APP_BUNDLE_PATH"
+          # Rename the folder to have .app extension
+          APP_FOLDER="./build-artifacts/${{ github.event.inputs.app_name }}"
+          APP_BUNDLE_PATH="${APP_FOLDER}.app"
+          mv "$APP_FOLDER" "$APP_BUNDLE_PATH"
+          echo "Renamed $APP_FOLDER to $APP_BUNDLE_PATH"
           echo "APP_BUNDLE_PATH=$APP_BUNDLE_PATH" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
