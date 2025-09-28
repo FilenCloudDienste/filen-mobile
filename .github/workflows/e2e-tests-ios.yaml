@@ -35,7 +35,6 @@ jobs:
         run: |
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> $GITHUB_PATH
-          echo "MAESTRO_CLI_NO_ANALYTICS=true" >> $GITHUB_ENV
 
       - name: 🏗 Boot iOS Simulator
         uses: futureware-tech/simulator-action@v4
@@ -48,6 +47,7 @@ jobs:
 
       - name: 🧪 Run Maestro Tests
         run: |
+          export MAESTRO_CLI_NO_ANALYTICS=true
           maestro test .maestro --include-tags=auth -e EMAIL="${{ secrets.FILEN_MOBILE_TEST_EMAIL }}" -e PASSWORD="${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}"
 
       - name: 📦 Upload Maestro debug output
@@ -55,4 +55,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: maestro-debug-output
-          path: $HOME/.maestro/tests/
+          path: /Users/runner/.maestro/tests/
