@@ -17,6 +17,7 @@ import { type FileMetadata } from "@filen/sdk"
 import { getSDK } from "./sdk"
 import upload from "@/lib/upload"
 import queryUtils from "@/queries/utils"
+import { xxHash32 } from "js-xxhash"
 
 export type TreeItem = (
 	| {
@@ -127,21 +128,21 @@ export class CameraUpload {
 				? MediaLibrary.getPermissionsAsync(false, this.type === "background" ? ["photo"] : ["photo", "video"])
 				: Promise.resolve({
 						status: MediaLibrary.PermissionStatus.GRANTED
-				  }),
+					}),
 			checkNetwork
 				? getNetInfoState()
 				: Promise.resolve({
 						hasInternet: true,
 						isWifiEnabled: true,
 						cellular: false
-				  }),
+					}),
 			checkBattery
 				? Battery.getPowerStateAsync()
 				: Promise.resolve({
 						lowPowerMode: false,
 						batteryLevel: 1,
 						batteryState: Battery.BatteryState.FULL
-				  })
+					})
 		])
 
 		if (
@@ -169,9 +170,55 @@ export class CameraUpload {
 		return Math.floor(timestamp / 1000)
 	}
 
+	private modifyLocalAssetPathOnDuplicate(iteration: number, asset: MediaLibrary.Asset, albumTitle: string): string {
+		const ext = FileSystem.Paths.extname(asset.filename)
+		const basename = FileSystem.Paths.basename(asset.filename, ext)
+
+		switch (iteration) {
+			case 0: {
+				return this.normalizePath(FileSystem.Paths.join(albumTitle, `${basename}_${asset.creationTime}${ext}`))
+			}
+
+			case 1: {
+				return this.normalizePath(FileSystem.Paths.join(albumTitle, `${basename}_${xxHash32(asset.id).toString(16)}${ext}`))
+			}
+
+			case 2: {
+				return this.normalizePath(
+					FileSystem.Paths.join(albumTitle, `${basename}_${xxHash32(`${asset.id}:${asset.filename}`).toString(16)}${ext}`)
+				)
+			}
+
+			case 3: {
+				return this.normalizePath(
+					FileSystem.Paths.join(
+						albumTitle,
+						`${basename}_${xxHash32(`${asset.id}:${asset.filename}:${asset.creationTime}`).toString(16)}${ext}`
+					)
+				)
+			}
+
+			case 4: {
+				return this.normalizePath(
+					FileSystem.Paths.join(
+						albumTitle,
+						`${basename}_${xxHash32(`${asset.id}:${asset.filename}:${asset.creationTime}:${asset.mediaType}`).toString(
+							16
+						)}${ext}`
+					)
+				)
+			}
+
+			default: {
+				return this.normalizePath(FileSystem.Paths.join(albumTitle, asset.filename))
+			}
+		}
+	}
+
 	public async fetchLocalItems(): Promise<Tree> {
 		const state = getCameraUploadState()
 		const items: Tree = {}
+		const existingPaths: Record<string, true> = {}
 
 		await Promise.all(
 			state.albums.map(async album => {
@@ -194,24 +241,30 @@ export class CameraUpload {
 
 				await fetch()
 
-				for (const asset of assets) {
+				for (const asset of assets.sort((a, b) =>
+					`${a.id}:${a.filename}:${a.creationTime}:${a.mediaType}`.localeCompare(
+						`${b.id}:${b.filename}:${b.creationTime}:${b.mediaType}`,
+						"en",
+						{
+							numeric: true
+						}
+					)
+				)) {
 					let path = this.normalizePath(FileSystem.Paths.join(album.title, asset.filename))
+					let iteration = 0
 
-					let iteration = 1
-
-					while (items[path]) {
-						const ext = FileSystem.Paths.extname(asset.filename)
-						const name = FileSystem.Paths.basename(asset.filename, ext)
-
-						path = this.normalizePath(FileSystem.Paths.join(album.title, `${name}_(${iteration})${ext}`))
+					while (existingPaths[path.toLowerCase()]) {
+						path = this.modifyLocalAssetPathOnDuplicate(iteration, asset, album.title)
 
 						iteration++
 					}
 
-					items[path] = {
+					existingPaths[path.toLowerCase()] = true
+
+					items[path.toLowerCase()] = {
 						type: "local",
 						asset,
-						name: asset.filename,
+						name: FileSystem.Paths.basename(path),
 						creation: convertTimestampToMs(Math.floor(asset.creationTime)),
 						lastModified: convertTimestampToMs(Math.floor(asset.modificationTime)),
 						path
@@ -236,11 +289,11 @@ export class CameraUpload {
 				? await nodeWorker.proxy("getDirectoryTree", {
 						uuid: state.remote.uuid,
 						type: "normal"
-				  })
+					})
 				: await getSDK().cloud().getDirectoryTree({
 						uuid: state.remote.uuid,
 						type: "normal"
-				  })
+					})
 
 		for (const path in tree) {
 			const file = tree[path]
@@ -251,7 +304,7 @@ export class CameraUpload {
 
 			const pathNormalized = this.normalizePath(path)
 
-			items[pathNormalized] = {
+			items[pathNormalized.toLowerCase()] = {
 				type: "remote",
 				name: file.name,
 				uuid: file.uuid,
@@ -264,7 +317,7 @@ export class CameraUpload {
 		return items
 	}
 
-	public async deltas({ localItems, remoteItems }: { localItems: Tree; remoteItems: Tree }): Promise<Delta[]> {
+	public deltas({ localItems, remoteItems }: { localItems: Tree; remoteItems: Tree }): Delta[] {
 		const deltas: Delta[] = []
 
 		for (const path in localItems) {
@@ -337,18 +390,14 @@ export class CameraUpload {
 		try {
 			const errorKey = `${delta.type}:${delta.item.path}`
 
-			if (this.deltaErrors[errorKey] && this.deltaErrors[errorKey] >= 3) {
-				return
-			}
-
-			if (abortSignal?.aborted) {
+			if ((this.deltaErrors[errorKey] && this.deltaErrors[errorKey] >= 3) || abortSignal?.aborted) {
 				throw new Error("Aborted")
 			}
 
 			const state = getCameraUploadState()
 
 			if (!state.remote || !validateUUID(state.remote.uuid)) {
-				return
+				throw new Error("Invalid remote state")
 			}
 
 			if (abortSignal?.aborted) {
@@ -360,7 +409,7 @@ export class CameraUpload {
 			try {
 				if (delta.type === "upload") {
 					if (delta.item.type !== "local") {
-						return
+						throw new Error(`Invalid delta item type "${delta.item.type}" (${delta.item.path}) for upload.`)
 					}
 
 					if (abortSignal?.aborted) {
@@ -372,14 +421,14 @@ export class CameraUpload {
 						!parentName || parentName.length === 0 || parentName === "."
 							? state.remote.uuid
 							: this.type === "foreground"
-							? await nodeWorker.proxy("createDirectory", {
-									name: parentName,
-									parent: state.remote.uuid
-							  })
-							: await getSDK().cloud().createDirectory({
-									name: parentName,
-									parent: state.remote.uuid
-							  })
+								? await nodeWorker.proxy("createDirectory", {
+										name: parentName,
+										parent: state.remote.uuid
+									})
+								: await getSDK().cloud().createDirectory({
+										name: parentName,
+										parent: state.remote.uuid
+									})
 
 					if (abortSignal?.aborted) {
 						throw new Error("Aborted")
@@ -406,18 +455,18 @@ export class CameraUpload {
 							shouldDownloadFromNetwork: true
 						})
 
-						if (!stat.localUri) {
-							return
+						if (!stat.localUri && !stat.uri) {
+							throw new Error(`Could not get local URI for asset with ID "${delta.item.asset.id}" (${delta.item.path}).`)
 						}
 
 						if (abortSignal?.aborted) {
 							throw new Error("Aborted")
 						}
 
-						const localFile = new FileSystem.File(stat.localUri)
+						const localFile = new FileSystem.File(stat.localUri ?? stat.uri)
 
 						if (!localFile.exists || !localFile.size || localFile.size > this.maxSize) {
-							return
+							throw new Error(`File at "${localFile.uri}" is too large or does not exist.`)
 						}
 
 						if (abortSignal?.aborted) {
@@ -457,7 +506,7 @@ export class CameraUpload {
 										deleteAfterUpload: true,
 										creation: delta.item.creation,
 										lastModified: delta.item.lastModified
-								  })
+									})
 								: await upload.file.background({
 										parent: parentUUID,
 										localPath: tmpFile.uri,
@@ -469,7 +518,7 @@ export class CameraUpload {
 										creation: delta.item.creation,
 										lastModified: delta.item.lastModified,
 										abortSignal
-								  })
+									})
 
 						if (item.type !== "file") {
 							throw new Error("Invalid response from uploadFile.")
@@ -511,14 +560,14 @@ export class CameraUpload {
 								]
 							})
 						}
+
+						delete this.deltaErrors[errorKey]
 					} finally {
 						if (tmpFile.exists) {
 							tmpFile.delete()
 						}
 					}
 				}
-
-				delete this.deltaErrors[errorKey]
 			} catch (e) {
 				console.error(e)
 
@@ -612,11 +661,11 @@ export class CameraUpload {
 					? await nodeWorker.proxy("directoryExists", {
 							name: state.remote.name,
 							parent: state.remote.parent
-					  })
+						})
 					: await getSDK().cloud().directoryExists({
 							name: state.remote.name,
 							parent: state.remote.parent
-					  })
+						})
 
 			if (!exists.exists || exists.uuid !== state.remote.uuid) {
 				return
@@ -632,7 +681,7 @@ export class CameraUpload {
 				throw new Error("Aborted")
 			}
 
-			const deltas = await this.deltas({
+			const deltas = this.deltas({
 				localItems,
 				remoteItems
 			})
@@ -662,7 +711,7 @@ export class CameraUpload {
 
 						added++
 
-						await this.processDelta(delta, abortController.signal)
+						await this.processDelta(delta, abortController.signal).catch(console.error)
 
 						done++
 

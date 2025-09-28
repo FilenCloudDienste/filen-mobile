@@ -1,0 +1,34 @@
+name: E2E Tests (iOS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_run_id:
+        description: 'ID of the workflow run that produced the APK'
+        required: true
+      apk_name:
+        description: 'Name of the App artifact to download'
+        required: true
+        default: 'ios-simulator-app-test-1'
+
+jobs:
+  maestro-ios:
+    runs-on: macos-latest
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v4
+
+      - name: 🔍 Download App from specific workflow run
+        run: |
+          echo "Downloading artifact '${{ github.event.inputs.apk_name }}' from run ID ${{ github.event.inputs.artifact_run_id }}"
+          gh run download ${{ github.event.inputs.artifact_run_id }} \
+            --name "${{ github.event.inputs.apk_name }}" \
+            -D ./build-artifacts
+
+          echo "APK_PATH=$(ls ./build-artifacts/*.apk | head -n 1)" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: futureware-tech/simulator-action@v4
+        with:
+          model: 'iPhone 8'

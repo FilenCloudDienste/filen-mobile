@@ -1,0 +1,83 @@
+name: Build iOS (Simulator Artifact Only)
+
+on:
+  workflow_dispatch:
+
+env:
+  NODE_ENV: production
+  APP_ENV: production
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔧 Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4'
+
+      - name: 🏗 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: 🦀 Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2025-08-14
+          components: clippy,rustfmt
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim
+
+      - name: 🔧 Install Expo CLI
+        run: npm install -g --include=dev @expo/cli@latest
+
+      - name: 🔧 Install patch-package
+        run: npm install -g --include=dev patch-package@latest
+
+      - name: 📦 Install nodeThread dependencies
+        run: cd nodejs-assets/nodejs-project && npm install --force --include=dev && cd .. && cd ..
+
+      - name: 📦 Install main dependencies
+        run: npm install --force --include=dev
+
+      - name: 📦 Build nodeThread
+        run: npm run buildNodeThread
+
+      - name: 🛠 Prebuild
+        run: |
+          npm run prebuild:ci:ios
+
+      - name: 📱 Build iOS App for Simulator
+        run: |
+          cd ios
+          xcodebuild \
+            -workspace Filen.xcworkspace \
+            -scheme Filen \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -derivedDataPath $RUNNER_TEMP/DerivedData \
+            build
+
+      - name: 📤 Upload iOS Simulator .app bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-app-test-${{ github.run_number }}
+          path: ${{ runner.temp }}/DerivedData/Build/Products/Release-iphonesimulator/Filen.app
+          retention-days: 90
+
+      - name: 📊 Build Summary
+        run: |
+          echo "## 🚀 iOS Simulator Build Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -d "$RUNNER_TEMP/DerivedData/Build/Products/Release-iphonesimulator/Filen.app" ]; then
+            echo "- ✅ iOS Simulator .app bundle: Filen.app" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Download artifacts from the Actions tab above" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Build #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY

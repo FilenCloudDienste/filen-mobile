@@ -48,7 +48,8 @@ export const Preview = memo(({ item }: { item: DOCXPreviewItem }) => {
 
 	const query = useFileBase64Query({
 		uri,
-		enabled: uri.length > 0
+		enabled: uri.length > 0,
+		maxSize: 20 * 1024 * 1024
 	})
 
 	if (query.status !== "success") {

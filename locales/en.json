@@ -1327,6 +1327,7 @@
 			"back": "Back"
 		},
 		"info": "Transferring {{ongoingTransfers}} items at {{speed}}, {{remaining}} remaining",
+		"infoNoTime": "Transferring {{ongoingTransfers}} items at {{speed}}",
 		"noOngoingTransfers": "No ongoing transfers",
 		"list": {
 			"empty": "No transfers yet",

@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useEffect } from "react"
+import { memo, useCallback, useMemo } from "react"
 import { Settings as SettingsComponent, IconView } from "@/components/settings"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import useCameraUpload from "@/hooks/useCameraUpload"
@@ -45,11 +45,12 @@ export const Settings = memo(() => {
 
 			if (enable) {
 				setTimeout(() => {
+					cameraUploadParentQuery.refetch().catch(console.error)
 					foregroundCameraUpload.run().catch(console.error)
 				}, 1000)
 			}
 		},
-		[setCameraUpload]
+		[setCameraUpload, cameraUploadParentQuery]
 	)
 
 	const toggleCellular = useCallback(() => {
@@ -59,9 +60,10 @@ export const Settings = memo(() => {
 		}))
 
 		setTimeout(() => {
+			cameraUploadParentQuery.refetch().catch(console.error)
 			foregroundCameraUpload.run().catch(console.error)
 		}, 1000)
-	}, [setCameraUpload])
+	}, [setCameraUpload, cameraUploadParentQuery])
 
 	const toggleCompress = useCallback(() => {
 		setCameraUpload(prev => ({
@@ -70,9 +72,10 @@ export const Settings = memo(() => {
 		}))
 
 		setTimeout(() => {
+			cameraUploadParentQuery.refetch().catch(console.error)
 			foregroundCameraUpload.run().catch(console.error)
 		}, 1000)
-	}, [setCameraUpload])
+	}, [setCameraUpload, cameraUploadParentQuery])
 
 	const toggleBackground = useCallback(() => {
 		setCameraUpload(prev => ({
@@ -81,9 +84,10 @@ export const Settings = memo(() => {
 		}))
 
 		setTimeout(() => {
+			cameraUploadParentQuery.refetch().catch(console.error)
 			foregroundCameraUpload.run().catch(console.error)
 		}, 1000)
-	}, [setCameraUpload])
+	}, [setCameraUpload, cameraUploadParentQuery])
 
 	const toggleLowBattery = useCallback(() => {
 		setCameraUpload(prev => ({
@@ -92,9 +96,10 @@ export const Settings = memo(() => {
 		}))
 
 		setTimeout(() => {
+			cameraUploadParentQuery.refetch().catch(console.error)
 			foregroundCameraUpload.run().catch(console.error)
 		}, 1000)
-	}, [setCameraUpload])
+	}, [setCameraUpload, cameraUploadParentQuery])
 
 	const toggleVideos = useCallback(() => {
 		setCameraUpload(prev => ({
@@ -103,9 +108,10 @@ export const Settings = memo(() => {
 		}))
 
 		setTimeout(() => {
+			cameraUploadParentQuery.refetch().catch(console.error)
 			foregroundCameraUpload.run().catch(console.error)
 		}, 1000)
-	}, [setCameraUpload])
+	}, [setCameraUpload, cameraUploadParentQuery])
 
 	const selectRemoteDirectory = useCallback(async () => {
 		const selectDriveItemsResponse = await driveService.selectDriveItems({
@@ -139,6 +145,7 @@ export const Settings = memo(() => {
 			}))
 
 			setTimeout(() => {
+				cameraUploadParentQuery.refetch().catch(console.error)
 				foregroundCameraUpload.run().catch(console.error)
 			}, 1000)
 		} catch (e) {
@@ -148,7 +155,7 @@ export const Settings = memo(() => {
 				alerts.error(e.message)
 			}
 		}
-	}, [setCameraUpload])
+	}, [setCameraUpload, cameraUploadParentQuery])
 
 	const items = useMemo(() => {
 		if (permissions && !permissions.granted) {
@@ -216,7 +223,7 @@ export const Settings = memo(() => {
 				id: "2",
 				title: t("photos.settings.index.items.cloudDirectory"),
 				subTitle:
-					cameraUpload.remote && validateUUID(cameraUpload.remote.uuid)
+					cameraUpload.remote && validateUUID(cameraUpload.remote.uuid) && cameraUploadParentExists
 						? cameraUpload.remote.path
 						: t("photos.settings.index.items.cloudDirectoryNotSet"),
 				leftView: (
@@ -326,7 +333,8 @@ export const Settings = memo(() => {
 		routerPush,
 		t,
 		permissions,
-		requestPermissions
+		requestPermissions,
+		cameraUploadParentExists
 	])
 
 	useFocusEffect(
@@ -336,17 +344,6 @@ export const Settings = memo(() => {
 			}, 1000)
 		}, [])
 	)
-
-	useEffect(() => {
-		if (!cameraUploadParentExists) {
-			setCameraUpload(prev => ({
-				...prev,
-				enabled: false,
-				remote: null,
-				version: (prev.version ?? 0) + 1
-			}))
-		}
-	}, [cameraUploadParentExists, setCameraUpload])
 
 	return (
 		<RequireInternet>
