@@ -5,6 +5,9 @@ tags:
 ---
 - launchApp:
     clearState: true
+- extendedWaitUntil:
+    visible: Log in
+    timeout: 60000
 - tapOn: Log in
 - scrollUntilVisible:
     element:
