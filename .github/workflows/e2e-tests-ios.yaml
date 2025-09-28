@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       artifact_run_id:
-        description: 'ID of the workflow run that produced the APK'
+        description: 'ID of the workflow run that produced the .app'
         required: true
-      apk_name:
-        description: 'Name of the App artifact to download'
+      app_name:
+        description: 'Name of the .app artifact to download'
         required: true
         default: 'ios-simulator-app-test-1'
 
@@ -18,17 +18,41 @@ jobs:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
 
-      - name: 🔍 Download App from specific workflow run
+      - name: 🔍 Download .app from specific workflow run
         run: |
-          echo "Downloading artifact '${{ github.event.inputs.apk_name }}' from run ID ${{ github.event.inputs.artifact_run_id }}"
+          echo "Downloading artifact '${{ github.event.inputs.app_name }}' from run ID ${{ github.event.inputs.artifact_run_id }}"
           gh run download ${{ github.event.inputs.artifact_run_id }} \
-            --name "${{ github.event.inputs.apk_name }}" \
+            --name "${{ github.event.inputs.app_name }}" \
             -D ./build-artifacts
 
-          echo "APK_PATH=$(ls ./build-artifacts/*.apk | head -n 1)" >> $GITHUB_ENV
+          # Find the .app bundle path
+          APP_BUNDLE_PATH=$(find ./build-artifacts -type d -name "*.app" | head -n 1)
+          echo "APP_BUNDLE_PATH=$APP_BUNDLE_PATH" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: futureware-tech/simulator-action@v4
+      - name: 🔧 Install Maestro
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+          echo "MAESTRO_CLI_NO_ANALYTICS=true" >> $GITHUB_ENV
+
+      - name: 🏗 Boot iOS Simulator
+        uses: futureware-tech/simulator-action@v4
         with:
           model: 'iPhone 8'
+
+      - name: 📲 Install .app on Simulator
+        run: |
+          xcrun simctl install booted "$APP_BUNDLE_PATH"
+
+      - name: 🧪 Run Maestro Tests
+        run: |
+          maestro test .maestro --include-tags=auth -e EMAIL="${{ secrets.FILEN_MOBILE_TEST_EMAIL }}" -e PASSWORD="${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}"
+
+      - name: 📦 Upload Maestro debug output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-debug-output
+          path: /home/runner/.maestro/tests/
