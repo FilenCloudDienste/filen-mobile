@@ -5,13 +5,16 @@ env:
 ---
 - launchApp:
     clearState: true
+- extendedWaitUntil:
+    visible: Log in
+    timeout: 20000
 - tapOn: Log in
 - scrollUntilVisible:
     element:
       id: email
 - tapOn:
     id: email
-- inputText: 
+- inputText:
     label: Enter the test user's email
     text: ${EMAIL}
 - scrollUntilVisible:
