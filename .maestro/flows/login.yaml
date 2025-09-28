@@ -30,9 +30,10 @@ env:
     enabled: true
 - tapOn:
     id: login
-- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: screen.tabs
+    timeout: 60000
 - tapOn:
     text: Later
     optional: true
-- assertVisible:
-    id: screen.tabs
