@@ -20,18 +20,13 @@ jobs:
 
       - name: 🔍 Download .app from specific workflow run
         run: |
+          APP_BUNDLE_PATH="./build-artifacts/${{ github.event.inputs.app_name }}.app"
+
           echo "Downloading artifact '${{ github.event.inputs.app_name }}' from run ID ${{ github.event.inputs.artifact_run_id }}"
           gh run download ${{ github.event.inputs.artifact_run_id }} \
             --name "${{ github.event.inputs.app_name }}" \
-            -D ./build-artifacts
+            -D ./build-artifacts/${{ github.event.inputs.app_name }}.app
 
-          ls -l ./build-artifacts
-
-          # Rename the folder to have .app extension
-          APP_FOLDER="./build-artifacts/${{ github.event.inputs.app_name }}"
-          APP_BUNDLE_PATH="${APP_FOLDER}.app"
-          mv "$APP_FOLDER" "$APP_BUNDLE_PATH"
-          echo "Renamed $APP_FOLDER to $APP_BUNDLE_PATH"
           echo "APP_BUNDLE_PATH=$APP_BUNDLE_PATH" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
