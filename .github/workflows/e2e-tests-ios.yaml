@@ -48,7 +48,6 @@ jobs:
       - name: 🧪 Run Maestro Tests
         run: |
           maestro test .maestro \
-            --include-tags=auth \
             -e EMAIL="${{ secrets.FILEN_MOBILE_TEST_EMAIL }}" \
             -e PASSWORD="${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}"
         env:
