@@ -30,6 +30,7 @@ env:
     enabled: true
 - tapOn:
     id: login
+- waitForAnimationToEnd
 - tapOn:
     text: Later
     optional: true

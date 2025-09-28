@@ -20,6 +20,7 @@ tags:
 - inputRandomText
 - tapOn:
     id: login
+- waitForAnimationToEnd
 - assertVisible:
     id: screen.auth
 - assertNotVisible:
