@@ -25,6 +25,8 @@ jobs:
             --name "${{ github.event.inputs.app_name }}" \
             -D ./build-artifacts
 
+          ls -l ./build-artifacts
+
           # Rename the folder to have .app extension
           APP_FOLDER="./build-artifacts/${{ github.event.inputs.app_name }}"
           APP_BUNDLE_PATH="${APP_FOLDER}.app"
