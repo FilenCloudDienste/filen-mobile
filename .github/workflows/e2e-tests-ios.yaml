@@ -27,6 +27,7 @@ jobs:
 
           # Find the .app bundle path
           APP_BUNDLE_PATH=$(find ./build-artifacts -type d -name "*.app" | head -n 1)
+          echo "APP_BUNDLE_PATH=$APP_BUNDLE_PATH"
           echo "APP_BUNDLE_PATH=$APP_BUNDLE_PATH" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
