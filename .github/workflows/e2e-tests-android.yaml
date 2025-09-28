@@ -1,4 +1,4 @@
-name: Run End-to-End Tests (Android)
+name: E2E Tests (Android)
 
 on:
   workflow_dispatch:
@@ -34,8 +34,9 @@ jobs:
         run: |
           curl -Ls "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+          echo "MAESTRO_CLI_NO_ANALYTICS=true" >> $GITHUB_ENV
 
-      - name: Enable KVM
+      - name: 🔧 Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
@@ -61,7 +62,7 @@ jobs:
             maestro test .maestro -e EMAIL="${{ secrets.FILEN_MOBILE_TEST_EMAIL }}" -e PASSWORD="${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}"
 
       - name: 📦 Upload Maestro debug output
-        if: always() # Always run, even if previous steps fail
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: maestro-debug-output
