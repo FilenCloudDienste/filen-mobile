@@ -3,6 +3,7 @@ import paths from "./paths"
 import { SILENT_AUDIO_BASE64 } from "@/assets/base64/silentAudio"
 import { AUDIO_FALLBACK_IMAGE_BASE64 } from "@/assets/base64/audioFallbackImage"
 import { AVATAR_FALLBACK_IMAGE_BASE64 } from "@/assets/base64/avatarFallbackImage"
+import pathModule from "path"
 
 export class Assets {
 	private readonly silentAudioFile: FileSystem.File
@@ -10,9 +11,9 @@ export class Assets {
 	private readonly avatarFallbackImageFile: FileSystem.File
 
 	public constructor() {
-		this.silentAudioFile = new FileSystem.File(FileSystem.Paths.join(paths.assets(), "silentAudio.mp3"))
-		this.audioFallbackImageFile = new FileSystem.File(FileSystem.Paths.join(paths.assets(), "audioFallbackImage.png"))
-		this.avatarFallbackImageFile = new FileSystem.File(FileSystem.Paths.join(paths.assets(), "avatarFallbackImage.png"))
+		this.silentAudioFile = new FileSystem.File(pathModule.posix.join(paths.assets(), "silentAudio.mp3"))
+		this.audioFallbackImageFile = new FileSystem.File(pathModule.posix.join(paths.assets(), "audioFallbackImage.png"))
+		this.avatarFallbackImageFile = new FileSystem.File(pathModule.posix.join(paths.assets(), "avatarFallbackImage.png"))
 	}
 
 	public async initialize(): Promise<void> {

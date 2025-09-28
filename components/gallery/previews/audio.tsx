@@ -24,6 +24,7 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import useHTTPServer from "@/hooks/useHTTPServer"
 import download from "@/lib/download"
 import alerts from "@/lib/alerts"
+import pathModule from "path"
 
 export const Audio = memo(
 	({
@@ -122,7 +123,7 @@ export const Audio = memo(
 
 			fullScreenLoadingModal.show()
 
-			const tempLocation = new FileSystem.File(FileSystem.Paths.join(paths.exports(), sanitizeFileName(item.data.item.name)))
+			const tempLocation = new FileSystem.File(pathModule.posix.join(paths.exports(), sanitizeFileName(item.data.item.name)))
 
 			try {
 				if (tempLocation.exists) {

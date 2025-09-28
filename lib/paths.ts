@@ -2,19 +2,20 @@ import * as FileSystem from "expo-file-system/next"
 import cache from "./cache"
 import { Platform } from "react-native"
 import ReactNativeBlobUtil from "react-native-blob-util"
+import pathModule from "path"
 
 export const PREFIX: string = "filenv3_"
 export const THUMBNAILS_VERSION: number = 3
 export const BASE_DIR: string = FileSystem.Paths.document.uri
-export const TEMPORARY_DOWNLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}temporaryDownloads`)
-export const TEMPORARY_UPLOADS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}temporaryUploads`)
-export const THUMBNAILS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}thumbnails_v${THUMBNAILS_VERSION}`)
-export const DB_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}databases`)
-export const EXPORTS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}exportedFiles`)
-export const OFFLINE_FILES_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}offlineAvailableFiles`)
-export const ASSETS_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}assets`)
-export const TRACK_PLAYER_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}trackPlayer`)
-export const TRACK_PLAYER_PICTURES_BASE_PATH: string = FileSystem.Paths.join(BASE_DIR, `${PREFIX}trackPlayerPictures`)
+export const TEMPORARY_DOWNLOADS_BASE_PATH: string = pathModule.posix.join(BASE_DIR, `${PREFIX}temporaryDownloads`)
+export const TEMPORARY_UPLOADS_BASE_PATH: string = pathModule.posix.join(BASE_DIR, `${PREFIX}temporaryUploads`)
+export const THUMBNAILS_BASE_PATH: string = pathModule.posix.join(BASE_DIR, `${PREFIX}thumbnails_v${THUMBNAILS_VERSION}`)
+export const DB_BASE_PATH: string = pathModule.posix.join(BASE_DIR, `${PREFIX}databases`)
+export const EXPORTS_BASE_PATH: string = pathModule.posix.join(BASE_DIR, `${PREFIX}exportedFiles`)
+export const OFFLINE_FILES_BASE_PATH: string = pathModule.posix.join(BASE_DIR, `${PREFIX}offlineAvailableFiles`)
+export const ASSETS_BASE_PATH: string = pathModule.posix.join(BASE_DIR, `${PREFIX}assets`)
+export const TRACK_PLAYER_BASE_PATH: string = pathModule.posix.join(BASE_DIR, `${PREFIX}trackPlayer`)
+export const TRACK_PLAYER_PICTURES_BASE_PATH: string = pathModule.posix.join(BASE_DIR, `${PREFIX}trackPlayerPictures`)
 
 console.log({
 	PREFIX,
@@ -264,10 +265,10 @@ export class Paths {
 			return this.fileProviderAuthFilePath
 		}
 
-		let path = FileSystem.Paths.join(BASE_DIR, "auth.json")
+		let path = pathModule.posix.join(BASE_DIR, "auth.json")
 
 		if (Platform.OS === "ios") {
-			path = FileSystem.Paths.join(await ReactNativeBlobUtil.fs.pathForAppGroup("group.io.filen.app"), "auth.json")
+			path = pathModule.posix.join(await ReactNativeBlobUtil.fs.pathForAppGroup("group.io.filen.app"), "auth.json")
 		}
 
 		this.fileProviderAuthFilePath = path

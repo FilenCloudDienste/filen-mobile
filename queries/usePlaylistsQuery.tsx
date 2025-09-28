@@ -16,6 +16,7 @@ import useNetInfo from "@/hooks/useNetInfo"
 import upload from "@/lib/upload"
 import download from "@/lib/download"
 import alerts from "@/lib/alerts"
+import pathModule from "path"
 
 export const PlaylistFileSchema = Type.Object({
 	uuid: Type.String(),
@@ -110,7 +111,7 @@ export async function updatePlaylist(playlist: Playlist): Promise<void> {
 	let tmpFile: FileSystem.File | null = null
 
 	try {
-		tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}.json`))
+		tmpFile = new FileSystem.File(pathModule.posix.join(paths.temporaryUploads(), `${randomUUID()}.json`))
 
 		if (tmpFile.exists) {
 			tmpFile.delete()
@@ -159,7 +160,7 @@ export async function fetchPlaylists(): Promise<(Playlist & { fileUUID: string }
 					let tmpFile: FileSystem.File | null = null
 
 					try {
-						tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID()))
+						tmpFile = new FileSystem.File(pathModule.posix.join(paths.temporaryDownloads(), randomUUID()))
 
 						if (tmpFile.exists) {
 							tmpFile.delete()

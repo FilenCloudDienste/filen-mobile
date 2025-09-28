@@ -24,7 +24,7 @@ import { useShallow } from "zustand/shallow"
 import { Checkbox } from "../nativewindui/Checkbox"
 import { type SelectTrackPlayerPlaylistsParams } from "@/services/trackPlayer.service"
 import { ListItem, type ListRenderItemInfo } from "../nativewindui/List"
-import { Paths } from "expo-file-system/next"
+import pathModule from "path"
 import { normalizeFilePathForExpo } from "@/lib/utils"
 import paths from "@/lib/paths"
 import { useTranslation } from "react-i18next"
@@ -79,7 +79,9 @@ export const Item = memo(
 
 					if (metadataParsed?.picture) {
 						pictures.push(
-							normalizeFilePathForExpo(Paths.join(paths.trackPlayerPictures(), Paths.basename(metadataParsed.picture)))
+							normalizeFilePathForExpo(
+								pathModule.posix.join(paths.trackPlayerPictures(), pathModule.posix.basename(metadataParsed.picture))
+							)
 						)
 					}
 
@@ -250,7 +252,7 @@ export const Item = memo(
 								textStyle: {
 									color: colors.foreground
 								}
-						  }
+							}
 						: {})
 				},
 				async (selectedIndex?: number) => {

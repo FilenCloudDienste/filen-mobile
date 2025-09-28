@@ -12,6 +12,7 @@ import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import assets from "./assets"
 import download from "@/lib/download"
 import { getAudioMetadata } from "@missingcore/audio-metadata"
+import pathModule from "path"
 
 export type AudioProTrackExtended = AudioProTrack & {
 	file: {
@@ -239,7 +240,7 @@ export class TrackPlayer {
 			if (!file.isDirectory) {
 				const entry = new FileSystem.File(file.uri)
 
-				return acc + (entry.exists ? entry.size ?? 0 : 0)
+				return acc + (entry.exists ? (entry.size ?? 0) : 0)
 			}
 
 			return acc
@@ -270,7 +271,7 @@ export class TrackPlayer {
 				return
 			}
 
-			const name = FileSystem.Paths.parse(file.uri).name
+			const name = pathModule.posix.parse(file.uri).name
 
 			if (tracksToKeepNames.includes(name)) {
 				continue
@@ -617,7 +618,7 @@ export class TrackPlayer {
 
 						if (fileExtension) {
 							const destination = new FileSystem.File(
-								FileSystem.Paths.join(paths.trackPlayerPictures(), `${uuid}.${fileExtension}`)
+								pathModule.posix.join(paths.trackPlayerPictures(), `${uuid}.${fileExtension}`)
 							)
 
 							if (destination.exists) {
@@ -714,7 +715,7 @@ export class TrackPlayer {
 
 		try {
 			const destination = new FileSystem.File(
-				FileSystem.Paths.join(paths.trackPlayer(), `${track.file.uuid}${FileSystem.Paths.extname(track.file.name)}`)
+				pathModule.posix.join(paths.trackPlayer(), `${track.file.uuid}${pathModule.posix.extname(track.file.name)}`)
 			)
 
 			if (!destination.exists) {

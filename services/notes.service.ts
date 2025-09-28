@@ -16,6 +16,7 @@ import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { router } from "expo-router"
 import { randomUUID } from "expo-crypto"
+import pathModule from "path"
 
 export class NotesService {
 	public async changeNoteType({
@@ -45,7 +46,7 @@ export class NotesService {
 									...n,
 									type: newType,
 									editedTimestamp: Date.now()
-							  }
+								}
 							: n
 					)
 			})
@@ -93,7 +94,7 @@ export class NotesService {
 									...n,
 									pinned: pinned,
 									editedTimestamp: Date.now()
-							  }
+								}
 							: n
 					)
 			})
@@ -130,7 +131,7 @@ export class NotesService {
 							? {
 									...n,
 									favorite
-							  }
+								}
 							: n
 					)
 			})
@@ -234,7 +235,7 @@ export class NotesService {
 			}
 
 			const fileName = `${sanitizeFileName(note.title)}.txt`
-			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.exports(), fileName))
+			const tmpFile = new FileSystem.File(pathModule.posix.join(paths.exports(), fileName))
 
 			try {
 				if (tmpFile.exists) {
@@ -315,7 +316,7 @@ export class NotesService {
 									...n,
 									archive: true,
 									trash: false
-							  }
+								}
 							: n
 					)
 			})
@@ -364,7 +365,7 @@ export class NotesService {
 									archive: false,
 									trash: true,
 									editedTimestamp: Date.now()
-							  }
+								}
 							: n
 					)
 			})
@@ -394,7 +395,7 @@ export class NotesService {
 									archive: false,
 									trash: false,
 									editedTimestamp: Date.now()
-							  }
+								}
 							: n
 					)
 			})
@@ -455,7 +456,7 @@ export class NotesService {
 									...n,
 									title: newTitle,
 									editedTimestamp: Date.now()
-							  }
+								}
 							: n
 					)
 			})
@@ -583,7 +584,7 @@ export class NotesService {
 							? {
 									...n,
 									tags: [...n.tags.filter(t => t.uuid !== tag.uuid), tag]
-							  }
+								}
 							: n
 					)
 			})
@@ -618,7 +619,7 @@ export class NotesService {
 							? {
 									...n,
 									tags: n.tags.filter(t => t.uuid !== tag.uuid)
-							  }
+								}
 							: n
 					)
 			})

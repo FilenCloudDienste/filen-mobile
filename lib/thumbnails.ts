@@ -12,6 +12,7 @@ import * as VideoThumbnails from "expo-video-thumbnails"
 import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS, EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS } from "./constants"
 import download from "./download"
 import { useDriveStore } from "@/stores/drive.store"
+import pathModule from "path"
 
 export const THUMBNAILS_MAX_ERRORS: number = 3
 export const THUMBNAILS_SIZE: number = 128
@@ -25,7 +26,7 @@ export class Thumbnails {
 	private readonly errorCount: Record<string, number> = {}
 
 	public canGenerate(name: string): boolean {
-		return THUMBNAILS_SUPPORTED_FORMATS.includes(FileSystem.Paths.extname(name.trim().toLowerCase()))
+		return THUMBNAILS_SUPPORTED_FORMATS.includes(pathModule.posix.extname(name.trim().toLowerCase()))
 	}
 
 	public async getThumbnailsUsage(): Promise<number> {
@@ -69,7 +70,7 @@ export class Thumbnails {
 			}
 
 			const thumbnailPath = paths.thumbnails()
-			const thumbnailFile = new FileSystem.File(normalizeFilePathForExpo(FileSystem.Paths.join(thumbnailPath, `${item.uuid}.png`)))
+			const thumbnailFile = new FileSystem.File(normalizeFilePathForExpo(pathModule.posix.join(thumbnailPath, `${item.uuid}.png`)))
 
 			if (thumbnailFile.exists) {
 				thumbnailFile.delete()
@@ -110,7 +111,7 @@ export class Thumbnails {
 			throw new Error("Item is not in view.")
 		}
 
-		const extname = FileSystem.Paths.extname(item.name.trim().toLowerCase())
+		const extname = pathModule.posix.extname(item.name.trim().toLowerCase())
 
 		if (!this.canGenerate(item.name)) {
 			throw new Error(`Cannot generate a thumbnail for item format ${extname}.`)
@@ -139,7 +140,7 @@ export class Thumbnails {
 
 			const temporaryDownloadsPath = paths.temporaryDownloads()
 			const thumbnailsPath = paths.thumbnails()
-			const thumbnailDestination = normalizeFilePathForExpo(FileSystem.Paths.join(thumbnailsPath, `${item.uuid}.png`))
+			const thumbnailDestination = normalizeFilePathForExpo(pathModule.posix.join(thumbnailsPath, `${item.uuid}.png`))
 			const destinationFile = new FileSystem.File(thumbnailDestination)
 			const db = await sqlite.openAsync()
 
@@ -163,7 +164,7 @@ export class Thumbnails {
 									? {
 											...prevItem,
 											thumbnail: thumbnailDestination
-									  }
+										}
 									: prevItem
 							)
 					})
@@ -174,7 +175,7 @@ export class Thumbnails {
 
 			const id = randomUUID()
 			const tempDestinationFile = new FileSystem.File(
-				normalizeFilePathForExpo(FileSystem.Paths.join(temporaryDownloadsPath, `${id}${extname}`))
+				normalizeFilePathForExpo(pathModule.posix.join(temporaryDownloadsPath, `${id}${extname}`))
 			)
 
 			if (tempDestinationFile.exists) {
@@ -258,7 +259,7 @@ export class Thumbnails {
 											region: item.region
 										})
 									)
-							  )}`,
+								)}`,
 						{
 							...(originalFilePath
 								? {}
@@ -266,7 +267,7 @@ export class Thumbnails {
 										headers: {
 											Authorization: `Bearer ${nodeWorker.httpAuthToken}`
 										}
-								  }),
+									}),
 							quality: THUMBNAILS_COMPRESSION,
 							time: 500
 						}
@@ -324,7 +325,7 @@ export class Thumbnails {
 									? {
 											...prevItem,
 											thumbnail: thumbnailDestination
-									  }
+										}
 									: prevItem
 							)
 					})

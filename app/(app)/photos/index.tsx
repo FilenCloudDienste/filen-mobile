@@ -14,7 +14,7 @@ import useNetInfo from "@/hooks/useNetInfo"
 import { Text } from "@/components/nativewindui/Text"
 import useViewLayout from "@/hooks/useViewLayout"
 import { THUMBNAILS_SUPPORTED_FORMATS } from "@/lib/thumbnails"
-import { Paths } from "expo-file-system/next"
+import pathModule from "path"
 import useCameraUpload from "@/hooks/useCameraUpload"
 import { useCameraUploadStore } from "@/stores/cameraUpload.store"
 import { useRouter, useFocusEffect } from "expo-router"
@@ -92,7 +92,7 @@ export const Photo = memo(
 										item,
 										queryParams
 									}
-							  }
+								}
 							: null
 					})
 					.filter(item => item !== null),
@@ -232,7 +232,7 @@ export const Photos = memo(() => {
 				}
 
 				const previewType = getPreviewType(nameNormalized)
-				const extname = Paths.extname(nameNormalized).toLowerCase()
+				const extname = pathModule.posix.extname(nameNormalized).toLowerCase()
 
 				if (
 					(previewType === "image" || previewType === "video") &&

@@ -1,7 +1,8 @@
 import * as ExpoSQLite from "expo-sqlite"
 import { Semaphore } from "./semaphore"
 import paths from "./paths"
-import { Paths, Directory } from "expo-file-system/next"
+import { Directory } from "expo-file-system/next"
+import pathModule from "path"
 
 export const SQLITE_VERSION: number = 1
 
@@ -65,7 +66,7 @@ export class SQLite {
 
 			await this.db.execAsync(INIT)
 
-			console.log("sqlite path", Paths.join(paths.db(), this.dbName))
+			console.log("sqlite path", pathModule.posix.join(paths.db(), this.dbName))
 
 			return this.db
 		} finally {
@@ -219,7 +220,9 @@ export class SQLite {
 					return
 				}
 
-				const existingOfflineFiles = offlineFilesDir.listAsRecords().map(entry => Paths.basename(entry.uri).split(".")[0])
+				const existingOfflineFiles = offlineFilesDir
+					.listAsRecords()
+					.map(entry => pathModule.posix.basename(entry.uri).split(".")[0])
 
 				if (existingOfflineFiles.length === 0) {
 					await db.runAsync("DELETE FROM offline_files")

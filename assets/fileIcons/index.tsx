@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system/next"
+import pathModule from "path"
 import other from "./svg/other.svg"
 import Folder from "./svg/folder.svg"
 import txt from "./svg/txt.svg"
@@ -51,7 +51,7 @@ FileNameToSVGIcon.displayName = "FileNameToSVGIcon"
  * @returns {*}
  */
 export function fileNameToSVGIcon(name: string) {
-	const parsed = FileSystem.Paths.parse(name.toLowerCase())
+	const parsed = pathModule.posix.parse(name.toLowerCase())
 
 	switch (parsed.ext) {
 		case ".dmg":
@@ -231,16 +231,16 @@ export function directoryColorToHex(color: DirColors | null): string {
 		color === "blue"
 			? "#037AFF"
 			: color === "gray"
-			? "#8F8E93"
-			: color === "green"
-			? "#33C759"
-			: color === "purple"
-			? "#AF52DE"
-			: color === "red"
-			? "#FF3B30"
-			: color.includes("#")
-			? color
-			: DEFAULT_DIRECTORY_COLOR
+				? "#8F8E93"
+				: color === "green"
+					? "#33C759"
+					: color === "purple"
+						? "#AF52DE"
+						: color === "red"
+							? "#FF3B30"
+							: color.includes("#")
+								? color
+								: DEFAULT_DIRECTORY_COLOR
 	).toLowerCase()
 
 	if (!isValidHexColor(hexColor)) {

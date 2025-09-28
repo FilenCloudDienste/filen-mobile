@@ -4,7 +4,7 @@ import useFocusNotifyOnChangeProps from "@/hooks/useFocusNotifyOnChangeProps"
 import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import { DEFAULT_QUERY_OPTIONS } from "./client"
 import sqlite from "@/lib/sqlite"
-import * as FileSystem from "expo-file-system/next"
+import pathModule from "path"
 import paths from "@/lib/paths"
 import alerts from "@/lib/alerts"
 import Semaphore from "@/lib/semaphore"
@@ -34,7 +34,7 @@ export async function fetchFileOfflineStatus(uuid: string): Promise<UseFileOffli
 
 		return {
 			exists: true,
-			path: FileSystem.Paths.join(paths.offlineFiles(), `${uuid}${FileSystem.Paths.extname(item.name)}`)
+			path: pathModule.posix.join(paths.offlineFiles(), `${uuid}${pathModule.posix.extname(item.name)}`)
 		}
 	} finally {
 		offlineFilesSemaphore.release()

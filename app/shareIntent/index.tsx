@@ -21,6 +21,7 @@ import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import upload from "@/lib/upload"
 import assets from "@/lib/assets"
+import pathModule from "path"
 
 export type ListItemInfo = {
 	title: string
@@ -133,7 +134,7 @@ export default function ShareIntent() {
 					}
 
 					const tmpFile = new FileSystem.File(
-						FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(file.fileName)}`)
+						pathModule.posix.join(paths.temporaryUploads(), `${randomUUID()}${pathModule.posix.extname(file.fileName)}`)
 					)
 
 					try {

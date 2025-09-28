@@ -15,6 +15,7 @@ import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import useNetInfo from "@/hooks/useNetInfo"
 import nodeWorker from "@/lib/nodeWorker"
 import assets from "@/lib/assets"
+import pathModule from "path"
 
 export const Video = memo(({ source, link, name }: { source: string; link: string; name: string }) => {
 	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
@@ -25,9 +26,9 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 		enabled: source !== null && hasInternet,
 		queryFn: async () => {
 			const destination = new FileSystem.File(
-				FileSystem.Paths.join(
-					FileSystem.Paths.cache,
-					`chat-embed-video-thumbnail-${xxHash32(`${source}:${link}`).toString(16)}${FileSystem.Paths.extname(name)}`
+				pathModule.posix.join(
+					FileSystem.Paths.cache.uri,
+					`chat-embed-video-thumbnail-${xxHash32(`${source}:${link}`).toString(16)}${pathModule.posix.extname(name)}`
 				)
 			)
 

@@ -21,6 +21,7 @@ import paths from "@/lib/paths"
 import * as Sharing from "expo-sharing"
 import authService from "@/services/auth.service"
 import assets from "@/lib/assets"
+import pathModule from "path"
 
 export const Account = memo(() => {
 	const router = useRouter()
@@ -70,7 +71,7 @@ export const Account = memo(() => {
 				throw new Error("No image selected.")
 			}
 
-			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+			const tmpFile = new FileSystem.File(pathModule.posix.join(paths.temporaryUploads(), randomUUID()))
 
 			fullScreenLoadingModal.show()
 
@@ -340,7 +341,7 @@ export const Account = memo(() => {
 
 	const gdpr = useCallback(async () => {
 		const fileName = `${sanitizeFileName(`GDPR_Information_${account.data?.account.email ?? ""}_${Date.now()}`)}.json`
-		const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.exports(), fileName))
+		const tmpFile = new FileSystem.File(pathModule.posix.join(paths.exports(), fileName))
 
 		try {
 			fullScreenLoadingModal.show()
@@ -542,7 +543,7 @@ export const Account = memo(() => {
 				id: "1",
 				title: t("settings.account.items.emailAddress"),
 				rightText: account.data?.account.email ?? "",
-				subTitle: Platform.OS === "android" ? account.data?.account.email ?? "" : undefined,
+				subTitle: Platform.OS === "android" ? (account.data?.account.email ?? "") : undefined,
 				onPress: changeEmail
 			},
 			{

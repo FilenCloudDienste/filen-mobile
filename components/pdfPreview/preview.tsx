@@ -12,6 +12,7 @@ import * as FileSystem from "expo-file-system/next"
 import paths from "@/lib/paths"
 import { normalizeFilePathForExpo } from "@/lib/utils"
 import { xxHash32 } from "js-xxhash"
+import pathModule from "path"
 
 export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 	const { colors } = useColorScheme()
@@ -59,7 +60,7 @@ export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 				return normalizeFilePathForExpo(source.uri)
 			}
 
-			const file = new FileSystem.File(FileSystem.Paths.join(paths.temporaryDownloads(), `${xxHash32(source.uri).toString(16)}.pdf`))
+			const file = new FileSystem.File(pathModule.posix.join(paths.temporaryDownloads(), `${xxHash32(source.uri).toString(16)}.pdf`))
 
 			if (file.exists) {
 				return file.uri

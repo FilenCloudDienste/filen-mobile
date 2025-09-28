@@ -18,6 +18,7 @@ import useHTTPServer from "@/hooks/useHTTPServer"
 import { type DOMProps } from "expo/dom"
 import { useTranslation } from "react-i18next"
 import upload from "@/lib/upload"
+import pathModule from "path"
 
 export const bgColors = {
 	normal: {
@@ -132,7 +133,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				throw new Error(t("errors.sharingNotAvailable"))
 			}
 
-			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID(), itemName))
+			const tmpFile = new FileSystem.File(pathModule.posix.join(paths.temporaryDownloads(), randomUUID(), itemName))
 
 			try {
 				if (!tmpFile.parentDirectory.exists) {
@@ -184,7 +185,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 
 		try {
 			tmpFile = new FileSystem.File(
-				FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(itemName)}`)
+				pathModule.posix.join(paths.temporaryUploads(), `${randomUUID()}${pathModule.posix.extname(itemName)}`)
 			)
 
 			if (tmpFile.exists) {

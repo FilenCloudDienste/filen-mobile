@@ -7,7 +7,7 @@ import { formatBytes, getPreviewType } from "@/lib/utils"
 import LeftView from "./leftView"
 import { useShallow } from "zustand/shallow"
 import { type PreviewType } from "@/stores/gallery.store"
-import { Paths } from "expo-file-system/next"
+import pathModule from "path"
 import { Platform } from "react-native"
 
 export type ListItemInfo = {
@@ -57,7 +57,7 @@ export const Item = memo(
 				return false
 			}
 
-			if (extensions.length > 0 && !extensions.includes(Paths.extname(info.item.item.name))) {
+			if (extensions.length > 0 && !extensions.includes(pathModule.posix.extname(info.item.item.name))) {
 				return false
 			}
 

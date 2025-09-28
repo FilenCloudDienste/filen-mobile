@@ -18,6 +18,7 @@ import { getSDK } from "./sdk"
 import upload from "@/lib/upload"
 import queryUtils from "@/queries/utils"
 import { xxHash32 } from "js-xxhash"
+import pathModule from "path"
 
 export type TreeItem = (
 	| {
@@ -171,27 +172,27 @@ export class CameraUpload {
 	}
 
 	private modifyLocalAssetPathOnDuplicate(iteration: number, asset: MediaLibrary.Asset, albumTitle: string): string {
-		const ext = FileSystem.Paths.extname(asset.filename)
-		const basename = FileSystem.Paths.basename(asset.filename, ext)
+		const ext = pathModule.posix.extname(asset.filename)
+		const basename = pathModule.posix.basename(asset.filename, ext)
 
 		switch (iteration) {
 			case 0: {
-				return this.normalizePath(FileSystem.Paths.join(albumTitle, `${basename}_${asset.creationTime}${ext}`))
+				return this.normalizePath(pathModule.posix.join(albumTitle, `${basename}_${asset.creationTime}${ext}`))
 			}
 
 			case 1: {
-				return this.normalizePath(FileSystem.Paths.join(albumTitle, `${basename}_${xxHash32(asset.id).toString(16)}${ext}`))
+				return this.normalizePath(pathModule.posix.join(albumTitle, `${basename}_${xxHash32(asset.id).toString(16)}${ext}`))
 			}
 
 			case 2: {
 				return this.normalizePath(
-					FileSystem.Paths.join(albumTitle, `${basename}_${xxHash32(`${asset.id}:${asset.filename}`).toString(16)}${ext}`)
+					pathModule.posix.join(albumTitle, `${basename}_${xxHash32(`${asset.id}:${asset.filename}`).toString(16)}${ext}`)
 				)
 			}
 
 			case 3: {
 				return this.normalizePath(
-					FileSystem.Paths.join(
+					pathModule.posix.join(
 						albumTitle,
 						`${basename}_${xxHash32(`${asset.id}:${asset.filename}:${asset.creationTime}`).toString(16)}${ext}`
 					)
@@ -200,7 +201,7 @@ export class CameraUpload {
 
 			case 4: {
 				return this.normalizePath(
-					FileSystem.Paths.join(
+					pathModule.posix.join(
 						albumTitle,
 						`${basename}_${xxHash32(`${asset.id}:${asset.filename}:${asset.creationTime}:${asset.mediaType}`).toString(
 							16
@@ -210,7 +211,7 @@ export class CameraUpload {
 			}
 
 			default: {
-				return this.normalizePath(FileSystem.Paths.join(albumTitle, asset.filename))
+				return this.normalizePath(pathModule.posix.join(albumTitle, asset.filename))
 			}
 		}
 	}
@@ -250,7 +251,7 @@ export class CameraUpload {
 						}
 					)
 				)) {
-					let path = this.normalizePath(FileSystem.Paths.join(album.title, asset.filename))
+					let path = this.normalizePath(pathModule.posix.join(album.title, asset.filename))
 					let iteration = 0
 
 					while (existingPaths[path.toLowerCase()]) {
@@ -264,7 +265,7 @@ export class CameraUpload {
 					items[path.toLowerCase()] = {
 						type: "local",
 						asset,
-						name: FileSystem.Paths.basename(path),
+						name: pathModule.posix.basename(path),
 						creation: convertTimestampToMs(Math.floor(asset.creationTime)),
 						lastModified: convertTimestampToMs(Math.floor(asset.modificationTime)),
 						path
@@ -349,7 +350,7 @@ export class CameraUpload {
 	}
 
 	public async compress({ item, file }: { item: TreeItem; file: FileSystem.File }): Promise<void> {
-		const extname = FileSystem.Paths.extname(item.name.trim().toLowerCase())
+		const extname = pathModule.posix.extname(item.name.trim().toLowerCase())
 
 		if (!EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS.includes(extname)) {
 			return
@@ -416,7 +417,7 @@ export class CameraUpload {
 						throw new Error("Aborted")
 					}
 
-					const parentName = FileSystem.Paths.dirname(delta.item.path)
+					const parentName = pathModule.posix.dirname(delta.item.path)
 					const parentUUID =
 						!parentName || parentName.length === 0 || parentName === "."
 							? state.remote.uuid
@@ -435,7 +436,7 @@ export class CameraUpload {
 					}
 
 					const tmpFile = new FileSystem.File(
-						FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(delta.item.name)}`)
+						pathModule.posix.join(paths.temporaryUploads(), `${randomUUID()}${pathModule.posix.extname(delta.item.name)}`)
 					)
 
 					if (abortSignal?.aborted) {

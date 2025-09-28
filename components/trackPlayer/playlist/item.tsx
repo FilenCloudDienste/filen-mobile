@@ -21,7 +21,7 @@ import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import trackPlayerService from "@/services/trackPlayer.service"
 import { ListItem } from "../../nativewindui/List"
-import { Paths } from "expo-file-system/next"
+import pathModule from "path"
 import { normalizeFilePathForExpo } from "@/lib/utils"
 import paths from "@/lib/paths"
 import { useTranslation } from "react-i18next"
@@ -227,7 +227,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 							textStyle: {
 								color: colors.foreground
 							}
-					  }
+						}
 					: {})
 			},
 			async (selectedIndex?: number) => {
@@ -285,7 +285,10 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 					<TurboImage
 						source={{
 							uri: normalizeFilePathForExpo(
-								Paths.join(paths.trackPlayerPictures(), Paths.basename(trackPlayerFileMetadata.picture))
+								pathModule.posix.join(
+									paths.trackPlayerPictures(),
+									pathModule.posix.basename(trackPlayerFileMetadata.picture)
+								)
 							)
 						}}
 						resizeMode="cover"

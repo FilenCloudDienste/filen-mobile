@@ -35,6 +35,7 @@ import * as ImagePicker from "expo-image-picker"
 import { router } from "expo-router"
 import { type TextEditorItem } from "@/components/textEditor/editor"
 import cache from "@/lib/cache"
+import pathModule from "path"
 
 export type SelectDriveItemsResponse =
 	| {
@@ -110,10 +111,10 @@ export class DriveService {
 				item.type === "directory"
 					? await nodeWorker.proxy("directoryUUIDToPath", {
 							uuid: item.uuid
-					  })
+						})
 					: await nodeWorker.proxy("fileUUIDToPath", {
 							uuid: item.uuid
-					  })
+						})
 
 			await Clipboard.setStringAsync(path)
 
@@ -165,9 +166,9 @@ export class DriveService {
 		newName?: string
 	}): Promise<void> {
 		if (!newName) {
-			const itemNameParsed = FileSystem.Paths.parse(item.name)
-			const itemName = item.type === "file" && item.name.includes(".") ? itemNameParsed?.name ?? item.name : item.name
-			const itemExt = item.type === "file" && item.name.includes(".") ? itemNameParsed?.ext ?? "" : ""
+			const itemNameParsed = pathModule.posix.parse(item.name)
+			const itemName = item.type === "file" && item.name.includes(".") ? (itemNameParsed?.name ?? item.name) : item.name
+			const itemExt = item.type === "file" && item.name.includes(".") ? (itemNameParsed?.ext ?? "") : ""
 
 			const inputPromptResponse = await inputPrompt({
 				title: t("drive.prompts.renameItem.title"),
@@ -234,7 +235,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										name: newName
-								  }
+									}
 								: prevItem
 						)
 				})
@@ -252,7 +253,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										name: newName
-								  }
+									}
 								: prevItem
 						)
 				})
@@ -271,7 +272,7 @@ export class DriveService {
 										name: newName
 									}
 								}
-						  }
+							}
 						: prevItem
 				)
 			)
@@ -283,7 +284,7 @@ export class DriveService {
 						? {
 								...prevItem,
 								name: newName
-						  }
+							}
 						: prevItem
 				)
 			)
@@ -350,7 +351,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										color
-								  }
+									}
 								: prevItem
 						)
 				})
@@ -368,7 +369,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										color
-								  }
+									}
 								: prevItem
 						)
 				})
@@ -381,7 +382,7 @@ export class DriveService {
 						? {
 								...prevItem,
 								color
-						  }
+							}
 						: prevItem
 				)
 			)
@@ -446,7 +447,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										favorited: newFavoriteStatus
-								  }
+									}
 								: prevItem
 						)
 				})
@@ -481,7 +482,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										favorited: newFavoriteStatus
-								  }
+									}
 								: prevItem
 						)
 				})
@@ -500,7 +501,7 @@ export class DriveService {
 										favorited: newFavoriteStatus
 									}
 								}
-						  }
+							}
 						: prevItem
 				)
 			)
@@ -512,7 +513,7 @@ export class DriveService {
 						? {
 								...prevItem,
 								favorited: newFavoriteStatus
-						  }
+							}
 						: prevItem
 				)
 			)
@@ -575,7 +576,7 @@ export class DriveService {
 												key: item.key
 											}
 										}
-								  ]
+									]
 								: [],
 						directories:
 							item.type === "directory"
@@ -587,7 +588,7 @@ export class DriveService {
 												name: item.name
 											}
 										}
-								  ]
+									]
 								: [],
 						email: contact.email
 					})
@@ -631,7 +632,7 @@ export class DriveService {
 			}
 		}
 
-		const offlinePath = FileSystem.Paths.join(paths.offlineFiles(), `${item.uuid}${FileSystem.Paths.extname(item.name)}`)
+		const offlinePath = pathModule.posix.join(paths.offlineFiles(), `${item.uuid}${pathModule.posix.extname(item.name)}`)
 		const offlineFile = new FileSystem.File(offlinePath)
 
 		if (!offlineFile.exists) {
@@ -660,7 +661,7 @@ export class DriveService {
 			fullScreenLoadingModal.show()
 		}
 
-		const tempLocation = new FileSystem.File(FileSystem.Paths.join(paths.exports(), sanitizeFileName(item.name)))
+		const tempLocation = new FileSystem.File(pathModule.posix.join(paths.exports(), sanitizeFileName(item.name)))
 
 		try {
 			if (tempLocation.exists) {
@@ -866,7 +867,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										parent
-								  }
+									}
 								: prevItem
 						)
 				})
@@ -885,7 +886,7 @@ export class DriveService {
 										parent
 									}
 								}
-						  }
+							}
 						: prevItem
 				)
 			)
@@ -905,7 +906,7 @@ export class DriveService {
 		}
 
 		if (item.type === "directory") {
-			const tmpDir = new FileSystem.Directory(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID()))
+			const tmpDir = new FileSystem.Directory(pathModule.posix.join(paths.temporaryDownloads(), randomUUID()))
 
 			if (!disableLoader) {
 				fullScreenLoadingModal.show()
@@ -992,10 +993,10 @@ export class DriveService {
 							await ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
 								{
 									name: file.name,
-									parentFolder: FileSystem.Paths.join(
+									parentFolder: pathModule.posix.join(
 										"Filen",
 										item.name,
-										FileSystem.Paths.dirname(file.path.replace(tmpDir.uri.replace("file://", ""), ""))
+										pathModule.posix.dirname(file.path.replace(tmpDir.uri.replace("file://", ""), ""))
 									),
 									mimeType: file.mime
 								},
@@ -1020,7 +1021,7 @@ export class DriveService {
 				}
 			}
 		} else {
-			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID()))
+			const tmpFile = new FileSystem.File(pathModule.posix.join(paths.temporaryDownloads(), randomUUID()))
 
 			if (!disableLoader) {
 				fullScreenLoadingModal.show()
@@ -1094,7 +1095,7 @@ export class DriveService {
 			const offlineStatus = await this.itemExistsOffline(item)
 			const toggle = typeof offline === "boolean" ? offline : !offlineStatus.exists
 			const offlineFileDestination = new FileSystem.File(
-				FileSystem.Paths.join(paths.offlineFiles(), `${item.uuid}${FileSystem.Paths.extname(item.name)}`)
+				pathModule.posix.join(paths.offlineFiles(), `${item.uuid}${pathModule.posix.extname(item.name)}`)
 			)
 
 			if (!toggle) {
@@ -1179,7 +1180,7 @@ export class DriveService {
 			return
 		}
 
-		const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID(), item.name))
+		const tmpFile = new FileSystem.File(pathModule.posix.join(paths.temporaryDownloads(), randomUUID(), item.name))
 
 		if (!disableLoader) {
 			fullScreenLoadingModal.show()
@@ -1769,7 +1770,7 @@ export class DriveService {
 						}
 
 						const tmpFile = new FileSystem.File(
-							FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(asset.fileName)}`)
+							pathModule.posix.join(paths.temporaryUploads(), `${randomUUID()}${pathModule.posix.extname(asset.fileName)}`)
 						)
 
 						try {
@@ -1897,7 +1898,7 @@ export class DriveService {
 						}
 
 						const tmpFile = new FileSystem.File(
-							FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(asset.fileName)}`)
+							pathModule.posix.join(paths.temporaryUploads(), `${randomUUID()}${pathModule.posix.extname(asset.fileName)}`)
 						)
 
 						try {
@@ -2001,12 +2002,12 @@ export class DriveService {
 
 		fullScreenLoadingModal.show()
 
-		const fileNameParsed = FileSystem.Paths.parse(name)
+		const fileNameParsed = pathModule.posix.parse(name)
 		const fileNameWithExtension = sanitizeFileName(
 			fileNameParsed.ext && fileNameParsed.ext.length > 0 && fileNameParsed.ext.includes(".") ? name : `${fileNameParsed.name}.txt`
 		)
 		const tmpFile = new FileSystem.File(
-			FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(fileNameWithExtension)}`)
+			pathModule.posix.join(paths.temporaryUploads(), `${randomUUID()}${pathModule.posix.extname(fileNameWithExtension)}`)
 		)
 
 		try {
@@ -2092,7 +2093,7 @@ export class DriveService {
 			selectedSafDirectoryUri = selectedDirectory.directoryUri
 		}
 
-		const tmpDir = new FileSystem.Directory(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+		const tmpDir = new FileSystem.Directory(pathModule.posix.join(paths.temporaryUploads(), randomUUID()))
 
 		if (!disableLoader) {
 			fullScreenLoadingModal.show()
@@ -2105,7 +2106,7 @@ export class DriveService {
 
 			tmpDir.create()
 
-			const directoryName = FileSystem.Paths.parse(decodeURIComponent(selectedSafDirectoryUri)).name
+			const directoryName = pathModule.posix.parse(decodeURIComponent(selectedSafDirectoryUri)).name
 
 			await FileSystemLegacy.StorageAccessFramework.copyAsync({
 				from: selectedSafDirectoryUri,

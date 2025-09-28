@@ -19,6 +19,7 @@ import { sanitizeFileName } from "@/lib/utils"
 import * as FileSystem from "expo-file-system/next"
 import paths from "@/lib/paths"
 import * as Sharing from "expo-sharing"
+import pathModule from "path"
 
 export const TwoFactor = memo(() => {
 	const { t } = useTranslation()
@@ -46,7 +47,7 @@ export const TwoFactor = memo(() => {
 	const exportRecoveryKeys = useCallback(
 		async (recoveryKeys: string) => {
 			const fileName = `${sanitizeFileName(`Two_Factor_Recovery_Keys_${account.data?.account.email ?? ""}_${Date.now()}`)}.txt`
-			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.exports(), fileName))
+			const tmpFile = new FileSystem.File(pathModule.posix.join(paths.exports(), fileName))
 
 			try {
 				fullScreenLoadingModal.show()

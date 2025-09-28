@@ -18,6 +18,7 @@ import * as FileSystem from "expo-file-system/next"
 import fileProvider from "@/lib/fileProvider"
 import cache from "@/lib/cache"
 import * as Sharing from "expo-sharing"
+import pathModule from "path"
 
 export type SetupResult =
 	| {
@@ -80,7 +81,7 @@ export class AuthService {
 					: nodeWorker.proxy("reinitSDK", {
 							sdkConfig,
 							tmpPath
-					  }),
+						}),
 				thumbnailWarmup,
 				i18n,
 				assetsCopy
@@ -406,7 +407,7 @@ export class AuthService {
 		try {
 			const sdkConfig = this.getSDKConfig()
 			const fileName = `${sanitizeFileName(sdkConfig.email)}.masterKeys.txt`
-			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.exports(), fileName))
+			const tmpFile = new FileSystem.File(pathModule.posix.join(paths.exports(), fileName))
 
 			try {
 				if (!(await Sharing.isAvailableAsync())) {

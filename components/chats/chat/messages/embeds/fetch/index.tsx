@@ -13,7 +13,7 @@ import Audio from "../containers/audio"
 import Code from "../containers/code"
 import Outer from "../containers/outer"
 import Fallback from "../containers/fallback"
-import * as FileSystem from "expo-file-system/next"
+import pathModule from "path"
 import useNetInfo from "@/hooks/useNetInfo"
 import assets from "@/lib/assets"
 
@@ -38,7 +38,7 @@ export const Fetch = memo(({ link }: { link: string }) => {
 	})
 
 	const name = useMemo(() => {
-		return FileSystem.Paths.basename(link)
+		return pathModule.posix.basename(link)
 	}, [link])
 
 	const onPress = useCallback(async () => {
