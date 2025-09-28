@@ -40,7 +40,7 @@ jobs:
       - name: 🏗 Boot iOS Simulator
         uses: futureware-tech/simulator-action@v4
         with:
-          model: 'iPhone 8'
+          model: 'iPhone 16'
 
       - name: 📲 Install .app on Simulator
         run: |
