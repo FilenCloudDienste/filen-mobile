@@ -27,8 +27,12 @@ env:
     when:
       platform: iOS
     commands:
-        - tapOn: Done
-- hideKeyboard
+      - tapOn: Done
+- runFlow:                                # Dismiss keyboard on Android
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - tapOn:
     id: texteditor.save_button
 - extendedWaitUntil:
@@ -37,12 +41,10 @@ env:
     timeout: 60000
 - assertVisible: Saved successfully
 - waitForAnimationToEnd
-- back                                    # Go back
 - runFlow:
-    when:
-      platform: iOS
-    commands:
-      - tapOn: Back
+    file: ../common/back.yaml
+    env:
+      IOS_BACK_BUTTON: Back
 - tapOn: ${FILENAME}.txt.*                # Check that content was saved
 - assertVisible: ${CONTENT}
 - back
