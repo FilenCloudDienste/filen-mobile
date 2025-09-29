@@ -14,6 +14,10 @@ appId: io.filen.app
       ITEM: ${ITEM}
 - tapOn: Delete permanently
 - tapOn: OK
+- extendedWaitUntil:
+    notVisible:
+      id: fullScreenLoadingModal
+    timeout: 60000
 - runFlow:
     file: back.yaml
     env:
