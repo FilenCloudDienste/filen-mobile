@@ -16,7 +16,13 @@ env:
     env: 
       TEXT: ${FILENAME}
 - tapOn: OK
-- waitForAnimationToEnd
+- extendedWaitUntil:
+    notVisible:
+      id: fullScreenLoadingModal
+    timeout: 60000
+- extendedWaitUntil:
+    visible: 1.*
+    timeout: 30000
 - tapOn:
     point: 50%,50%
 - runFlow:
