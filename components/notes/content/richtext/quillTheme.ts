@@ -15,8 +15,6 @@ export type QuillThemeOptions = {
 	toolbarActiveFillColor?: string
 	toolbarHoverStrokeColor?: string
 	toolbarHoverFillColor?: string
-	toolbarSticky?: boolean
-	toolbarStickyOffset?: string
 	toolbarShadow?: string
 	editorFontFamily?: string
 	editorFontSize?: string
@@ -98,25 +96,21 @@ export class QuillThemeCustomizer {
 	private generateCSS(containerId?: string): string {
 		const selector = containerId ? `#${containerId} ` : ""
 
-		const stickyToolbarStyles = this.options.toolbarSticky
-			? `
-				/* Sticky toolbar */
-				${selector} .ql-toolbar {
-				position: sticky !important;
-				top: ${this.options.toolbarStickyOffset || "0px"} !important;
-				z-index: 1000 !important;
-				width: 100vw !important;
-				${this.options.readOnly ? "display: none !important;" : ""}
-				}
-				
-				/* Add padding to top of editor to prevent content from being hidden behind sticky toolbar */
-				${selector} .ql-container {
-				position: relative !important;
-				}
-  			`
-			: ""
-
 		return `
+			${selector} .ql-toolbar {
+				top: 0 !important;
+				position: sticky !important;
+				z-index: 100 !important;
+				width: 100% !important;
+				flex: 0 0 auto !important;
+			}
+
+			/* Container styling */
+			${selector} .ql-container {
+				width: 100% !important;
+				flex: 1 1 auto !important;
+			}
+
 			/* Container styling */
 			${selector} .ql-container {
 				border: ${this.options.containerBorder} !important;
@@ -131,8 +125,6 @@ export class QuillThemeCustomizer {
 				background-color: ${this.options.codeBackground} !important;
 				border-radius: none !important;
 			}
-			
-			${stickyToolbarStyles}
 			
 			/* Default toolbar colors */
 			${selector} .ql-toolbar button,

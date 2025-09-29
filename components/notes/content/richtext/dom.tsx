@@ -53,7 +53,6 @@ const getThemeOptions = ({
 			editorBackground: "transparent",
 			placeholderColor: colors.text.muted,
 			placeholderStyle: "normal",
-			toolbarSticky: true,
 			codeBackground: colors.background.secondary,
 			codeTextColor: colors.text.foreground,
 			readOnly
@@ -82,7 +81,6 @@ const getThemeOptions = ({
 			editorBackground: "transparent",
 			placeholderColor: colors.text.muted,
 			placeholderStyle: "normal",
-			toolbarSticky: true,
 			codeBackground: colors.background.secondary,
 			codeTextColor: colors.text.foreground,
 			readOnly
