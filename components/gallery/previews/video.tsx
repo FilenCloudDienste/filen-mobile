@@ -149,10 +149,7 @@ export const Video = memo(
 									source={{
 										uri: source
 									}}
-									style={{
-										width: "100%",
-										height: "100%"
-									}}
+									style={style}
 									controls={true}
 									focusable={false}
 									playInBackground={false}

@@ -17,32 +17,14 @@ import { ActivityIndicator } from "../nativewindui/ActivityIndicator"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { cn } from "@/lib/cn"
 
-export const animatedStyle = {
-	flex: 1,
-	backgroundColor: "transparent",
-	position: "absolute",
-	top: 0,
-	left: 0,
-	right: 0,
-	bottom: 0
-} satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
-
-export const Item = memo(({ item, index }: { item: GalleryItem; index: number }) => {
+export const Item = memo(({ item, index, layout }: { item: GalleryItem; index: number; layout: { width: number; height: number } }) => {
 	const { t } = useTranslation()
 	const { colors, isDarkColorScheme } = useColorScheme()
 	const currentVisibleIndex = useGalleryStore(useShallow(state => state.currentVisibleIndex))
-	const { screen } = useDimensions()
 
 	const visible = useMemo(() => {
 		return (currentVisibleIndex ?? -1) === index
 	}, [currentVisibleIndex, index])
-
-	const layout = useMemo(() => {
-		return {
-			width: screen.width,
-			height: screen.height
-		}
-	}, [screen.width, screen.height])
 
 	const onPress = useCallback(() => {
 		if (item.previewType !== "image") {
@@ -65,11 +47,13 @@ export const Item = memo(({ item, index }: { item: GalleryItem; index: number })
 			className="flex-1 flex-row items-center justify-center overflow-hidden"
 			entering={FadeIn}
 			exiting={FadeOut}
+			style={layout}
 		>
 			<Pressable
 				className="flex-1"
 				onPress={onPress}
 				onLongPress={onLongPress}
+				style={layout}
 			>
 				{!visible ? (
 					<Animated.View
@@ -139,14 +123,18 @@ export const GalleryModal = memo(() => {
 		}
 	}, [screen.width, screen.height])
 
-	const renderItem = useCallback((item: GalleryItem, index: number) => {
-		return (
-			<Item
-				item={item}
-				index={index}
-			/>
-		)
-	}, [])
+	const renderItem = useCallback(
+		(item: GalleryItem, index: number) => {
+			return (
+				<Item
+					item={item}
+					index={index}
+					layout={layout}
+				/>
+			)
+		},
+		[layout]
+	)
 
 	const keyExtractor = useCallback((item: GalleryItem) => {
 		return item.itemType === "cloudItem" ? item.data.item.uuid : item.data.uri
@@ -195,6 +183,20 @@ export const GalleryModal = memo(() => {
 	const onDismissStart = useCallback(() => {
 		useGalleryStore.getState().setShowHeader(false)
 	}, [])
+
+	const animatedStyle = useMemo(() => {
+		return {
+			flex: 1,
+			backgroundColor: "transparent",
+			position: "absolute",
+			width: layout.width,
+			height: layout.height,
+			top: 0,
+			left: 0,
+			right: 0,
+			bottom: 0
+		} satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
+	}, [layout.width, layout.height])
 
 	useGestureViewerEvent("zoomChange", ({ scale }) => {
 		useGalleryStore.getState().setShowHeader(scale <= 1)
