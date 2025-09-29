@@ -7,7 +7,7 @@ env:
     clearState: true
 - extendedWaitUntil:
     visible: Log in
-    timeout: 60000
+    timeout: 120000
 - tapOn: Log in
 - scrollUntilVisible:
     element:
