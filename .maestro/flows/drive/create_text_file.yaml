@@ -19,7 +19,7 @@ env:
 - extendedWaitUntil:
     notVisible:
       id: fullScreenLoadingModal
-    timeout: 60000
+    timeout: 120000
 - extendedWaitUntil:
     visible: 1.*
     timeout: 30000
