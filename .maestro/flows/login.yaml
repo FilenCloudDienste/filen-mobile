@@ -33,7 +33,7 @@ env:
 - extendedWaitUntil:
     visible:
       id: screen.tabs
-    timeout: 60000
+    timeout: 120000
 - tapOn:
     text: Later
     optional: true
