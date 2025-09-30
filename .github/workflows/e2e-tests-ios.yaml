@@ -45,14 +45,31 @@ jobs:
         run: |
           xcrun simctl install booted "$APP_BUNDLE_PATH"
 
+      - name: 🎥 Start Simulator Screen Recording
+        run: |
+          mkdir -p ./simulator-recordings
+          xcrun simctl io booted recordVideo ./simulator-recordings/test_run.mp4 &
+          echo $! > record_pid.txt  # save PID to stop later
+
       - name: 🧪 Run Maestro Tests
         run: |
           maestro test .maestro \
-            --include-tags=drive \
-            -e EMAIL="${{ secrets.FILEN_MOBILE_TEST_EMAIL }}" \
-            -e PASSWORD="${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}"
+            --include-tags=drive
         env:
           MAESTRO_CLI_NO_ANALYTICS: true
+          EMAIL: ${{ secrets.FILEN_MOBILE_TEST_EMAIL }}
+          PASSWORD: ${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}
+
+      - name: 🛑 Stop Simulator Screen Recording
+        run: |
+          kill -INT $(cat record_pid.txt)
+          rm record_pid.txt
+
+      - name: 📦 Upload Screen Recording
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulator-screen-recording
+          path: ./simulator-recordings/test_run.mp4
 
       - name: 📦 Upload Maestro debug output
         if: always()
