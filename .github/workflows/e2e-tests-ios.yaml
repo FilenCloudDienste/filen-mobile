@@ -61,11 +61,13 @@ jobs:
           PASSWORD: ${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}
 
       - name: 🛑 Stop Simulator Screen Recording
+        if: always()
         run: |
           kill -INT $(cat record_pid.txt)
           rm record_pid.txt
 
       - name: 📦 Upload Screen Recording
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: simulator-screen-recording
