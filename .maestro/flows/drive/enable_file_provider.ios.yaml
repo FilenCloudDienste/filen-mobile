@@ -1,0 +1,44 @@
+appId: io.filen.app
+name: 'Drive, User can enable file provider'
+tags:
+  - drive
+  - ios
+env:
+  DIRNAME: test_dir
+onFlowComplete:
+  # Cleanup
+  - launchApp
+  - runFlow:
+      file: ../common/drive_item_delete.yaml
+      env:
+        ITEM: ${DIRNAME}
+  - runFlow:
+      file: ../common/drive_item_delete_permanently.yaml
+      env:
+        ITEM: ${DIRNAME}
+---
+- runFlow: ../login.yaml
+
+- launchApp: com.apple.DocumentsApp
+- tapOn: Browse
+- tapOn: Filen
+- assertVisible: Authentication Required
+
+- launchApp
+- tapOn: Home
+- tapOn:
+    id: home.header.rightView.dropdown
+- tapOn: Settings
+- tapOn:
+    id: home.settings.fileProvider.toggle
+- runFlow:
+    file: ../common/create_dir.yaml
+    env:
+      DIRNAME: ${DIRNAME}
+
+- launchApp: com.apple.DocumentsApp
+- tapOn: Browse
+- tapOn: Filen
+- assertNotVisible: Authentication Required
+- scrollUntilVisible:
+    element: ${DIRNAME}

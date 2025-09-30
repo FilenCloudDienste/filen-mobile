@@ -116,6 +116,7 @@ export const Dropdown = memo(() => {
 			onItemPress={onItemPress}
 		>
 			<Button
+				testID="home.header.rightView.dropdown"
 				variant="plain"
 				size="icon"
 			>

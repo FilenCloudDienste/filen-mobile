@@ -212,6 +212,7 @@ export const Settings = memo(() => {
 				),
 				rightView: (
 					<Toggle
+						testID="home.settings.fileProvider.toggle"
 						value={fileProviderEnabledQueryData ?? false}
 						onValueChange={onChangeFileProvider}
 					/>
