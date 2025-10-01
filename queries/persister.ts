@@ -1,6 +1,6 @@
 import sqlite from "@/lib/sqlite"
 
-export const VERSION = 1
+export const VERSION = 2
 export const queryClientPersisterPrefix = `reactQuery_v${VERSION}`
 
 export function createKvPersister() {

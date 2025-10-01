@@ -45,7 +45,7 @@ export const TRACK_PLAYER_PLAYING_TRACK_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Playin
 export const TRACK_PLAYER_TIMINGS_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Timings`
 export const TRACK_PLAYER_REPEAT_MODE_KEY = `${TRACK_PLAYER_MMKV_PREFIX}RepeatMode`
 export const TRACK_PLAYER_PLAYBACK_SPEED_KEY = `${TRACK_PLAYER_MMKV_PREFIX}PlaybackSpeed`
-export const TRACK_PLAYER_VOLUME_KEY = `${TRACK_PLAYER_MMKV_PREFIX}>Volume`
+export const TRACK_PLAYER_VOLUME_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Volume`
 
 export class TrackPlayer {
 	private readonly loadFileForTrackMutex: Semaphore = new Semaphore(1)

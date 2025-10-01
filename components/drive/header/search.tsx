@@ -1,8 +1,7 @@
 import { memo, useCallback, useEffect, useState, useMemo } from "react"
 import nodeWorker from "@/lib/nodeWorker"
-import { View, type ViewabilityConfig } from "react-native"
+import { View } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
-import { type ViewToken } from "@shopify/flash-list"
 import alerts from "@/lib/alerts"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
@@ -208,16 +207,6 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 		)
 	}, [t, items.length, isLoading])
 
-	const viewabilityConfig = useMemo(() => {
-		return {
-			itemVisiblePercentThreshold: 75
-		} satisfies ViewabilityConfig
-	}, [])
-
-	const onViewableItemsChanged = useCallback((e: { viewableItems: ViewToken<ListItemInfo>[]; changed: ViewToken<ListItemInfo>[] }) => {
-		useDriveStore.getState().setVisibleItemUuids(e.viewableItems.map(item => item.item.item.uuid))
-	}, [])
-
 	useEffect(() => {
 		if (searchTerm.length < 3 || queryParams.of !== "drive") {
 			setResults([])
@@ -243,8 +232,6 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 			refreshing={isLoading}
 			ListEmptyComponent={ListEmptyComponent}
 			ListFooterComponent={ListFooterComponent}
-			viewabilityConfig={viewabilityConfig}
-			onViewableItemsChanged={onViewableItemsChanged}
 		/>
 	)
 })

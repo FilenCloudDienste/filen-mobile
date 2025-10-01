@@ -116,7 +116,7 @@ export class Download {
 				return
 			}
 
-			const semaphore = new Semaphore(10)
+			const semaphore = new Semaphore(8)
 
 			await Promise.all(
 				files

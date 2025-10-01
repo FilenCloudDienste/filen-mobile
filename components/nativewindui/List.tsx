@@ -123,6 +123,8 @@ export function ListComponent<T extends ListDataItem>(
 			renderItem={renderItemMemo}
 			contentContainerClassName={contentContainerClassNameMemo}
 			contentContainerStyle={contentContainerStyleMemo}
+			maxItemsInRecyclePool={0}
+			drawDistance={0}
 			{...props}
 			ref={ref}
 		/>

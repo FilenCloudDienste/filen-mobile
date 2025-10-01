@@ -141,6 +141,8 @@ export const Chats = memo(() => {
 					ListFooterComponent={ListFooterComponent}
 					refreshControl={refreshControl}
 					ListHeaderComponent={ListHeaderComponent}
+					maxItemsInRecyclePool={0}
+					drawDistance={0}
 				/>
 			</Container>
 		</Fragment>

@@ -47,9 +47,7 @@ const springConfig = {
 	damping: 20,
 	stiffness: 300,
 	mass: 0.4,
-	overshootClamping: false,
-	restDisplacementThreshold: 0.01,
-	restSpeedThreshold: 2
+	overshootClamping: false
 } satisfies WithSpringConfig
 
 export const Message = memo(
@@ -563,10 +561,7 @@ export const Message = memo(
 													variant="caption1"
 													className="text-muted-foreground shrink-0 pt-1"
 												>
-													<Date
-														timestamp={info.item.sentTimestamp}
-														uuid={info.item.uuid}
-													/>
+													<Date timestamp={info.item.sentTimestamp} />
 												</Text>
 											</View>
 										)}

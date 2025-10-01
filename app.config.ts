@@ -221,13 +221,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 				faceIDPermission: "Please allow Filen to use FaceID or TouchID to lock itself."
 			}
 		],
-		[
-			"expo-sqlite",
-			{
-				enableFTS: true,
-				useSQLCipher: true
-			}
-		],
 		"expo-background-task",
 		"@config-plugins/react-native-blob-util",
 		"./plugins/withAndroidNetworkSecurityConfig",

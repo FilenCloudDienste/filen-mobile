@@ -1,4 +1,4 @@
-import { View, RefreshControl, type ViewabilityConfig } from "react-native"
+import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react"
 import { List, ListDataItem } from "@/components/nativewindui/List"
@@ -19,7 +19,7 @@ import { useKeyboardState } from "react-native-keyboard-controller"
 import ListEmpty from "@/components/listEmpty"
 import { useTranslation } from "react-i18next"
 import alerts from "@/lib/alerts"
-import { FlashList, type ListRenderItemInfo, type FlashListRef, type ViewToken } from "@shopify/flash-list"
+import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -191,29 +191,6 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 		}
 	}, [keyboardState.isVisible, keyboardState.height, queryParams.of])
 
-	const viewabilityConfig = useMemo(() => {
-		return {
-			itemVisiblePercentThreshold: 75
-		} satisfies ViewabilityConfig
-	}, [])
-
-	const onViewableItemsChanged = useCallback((e: { viewableItems: ViewToken<ListItemInfo>[]; changed: ViewToken<ListItemInfo>[] }) => {
-		useDriveStore.getState().setVisibleItemUuids(e.viewableItems.map(item => item.item.item.uuid))
-	}, [])
-
-	const calculateVisibleItemsOnFocus = useCallback(() => {
-		if (!listRef?.current) {
-			return
-		}
-
-		const visibleIndices = listRef.current.computeVisibleIndices()
-		const uuids = items
-			.slice(visibleIndices.startIndex <= 0 ? 0 : visibleIndices.startIndex, visibleIndices.endIndex + 1)
-			.map(item => item.item.uuid)
-
-		useDriveStore.getState().setVisibleItemUuids(uuids)
-	}, [items])
-
 	useLayoutEffect(() => {
 		onLayout()
 	}, [onLayout])
@@ -221,9 +198,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	useFocusEffect(
 		useCallback(() => {
 			useDriveStore.getState().setSelectedItems([])
-
-			calculateVisibleItemsOnFocus()
-		}, [calculateVisibleItemsOnFocus])
+		}, [])
 	)
 
 	return (
@@ -249,8 +224,8 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						ListEmptyComponent={ListEmptyComponent}
 						ListFooterComponent={ListFooterComponent}
 						refreshControl={refreshControl}
-						viewabilityConfig={viewabilityConfig}
-						onViewableItemsChanged={onViewableItemsChanged}
+						maxItemsInRecyclePool={0}
+						drawDistance={0}
 					/>
 				) : (
 					<List
@@ -267,8 +242,6 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						ListEmptyComponent={ListEmptyComponent}
 						ListFooterComponent={ListFooterComponent}
 						refreshControl={refreshControl}
-						viewabilityConfig={viewabilityConfig}
-						onViewableItemsChanged={onViewableItemsChanged}
 					/>
 				)}
 			</View>

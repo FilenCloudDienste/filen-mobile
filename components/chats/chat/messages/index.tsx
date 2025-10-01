@@ -283,6 +283,8 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 					ListFooterComponent={ListFooterComponent}
 					ListEmptyComponent={ListEmptyComponent}
 					maintainVisibleContentPosition={maintainVisibleContentPosition}
+					maxItemsInRecyclePool={0}
+					drawDistance={0}
 				/>
 			</View>
 		</Fragment>

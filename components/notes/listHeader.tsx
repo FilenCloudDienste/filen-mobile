@@ -121,6 +121,8 @@ export const ListHeader = memo(() => {
 				keyExtractor={keyExtractor}
 				renderItem={renderItem}
 				contentContainerStyle={contentContainerStyle}
+				maxItemsInRecyclePool={0}
+				drawDistance={0}
 			/>
 		</View>
 	)

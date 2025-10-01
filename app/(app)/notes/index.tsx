@@ -157,6 +157,8 @@ export const Notes = memo(() => {
 					ListHeaderComponent={ListHeaderComponent}
 					refreshControl={refreshControl}
 					keyExtractor={keyExtractor}
+					maxItemsInRecyclePool={0}
+					drawDistance={0}
 				/>
 			</Container>
 		</Fragment>
