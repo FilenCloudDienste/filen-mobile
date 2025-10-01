@@ -5,7 +5,7 @@ import { View, Platform, ActivityIndicator } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "../nativewindui/Toolbar"
 import { getPreviewType } from "@/lib/utils"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
 import fullScreenLoadingModal from "../modals/fullScreenLoadingModal"
@@ -144,7 +144,9 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 					tmpFile.delete()
 				}
 
-				tmpFile.write(valueCopied)
+				tmpFile.write(valueCopied, {
+					encoding: "utf8"
+				})
 
 				fullScreenLoadingModal.hide()
 
@@ -195,7 +197,9 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 			tmpFile.create()
 
 			if (valueCopied.length > 0) {
-				tmpFile.write(valueCopied)
+				tmpFile.write(valueCopied, {
+					encoding: "utf8"
+				})
 			}
 
 			await upload.file.foreground({

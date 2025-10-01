@@ -14,7 +14,7 @@ import { reinitSDK } from "@/lib/sdk"
 import thumbnails from "@/lib/thumbnails"
 import assets from "@/lib/assets"
 import { normalizeFilePathForNode, sanitizeFileName } from "@/lib/utils"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import fileProvider from "@/lib/fileProvider"
 import cache from "@/lib/cache"
 import * as Sharing from "expo-sharing"
@@ -81,7 +81,7 @@ export class AuthService {
 					: nodeWorker.proxy("reinitSDK", {
 							sdkConfig,
 							tmpPath
-						}),
+					  }),
 				thumbnailWarmup,
 				i18n,
 				assetsCopy
@@ -425,7 +425,9 @@ export class AuthService {
 					tmpFile.delete()
 				}
 
-				tmpFile.write(base64)
+				tmpFile.write(base64, {
+					encoding: "base64"
+				})
 
 				if (!disableSharing) {
 					fullScreenLoadingModal.hide()

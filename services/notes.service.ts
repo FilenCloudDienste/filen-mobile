@@ -4,12 +4,12 @@ import nodeWorker from "@/lib/nodeWorker"
 import queryUtils from "@/queries/utils"
 import authService from "./auth.service"
 import alerts from "@/lib/alerts"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import * as Sharing from "expo-sharing"
 import striptags from "striptags"
 import { sanitizeFileName } from "@/lib/utils"
 import paths from "@/lib/paths"
-import * as FileSystemLegacy from "expo-file-system"
+import * as FileSystemLegacy from "expo-file-system/legacy"
 import { t } from "@/lib/i18n"
 import * as Clipboard from "expo-clipboard"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
@@ -46,7 +46,7 @@ export class NotesService {
 									...n,
 									type: newType,
 									editedTimestamp: Date.now()
-								}
+							  }
 							: n
 					)
 			})
@@ -94,7 +94,7 @@ export class NotesService {
 									...n,
 									pinned: pinned,
 									editedTimestamp: Date.now()
-								}
+							  }
 							: n
 					)
 			})
@@ -131,7 +131,7 @@ export class NotesService {
 							? {
 									...n,
 									favorite
-								}
+							  }
 							: n
 					)
 			})
@@ -242,7 +242,9 @@ export class NotesService {
 					tmpFile.delete()
 				}
 
-				tmpFile.write(content)
+				tmpFile.write(content, {
+					encoding: "utf8"
+				})
 
 				if (returnFilePath) {
 					return tmpFile.uri
@@ -316,7 +318,7 @@ export class NotesService {
 									...n,
 									archive: true,
 									trash: false
-								}
+							  }
 							: n
 					)
 			})
@@ -365,7 +367,7 @@ export class NotesService {
 									archive: false,
 									trash: true,
 									editedTimestamp: Date.now()
-								}
+							  }
 							: n
 					)
 			})
@@ -395,7 +397,7 @@ export class NotesService {
 									archive: false,
 									trash: false,
 									editedTimestamp: Date.now()
-								}
+							  }
 							: n
 					)
 			})
@@ -456,7 +458,7 @@ export class NotesService {
 									...n,
 									title: newTitle,
 									editedTimestamp: Date.now()
-								}
+							  }
 							: n
 					)
 			})
@@ -584,7 +586,7 @@ export class NotesService {
 							? {
 									...n,
 									tags: [...n.tags.filter(t => t.uuid !== tag.uuid), tag]
-								}
+							  }
 							: n
 					)
 			})
@@ -619,7 +621,7 @@ export class NotesService {
 							? {
 									...n,
 									tags: n.tags.filter(t => t.uuid !== tag.uuid)
-								}
+							  }
 							: n
 					)
 			})

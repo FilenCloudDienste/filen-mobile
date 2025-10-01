@@ -1,5 +1,5 @@
 import nodeWorker from "@/lib/nodeWorker"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import { getSDK } from "@/lib/sdk"
 import { Readable } from "stream"
 import { type ReadableStream } from "stream/web"

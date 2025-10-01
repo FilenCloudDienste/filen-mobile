@@ -1,7 +1,7 @@
 import * as ExpoSQLite from "expo-sqlite"
 import { Semaphore } from "./semaphore"
 import paths from "./paths"
-import { Directory } from "expo-file-system/next"
+import { Directory } from "expo-file-system"
 import pathModule from "path"
 
 export const SQLITE_VERSION: number = 1

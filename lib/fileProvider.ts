@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system"
+import * as FileSystemLegacy from "expo-file-system/legacy"
 import paths from "@/lib/paths"
 import { type FilenSDKConfig } from "@filen/sdk"
 
@@ -11,14 +11,14 @@ export class FileProvider {
 	public async read(): Promise<AuthFileSchema | null> {
 		const authFilePath = await paths.fileProviderAuthFile()
 
-		if (!(await FileSystem.getInfoAsync(authFilePath)).exists) {
+		if (!(await FileSystemLegacy.getInfoAsync(authFilePath)).exists) {
 			return null
 		}
 
 		try {
 			return JSON.parse(
-				await FileSystem.readAsStringAsync(authFilePath, {
-					encoding: FileSystem.EncodingType.UTF8
+				await FileSystemLegacy.readAsStringAsync(authFilePath, {
+					encoding: FileSystemLegacy.EncodingType.UTF8
 				})
 			) as AuthFileSchema
 		} catch {
@@ -35,8 +35,8 @@ export class FileProvider {
 	public async disable(): Promise<void> {
 		const authFilePath = await paths.fileProviderAuthFile()
 
-		if ((await FileSystem.getInfoAsync(authFilePath)).exists) {
-			await FileSystem.deleteAsync(authFilePath)
+		if ((await FileSystemLegacy.getInfoAsync(authFilePath)).exists) {
+			await FileSystemLegacy.deleteAsync(authFilePath)
 		}
 	}
 
@@ -50,12 +50,12 @@ export class FileProvider {
 	public async write(data: AuthFileSchema): Promise<void> {
 		const authFilePath = await paths.fileProviderAuthFile()
 
-		if ((await FileSystem.getInfoAsync(authFilePath)).exists) {
-			await FileSystem.deleteAsync(authFilePath)
+		if ((await FileSystemLegacy.getInfoAsync(authFilePath)).exists) {
+			await FileSystemLegacy.deleteAsync(authFilePath)
 		}
 
-		await FileSystem.writeAsStringAsync(authFilePath, JSON.stringify(data), {
-			encoding: FileSystem.EncodingType.UTF8
+		await FileSystemLegacy.writeAsStringAsync(authFilePath, JSON.stringify(data), {
+			encoding: FileSystemLegacy.EncodingType.UTF8
 		})
 	}
 }

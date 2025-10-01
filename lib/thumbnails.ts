@@ -3,7 +3,7 @@ import { Semaphore } from "./semaphore"
 import nodeWorker from "./nodeWorker"
 import { randomUUID } from "expo-crypto"
 import paths from "./paths"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import cache from "./cache"
 import { normalizeFilePathForExpo } from "./utils"
 import sqlite from "./sqlite"
@@ -164,7 +164,7 @@ export class Thumbnails {
 									? {
 											...prevItem,
 											thumbnail: thumbnailDestination
-										}
+									  }
 									: prevItem
 							)
 					})
@@ -259,7 +259,7 @@ export class Thumbnails {
 											region: item.region
 										})
 									)
-								)}`,
+							  )}`,
 						{
 							...(originalFilePath
 								? {}
@@ -267,7 +267,7 @@ export class Thumbnails {
 										headers: {
 											Authorization: `Bearer ${nodeWorker.httpAuthToken}`
 										}
-									}),
+								  }),
 							quality: THUMBNAILS_COMPRESSION,
 							time: 500
 						}
@@ -325,7 +325,7 @@ export class Thumbnails {
 									? {
 											...prevItem,
 											thumbnail: thumbnailDestination
-										}
+									  }
 									: prevItem
 							)
 					})

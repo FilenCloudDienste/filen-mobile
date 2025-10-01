@@ -3,7 +3,7 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import * as Clipboard from "expo-clipboard"
 import alerts from "@/lib/alerts"
 import { t } from "@/lib/i18n"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { type FileMetadata, type FolderMetadata } from "@filen/sdk"
 import queryUtils from "@/queries/utils"
@@ -14,7 +14,7 @@ import { DEFAULT_DIRECTORY_COLOR } from "@/assets/fileIcons"
 import { itemInfo } from "@/components/sheets/itemInfoSheet"
 import contactsService from "./contacts.service"
 import { promiseAllChunked, sanitizeFileName, normalizeFilePathForExpo, simpleDate } from "@/lib/utils"
-import * as FileSystemLegacy from "expo-file-system"
+import * as FileSystemLegacy from "expo-file-system/legacy"
 import * as Sharing from "expo-sharing"
 import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
@@ -111,10 +111,10 @@ export class DriveService {
 				item.type === "directory"
 					? await nodeWorker.proxy("directoryUUIDToPath", {
 							uuid: item.uuid
-						})
+					  })
 					: await nodeWorker.proxy("fileUUIDToPath", {
 							uuid: item.uuid
-						})
+					  })
 
 			await Clipboard.setStringAsync(path)
 
@@ -167,8 +167,8 @@ export class DriveService {
 	}): Promise<void> {
 		if (!newName) {
 			const itemNameParsed = pathModule.posix.parse(item.name)
-			const itemName = item.type === "file" && item.name.includes(".") ? (itemNameParsed?.name ?? item.name) : item.name
-			const itemExt = item.type === "file" && item.name.includes(".") ? (itemNameParsed?.ext ?? "") : ""
+			const itemName = item.type === "file" && item.name.includes(".") ? itemNameParsed?.name ?? item.name : item.name
+			const itemExt = item.type === "file" && item.name.includes(".") ? itemNameParsed?.ext ?? "" : ""
 
 			const inputPromptResponse = await inputPrompt({
 				title: t("drive.prompts.renameItem.title"),
@@ -235,7 +235,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										name: newName
-									}
+								  }
 								: prevItem
 						)
 				})
@@ -253,7 +253,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										name: newName
-									}
+								  }
 								: prevItem
 						)
 				})
@@ -272,7 +272,7 @@ export class DriveService {
 										name: newName
 									}
 								}
-							}
+						  }
 						: prevItem
 				)
 			)
@@ -284,7 +284,7 @@ export class DriveService {
 						? {
 								...prevItem,
 								name: newName
-							}
+						  }
 						: prevItem
 				)
 			)
@@ -351,7 +351,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										color
-									}
+								  }
 								: prevItem
 						)
 				})
@@ -369,7 +369,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										color
-									}
+								  }
 								: prevItem
 						)
 				})
@@ -382,7 +382,7 @@ export class DriveService {
 						? {
 								...prevItem,
 								color
-							}
+						  }
 						: prevItem
 				)
 			)
@@ -447,7 +447,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										favorited: newFavoriteStatus
-									}
+								  }
 								: prevItem
 						)
 				})
@@ -482,7 +482,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										favorited: newFavoriteStatus
-									}
+								  }
 								: prevItem
 						)
 				})
@@ -501,7 +501,7 @@ export class DriveService {
 										favorited: newFavoriteStatus
 									}
 								}
-							}
+						  }
 						: prevItem
 				)
 			)
@@ -513,7 +513,7 @@ export class DriveService {
 						? {
 								...prevItem,
 								favorited: newFavoriteStatus
-							}
+						  }
 						: prevItem
 				)
 			)
@@ -576,7 +576,7 @@ export class DriveService {
 												key: item.key
 											}
 										}
-									]
+								  ]
 								: [],
 						directories:
 							item.type === "directory"
@@ -588,7 +588,7 @@ export class DriveService {
 												name: item.name
 											}
 										}
-									]
+								  ]
 								: [],
 						email: contact.email
 					})
@@ -867,7 +867,7 @@ export class DriveService {
 								? {
 										...prevItem,
 										parent
-									}
+								  }
 								: prevItem
 						)
 				})
@@ -886,7 +886,7 @@ export class DriveService {
 										parent
 									}
 								}
-							}
+						  }
 						: prevItem
 				)
 			)
