@@ -20,11 +20,7 @@ env:
     notVisible:
       id: fullScreenLoadingModal
     timeout: 120000
-- extendedWaitUntil:
-    visible: 1.*
-    timeout: 30000
-- tapOn:
-    point: 50%,50%
+- tapOn: \n
 - runFlow:
     file: "../common/input-text-retry.yaml"
     env: 
