@@ -1,4 +1,4 @@
-name: Run End-to-End Tests (Android)
+name: E2E Tests (Android)
 
 on:
   workflow_dispatch:
