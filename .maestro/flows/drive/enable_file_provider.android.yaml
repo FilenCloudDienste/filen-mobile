@@ -2,10 +2,10 @@ appId: io.filen.app
 name: 'Drive, User can enable the file provider and see created directory in the native Files app'
 tags:
   - drive
-  - ios
+  - android
 env:
   DIRNAME: test_dir
-  FILES_APP_ID: com.apple.DocumentsApp
+  FILES_APP_ID: com.google.android.documentsui
 onFlowComplete:
   # Cleanup
   - launchApp
@@ -21,9 +21,8 @@ onFlowComplete:
 - runFlow: ../login.yaml
 
 - launchApp: ${FILES_APP_ID}
-- tapOn: Browse
-- tapOn: Filen
-- assertVisible: Authentication Required
+- tapOn: Show roots
+- assertNotVisible: Filen
 
 - launchApp
 - tapOn: Home
@@ -38,8 +37,7 @@ onFlowComplete:
       DIRNAME: ${DIRNAME}
 
 - launchApp: ${FILES_APP_ID}
-- tapOn: Browse
+- tapOn: Show roots
 - tapOn: Filen
-- assertNotVisible: Authentication Required
 - scrollUntilVisible:
     element: ${DIRNAME}
