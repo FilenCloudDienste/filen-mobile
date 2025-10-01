@@ -59,7 +59,7 @@ jobs:
             .maestro/scripts/upload-test-image-android.sh
 
             echo "Running Maestro Tests"
-            maestro test .maestro -e EMAIL="${{ secrets.FILEN_MOBILE_TEST_EMAIL }}" -e PASSWORD="${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}"
+            maestro test .maestro --exclude-tags=ios -e EMAIL="${{ secrets.FILEN_MOBILE_TEST_EMAIL }}" -e PASSWORD="${{ secrets.FILEN_MOBILE_TEST_PASSWORD }}"
 
       - name: 📦 Upload Maestro debug output
         if: always()
