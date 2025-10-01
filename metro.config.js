@@ -41,7 +41,9 @@ config.resolver = {
 	assetExts: resolver.assetExts.filter(ext => ext !== "svg"),
 	sourceExts: [...resolver.sourceExts, "svg"],
 	unstable_enablePackageExports: true,
-	unstable_conditionNames: ["browser", "require", "react-native", "default"],
+	experimentalImportSupport: true,
+	enablePackageExports: true,
+	//unstable_conditionNames: ["browser", "require", "react-native", "default"],
 	extraNodeModules: {
 		...nodeStdlibBrowser,
 		buffer: require.resolve("@craftzdog/react-native-buffer"),

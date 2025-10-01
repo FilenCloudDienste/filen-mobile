@@ -7,7 +7,7 @@ export default function HomeLayout() {
 	return (
 		<Fragment>
 			<Stack screenOptions={SCREEN_OPTIONS.base} />
-			<TrackPlayerBottom />
+			{/*<TrackPlayerBottom />*/}
 		</Fragment>
 	)
 }

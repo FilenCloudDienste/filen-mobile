@@ -8,7 +8,7 @@ import {
 } from "@/lib/trackPlayer"
 import mmkvInstance from "@/lib/mmkv"
 import { useMMKVObject, useMMKVString } from "react-native-mmkv"
-import { useAudioPro } from "@/lib/audioPro"
+import { useAudioPro } from "react-native-audio-pro"
 import { AudioProState } from "react-native-audio-pro"
 import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"

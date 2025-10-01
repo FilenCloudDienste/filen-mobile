@@ -6,10 +6,9 @@ import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import { DEFAULT_QUERY_OPTIONS } from "./client"
 import { promiseAllChunked } from "@/lib/utils"
 import { validate as validateUUID } from "uuid"
-import { Type, type Static } from "@sinclair/typebox"
-import { Value } from "@sinclair/typebox/value"
+import { type } from "arktype"
 import authService from "@/services/auth.service"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -18,29 +17,29 @@ import download from "@/lib/download"
 import alerts from "@/lib/alerts"
 import pathModule from "path"
 
-export const PlaylistFileSchema = Type.Object({
-	uuid: Type.String(),
-	name: Type.String(),
-	mime: Type.String(),
-	size: Type.Number(),
-	bucket: Type.String(),
-	key: Type.String(),
-	version: Type.Number(),
-	chunks: Type.Number(),
-	region: Type.String(),
-	playlist: Type.String()
+export const PlaylistFileSchema = type({
+	uuid: "string",
+	name: "string",
+	mime: "string",
+	size: "number",
+	bucket: "string",
+	key: "string",
+	version: "number",
+	chunks: "number",
+	region: "string",
+	playlist: "string"
 })
 
-export const PlaylistSchema = Type.Object({
-	uuid: Type.String(),
-	name: Type.String(),
-	created: Type.Number(),
-	updated: Type.Number(),
-	files: Type.Array(PlaylistFileSchema)
+export const PlaylistSchema = type({
+	uuid: "string",
+	name: "string",
+	created: "number",
+	updated: "number",
+	files: PlaylistFileSchema.array()
 })
 
-export type Playlist = Static<typeof PlaylistSchema>
-export type PlaylistFile = Static<typeof PlaylistFileSchema>
+export type Playlist = typeof PlaylistSchema.infer
+export type PlaylistFile = typeof PlaylistFileSchema.infer
 
 export async function findPlaylistDirectoryUUID(): Promise<string> {
 	const { baseFolderUUID } = authService.getSDKConfig()
@@ -117,7 +116,9 @@ export async function updatePlaylist(playlist: Playlist): Promise<void> {
 			tmpFile.delete()
 		}
 
-		tmpFile.write(JSON.stringify(playlist))
+		tmpFile.write(JSON.stringify(playlist), {
+			encoding: "utf8"
+		})
 
 		if (!tmpFile.size) {
 			throw new Error("Temporary upload file is empty.")
@@ -184,8 +185,14 @@ export async function fetchPlaylists(): Promise<(Playlist & { fileUUID: string }
 							throw new Error("Temporary file does not exist.")
 						}
 
+						const result = PlaylistSchema(JSON.parse(await tmpFile.text()))
+
+						if (result instanceof type.errors) {
+							throw new Error("Invalid playlist file format.")
+						}
+
 						return {
-							...Value.Parse(PlaylistSchema, JSON.parse(tmpFile.text())),
+							...result,
 							fileUUID: item.uuid
 						}
 					} catch {

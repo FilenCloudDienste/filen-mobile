@@ -1,13 +1,13 @@
 import { AudioProEventType, type AudioProTrack, AudioProContentType, AudioProState } from "react-native-audio-pro"
 import Semaphore from "./semaphore"
 import mmkvInstance from "./mmkv"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import paths from "./paths"
 import { randomUUID } from "expo-crypto"
 import { type FileEncryptionVersion } from "@filen/sdk"
 import { normalizeFilePathForExpo, shuffleArray } from "./utils"
 import mimeTypes from "mime-types"
-import { AudioPro } from "./audioPro"
+import { AudioPro } from "react-native-audio-pro"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import assets from "./assets"
 import download from "@/lib/download"
@@ -240,7 +240,7 @@ export class TrackPlayer {
 			if (!file.isDirectory) {
 				const entry = new FileSystem.File(file.uri)
 
-				return acc + (entry.exists ? (entry.size ?? 0) : 0)
+				return acc + (entry.exists ? entry.size ?? 0 : 0)
 			}
 
 			return acc
@@ -625,7 +625,9 @@ export class TrackPlayer {
 								destination.delete()
 							}
 
-							destination.write(new Uint8Array(Buffer.from(base64String, "base64")))
+							destination.write(base64String, {
+								encoding: "base64"
+							})
 
 							coverURI = normalizeFilePathForExpo(destination.uri)
 						}
