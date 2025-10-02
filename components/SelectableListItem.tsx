@@ -36,7 +36,6 @@ export const SelectableListItem = ({ selectionActive, selected, onSelected, chil
 			)}
 			<Animated.View
 				className={cn(isRTL ? "flex-row-reverse" : "flex-row", "flex-shrink")}
-				entering={isRTL ? SlideInRight : SlideInLeft}
 				layout={LinearTransition}
 			>
 				{children}
