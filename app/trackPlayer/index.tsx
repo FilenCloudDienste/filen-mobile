@@ -1,5 +1,5 @@
 import RequireInternet from "@/components/requireInternet"
-import { usePlaylistsQuery } from "@/queries/usePlaylistsQuery"
+import { usePlaylistsQuery } from "@/queries/usePlaylists.query"
 import { useMemo, memo, useCallback, useState } from "react"
 import Header from "@/components/trackPlayer/header"
 import { useMMKVNumber } from "react-native-mmkv"
@@ -27,7 +27,7 @@ export const TrackPlayer = memo(() => {
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
-	const playlistsQuery = usePlaylistsQuery({})
+	const playlistsQuery = usePlaylistsQuery()
 
 	const playlists = useMemo(() => {
 		if (playlistsQuery.status !== "success") {

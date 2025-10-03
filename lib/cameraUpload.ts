@@ -6,19 +6,19 @@ import nodeWorker from "./nodeWorker"
 import { convertTimestampToMs, normalizeFilePathForExpo, promiseAllChunked } from "./utils"
 import { useAppStateStore } from "@/stores/appState.store"
 import { randomUUID } from "expo-crypto"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import paths from "./paths"
 import { useCameraUploadStore } from "@/stores/cameraUpload.store"
 import { getNetInfoState } from "@/hooks/useNetInfo"
 import * as Battery from "expo-battery"
 import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS } from "./constants"
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator"
-import { type FileMetadata } from "@filen/sdk"
+import type { FileMetadata } from "@filen/sdk"
 import { getSDK } from "./sdk"
 import upload from "@/lib/upload"
-import queryUtils from "@/queries/utils"
 import { xxHash32 } from "js-xxhash"
 import pathModule from "path"
+import { driveItemsQueryUpdate } from "@/queries/useDriveItems.query"
 
 export type TreeItem = (
 	| {
@@ -129,21 +129,21 @@ export class CameraUpload {
 				? MediaLibrary.getPermissionsAsync(false, this.type === "background" ? ["photo"] : ["photo", "video"])
 				: Promise.resolve({
 						status: MediaLibrary.PermissionStatus.GRANTED
-					}),
+				  }),
 			checkNetwork
 				? getNetInfoState()
 				: Promise.resolve({
 						hasInternet: true,
 						isWifiEnabled: true,
 						cellular: false
-					}),
+				  }),
 			checkBattery
 				? Battery.getPowerStateAsync()
 				: Promise.resolve({
 						lowPowerMode: false,
 						batteryLevel: 1,
 						batteryState: Battery.BatteryState.FULL
-					})
+				  })
 		])
 
 		if (
@@ -290,11 +290,11 @@ export class CameraUpload {
 				? await nodeWorker.proxy("getDirectoryTree", {
 						uuid: state.remote.uuid,
 						type: "normal"
-					})
+				  })
 				: await getSDK().cloud().getDirectoryTree({
 						uuid: state.remote.uuid,
 						type: "normal"
-					})
+				  })
 
 		for (const path in tree) {
 			const file = tree[path]
@@ -422,14 +422,14 @@ export class CameraUpload {
 						!parentName || parentName.length === 0 || parentName === "."
 							? state.remote.uuid
 							: this.type === "foreground"
-								? await nodeWorker.proxy("createDirectory", {
-										name: parentName,
-										parent: state.remote.uuid
-									})
-								: await getSDK().cloud().createDirectory({
-										name: parentName,
-										parent: state.remote.uuid
-									})
+							? await nodeWorker.proxy("createDirectory", {
+									name: parentName,
+									parent: state.remote.uuid
+							  })
+							: await getSDK().cloud().createDirectory({
+									name: parentName,
+									parent: state.remote.uuid
+							  })
 
 					if (abortSignal?.aborted) {
 						throw new Error("Aborted")
@@ -507,7 +507,7 @@ export class CameraUpload {
 										deleteAfterUpload: true,
 										creation: delta.item.creation,
 										lastModified: delta.item.lastModified
-									})
+								  })
 								: await upload.file.background({
 										parent: parentUUID,
 										localPath: tmpFile.uri,
@@ -519,7 +519,7 @@ export class CameraUpload {
 										creation: delta.item.creation,
 										lastModified: delta.item.lastModified,
 										abortSignal
-									})
+								  })
 
 						if (item.type !== "file") {
 							throw new Error("Invalid response from uploadFile.")
@@ -548,16 +548,18 @@ export class CameraUpload {
 						}
 
 						if (this.type === "foreground") {
-							queryUtils.useCloudItemsQuerySet({
-								receiverId: 0,
-								of: "photos",
-								parent: state.remote.uuid,
+							driveItemsQueryUpdate({
+								params: {
+									receiverId: 0,
+									of: "photos",
+									parent: state.remote.uuid
+								},
 								updater: prev => [
 									...prev.filter(i => i.uuid !== item.uuid),
 									{
 										...item,
 										...newFileMetadata
-									}
+									} satisfies DriveCloudItem
 								]
 							})
 						}
@@ -662,11 +664,11 @@ export class CameraUpload {
 					? await nodeWorker.proxy("directoryExists", {
 							name: state.remote.name,
 							parent: state.remote.parent
-						})
+					  })
 					: await getSDK().cloud().directoryExists({
 							name: state.remote.name,
 							parent: state.remote.parent
-						})
+					  })
 
 			if (!exists.exists || exists.uuid !== state.remote.uuid) {
 				return

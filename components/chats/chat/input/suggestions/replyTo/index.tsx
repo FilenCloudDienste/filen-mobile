@@ -1,6 +1,6 @@
 import { memo, useCallback, useMemo } from "react"
 import { Text } from "@/components/nativewindui/Text"
-import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { contactName } from "@/lib/utils"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Button } from "@/components/nativewindui/Button"

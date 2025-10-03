@@ -1,18 +1,18 @@
 import { memo, useMemo, useCallback } from "react"
 import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextItem } from "@/components/nativewindui/ContextMenu/utils"
-import { type ContextItem, type ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
+import type { ContextItem, ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
-import { type Note, type NoteParticipant } from "@filen/sdk/dist/types/api/v3/notes"
+import type { Note, NoteParticipant } from "@filen/sdk/dist/types/api/v3/notes"
 import { useTranslation } from "react-i18next"
 import alerts from "@/lib/alerts"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
-import queryUtils from "@/queries/utils"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Platform } from "react-native"
 import useSDKConfig from "@/hooks/useSDKConfig"
+import { notesQueryUpdate } from "@/queries/useNotes.query"
 
 export const Menu = memo(
 	({
@@ -96,7 +96,7 @@ export const Menu = memo(
 					userId: participant.userId
 				})
 
-				queryUtils.useNotesQuerySet({
+				notesQueryUpdate({
 					updater: prev =>
 						prev.map(n =>
 							n.uuid === note.uuid
@@ -129,7 +129,7 @@ export const Menu = memo(
 						permissionsWrite
 					})
 
-					queryUtils.useNotesQuerySet({
+					notesQueryUpdate({
 						updater: prev =>
 							prev.map(n =>
 								n.uuid === note.uuid

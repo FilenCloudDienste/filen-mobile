@@ -1,4 +1,4 @@
-import { type ContextItem, type ContextSubMenu } from "./types"
+import type { ContextItem, ContextSubMenu } from "./types"
 
 export function createContextSubMenu(subMenu: Omit<ContextSubMenu, "items">, items: ContextSubMenu["items"]) {
 	return Object.assign(subMenu, {

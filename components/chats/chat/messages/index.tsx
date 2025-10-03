@@ -1,13 +1,12 @@
 import { memo, useMemo, useCallback, useRef, Fragment, useState } from "react"
-import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
-import useChatMessagesQuery from "@/queries/useChatMessagesQuery"
-import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
+import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import useChatMessagesQuery, { chatMessagesQueryUpdate } from "@/queries/useChatMessages.query"
+import type { ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import Message from "./message"
-import queryUtils from "@/queries/utils"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import useHeaderHeight from "@/hooks/useHeaderHeight"
-import useChatsLastFocusQuery from "@/queries/useChatsLastFocusQuery"
+import useChatsLastFocusQuery from "@/queries/useChatsLastFocus.query"
 import Top from "./top"
 import useDimensions from "@/hooks/useDimensions"
 import { View, type NativeSyntheticEvent, type NativeScrollEvent, ActivityIndicator, type ViewToken } from "react-native"
@@ -23,7 +22,7 @@ import { Text } from "@/components/nativewindui/Text"
 export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConversation; isPreview: boolean; inputHeight: number }) => {
 	const headerHeight = useHeaderHeight()
 	const isFetchingMoreMessagesRef = useRef<boolean>(false)
-	const chatsLastFocusQuery = useChatsLastFocusQuery({})
+	const chatsLastFocusQuery = useChatsLastFocusQuery()
 	const { screen, insets } = useDimensions()
 	const showEmojis = useChatsStore(useShallow(state => state.showEmojis[chat.uuid] ?? false))
 	const showMention = useChatsStore(useShallow(state => state.showMention[chat.uuid] ?? false))
@@ -38,7 +37,7 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 	const [initialScrollIndex, setInitialScrollIndex] = useState<number | null>(null)
 
 	const chatMessagesQuery = useChatMessagesQuery({
-		uuid: chat.uuid
+		conversation: chat.uuid
 	})
 
 	const suggestionsVisible = useMemo(() => {
@@ -119,8 +118,10 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 
 			const existingUUIDs = messages.map(m => m.uuid)
 
-			queryUtils.useChatMessagesQuerySet({
-				uuid: chat.uuid,
+			chatMessagesQueryUpdate({
+				params: {
+					conversation: chat.uuid
+				},
 				updater: prev => [...fetched.filter(m => !existingUUIDs.includes(m.uuid)), ...prev]
 			})
 		} catch (e) {
@@ -283,6 +284,8 @@ export const Messages = memo(({ chat, isPreview, inputHeight }: { chat: ChatConv
 					ListFooterComponent={ListFooterComponent}
 					ListEmptyComponent={ListEmptyComponent}
 					maintainVisibleContentPosition={maintainVisibleContentPosition}
+					maxItemsInRecyclePool={0}
+					drawDistance={0}
 				/>
 			</View>
 		</Fragment>

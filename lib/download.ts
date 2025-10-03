@@ -1,10 +1,10 @@
 import nodeWorker from "@/lib/nodeWorker"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
 import { getSDK } from "@/lib/sdk"
 import Semaphore from "@/lib/semaphore"
-import { type NodeWorkerHandlers } from "nodeWorker"
+import type { NodeWorkerHandlers } from "nodeWorker"
 import type Cloud from "@filen/sdk/dist/types/cloud"
 import { useTransfersStore } from "@/stores/transfers.store"
 import pathModule from "path"
@@ -116,7 +116,7 @@ export class Download {
 				return
 			}
 
-			const semaphore = new Semaphore(10)
+			const semaphore = new Semaphore(8)
 
 			await Promise.all(
 				files

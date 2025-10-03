@@ -1,7 +1,7 @@
 import { useLocalSearchParams, Redirect } from "expo-router"
 import { useMemo, useCallback, useState, memo } from "react"
 import { View, Platform, RefreshControl } from "react-native"
-import { type Note, type NoteParticipant } from "@filen/sdk/dist/types/api/v3/notes"
+import type { Note, NoteParticipant } from "@filen/sdk/dist/types/api/v3/notes"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { ListItem, List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import Container from "@/components/Container"
@@ -14,12 +14,11 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import contactsService from "@/services/contacts.service"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import Menu from "@/components/notes/participants/menu"
-import useNotesQuery from "@/queries/useNotesQuery"
+import useNotesQuery, { notesQueryUpdate } from "@/queries/useNotes.query"
 import { validate as validateUUID } from "uuid"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
-import queryUtils from "@/queries/utils"
 import RequireInternet from "@/components/requireInternet"
 import ListEmpty from "@/components/listEmpty"
 import { useTranslation } from "react-i18next"
@@ -232,7 +231,7 @@ export default function Participants() {
 				})
 			)
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev =>
 					prev.map(n =>
 						n.uuid === note.uuid

@@ -1,6 +1,6 @@
 import { memo, useCallback, useMemo } from "react"
 import { Settings as SettingsComponent } from "@/components/settings"
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import alerts from "@/lib/alerts"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
@@ -16,7 +16,7 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Text } from "@/components/nativewindui/Text"
 import { sanitizeFileName } from "@/lib/utils"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import paths from "@/lib/paths"
 import * as Sharing from "expo-sharing"
 import pathModule from "path"
@@ -57,7 +57,9 @@ export const TwoFactor = memo(() => {
 						tmpFile.delete()
 					}
 
-					tmpFile.write(recoveryKeys)
+					tmpFile.write(recoveryKeys, {
+						encoding: "utf8"
+					})
 				} finally {
 					fullScreenLoadingModal.hide()
 				}

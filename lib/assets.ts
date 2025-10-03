@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import paths from "./paths"
 import { SILENT_AUDIO_BASE64 } from "@/assets/base64/silentAudio"
 import { AUDIO_FALLBACK_IMAGE_BASE64 } from "@/assets/base64/audioFallbackImage"
@@ -18,15 +18,21 @@ export class Assets {
 
 	public async initialize(): Promise<void> {
 		if (!this.silentAudioFile.exists) {
-			this.silentAudioFile.write(new Uint8Array(Buffer.from(SILENT_AUDIO_BASE64, "base64")))
+			this.silentAudioFile.write(SILENT_AUDIO_BASE64, {
+				encoding: "base64"
+			})
 		}
 
 		if (!this.audioFallbackImageFile.exists) {
-			this.audioFallbackImageFile.write(new Uint8Array(Buffer.from(AUDIO_FALLBACK_IMAGE_BASE64, "base64")))
+			this.audioFallbackImageFile.write(AUDIO_FALLBACK_IMAGE_BASE64, {
+				encoding: "base64"
+			})
 		}
 
 		if (!this.avatarFallbackImageFile.exists) {
-			this.avatarFallbackImageFile.write(new Uint8Array(Buffer.from(AVATAR_FALLBACK_IMAGE_BASE64, "base64")))
+			this.avatarFallbackImageFile.write(AVATAR_FALLBACK_IMAGE_BASE64, {
+				encoding: "base64"
+			})
 		}
 
 		console.log("Assets initialized.")

@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import cache from "./cache"
 import { Platform } from "react-native"
 import ReactNativeBlobUtil from "react-native-blob-util"

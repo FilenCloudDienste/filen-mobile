@@ -16,8 +16,8 @@ import mmkvInstance from "@/lib/mmkv"
 import { View, Platform } from "react-native"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { createDropdownItem } from "../nativewindui/DropdownMenu/utils"
-import { type NoteType } from "@filen/sdk/dist/types/api/v3/notes"
-import { type DropdownItem } from "@/components/nativewindui/DropdownMenu/types"
+import type { NoteType } from "@filen/sdk/dist/types/api/v3/notes"
+import type { DropdownItem } from "@/components/nativewindui/DropdownMenu/types"
 
 export const Header = memo(() => {
 	const selectedNotesCount = useNotesStore(useShallow(state => state.selectedNotes.length))

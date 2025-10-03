@@ -1,8 +1,8 @@
 import { memo, useMemo, useState, Fragment, useRef, useCallback } from "react"
-import useChatsQuery from "@/queries/useChatsQuery"
+import useChatsQuery from "@/queries/useChats.query"
 import Header from "@/components/chats/header"
 import Container from "@/components/Container"
-import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { contactName } from "@/lib/utils"
@@ -25,7 +25,7 @@ export const Chats = memo(() => {
 	const { hasInternet } = useNetInfo()
 	const { t } = useTranslation()
 
-	const chatsQuery = useChatsQuery({})
+	const chatsQuery = useChatsQuery()
 
 	const chats = useMemo(() => {
 		if (chatsQuery.status !== "success") {
@@ -141,6 +141,8 @@ export const Chats = memo(() => {
 					ListFooterComponent={ListFooterComponent}
 					refreshControl={refreshControl}
 					ListHeaderComponent={ListHeaderComponent}
+					maxItemsInRecyclePool={0}
+					drawDistance={0}
 				/>
 			</Container>
 		</Fragment>

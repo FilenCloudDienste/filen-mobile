@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from "expo-router"
 import { memo, useRef, useCallback, useMemo } from "react"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
-import { type AdaptiveSearchBarRef, type AdaptiveSearchHeaderProps } from "@/components/nativewindui/AdaptiveSearchHeader/types"
+import type { AdaptiveSearchBarRef, AdaptiveSearchHeaderProps } from "@/components/nativewindui/AdaptiveSearchHeader/types"
 import { useDriveStore } from "@/stores/drive.store"
 import RightView from "./rightView"
 import Search from "./search"

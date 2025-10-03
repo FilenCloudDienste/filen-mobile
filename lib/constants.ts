@@ -1,6 +1,6 @@
-import { type FilenSDKConfig } from "@filen/sdk"
+import type { FilenSDKConfig } from "@filen/sdk"
 import { Platform } from "react-native"
-import { type Stack } from "expo-router"
+import type { Stack } from "expo-router"
 
 export const SCREEN_OPTIONS = {
 	base: {
@@ -43,14 +43,6 @@ export const ANONYMOUS_SDK_CONFIG: Required<FilenSDKConfig> = {
 	userId: 1,
 	tmpPath: "/tmp"
 } satisfies Required<FilenSDKConfig>
-
-export const UNCACHED_QUERY_KEYS: string[] = [
-	"useIsHTTPServerOnlineQuery",
-	"useTextEditorItemContentQuery",
-	"useItemToPathQuery",
-	"useItemPublicLinkStatusQuery",
-	"useFileBase64Query"
-]
 
 export const WEB_APP_BASE_URL: string = "https://app.filen.io"
 export const WEB_APP_ACCOUNT_SETTINGS_URL: string = `${WEB_APP_BASE_URL}/#/settings/account`

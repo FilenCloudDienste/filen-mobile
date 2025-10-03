@@ -2,82 +2,30 @@ import { memo, useMemo, useCallback } from "react"
 import { parseYouTubeVideoId } from "@/lib/utils"
 import { Text } from "@/components/nativewindui/Text"
 import { View } from "react-native"
-import axios from "axios"
-import { useQuery } from "@tanstack/react-query"
 import TurboImage from "react-native-turbo-image"
 import { Button } from "@/components/nativewindui/Button"
 import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
 import { Icon } from "@roninoss/icons"
-import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
-import useNetInfo from "@/hooks/useNetInfo"
 import assets from "@/lib/assets"
-
-export type YouTubeInfo = {
-	title?: string
-	author_name?: string
-	author_url?: string
-	type?: string
-	height?: number
-	width?: number
-	version?: string
-	provider_name?: string
-	provider_url?: string
-	thumbnail_height?: number
-	thumbnail_width?: number
-	thumbnail_url?: string
-	html?: string
-}
+import useChatEmbedYouTubeQuery from "@/queries/useChatEmbedYouTube.query"
 
 export const YouTube = memo(({ link }: { link: string }) => {
 	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
-	const { hasInternet } = useNetInfo()
 
 	const videoId = useMemo(() => {
 		return parseYouTubeVideoId(link)
 	}, [link])
 
-	const query = useQuery({
-		queryKey: ["chatEmbedYouTube", videoId],
-		enabled: videoId !== null && hasInternet,
-		queryFn: async () => {
-			if (!videoId) {
-				throw new Error("No videoId provided.")
-			}
-
-			const request = await axios.get(`https://www.youtube.com/oembed?url=https://youtube.com/watch?v=${videoId}&format=json`, {
-				headers: {
-					"Content-Type": "application/json",
-					Accept: "application/json"
-				},
-				timeout: 60000
-			})
-
-			if (
-				request.status !== 200 ||
-				!request.data ||
-				!request.data.title ||
-				!request.data.thumbnail_url ||
-				!request.data.author_name
-			) {
-				throw new Error("Failed to fetch YouTube data.")
-			}
-
-			return request.data as YouTubeInfo
+	const query = useChatEmbedYouTubeQuery(
+		{
+			videoId: videoId ?? ""
 		},
-		throwOnError(err) {
-			console.error(err)
-
-			return false
-		},
-		refetchOnMount: DEFAULT_QUERY_OPTIONS.refetchOnMount,
-		refetchOnReconnect: DEFAULT_QUERY_OPTIONS.refetchOnReconnect,
-		refetchOnWindowFocus: DEFAULT_QUERY_OPTIONS.refetchOnWindowFocus,
-		staleTime: DEFAULT_QUERY_OPTIONS.staleTime,
-		gcTime: DEFAULT_QUERY_OPTIONS.gcTime,
-		refetchInterval: false
-	})
+		{
+			enabled: videoId !== null
+		}
+	)
 
 	const onPress = useCallback(async () => {
 		try {

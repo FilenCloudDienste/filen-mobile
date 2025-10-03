@@ -1,7 +1,7 @@
 import { memo, useMemo, useCallback, Fragment } from "react"
 import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextSubMenu, createContextItem } from "@/components/nativewindui/ContextMenu/utils"
-import { type ContextItem, type ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
+import type { ContextItem, ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { useTranslation } from "react-i18next"
 import { useRouter, usePathname } from "expo-router"
@@ -15,7 +15,7 @@ import TurboImage from "react-native-turbo-image"
 import events from "@/lib/events"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
-import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
+import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatus.query"
 import driveService from "@/services/drive.service"
 import { useShallow } from "zustand/shallow"
 import { usePhotosStore } from "@/stores/photos.store"
@@ -51,10 +51,14 @@ export const Menu = memo(
 		const isSelectedDrive = useDriveStore(useShallow(state => state.selectedItems.some(i => i.uuid === item.uuid)))
 		const isSelectedPhotos = usePhotosStore(useShallow(state => state.selectedItems.some(i => i.uuid === item.uuid)))
 
-		const fileOfflineStatus = useFileOfflineStatusQuery({
-			uuid: item.uuid,
-			enabled: item.type === "file"
-		})
+		const fileOfflineStatus = useFileOfflineStatusQuery(
+			{
+				uuid: item.uuid
+			},
+			{
+				enabled: item.type === "file"
+			}
+		)
 
 		const offlineStatus = useMemo(() => {
 			return item.type === "file" && fileOfflineStatus.status === "success" ? fileOfflineStatus.data : null

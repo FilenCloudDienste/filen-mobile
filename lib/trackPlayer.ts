@@ -1,13 +1,13 @@
 import { AudioProEventType, type AudioProTrack, AudioProContentType, AudioProState } from "react-native-audio-pro"
 import Semaphore from "./semaphore"
 import mmkvInstance from "./mmkv"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import paths from "./paths"
 import { randomUUID } from "expo-crypto"
-import { type FileEncryptionVersion } from "@filen/sdk"
+import type { FileEncryptionVersion } from "@filen/sdk"
 import { normalizeFilePathForExpo, shuffleArray } from "./utils"
 import mimeTypes from "mime-types"
-import { AudioPro } from "./audioPro"
+import { AudioPro } from "react-native-audio-pro"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import assets from "./assets"
 import download from "@/lib/download"
@@ -45,7 +45,7 @@ export const TRACK_PLAYER_PLAYING_TRACK_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Playin
 export const TRACK_PLAYER_TIMINGS_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Timings`
 export const TRACK_PLAYER_REPEAT_MODE_KEY = `${TRACK_PLAYER_MMKV_PREFIX}RepeatMode`
 export const TRACK_PLAYER_PLAYBACK_SPEED_KEY = `${TRACK_PLAYER_MMKV_PREFIX}PlaybackSpeed`
-export const TRACK_PLAYER_VOLUME_KEY = `${TRACK_PLAYER_MMKV_PREFIX}>Volume`
+export const TRACK_PLAYER_VOLUME_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Volume`
 
 export class TrackPlayer {
 	private readonly loadFileForTrackMutex: Semaphore = new Semaphore(1)
@@ -240,7 +240,7 @@ export class TrackPlayer {
 			if (!file.isDirectory) {
 				const entry = new FileSystem.File(file.uri)
 
-				return acc + (entry.exists ? (entry.size ?? 0) : 0)
+				return acc + (entry.exists ? entry.size ?? 0 : 0)
 			}
 
 			return acc
@@ -625,7 +625,9 @@ export class TrackPlayer {
 								destination.delete()
 							}
 
-							destination.write(new Uint8Array(Buffer.from(base64String, "base64")))
+							destination.write(base64String, {
+								encoding: "base64"
+							})
 
 							coverURI = normalizeFilePathForExpo(destination.uri)
 						}

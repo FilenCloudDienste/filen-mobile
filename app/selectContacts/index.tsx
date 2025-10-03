@@ -1,6 +1,6 @@
 import events from "@/lib/events"
 import { useCallback, useState, useMemo, useEffect } from "react"
-import useContactsQuery from "@/queries/useContactsQuery"
+import useContactsQuery from "@/queries/useContacts.query"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import { RefreshControl, View, Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"

@@ -1,7 +1,7 @@
 import { useLocalSearchParams, Redirect } from "expo-router"
 import { useMemo, useCallback, useState, memo } from "react"
 import { View, Platform, RefreshControl } from "react-native"
-import { type ChatConversation, type ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { ChatConversation, ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { ListItem, List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import Container from "@/components/Container"
@@ -14,12 +14,11 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import contactsService from "@/services/contacts.service"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import Menu from "@/components/chats/chat/participants/menu"
-import useChatsQuery from "@/queries/useChatsQuery"
+import useChatsQuery, { chatsQueryUpdate } from "@/queries/useChats.query"
 import { validate as validateUUID } from "uuid"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
-import queryUtils from "@/queries/utils"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -223,7 +222,7 @@ export default function Participants() {
 				})
 			)
 
-			queryUtils.useChatsQuerySet({
+			chatsQueryUpdate({
 				updater: prev =>
 					prev.map(c =>
 						c.uuid === chat.uuid

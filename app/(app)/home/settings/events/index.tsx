@@ -2,8 +2,8 @@ import { memo, Fragment, useMemo, useCallback } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { List, ListItem, type ListRenderItemInfo, type ListDataItem } from "@/components/nativewindui/List"
 import { Platform } from "react-native"
-import useEventsQuery from "@/queries/useEventsQuery"
-import { type UserEvent } from "@filen/sdk/dist/types/api/v3/user/events"
+import useEventsQuery from "@/queries/useEvents.query"
+import type { UserEvent } from "@filen/sdk/dist/types/api/v3/user/events"
 import { simpleDate } from "@/lib/utils"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { useTranslation } from "react-i18next"
@@ -52,7 +52,9 @@ Item.displayName = "Item"
 export const Events = memo(() => {
 	const { t } = useTranslation()
 
-	const events = useEventsQuery({})
+	const events = useEventsQuery({
+		filter: "all"
+	})
 
 	const eventTypeToTitle = useCallback(
 		(event: UserEvent) => {

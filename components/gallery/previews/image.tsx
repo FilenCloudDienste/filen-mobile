@@ -1,6 +1,6 @@
 import TurboImage, { type Failure } from "react-native-turbo-image"
 import { memo, useMemo, useState, useCallback, Fragment } from "react"
-import { type GalleryItem } from "@/stores/gallery.store"
+import type { GalleryItem } from "@/stores/gallery.store"
 import { View, ActivityIndicator, type NativeSyntheticEvent } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Animated, { FadeOut } from "react-native-reanimated"

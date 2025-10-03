@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next"
 import { Portal } from "@rn-primitives/portal"
 import { useAppStateStore } from "@/stores/appState.store"
 import { FullWindowOverlay } from "react-native-screens"
-import useLocalAuthenticationQuery from "@/queries/useLocalAuthenticationQuery"
+import useLocalAuthenticationQuery from "@/queries/useLocalAuthentication.query"
 import useIsAuthed from "@/hooks/useIsAuthed"
 
 export const ParentComponent = memo(({ children }: { children: React.ReactNode }) => {
@@ -82,7 +82,7 @@ export const Biometric = memo(() => {
 	const lastAppStateRef = useRef<AppStateStatus>("active")
 	const [isAuthed] = useIsAuthed()
 
-	const localAuthentication = useLocalAuthenticationQuery({})
+	const localAuthentication = useLocalAuthenticationQuery()
 
 	const enabled = useMemo(() => {
 		return isAuthed && (biometricAuth?.enabled ?? false)

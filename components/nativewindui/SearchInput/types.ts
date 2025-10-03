@@ -1,4 +1,4 @@
-import { type TextInput, type TextInputProps } from "react-native"
+import type { TextInput, TextInputProps } from "react-native"
 
 export type SearchInputProps = TextInputProps & {
 	containerClassName?: string

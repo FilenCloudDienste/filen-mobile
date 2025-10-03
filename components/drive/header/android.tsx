@@ -4,7 +4,7 @@ import { memo, useCallback, useMemo } from "react"
 import { useDriveStore } from "@/stores/drive.store"
 import RightView from "./rightView"
 import Search from "./search"
-import { type AdaptiveSearchHeaderProps } from "@/components/nativewindui/AdaptiveSearchHeader/types"
+import type { AdaptiveSearchHeaderProps } from "@/components/nativewindui/AdaptiveSearchHeader/types"
 import { useShallow } from "zustand/shallow"
 import useNetInfo from "@/hooks/useNetInfo"
 

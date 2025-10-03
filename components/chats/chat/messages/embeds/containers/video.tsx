@@ -6,69 +6,24 @@ import { useGalleryStore } from "@/stores/gallery.store"
 import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
 import Fallback from "./fallback"
-import { useQuery } from "@tanstack/react-query"
-import * as VideoThumbnails from "expo-video-thumbnails"
-import * as FileSystem from "expo-file-system/next"
-import { xxHash32 } from "js-xxhash"
 import TurboImage from "react-native-turbo-image"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
-import useNetInfo from "@/hooks/useNetInfo"
-import nodeWorker from "@/lib/nodeWorker"
 import assets from "@/lib/assets"
-import pathModule from "path"
+import useChatEmbedVideoThumbnailQuery from "@/queries/useChatEmbedVideoThumbnail.query"
 
 export const Video = memo(({ source, link, name }: { source: string; link: string; name: string }) => {
 	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
-	const { hasInternet } = useNetInfo()
 
-	const query = useQuery({
-		queryKey: ["chatEmbedVideoThumbnail", source, link, name],
-		enabled: source !== null && hasInternet,
-		queryFn: async () => {
-			const destination = new FileSystem.File(
-				pathModule.posix.join(
-					FileSystem.Paths.cache.uri,
-					`chat-embed-video-thumbnail-${xxHash32(`${source}:${link}`).toString(16)}${pathModule.posix.extname(name)}`
-				)
-			)
-
-			if (!destination.exists) {
-				const nodeWorkerHTTPServerAlive = await nodeWorker.httpServerAlive()
-
-				if (!nodeWorkerHTTPServerAlive) {
-					throw new Error("Node worker HTTP server is not alive.")
-				}
-
-				const videoThumbnail = await VideoThumbnails.getThumbnailAsync(source, {
-					quality: 0.7,
-					time: 500
-				})
-
-				const videoThumbnailFile = new FileSystem.File(videoThumbnail.uri)
-
-				if (!videoThumbnailFile.exists) {
-					throw new Error("Failed to generate video thumbnail.")
-				}
-
-				videoThumbnailFile.move(destination)
-
-				if (!destination.exists) {
-					throw new Error(`Generated thumbnail at ${destination.uri} does not exist.`)
-				}
-			}
-
-			return destination.uri
+	const query = useChatEmbedVideoThumbnailQuery(
+		{
+			source,
+			link,
+			name
 		},
-		throwOnError(err) {
-			console.error(err)
-
-			return false
-		},
-		refetchOnMount: false,
-		refetchOnReconnect: false,
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: false
-	})
+		{
+			enabled: source !== null
+		}
+	)
 
 	const onPress = useCallback(
 		async (e: GestureResponderEvent) => {

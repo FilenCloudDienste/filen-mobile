@@ -6,7 +6,7 @@ import { List, ListDataItem, ListItem, ListSectionHeader, type ListRenderItemInf
 import { Text } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { type SettingsItem, type SettingsProps } from "."
+import type { SettingsItem, SettingsProps } from "."
 
 export const ChevronRight = memo(() => {
 	const { colors } = useColorScheme()

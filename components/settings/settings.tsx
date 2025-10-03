@@ -1,6 +1,6 @@
 import { Icon, MaterialIconName } from "@roninoss/icons"
 import { View, ActivityIndicator } from "react-native"
-import { type SettingsItem, type SettingsProps } from "."
+import type { SettingsItem, SettingsProps } from "."
 import { Button } from "~/components/nativewindui/Button"
 import { List, ListDataItem, ListRenderItemInfo } from "~/components/nativewindui/List"
 import { Text } from "~/components/nativewindui/Text"

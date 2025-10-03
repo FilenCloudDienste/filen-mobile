@@ -1,4 +1,4 @@
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { useMemo, useEffect, useRef } from "react"
 
 export default function useIsProUser() {

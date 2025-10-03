@@ -1,7 +1,7 @@
 import { create } from "zustand"
-import { type CustomEmoji } from "@/components/chats/chat/messages/customEmojis"
-import { type ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
-import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
+import type { CustomEmoji } from "@/components/chats/chat/messages/customEmojis"
+import type { ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 
 export type PendingMessageStatus = "pending" | "sent" | "failed"
 export type PendingMessage = {

@@ -1,4 +1,4 @@
-import { type ConfigPlugin } from "@expo/config-plugins"
+import type { ConfigPlugin } from "@expo/config-plugins"
 import { withAppBuildGradle } from "@expo/config-plugins/build/plugins/android-plugins"
 import fs from "fs"
 import path from "path"

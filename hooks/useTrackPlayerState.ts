@@ -8,7 +8,7 @@ import {
 } from "@/lib/trackPlayer"
 import mmkvInstance from "@/lib/mmkv"
 import { useMMKVObject, useMMKVString } from "react-native-mmkv"
-import { useAudioPro } from "@/lib/audioPro"
+import { useAudioPro } from "react-native-audio-pro"
 import { AudioProState } from "react-native-audio-pro"
 import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
@@ -18,7 +18,14 @@ import { normalizeFilePathForExpo } from "@/lib/utils"
 import paths from "@/lib/paths"
 
 export function useTrackPlayerState() {
-	const trackPlayerState = useAudioPro()
+	const trackPlayerState = useAudioPro(state => ({
+		state: state.playerState,
+		error: state.error,
+		duration: state.duration,
+		position: state.position,
+		volume: state.volume,
+		playbackSpeed: state.playbackSpeed
+	}))
 	const [trackPlayerQueueMMKV] = useMMKVObject<AudioProTrackExtended[]>(TRACK_PLAYER_QUEUE_KEY, mmkvInstance)
 	const [playingTrackMMKV] = useMMKVObject<AudioProTrackExtended>(TRACK_PLAYER_PLAYING_TRACK_KEY, mmkvInstance)
 	const loadingTrack = useTrackPlayerStore(useShallow(state => state.loadingTrack))

@@ -3,16 +3,10 @@ import { ActivityIndicator, View, type StyleProp, type ViewStyle } from "react-n
 import { useColorScheme } from "@/lib/useColorScheme"
 import Container from "../Container"
 import PdfRendererView from "react-native-pdf-renderer"
-import { type PDFPreviewItem } from "@/app/pdfPreview"
+import type { PDFPreviewItem } from "@/app/pdfPreview"
 import useHTTPServer from "@/hooks/useHTTPServer"
 import alerts from "@/lib/alerts"
-import { useQuery } from "@tanstack/react-query"
-import * as FileSystemLegacy from "expo-file-system"
-import * as FileSystem from "expo-file-system/next"
-import paths from "@/lib/paths"
-import { normalizeFilePathForExpo } from "@/lib/utils"
-import { xxHash32 } from "js-xxhash"
-import pathModule from "path"
+import useDownloadFileTemporaryLocalQuery from "@/queries/useDownloadFileTemporaryLocal.query"
 
 export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 	const { colors } = useColorScheme()
@@ -49,41 +43,14 @@ export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 		}
 	}, [item, httpServer.port, httpServer.authToken])
 
-	const pdfFileUriQuery = useQuery({
-		queryKey: ["pdfFileUriQuery", source],
-		queryFn: async () => {
-			if (!source.uri) {
-				return null
-			}
-
-			if (!(source.uri.startsWith("http://") || source.uri.startsWith("https://"))) {
-				return normalizeFilePathForExpo(source.uri)
-			}
-
-			const file = new FileSystem.File(pathModule.posix.join(paths.temporaryDownloads(), `${xxHash32(source.uri).toString(16)}.pdf`))
-
-			if (file.exists) {
-				return file.uri
-			}
-
-			await FileSystemLegacy.downloadAsync(source.uri, file.uri, {
-				sessionType: FileSystemLegacy.FileSystemSessionType.BACKGROUND
-			})
-
-			return file.uri
+	const query = useDownloadFileTemporaryLocalQuery(
+		{
+			url: source.uri ?? ""
 		},
-		refetchOnMount: false,
-		refetchOnWindowFocus: false,
-		refetchOnReconnect: false,
-		refetchInterval: false,
-		refetchIntervalInBackground: false,
-		throwOnError(err) {
-			console.error(err)
-			alerts.error(err.message)
-
-			return false
+		{
+			enabled: (source.uri ?? "").length > 0
 		}
-	})
+	)
 
 	const onError = useCallback(() => {
 		alerts.error("Failed to load PDF file.")
@@ -100,7 +67,7 @@ export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 
 	return (
 		<Container>
-			{pdfFileUriQuery.status !== "success" || !pdfFileUriQuery.data ? (
+			{query.status !== "success" || !query.data ? (
 				<View className="flex-1 items-center justify-center">
 					<ActivityIndicator
 						color={colors.foreground}
@@ -109,7 +76,7 @@ export const Preview = memo(({ item }: { item: PDFPreviewItem }) => {
 				</View>
 			) : (
 				<PdfRendererView
-					source={pdfFileUriQuery.data}
+					source={query.data}
 					distanceBetweenPages={16}
 					maxZoom={2}
 					onError={onError}

@@ -6,9 +6,9 @@ import RightView from "./rightView"
 import LeftView from "./leftView"
 import { useDriveStore } from "@/stores/drive.store"
 import { Platform } from "react-native"
-import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
+import { useDirectorySizeQuery } from "@/queries/useDirectorySize.query"
 import { formatBytes, getPreviewType, normalizeFilePathForExpo } from "@/lib/utils"
-import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
+import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatus.query"
 import useNetInfo from "@/hooks/useNetInfo"
 import { viewDocument } from "@react-native-documents/viewer"
 import alerts from "@/lib/alerts"
@@ -18,15 +18,15 @@ import { useMMKVBoolean } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import Grid from "./grid"
 import { useShallow } from "zustand/shallow"
-import { type TextEditorItem } from "@/components/textEditor/editor"
-import { type PDFPreviewItem } from "@/app/pdfPreview"
-import { type DOCXPreviewItem } from "@/app/docxPreview"
+import type { TextEditorItem } from "@/components/textEditor/editor"
+import type { PDFPreviewItem } from "@/app/pdfPreview"
+import type { DOCXPreviewItem } from "@/app/docxPreview"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import cache from "@/lib/cache"
 import { useTranslation } from "react-i18next"
-import queryUtils from "@/queries/utils"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
+import type { ListRenderItemInfo } from "@shopify/flash-list"
+import { driveItemsQueryGet } from "@/queries/useDriveItems.query"
 
 export type ListItemInfo = {
 	title: string
@@ -64,18 +64,26 @@ export const ListItem = memo(
 		const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
 		const { t } = useTranslation()
 
-		const directorySize = useDirectorySizeQuery({
-			uuid: info.item.item.uuid,
-			enabled: info.item.item.type === "directory",
-			sharerId: queryParams.of === "sharedIn" && info.item.item.isShared ? info.item.item.sharerId : undefined,
-			receiverId: queryParams.of === "sharedOut" && info.item.item.isShared ? info.item.item.receiverId : undefined,
-			trash: queryParams.of === "trash" ? true : undefined
-		})
+		const directorySize = useDirectorySizeQuery(
+			{
+				uuid: info.item.item.uuid,
+				sharerId: queryParams.of === "sharedIn" && info.item.item.isShared ? info.item.item.sharerId : undefined,
+				receiverId: queryParams.of === "sharedOut" && info.item.item.isShared ? info.item.item.receiverId : undefined,
+				trash: queryParams.of === "trash" ? true : undefined
+			},
+			{
+				enabled: info.item.item.type === "directory"
+			}
+		)
 
-		const fileOfflineStatus = useFileOfflineStatusQuery({
-			uuid: info.item.item.uuid,
-			enabled: info.item.item.type === "file"
-		})
+		const fileOfflineStatus = useFileOfflineStatusQuery(
+			{
+				uuid: info.item.item.uuid
+			},
+			{
+				enabled: info.item.item.type === "file"
+			}
+		)
 
 		const item = useMemo(() => {
 			if (info.item.item.type !== "directory" || directorySize.status !== "success") {
@@ -192,7 +200,7 @@ export const ListItem = memo(
 				}
 
 				if (!hasInternet) {
-					const cachedContent = queryUtils.useCloudItemsQueryGet(
+					const cachedContent = driveItemsQueryGet(
 						pathname.startsWith("/home/links")
 							? {
 									of: "links",

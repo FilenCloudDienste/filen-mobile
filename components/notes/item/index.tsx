@@ -1,7 +1,7 @@
 import { memo, useMemo, useCallback } from "react"
 import Menu from "../menu"
 import { useRouter } from "expo-router"
-import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
+import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
 import { Button } from "@/components/nativewindui/Button"
 import { View, Platform } from "react-native"
 import useSDKConfig from "@/hooks/useSDKConfig"
@@ -13,7 +13,6 @@ import { simpleDate, contactName } from "@/lib/utils"
 import { Text } from "@/components/nativewindui/Text"
 import Tag from "../tag"
 import events from "@/lib/events"
-import queryUtils from "@/queries/utils"
 import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
@@ -23,6 +22,7 @@ import assets from "@/lib/assets"
 import { useMappingHelper } from "@shopify/flash-list"
 import { NoteIcon } from "./NoteIcon"
 import { SelectableListItem } from "../../SelectableListItem"
+import { noteContentQueryGet } from "@/queries/useNoteContent.query"
 
 const ICON_SIZE = 24
 
@@ -67,7 +67,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 		})
 
 		if (!hasInternet) {
-			const cachedContent = queryUtils.useNoteContentQueryGet({
+			const cachedContent = noteContentQueryGet({
 				uuid: note.uuid
 			})
 
@@ -179,10 +179,10 @@ export const Item = memo(({ note }: { note: Note }) => {
 													participant.avatar?.startsWith("https")
 														? {
 																uri: participant.avatar
-															}
+														  }
 														: {
 																uri: assets.uri.images.avatar_fallback()
-															}
+														  }
 												}
 												style={{
 													width: 36,

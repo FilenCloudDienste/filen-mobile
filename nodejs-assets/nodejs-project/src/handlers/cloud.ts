@@ -6,7 +6,7 @@ import transfersStore from "../stores/transfers.store"
 import { normalizeFilePathForNode } from "../lib/utils"
 import fs from "fs-extra"
 import { FS_RM_OPTIONS } from "../lib/constants"
-import { type CloudItemSharedReceiver } from "@filen/sdk/dist/types/cloud"
+import type { CloudItemSharedReceiver } from "@filen/sdk/dist/types/cloud"
 
 export type UploadFileParams = {
 	id: string

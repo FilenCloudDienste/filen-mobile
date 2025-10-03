@@ -1,5 +1,5 @@
 import { memo, useCallback, Fragment } from "react"
-import { type FileVersion } from "@filen/sdk/dist/types/api/v3/file/versions"
+import type { FileVersion } from "@filen/sdk/dist/types/api/v3/file/versions"
 import { Button } from "@/components/nativewindui/Button"
 import { View } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
@@ -8,17 +8,21 @@ import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { useTranslation } from "react-i18next"
-import useFileVersionsQuery from "@/queries/useFileVersionsQuery"
+import useFileVersionsQuery from "@/queries/useFileVersions.query"
 import { useRouter } from "expo-router"
 
 export const RightView = memo(({ item, version }: { item: DriveCloudItem; version: FileVersion }) => {
 	const { t } = useTranslation()
 	const { canGoBack, back } = useRouter()
 
-	const query = useFileVersionsQuery({
-		uuid: item.uuid,
-		enabled: false
-	})
+	const query = useFileVersionsQuery(
+		{
+			uuid: item.uuid
+		},
+		{
+			enabled: false
+		}
+	)
 
 	const restoreFileVersion = useCallback(async () => {
 		if (item.uuid === version.uuid) {

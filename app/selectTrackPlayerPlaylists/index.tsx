@@ -1,4 +1,4 @@
-import { usePlaylistsQuery } from "@/queries/usePlaylistsQuery"
+import { usePlaylistsQuery } from "@/queries/usePlaylists.query"
 import RequireInternet from "@/components/requireInternet"
 import { useCallback, useState, useMemo, useEffect } from "react"
 import events from "@/lib/events"
@@ -34,7 +34,7 @@ export default function SelectTrackPlayerPlaylists() {
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
-	const playlistsQuery = usePlaylistsQuery({})
+	const playlistsQuery = usePlaylistsQuery()
 
 	const maxParsed = useMemo(() => {
 		return typeof max === "string" ? parseInt(max) : 1

@@ -1,17 +1,17 @@
 import { memo, useMemo, useCallback } from "react"
 import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextItem } from "@/components/nativewindui/ContextMenu/utils"
-import { type ContextItem, type ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
+import type { ContextItem, ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { useTranslation } from "react-i18next"
 import { View, Platform } from "react-native"
 import useDimensions from "@/hooks/useDimensions"
 import alerts from "@/lib/alerts"
-import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import Messages from "../chat/messages"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import { useRouter } from "expo-router"
-import useChatUnreadCountQuery from "@/queries/useChatUnreadCountQuery"
+import useChatUnreadCountQuery from "@/queries/useChatUnreadCount.query"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
 import chatsService from "@/services/chats.service"
@@ -35,10 +35,14 @@ export const Menu = memo(
 		const { colors } = useColorScheme()
 		const { hasInternet } = useNetInfo()
 
-		const chatUnreadCountQuery = useChatUnreadCountQuery({
-			uuid: chat.uuid,
-			enabled: false
-		})
+		const chatUnreadCountQuery = useChatUnreadCountQuery(
+			{
+				conversation: chat.uuid
+			},
+			{
+				enabled: false
+			}
+		)
 
 		const unreadCount = useMemo(() => {
 			if (chatUnreadCountQuery.status !== "success") {

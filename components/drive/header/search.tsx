@@ -1,16 +1,15 @@
 import { memo, useCallback, useEffect, useState, useMemo } from "react"
 import nodeWorker from "@/lib/nodeWorker"
-import { View, type ViewabilityConfig } from "react-native"
+import { View } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
-import { type ViewToken } from "@shopify/flash-list"
 import alerts from "@/lib/alerts"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
-import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
+import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import ListItem, { type ListItemInfo } from "@/components/drive/list/listItem"
 import { orderItemsByType, simpleDate, formatBytes } from "@/lib/utils"
 import { useDebouncedCallback } from "use-debounce"
 import cache from "@/lib/cache"
-import { type SearchFindItemDecrypted } from "@filen/sdk/dist/types/api/v3/search/find"
+import type { SearchFindItemDecrypted } from "@filen/sdk/dist/types/api/v3/search/find"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import { useDriveStore } from "@/stores/drive.store"
@@ -22,8 +21,7 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 	const { t } = useTranslation()
 	const searchTerm = useDriveStore(useShallow(state => state.searchTerm))
 
-	const query = useCloudItemsQuery({
-		...queryParams,
+	const query = useDriveItemsQuery(queryParams, {
 		enabled: false
 	})
 
@@ -208,16 +206,6 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 		)
 	}, [t, items.length, isLoading])
 
-	const viewabilityConfig = useMemo(() => {
-		return {
-			itemVisiblePercentThreshold: 75
-		} satisfies ViewabilityConfig
-	}, [])
-
-	const onViewableItemsChanged = useCallback((e: { viewableItems: ViewToken<ListItemInfo>[]; changed: ViewToken<ListItemInfo>[] }) => {
-		useDriveStore.getState().setVisibleItemUuids(e.viewableItems.map(item => item.item.item.uuid))
-	}, [])
-
 	useEffect(() => {
 		if (searchTerm.length < 3 || queryParams.of !== "drive") {
 			setResults([])
@@ -243,8 +231,6 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 			refreshing={isLoading}
 			ListEmptyComponent={ListEmptyComponent}
 			ListFooterComponent={ListFooterComponent}
-			viewabilityConfig={viewabilityConfig}
-			onViewableItemsChanged={onViewableItemsChanged}
 		/>
 	)
 })

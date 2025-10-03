@@ -1,8 +1,8 @@
 import { useCallback, useState, useMemo, useEffect, useRef } from "react"
 import events from "@/lib/events"
-import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
+import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
-import { RefreshControl, View, Platform, type ViewabilityConfig } from "react-native"
+import { RefreshControl, View, Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router"
@@ -16,13 +16,13 @@ import cache from "@/lib/cache"
 import Item from "@/components/selectDriveItems/item"
 import { Button } from "@/components/nativewindui/Button"
 import { useShallow } from "zustand/shallow"
-import { type PreviewType } from "@/stores/gallery.store"
+import type { PreviewType } from "@/stores/gallery.store"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
 import useNetInfo from "@/hooks/useNetInfo"
-import { type ViewToken, type FlashListRef } from "@shopify/flash-list"
+import type { FlashListRef } from "@shopify/flash-list"
 import { useDriveStore } from "@/stores/drive.store"
 
 export type ListItemInfo = {
@@ -77,7 +77,7 @@ export default function SelectDriveItems() {
 		[parent, baseFolderUUID]
 	)
 
-	const query = useCloudItemsQuery(queryParams)
+	const query = useDriveItemsQuery(queryParams)
 
 	const items = useMemo((): ListItemInfo[] => {
 		if (query.status !== "success") {
@@ -280,35 +280,10 @@ export default function SelectDriveItems() {
 		)
 	}, [refreshing, onRefresh, hasInternet])
 
-	const viewabilityConfig = useMemo(() => {
-		return {
-			itemVisiblePercentThreshold: 75
-		} satisfies ViewabilityConfig
-	}, [])
-
-	const onViewableItemsChanged = useCallback((e: { viewableItems: ViewToken<ListItemInfo>[]; changed: ViewToken<ListItemInfo>[] }) => {
-		useDriveStore.getState().setVisibleItemUuids(e.viewableItems.map(item => item.item.item.uuid))
-	}, [])
-
-	const calculateVisibleItemsOnFocus = useCallback(() => {
-		if (!listRef?.current) {
-			return
-		}
-
-		const visibleIndices = listRef.current.computeVisibleIndices()
-		const uuids = items
-			.slice(visibleIndices.startIndex <= 0 ? 0 : visibleIndices.startIndex, visibleIndices.endIndex + 1)
-			.map(item => item.item.uuid)
-
-		useDriveStore.getState().setVisibleItemUuids(uuids)
-	}, [items])
-
 	useFocusEffect(
 		useCallback(() => {
 			useDriveStore.getState().setSelectedItems([])
-
-			calculateVisibleItemsOnFocus()
-		}, [calculateVisibleItemsOnFocus])
+		}, [])
 	)
 
 	useEffect(() => {
@@ -345,8 +320,6 @@ export default function SelectDriveItems() {
 					ListEmptyComponent={ListEmptyComponent}
 					ListFooterComponent={ListFooterComponent}
 					refreshControl={refreshControl}
-					viewabilityConfig={viewabilityConfig}
-					onViewableItemsChanged={onViewableItemsChanged}
 				/>
 			</Container>
 		</RequireInternet>

@@ -1,5 +1,5 @@
 import { memo, useMemo, useEffect, useState, Fragment, useCallback } from "react"
-import { type GalleryItem } from "@/stores/gallery.store"
+import type { GalleryItem } from "@/stores/gallery.store"
 import { View, ActivityIndicator, Pressable, Platform } from "react-native"
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -16,8 +16,8 @@ import Container from "@/components/Container"
 import { cn } from "@/lib/cn"
 import { Button } from "@/components/nativewindui/Button"
 import * as Sharing from "expo-sharing"
-import * as FileSystem from "expo-file-system/next"
-import * as FileSystemLegacy from "expo-file-system"
+import * as FileSystem from "expo-file-system"
+import * as FileSystemLegacy from "expo-file-system/legacy"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
@@ -79,7 +79,10 @@ export const Audio = memo(
 			return null
 		}, [item, httpServer.port, httpServer.authToken])
 
-		const player = useAudioPlayer(source, 100)
+		const player = useAudioPlayer(source, {
+			updateInterval: 100
+		})
+
 		const playerStatus = useAudioPlayerStatus(player)
 
 		const togglePlay = useCallback(() => {

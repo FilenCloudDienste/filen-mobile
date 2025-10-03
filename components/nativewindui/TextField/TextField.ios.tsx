@@ -1,7 +1,7 @@
 import { useAugmentedRef, useControllableState } from "@rn-primitives/hooks"
 import { forwardRef, memo, useCallback } from "react"
 import { Pressable, TextInput, View } from "react-native"
-import { type TextFieldProps, type TextFieldRef } from "./types"
+import type { TextFieldProps, TextFieldRef } from "./types"
 import { Text } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 

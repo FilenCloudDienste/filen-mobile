@@ -1,5 +1,5 @@
 import { View, Platform } from "react-native"
-import { type Playlist, fetchPlaylists } from "@/queries/usePlaylistsQuery"
+import { type Playlist, fetchData as fetchPlaylists } from "@/queries/usePlaylists.query"
 import { useMemo, memo, useCallback } from "react"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -22,7 +22,7 @@ import events from "@/lib/events"
 import { useSelectTrackPlayerPlaylistsStore } from "@/stores/selectTrackPlayerPlaylists.store"
 import { useShallow } from "zustand/shallow"
 import { Checkbox } from "../nativewindui/Checkbox"
-import { type SelectTrackPlayerPlaylistsParams } from "@/services/trackPlayer.service"
+import type { SelectTrackPlayerPlaylistsParams } from "@/services/trackPlayer.service"
 import { ListItem, type ListRenderItemInfo } from "../nativewindui/List"
 import pathModule from "path"
 import { normalizeFilePathForExpo } from "@/lib/utils"
@@ -252,7 +252,7 @@ export const Item = memo(
 								textStyle: {
 									color: colors.foreground
 								}
-							}
+						  }
 						: {})
 				},
 				async (selectedIndex?: number) => {

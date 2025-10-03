@@ -1,6 +1,6 @@
 import { memo, useMemo, useCallback } from "react"
 import { List as ListComponent, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
-import useFileVersionsQuery from "@/queries/useFileVersionsQuery"
+import useFileVersionsQuery from "@/queries/useFileVersions.query"
 import { simpleDate } from "@/lib/utils"
 import Item, { type ListItemInfo } from "./item"
 import Container from "@/components/Container"

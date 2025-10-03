@@ -3,11 +3,11 @@ import { Button } from "@/components/nativewindui/Button"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator, type ViewabilityConfig } from "react-native"
+import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator } from "react-native"
 import Thumbnail from "@/components/thumbnail/item"
 import { cn } from "@/lib/cn"
 import { Container } from "@/components/Container"
-import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
+import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import { getPreviewType, orderItemsByType } from "@/lib/utils"
 import { useGalleryStore } from "@/stores/gallery.store"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -23,7 +23,7 @@ import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { useShallow } from "zustand/shallow"
 import Menu from "@/components/drive/list/listItem/menu"
 import OfflineListHeader from "@/components/offlineListHeader"
-import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
+import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatus.query"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
@@ -31,8 +31,7 @@ import { usePhotosStore } from "@/stores/photos.store"
 import Dropdown from "@/components/photos/header/rightView/dropdown"
 import { Checkbox } from "@/components/nativewindui/Checkbox"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
-import { FlashList, type ListRenderItemInfo, type ViewToken, type FlashListRef } from "@shopify/flash-list"
-import { useDriveStore } from "@/stores/drive.store"
+import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 
 const contentContainerStyle = {
 	paddingBottom: 100,
@@ -92,7 +91,7 @@ export const Photo = memo(
 										item,
 										queryParams
 									}
-								}
+							  }
 							: null
 					})
 					.filter(item => item !== null),
@@ -209,8 +208,7 @@ export const Photos = memo(() => {
 		return cameraUpload.remote && validateUUID(cameraUpload.remote.uuid) ? true : false
 	}, [cameraUpload.remote])
 
-	const query = useCloudItemsQuery({
-		...queryParams,
+	const query = useDriveItemsQuery(queryParams, {
 		enabled: cameraUploadRemoteSetup
 	})
 
@@ -434,40 +432,12 @@ export const Photos = memo(() => {
 		return !hasInternet ? <OfflineListHeader /> : undefined
 	}, [hasInternet])
 
-	const viewabilityConfig = useMemo(() => {
-		return {
-			itemVisiblePercentThreshold: 75
-		} satisfies ViewabilityConfig
-	}, [])
-
-	const onViewableItemsChanged = useCallback(
-		(e: { viewableItems: ViewToken<DriveCloudItem>[]; changed: ViewToken<DriveCloudItem>[] }) => {
-			useDriveStore.getState().setVisibleItemUuids(e.viewableItems.map(item => item.item.uuid))
-		},
-		[]
-	)
-
-	const calculateVisibleItemsOnFocus = useCallback(() => {
-		if (!listRef?.current) {
-			return
-		}
-
-		const visibleIndices = listRef.current.computeVisibleIndices()
-		const uuids = items
-			.slice(visibleIndices.startIndex <= 0 ? 0 : visibleIndices.startIndex, visibleIndices.endIndex + 1)
-			.map(item => item.uuid)
-
-		useDriveStore.getState().setVisibleItemUuids(uuids)
-	}, [items])
-
 	useFocusEffect(
 		useCallback(() => {
 			usePhotosStore.getState().setSelectedItems([])
 
-			calculateVisibleItemsOnFocus()
-
 			foregroundCameraUpload.run().catch(console.error)
-		}, [calculateVisibleItemsOnFocus])
+		}, [])
 	)
 
 	return (
@@ -498,8 +468,8 @@ export const Photos = memo(() => {
 						ListEmptyComponent={ListEmptyComponent}
 						contentContainerStyle={contentContainerStyle}
 						refreshControl={refreshControl}
-						viewabilityConfig={viewabilityConfig}
-						onViewableItemsChanged={onViewableItemsChanged}
+						maxItemsInRecyclePool={0}
+						drawDistance={0}
 					/>
 				</View>
 			</Container>

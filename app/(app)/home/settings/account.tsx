@@ -1,7 +1,7 @@
 import { memo, useMemo, useCallback } from "react"
 import { Settings as SettingsComponent } from "@/components/settings"
 import Avatar from "@/components/avatar"
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { contactName, formatBytes, sanitizeFileName, normalizeFilePathForNode } from "@/lib/utils"
 import { useRouter } from "expo-router"
 import { Platform } from "react-native"
@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import * as ImagePicker from "expo-image-picker"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import * as Sharing from "expo-sharing"
@@ -353,7 +353,9 @@ export const Account = memo(() => {
 
 				const content = await nodeWorker.proxy("fetchGDPR", undefined)
 
-				tmpFile.write(JSON.stringify(content, null, 4))
+				tmpFile.write(JSON.stringify(content, null, 4), {
+					encoding: "utf8"
+				})
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
@@ -543,7 +545,7 @@ export const Account = memo(() => {
 				id: "1",
 				title: t("settings.account.items.emailAddress"),
 				rightText: account.data?.account.email ?? "",
-				subTitle: Platform.OS === "android" ? (account.data?.account.email ?? "") : undefined,
+				subTitle: Platform.OS === "android" ? account.data?.account.email ?? "" : undefined,
 				onPress: changeEmail
 			},
 			{

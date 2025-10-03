@@ -2,11 +2,11 @@ import { useRouter } from "expo-router"
 import { memo, useCallback, useMemo } from "react"
 import { ListItem as ListItemComponent, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import { useSelectDriveItemsStore } from "@/stores/selectDriveItems.store"
-import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
+import { useDirectorySizeQuery } from "@/queries/useDirectorySize.query"
 import { formatBytes, getPreviewType } from "@/lib/utils"
 import LeftView from "./leftView"
 import { useShallow } from "zustand/shallow"
-import { type PreviewType } from "@/stores/gallery.store"
+import type { PreviewType } from "@/stores/gallery.store"
 import pathModule from "path"
 import { Platform } from "react-native"
 
@@ -40,13 +40,17 @@ export const Item = memo(
 		const isSelected = useSelectDriveItemsStore(useShallow(state => state.selectedItems.some(i => i.uuid === info.item.item.uuid)))
 		const selectedItemsCount = useSelectDriveItemsStore(useShallow(state => state.selectedItems.length))
 
-		const directorySize = useDirectorySizeQuery({
-			uuid: info.item.item.uuid,
-			enabled: info.item.item.type === "directory",
-			sharerId: queryParams.of === "sharedIn" && info.item.item.isShared ? info.item.item.sharerId : undefined,
-			receiverId: queryParams.of === "sharedOut" && info.item.item.isShared ? info.item.item.receiverId : undefined,
-			trash: queryParams.of === "trash" ? true : undefined
-		})
+		const directorySize = useDirectorySizeQuery(
+			{
+				uuid: info.item.item.uuid,
+				sharerId: queryParams.of === "sharedIn" && info.item.item.isShared ? info.item.item.sharerId : undefined,
+				receiverId: queryParams.of === "sharedOut" && info.item.item.isShared ? info.item.item.receiverId : undefined,
+				trash: queryParams.of === "trash" ? true : undefined
+			},
+			{
+				enabled: info.item.item.type === "directory"
+			}
+		)
 
 		const canSelect = useMemo(() => {
 			if (isSelected) {

@@ -1,7 +1,7 @@
 import { memo, useCallback, useMemo } from "react"
 import Menu from "./menu"
 import { Button } from "@/components/nativewindui/Button"
-import { type NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
+import type { NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
 import { Icon } from "@roninoss/icons"
 import { Text } from "@/components/nativewindui/Text"
 import { useMMKVString } from "react-native-mmkv"
@@ -9,11 +9,11 @@ import mmkvInstance from "@/lib/mmkv"
 import { validate as validateUUID } from "uuid"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { useTranslation } from "react-i18next"
-import queryUtils from "@/queries/utils"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import { cn } from "@/lib/cn"
+import { notesTagsQueryUpdate } from "@/queries/useNotesTags.query"
 
 export const Tag = memo(
 	({ tag, name, id, withRightMargin }: { tag: NoteTag | null; name: string; id: string; withRightMargin?: boolean }) => {
@@ -77,7 +77,7 @@ export const Tag = memo(
 					name
 				})
 
-				queryUtils.useNotesTagsQuerySet({
+				notesTagsQueryUpdate({
 					updater: prev => [
 						...prev.filter(t => t.uuid !== uuid),
 						{
