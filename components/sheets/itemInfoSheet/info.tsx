@@ -4,8 +4,8 @@ import { formatBytes, simpleDate } from "@/lib/utils"
 import { View } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useTranslation } from "react-i18next"
-import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
-import useItemToPathQuery from "@/queries/useItemToPathQuery"
+import { useDirectorySizeQuery } from "@/queries/useDirectorySize.query"
+import useItemPathQuery from "@/queries/useItemPath.query"
 import Thumbnail from "@/components/thumbnail/item"
 import useSDKConfig from "@/hooks/useSDKConfig"
 
@@ -24,15 +24,23 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 		return item.sharerId === userId
 	}, [userId, item])
 
-	const directorySize = useDirectorySizeQuery({
-		uuid: item.uuid,
-		enabled: item.type === "directory"
-	})
+	const directorySize = useDirectorySizeQuery(
+		{
+			uuid: item.uuid
+		},
+		{
+			enabled: item.type === "directory"
+		}
+	)
 
-	const itemPath = useItemToPathQuery({
-		item,
-		enabled: isOwner
-	})
+	const itemPath = useItemPathQuery(
+		{
+			item
+		},
+		{
+			enabled: isOwner
+		}
+	)
 
 	return (
 		<View className="flex-col gap-4">

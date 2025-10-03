@@ -9,11 +9,11 @@ import mmkvInstance from "@/lib/mmkv"
 import { validate as validateUUID } from "uuid"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { useTranslation } from "react-i18next"
-import queryUtils from "@/queries/utils"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import { cn } from "@/lib/cn"
+import { notesTagsQueryUpdate } from "@/queries/useNotesTags.query"
 
 export const Tag = memo(
 	({ tag, name, id, withRightMargin }: { tag: NoteTag | null; name: string; id: string; withRightMargin?: boolean }) => {
@@ -77,7 +77,7 @@ export const Tag = memo(
 					name
 				})
 
-				queryUtils.useNotesTagsQuerySet({
+				notesTagsQueryUpdate({
 					updater: prev => [
 						...prev.filter(t => t.uuid !== uuid),
 						{

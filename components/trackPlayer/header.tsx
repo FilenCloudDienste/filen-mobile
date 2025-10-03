@@ -1,5 +1,5 @@
 import { Platform, View } from "react-native"
-import { type Playlist, usePlaylistsQuery, updatePlaylist } from "@/queries/usePlaylistsQuery"
+import { type Playlist, usePlaylistsQuery, updatePlaylist, playlistsQueryUpdate } from "@/queries/usePlaylists.query"
 import { useCallback, memo, useMemo } from "react"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
@@ -11,7 +11,6 @@ import { useTranslation } from "react-i18next"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import { randomUUID } from "expo-crypto"
-import queryUtils from "@/queries/utils"
 import { useLocalSearchParams } from "expo-router"
 import driveService from "@/services/drive.service"
 import { type TrackMetadata, trackPlayer } from "@/lib/trackPlayer"
@@ -99,10 +98,16 @@ export const Header = memo(() => {
 		fullScreenLoadingModal.show()
 
 		try {
-			await updatePlaylist(newPlaylist)
+			const { fileUuid } = await updatePlaylist(newPlaylist)
 
-			queryUtils.usePlaylistsQuerySet({
-				updater: prev => [...prev.filter(p => p.uuid !== uuid), newPlaylist]
+			playlistsQueryUpdate({
+				updater: prev => [
+					...prev.filter(p => p.uuid !== uuid),
+					{
+						...newPlaylist,
+						fileUUID: fileUuid
+					}
+				]
 			})
 		} catch (e) {
 			console.error(e)
@@ -159,7 +164,7 @@ export const Header = memo(() => {
 		try {
 			await updatePlaylist(newPlaylist)
 
-			queryUtils.usePlaylistsQuerySet({
+			playlistsQueryUpdate({
 				updater: prev => [...prev.filter(p => p.uuid !== playlist.uuid), newPlaylist]
 			})
 		} catch (e) {

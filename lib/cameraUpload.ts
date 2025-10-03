@@ -16,9 +16,9 @@ import { ImageManipulator, SaveFormat } from "expo-image-manipulator"
 import { type FileMetadata } from "@filen/sdk"
 import { getSDK } from "./sdk"
 import upload from "@/lib/upload"
-import queryUtils from "@/queries/utils"
 import { xxHash32 } from "js-xxhash"
 import pathModule from "path"
+import { driveItemsQueryUpdate } from "@/queries/useDriveItems.query"
 
 export type TreeItem = (
 	| {
@@ -548,16 +548,18 @@ export class CameraUpload {
 						}
 
 						if (this.type === "foreground") {
-							queryUtils.useCloudItemsQuerySet({
-								receiverId: 0,
-								of: "photos",
-								parent: state.remote.uuid,
+							driveItemsQueryUpdate({
+								params: {
+									receiverId: 0,
+									of: "photos",
+									parent: state.remote.uuid
+								},
 								updater: prev => [
 									...prev.filter(i => i.uuid !== item.uuid),
 									{
 										...item,
 										...newFileMetadata
-									}
+									} satisfies DriveCloudItem
 								]
 							})
 						}

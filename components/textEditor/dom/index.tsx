@@ -6,7 +6,6 @@ import { loadLanguage } from "./langs"
 import { xcodeLight, xcodeDark } from "@uiw/codemirror-theme-xcode"
 import { materialDark, materialLight } from "@uiw/codemirror-theme-material"
 import MDEditor from "@uiw/react-md-editor"
-import "@uiw/react-md-editor/dist/mdeditor.min.css"
 
 const TextEditor = memo(
 	({

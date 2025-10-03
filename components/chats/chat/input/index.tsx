@@ -19,13 +19,12 @@ import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import Semaphore from "@/lib/semaphore"
 import { randomUUID } from "expo-crypto"
-import queryUtils from "@/queries/utils"
 import useSDKConfig from "@/hooks/useSDKConfig"
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { useChatsStore } from "@/stores/chats.store"
-import useChatsLastFocusQuery from "@/queries/useChatsLastFocusQuery"
-import useChatUnreadQuery from "@/queries/useChatUnreadQuery"
-import useChatUnreadCountQuery from "@/queries/useChatUnreadCountQuery"
+import useChatsLastFocusQuery, { chatsLastFocusQueryUpdate } from "@/queries/useChatsLastFocus.query"
+import useChatUnreadQuery, { chatUnreadQueryUpdate } from "@/queries/useChatUnread.query"
+import useChatUnreadCountQuery, { chatUnreadCountQueryUpdate } from "@/queries/useChatUnreadCount.query"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { customEmojis } from "../messages/customEmojis"
@@ -41,6 +40,7 @@ import ReplyTo from "./suggestions/replyTo"
 import Emojis from "./suggestions/emojis"
 import Typing from "../messages/typing"
 import Mention from "./suggestions/mention"
+import { chatMessagesQueryUpdate } from "@/queries/useChatMessages.query"
 
 export const Input = memo(
 	({ chat, setInputHeight }: { chat: ChatConversation; setInputHeight: React.Dispatch<React.SetStateAction<number>> }) => {
@@ -93,10 +93,14 @@ export const Input = memo(
 			enabled: false
 		})
 
-		const chatUnreadCountQuery = useChatUnreadCountQuery({
-			uuid: chat.uuid,
-			enabled: false
-		})
+		const chatUnreadCountQuery = useChatUnreadCountQuery(
+			{
+				conversation: chat.uuid
+			},
+			{
+				enabled: false
+			}
+		)
 
 		const lastFocus = useMemo(() => {
 			if (chatsLastFocusQuery.status !== "success") {
@@ -408,8 +412,10 @@ export const Input = memo(
 				}))
 
 				if (editMessageCopied) {
-					queryUtils.useChatMessagesQuerySet({
-						uuid: chat.uuid,
+					chatMessagesQueryUpdate({
+						params: {
+							conversation: chat.uuid
+						},
 						updater: prev =>
 							prev.map(m =>
 								m.uuid === editMessageCopied.uuid
@@ -423,8 +429,10 @@ export const Input = memo(
 							)
 					})
 				} else {
-					queryUtils.useChatMessagesQuerySet({
-						uuid: chat.uuid,
+					chatMessagesQueryUpdate({
+						params: {
+							conversation: chat.uuid
+						},
 						updater: prev => [
 							...prev.filter(m => m.uuid !== uuid),
 							{
@@ -460,10 +468,12 @@ export const Input = memo(
 						]
 					})
 
-					queryUtils.useChatUnreadCountQuerySet({
-						uuid: chat.uuid,
+					chatUnreadCountQueryUpdate({
+						params: {
+							conversation: chat.uuid
+						},
 						updater: count => {
-							queryUtils.useChatUnreadQuerySet({
+							chatUnreadQueryUpdate({
 								updater: prev => (prev - count >= 0 ? prev - count : 0)
 							})
 
@@ -474,7 +484,7 @@ export const Input = memo(
 
 				const lastFocusTimestamp = Date.now()
 
-				queryUtils.useChatsLastFocusQuerySet({
+				chatsLastFocusQueryUpdate({
 					updater: prev =>
 						prev.map(v =>
 							v.uuid === chat.uuid

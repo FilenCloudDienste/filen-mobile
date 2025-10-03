@@ -2,11 +2,11 @@ import { memo, useMemo } from "react"
 import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { View } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
-import useChatUnreadCountQuery from "@/queries/useChatUnreadCountQuery"
+import useChatUnreadCountQuery from "@/queries/useChatUnreadCount.query"
 
 export const Unread = memo(({ chat }: { chat: ChatConversation }) => {
 	const chatUnreadCountQuery = useChatUnreadCountQuery({
-		uuid: chat.uuid
+		conversation: chat.uuid
 	})
 
 	const unreadCount = useMemo(() => {

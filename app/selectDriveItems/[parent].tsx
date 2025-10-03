@@ -1,6 +1,6 @@
 import { useCallback, useState, useMemo, useEffect, useRef } from "react"
 import events from "@/lib/events"
-import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
+import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import { RefreshControl, View, Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
@@ -77,7 +77,7 @@ export default function SelectDriveItems() {
 		[parent, baseFolderUUID]
 	)
 
-	const query = useCloudItemsQuery(queryParams)
+	const query = useDriveItemsQuery(queryParams)
 
 	const items = useMemo((): ListItemInfo[] => {
 		if (query.status !== "success") {

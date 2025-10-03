@@ -4,12 +4,12 @@ import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Platform, RefreshControl, View, ScrollView } from "react-native"
 import { cn } from "@/lib/cn"
-import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
+import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import Avatar from "@/components/avatar"
 import { Container } from "@/components/Container"
 import { useRouter, useFocusEffect } from "expo-router"
 import { orderItemsByType } from "@/lib/utils"
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { Icon } from "@roninoss/icons"
 import Transfers from "@/components/drive/header/transfers"
 import alerts from "@/lib/alerts"
@@ -22,6 +22,7 @@ import useIsProUser from "@/hooks/useIsProUser"
 import assets from "@/lib/assets"
 import { useDriveStore } from "@/stores/drive.store"
 import { foregroundCameraUpload } from "@/lib/cameraUpload"
+import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -122,117 +123,121 @@ export const Home = memo(() => {
 	const { t } = useTranslation()
 	const isProUser = useIsProUser()
 
-	const recents = useCloudItemsQuery({
+	const recentsQuery = useDriveItemsQuery({
 		parent: "recents",
 		of: "recents",
 		receiverId: 0
 	})
 
-	const favorites = useCloudItemsQuery({
+	const favoritesQuery = useDriveItemsQuery({
 		parent: "favorites",
 		of: "favorites",
 		receiverId: 0
 	})
 
-	const links = useCloudItemsQuery({
-		parent: "links",
-		of: "links",
-		receiverId: 0,
-		enabled: isProUser
-	})
+	const linksQuery = useDriveItemsQuery(
+		{
+			parent: "links",
+			of: "links",
+			receiverId: 0
+		},
+		{
+			enabled: isProUser
+		}
+	)
 
-	const sharedIn = useCloudItemsQuery({
+	const sharedInQuery = useDriveItemsQuery({
 		parent: "shared-in",
 		of: "sharedIn",
 		receiverId: 0
 	})
 
-	const sharedOut = useCloudItemsQuery({
+	const sharedOutQuery = useDriveItemsQuery({
 		parent: "shared-out",
 		of: "sharedOut",
 		receiverId: 0
 	})
 
-	const offline = useCloudItemsQuery({
+	const offlineQuery = useDriveItemsQuery({
 		parent: "offline",
 		of: "offline",
 		receiverId: 0
 	})
 
-	const trash = useCloudItemsQuery({
+	const trashQuery = useDriveItemsQuery({
 		parent: "trash",
 		of: "trash",
 		receiverId: 0
 	})
 
-	const account = useAccountQuery({})
+	const accountQuery = useAccountQuery()
 
 	const recentsItems = useMemo(() => {
-		return recents.status === "success"
+		return recentsQuery.status === "success"
 			? orderItemsByType({
-					items: recents.data.filter(item => item.type === "file").slice(0, 12),
+					items: recentsQuery.data.filter(item => item.type === "file").slice(0, 12),
 					type: "uploadDateDesc"
 			  })
 			: []
-	}, [recents.status, recents.data])
+	}, [recentsQuery.status, recentsQuery.data])
 
 	const favoritesItems = useMemo(() => {
-		return favorites.status === "success"
+		return favoritesQuery.status === "success"
 			? orderItemsByType({
-					items: favorites.data.filter(item => item.type === "file").slice(0, 12),
+					items: favoritesQuery.data.filter(item => item.type === "file").slice(0, 12),
 					type: "lastModifiedDesc"
 			  })
 			: []
-	}, [favorites.status, favorites.data])
+	}, [favoritesQuery.status, favoritesQuery.data])
 
 	const linksItems = useMemo(() => {
 		if (!isProUser) {
 			return []
 		}
 
-		return links.status === "success"
+		return linksQuery.status === "success"
 			? orderItemsByType({
-					items: links.data.slice(0, 12),
+					items: linksQuery.data.slice(0, 12),
 					type: "lastModifiedDesc"
 			  })
 			: []
-	}, [links.status, links.data, isProUser])
+	}, [linksQuery.status, linksQuery.data, isProUser])
 
 	const sharedInItems = useMemo(() => {
-		return sharedIn.status === "success"
+		return sharedInQuery.status === "success"
 			? orderItemsByType({
-					items: sharedIn.data.slice(0, 12),
+					items: sharedInQuery.data.slice(0, 12),
 					type: "lastModifiedDesc"
 			  })
 			: []
-	}, [sharedIn.status, sharedIn.data])
+	}, [sharedInQuery.status, sharedInQuery.data])
 
 	const sharedOutItems = useMemo(() => {
-		return sharedOut.status === "success"
+		return sharedOutQuery.status === "success"
 			? orderItemsByType({
-					items: sharedOut.data.slice(0, 12),
+					items: sharedOutQuery.data.slice(0, 12),
 					type: "lastModifiedDesc"
 			  })
 			: []
-	}, [sharedOut.status, sharedOut.data])
+	}, [sharedOutQuery.status, sharedOutQuery.data])
 
 	const offlineItems = useMemo(() => {
-		return offline.status === "success"
+		return offlineQuery.status === "success"
 			? orderItemsByType({
-					items: offline.data.slice(0, 12),
+					items: offlineQuery.data.slice(0, 12),
 					type: "lastModifiedDesc"
 			  })
 			: []
-	}, [offline.status, offline.data])
+	}, [offlineQuery.status, offlineQuery.data])
 
 	const trashItems = useMemo(() => {
-		return trash.status === "success"
+		return trashQuery.status === "success"
 			? orderItemsByType({
-					items: trash.data.slice(0, 12),
+					items: trashQuery.data.slice(0, 12),
 					type: "lastModifiedDesc"
 			  })
 			: []
-	}, [trash.status, trash.data])
+	}, [trashQuery.status, trashQuery.data])
 
 	const openSettings = useCallback(() => {
 		router.push({
@@ -241,19 +246,23 @@ export const Home = memo(() => {
 	}, [router])
 
 	const avatarSource = useMemo(() => {
-		if (account.status !== "success" || !account.data.account.avatarURL || !account.data.account.avatarURL.startsWith("https://")) {
+		if (
+			accountQuery.status !== "success" ||
+			!accountQuery.data.account.avatarURL ||
+			!accountQuery.data.account.avatarURL.startsWith("https://")
+		) {
 			return {
 				uri: assets.uri.images.avatar_fallback()
 			}
 		}
 
 		return {
-			uri: account.data.account.avatarURL
+			uri: accountQuery.data.account.avatarURL
 		}
-	}, [account.data, account.status])
+	}, [accountQuery.data, accountQuery.status])
 
 	const headerLeftView = useMemo(() => {
-		return account.status === "success" && hasInternet
+		return accountQuery.status === "success" && hasInternet
 			? () => {
 					return (
 						<View className="flex flex-row items-center">
@@ -274,7 +283,7 @@ export const Home = memo(() => {
 					)
 			  }
 			: undefined
-	}, [account.status, hasInternet, avatarSource, openSettings])
+	}, [accountQuery.status, hasInternet, avatarSource, openSettings])
 
 	const headerRightView = useCallback(() => {
 		return (
@@ -309,14 +318,14 @@ export const Home = memo(() => {
 
 		try {
 			await Promise.all([
-				recents.refetch(),
-				favorites.refetch(),
-				isProUser ? links.refetch() : Promise.resolve(),
-				sharedIn.refetch(),
-				sharedOut.refetch(),
-				offline.refetch(),
-				trash.refetch(),
-				account.refetch()
+				recentsQuery.refetch(),
+				favoritesQuery.refetch(),
+				isProUser ? linksQuery.refetch() : Promise.resolve(),
+				sharedInQuery.refetch(),
+				sharedOutQuery.refetch(),
+				offlineQuery.refetch(),
+				trashQuery.refetch(),
+				accountQuery.refetch()
 			])
 		} catch (e) {
 			console.error(e)
@@ -327,7 +336,7 @@ export const Home = memo(() => {
 		} finally {
 			setRefreshing(false)
 		}
-	}, [recents, favorites, links, sharedIn, sharedOut, offline, trash, account, isProUser])
+	}, [recentsQuery, favoritesQuery, linksQuery, sharedInQuery, sharedOutQuery, offlineQuery, trashQuery, accountQuery, isProUser])
 
 	const refreshControl = useMemo(() => {
 		if (!hasInternet) {
@@ -344,13 +353,13 @@ export const Home = memo(() => {
 
 	const items = useMemo(() => {
 		return [
-			...(recents.status === "success" ? ["recents"] : []),
-			...(favorites.status === "success" ? ["favorites"] : []),
-			...(isProUser && links.status === "success" ? ["links"] : []),
-			...(sharedIn.status === "success" ? ["sharedIn"] : []),
-			...(sharedOut.status === "success" ? ["sharedOut"] : []),
-			...(offline.status === "success" ? ["offline"] : []),
-			...(hasInternet && trash.status === "success" ? ["trash"] : []),
+			...(recentsQuery.status === "success" ? ["recents"] : []),
+			...(favoritesQuery.status === "success" ? ["favorites"] : []),
+			...(isProUser && linksQuery.status === "success" ? ["links"] : []),
+			...(sharedInQuery.status === "success" ? ["sharedIn"] : []),
+			...(sharedOutQuery.status === "success" ? ["sharedOut"] : []),
+			...(offlineQuery.status === "success" ? ["offline"] : []),
+			...(hasInternet && trashQuery.status === "success" ? ["trash"] : []),
 			"bottom"
 		].map(type => {
 			return (
@@ -387,13 +396,13 @@ export const Home = memo(() => {
 		offlineItems,
 		trashItems,
 		isProUser,
-		recents.status,
-		favorites.status,
-		links.status,
-		sharedIn.status,
-		sharedOut.status,
-		offline.status,
-		trash.status
+		recentsQuery.status,
+		favoritesQuery.status,
+		linksQuery.status,
+		sharedInQuery.status,
+		sharedOutQuery.status,
+		offlineQuery.status,
+		trashQuery.status
 	])
 
 	useEffect(() => {
@@ -425,7 +434,16 @@ export const Home = memo(() => {
 					refreshControl={refreshControl}
 				>
 					{!hasInternet && <OfflineListHeader className="mb-4" />}
-					{items}
+					{items.length > 1 ? (
+						items
+					) : (
+						<View className="flex flex-1 justify-center items-center mt-32">
+							<ActivityIndicator
+								size="small"
+								color={colors.foreground}
+							/>
+						</View>
+					)}
 				</ScrollView>
 			</Container>
 		</Fragment>

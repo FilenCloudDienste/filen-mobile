@@ -4,10 +4,10 @@ import { View, Platform } from "react-native"
 import { simpleDate, formatBytes, getPreviewType, normalizeFilePathForExpo } from "@/lib/utils"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
-import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
+import { useDirectorySizeQuery } from "@/queries/useDirectorySize.query"
 import { useRouter } from "expo-router"
 import { viewDocument } from "@react-native-documents/viewer"
-import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
+import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatus.query"
 import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
 import { useGalleryStore } from "@/stores/gallery.store"
@@ -18,7 +18,7 @@ import { type TextEditorItem } from "@/components/textEditor/editor"
 import { type PDFPreviewItem } from "@/app/pdfPreview"
 import { type DOCXPreviewItem } from "@/app/docxPreview"
 import { useTranslation } from "react-i18next"
-import queryUtils from "@/queries/utils"
+import { driveItemsQueryGet } from "@/queries/useDriveItems.query"
 
 export const ICON_HEIGHT: number = 44
 
@@ -47,18 +47,26 @@ export const Item = memo(
 			} satisfies FetchCloudItemsParams
 		}, [type, item])
 
-		const directorySize = useDirectorySizeQuery({
-			uuid: item.uuid,
-			enabled: item.type === "directory",
-			sharerId: type === "sharedIn" && item.isShared ? item.sharerId : undefined,
-			receiverId: type === "sharedOut" && item.isShared ? item.receiverId : undefined,
-			trash: type === "trash" ? true : undefined
-		})
+		const directorySize = useDirectorySizeQuery(
+			{
+				uuid: item.uuid,
+				sharerId: type === "sharedIn" && item.isShared ? item.sharerId : undefined,
+				receiverId: type === "sharedOut" && item.isShared ? item.receiverId : undefined,
+				trash: type === "trash" ? true : undefined
+			},
+			{
+				enabled: item.type === "directory"
+			}
+		)
 
-		const fileOfflineStatus = useFileOfflineStatusQuery({
-			uuid: item.uuid,
-			enabled: item.type === "file"
-		})
+		const fileOfflineStatus = useFileOfflineStatusQuery(
+			{
+				uuid: item.uuid
+			},
+			{
+				enabled: item.type === "file"
+			}
+		)
 
 		const offlineStatus = useMemo(() => {
 			return item.type === "file" && fileOfflineStatus.status === "success" ? fileOfflineStatus.data : null
@@ -67,7 +75,7 @@ export const Item = memo(
 		const onPress = useCallback(() => {
 			if (item.type === "directory") {
 				if (!hasInternet) {
-					const cachedContent = queryUtils.useCloudItemsQueryGet(
+					const cachedContent = driveItemsQueryGet(
 						type === "links"
 							? {
 									of: "links",

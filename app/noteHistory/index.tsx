@@ -1,7 +1,7 @@
 import { useLocalSearchParams, Redirect } from "expo-router"
 import { useMemo } from "react"
 import { type Note, type NoteParticipant } from "@filen/sdk/dist/types/api/v3/notes"
-import useNotesQuery from "@/queries/useNotesQuery"
+import useNotesQuery from "@/queries/useNotes.query"
 import { validate as validateUUID } from "uuid"
 import HistoryComponent from "@/components/notes/history"
 import RequireInternet from "@/components/requireInternet"

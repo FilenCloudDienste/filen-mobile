@@ -1,5 +1,5 @@
 import { View, Platform } from "react-native"
-import { type Playlist, fetchPlaylists } from "@/queries/usePlaylistsQuery"
+import { type Playlist, fetchData as fetchPlaylists } from "@/queries/usePlaylists.query"
 import { useMemo, memo, useCallback } from "react"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -252,7 +252,7 @@ export const Item = memo(
 								textStyle: {
 									color: colors.foreground
 								}
-							}
+						  }
 						: {})
 				},
 				async (selectedIndex?: number) => {

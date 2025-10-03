@@ -14,12 +14,11 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import contactsService from "@/services/contacts.service"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import Menu from "@/components/chats/chat/participants/menu"
-import useChatsQuery from "@/queries/useChatsQuery"
+import useChatsQuery, { chatsQueryUpdate } from "@/queries/useChats.query"
 import { validate as validateUUID } from "uuid"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
-import queryUtils from "@/queries/utils"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -223,7 +222,7 @@ export default function Participants() {
 				})
 			)
 
-			queryUtils.useChatsQuerySet({
+			chatsQueryUpdate({
 				updater: prev =>
 					prev.map(c =>
 						c.uuid === chat.uuid

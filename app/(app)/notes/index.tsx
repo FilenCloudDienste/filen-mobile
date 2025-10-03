@@ -1,12 +1,12 @@
 import { Fragment, useMemo, useCallback, useState, useEffect, useRef, memo } from "react"
 import Container from "@/components/Container"
 import ListHeader from "@/components/notes/listHeader"
-import useNotesQuery from "@/queries/useNotesQuery"
+import useNotesQuery from "@/queries/useNotes.query"
 import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
 import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useNotesStore } from "@/stores/notes.store"
-import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
+import useNotesTagsQuery from "@/queries/useNotesTags.query"
 import mmkvInstance from "@/lib/mmkv"
 import { useMMKVString } from "react-native-mmkv"
 import Item from "@/components/notes/item"
@@ -33,8 +33,8 @@ export const Notes = memo(() => {
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
-	const notesQuery = useNotesQuery({})
-	const notesTagsQuery = useNotesTagsQuery({})
+	const notesQuery = useNotesQuery()
+	const notesTagsQuery = useNotesTagsQuery()
 
 	const notes = useMemo(() => {
 		if (notesQuery.status !== "success") {

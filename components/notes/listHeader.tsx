@@ -1,6 +1,6 @@
 import { memo, useRef, useMemo, useCallback } from "react"
 import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
-import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
+import useNotesTagsQuery from "@/queries/useNotesTags.query"
 import { useTranslation } from "react-i18next"
 import Tag from "./tag"
 import useNetInfo from "@/hooks/useNetInfo"

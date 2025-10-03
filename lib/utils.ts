@@ -1,10 +1,4 @@
-import {
-	UNCACHED_QUERY_KEYS,
-	TURBO_IMAGE_SUPPORTED_EXTENSIONS,
-	EXPO_VIDEO_SUPPORTED_EXTENSIONS,
-	EXPO_AUDIO_SUPPORTED_EXTENSIONS
-} from "./constants"
-import memoize from "lodash/memoize"
+import { TURBO_IMAGE_SUPPORTED_EXTENSIONS, EXPO_VIDEO_SUPPORTED_EXTENSIONS, EXPO_AUDIO_SUPPORTED_EXTENSIONS } from "./constants"
 import { type PreviewType } from "@/stores/gallery.store"
 import pathModule from "path"
 import { t } from "@/lib/i18n"
@@ -181,10 +175,10 @@ export const orderItemsByTypeCompareFunctions = {
 		return isAscending
 			? a.name.toLowerCase().localeCompare(b.name.toLowerCase(), "en", {
 					numeric: true
-				})
+			  })
 			: b.name.toLowerCase().localeCompare(a.name.toLowerCase(), "en", {
 					numeric: true
-				})
+			  })
 	},
 	size: (a: DriveCloudItem, b: DriveCloudItem, isAscending: boolean = true): number => {
 		const typeComparison = orderItemsByTypeCompareItemTypes(a, b)
@@ -234,8 +228,8 @@ export const orderItemsByTypeCompareFunctions = {
 			return typeComparison
 		}
 
-		const aTime = a.type === "file" ? (a.creation ?? a.lastModified ?? a.timestamp) : (a.lastModified ?? a.timestamp)
-		const bTime = b.type === "file" ? (b.creation ?? b.lastModified ?? b.timestamp) : (b.lastModified ?? b.timestamp)
+		const aTime = a.type === "file" ? a.creation ?? a.lastModified ?? a.timestamp : a.lastModified ?? a.timestamp
+		const bTime = b.type === "file" ? b.creation ?? b.lastModified ?? b.timestamp : b.lastModified ?? b.timestamp
 
 		if (aTime === bTime) {
 			const aUuid = parseNumbersFromString(a.uuid)
@@ -270,15 +264,6 @@ export function orderItemsByType({ items, type }: { items: DriveCloudItem[]; typ
 
 	return [...items].sort(compareFunction)
 }
-
-export const shouldPersistQuery = memoize(
-	(queryKey: unknown[]) => {
-		const shouldNotPersist = queryKey.some(queryKey => typeof queryKey === "string" && UNCACHED_QUERY_KEYS.includes(queryKey))
-
-		return !shouldNotPersist
-	},
-	queryKey => queryKey.join(":")
-)
 
 export function normalizeTransferProgress(size: number, bytes: number): number {
 	const result = parseInt(((bytes / size) * 100).toFixed(0))
@@ -934,7 +919,7 @@ export function sortAndFilterNotes({ notes, searchTerm, selectedTag }: { notes: 
 						note.preview.toLowerCase().trim().includes(lowercaseSearchTerm) ||
 						note.type.toLowerCase().trim().includes(lowercaseSearchTerm) ||
 						note.tags.some(tag => tag.name.toLowerCase().trim().includes(lowercaseSearchTerm))
-				)
+			  )
 			: notes
 
 	const selectedTagIsUUID = validateUUID(selectedTag)
@@ -967,7 +952,7 @@ export function sortAndFilterNotes({ notes, searchTerm, selectedTag }: { notes: 
 					}
 
 					return true
-				})
+			  })
 			: filteredBySearchTerm
 
 	return filteredByTag.sort((a, b) => {

@@ -1,6 +1,6 @@
 import { memo, useCallback, useMemo } from "react"
 import { Settings as SettingsComponent, IconView } from "@/components/settings"
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { useRouter } from "expo-router"
 import nodeWorker from "@/lib/nodeWorker"
 import { inputPrompt } from "@/components/prompts/inputPrompt"

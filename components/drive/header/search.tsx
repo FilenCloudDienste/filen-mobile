@@ -4,7 +4,7 @@ import { View } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import alerts from "@/lib/alerts"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
-import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
+import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import ListItem, { type ListItemInfo } from "@/components/drive/list/listItem"
 import { orderItemsByType, simpleDate, formatBytes } from "@/lib/utils"
 import { useDebouncedCallback } from "use-debounce"
@@ -21,8 +21,7 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 	const { t } = useTranslation()
 	const searchTerm = useDriveStore(useShallow(state => state.searchTerm))
 
-	const query = useCloudItemsQuery({
-		...queryParams,
+	const query = useDriveItemsQuery(queryParams, {
 		enabled: false
 	})
 

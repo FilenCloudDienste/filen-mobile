@@ -9,10 +9,10 @@ import alerts from "@/lib/alerts"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
-import queryUtils from "@/queries/utils"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Platform } from "react-native"
 import useSDKConfig from "@/hooks/useSDKConfig"
+import { notesQueryUpdate } from "@/queries/useNotes.query"
 
 export const Menu = memo(
 	({
@@ -96,7 +96,7 @@ export const Menu = memo(
 					userId: participant.userId
 				})
 
-				queryUtils.useNotesQuerySet({
+				notesQueryUpdate({
 					updater: prev =>
 						prev.map(n =>
 							n.uuid === note.uuid
@@ -129,7 +129,7 @@ export const Menu = memo(
 						permissionsWrite
 					})
 
-					queryUtils.useNotesQuerySet({
+					notesQueryUpdate({
 						updater: prev =>
 							prev.map(n =>
 								n.uuid === note.uuid

@@ -11,7 +11,7 @@ import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/convers
 import Messages from "../chat/messages"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import { useRouter } from "expo-router"
-import useChatUnreadCountQuery from "@/queries/useChatUnreadCountQuery"
+import useChatUnreadCountQuery from "@/queries/useChatUnreadCount.query"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
 import chatsService from "@/services/chats.service"
@@ -35,10 +35,14 @@ export const Menu = memo(
 		const { colors } = useColorScheme()
 		const { hasInternet } = useNetInfo()
 
-		const chatUnreadCountQuery = useChatUnreadCountQuery({
-			uuid: chat.uuid,
-			enabled: false
-		})
+		const chatUnreadCountQuery = useChatUnreadCountQuery(
+			{
+				conversation: chat.uuid
+			},
+			{
+				enabled: false
+			}
+		)
 
 		const unreadCount = useMemo(() => {
 			if (chatUnreadCountQuery.status !== "success") {

@@ -7,11 +7,11 @@ import * as FileSystem from "expo-file-system"
 import cache from "./cache"
 import { normalizeFilePathForExpo } from "./utils"
 import sqlite from "./sqlite"
-import queryUtils from "@/queries/utils"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS, EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS } from "./constants"
 import download from "./download"
 import pathModule from "path"
+import { driveItemsQueryUpdate } from "@/queries/useDriveItems.query"
 
 export const THUMBNAILS_MAX_ERRORS: number = 3
 export const THUMBNAILS_SIZE: number = 128
@@ -150,8 +150,8 @@ export class Thumbnails {
 				delete this.errorCount[item.uuid]
 
 				if (queryParams) {
-					queryUtils.useCloudItemsQuerySet({
-						...queryParams,
+					driveItemsQueryUpdate({
+						params: queryParams,
 						updater: prev =>
 							prev.map(prevItem =>
 								prevItem.uuid === item.uuid
@@ -315,8 +315,8 @@ export class Thumbnails {
 				delete this.errorCount[item.uuid]
 
 				if (queryParams) {
-					queryUtils.useCloudItemsQuerySet({
-						...queryParams,
+					driveItemsQueryUpdate({
+						params: queryParams,
 						updater: prev =>
 							prev.map(prevItem =>
 								prevItem.uuid === item.uuid

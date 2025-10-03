@@ -1,5 +1,5 @@
 import { memo, useCallback, useState, useEffect, useRef, useMemo } from "react"
-import useItemPublicLinkStatusQuery from "@/queries/useItemPublicLinkStatusQuery"
+import useItemPublicLinkStatusQuery from "@/queries/useItemPublicLinkStatus.query"
 import { View, Share } from "react-native"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"

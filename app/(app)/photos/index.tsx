@@ -7,7 +7,7 @@ import { View, RefreshControl, TouchableHighlight, Platform, ActivityIndicator }
 import Thumbnail from "@/components/thumbnail/item"
 import { cn } from "@/lib/cn"
 import { Container } from "@/components/Container"
-import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
+import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import { getPreviewType, orderItemsByType } from "@/lib/utils"
 import { useGalleryStore } from "@/stores/gallery.store"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -23,7 +23,7 @@ import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { useShallow } from "zustand/shallow"
 import Menu from "@/components/drive/list/listItem/menu"
 import OfflineListHeader from "@/components/offlineListHeader"
-import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
+import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatus.query"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
@@ -208,8 +208,7 @@ export const Photos = memo(() => {
 		return cameraUpload.remote && validateUUID(cameraUpload.remote.uuid) ? true : false
 	}, [cameraUpload.remote])
 
-	const query = useCloudItemsQuery({
-		...queryParams,
+	const query = useDriveItemsQuery(queryParams, {
 		enabled: cameraUploadRemoteSetup
 	})
 

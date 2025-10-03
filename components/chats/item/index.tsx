@@ -10,7 +10,6 @@ import { getChatName } from "../utils"
 import { useRouter } from "expo-router"
 import Menu from "./menu"
 import Unread from "./unread"
-import queryUtils from "@/queries/utils"
 import LastMessage from "./lastMessage"
 import Date from "../chat/messages/date"
 import events from "@/lib/events"
@@ -22,6 +21,7 @@ import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
 import { type ListRenderItemInfo } from "@shopify/flash-list"
 import assets from "@/lib/assets"
+import { chatMessagesQueryGet } from "@/queries/useChatMessages.query"
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation> }) => {
 	const [{ userId }] = useSDKConfig()
@@ -64,8 +64,8 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 		})
 
 		if (!hasInternet) {
-			const cachedChat = queryUtils.useChatMessagesQueryGet({
-				uuid: info.item.uuid
+			const cachedChat = chatMessagesQueryGet({
+				conversation: info.item.uuid
 			})
 
 			if (!cachedChat) {

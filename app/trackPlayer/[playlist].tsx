@@ -1,13 +1,12 @@
 import RequireInternet from "@/components/requireInternet"
 import { type ListRenderItemInfo, RefreshControl, View, Platform } from "react-native"
-import { usePlaylistsQuery, updatePlaylist, type Playlist as PlaylistType } from "@/queries/usePlaylistsQuery"
+import { usePlaylistsQuery, updatePlaylist, type Playlist as PlaylistType, playlistsQueryUpdate } from "@/queries/usePlaylists.query"
 import { useMemo, memo, useCallback, useRef, useState } from "react"
 import Header from "@/components/trackPlayer/header"
 import { useLocalSearchParams } from "expo-router"
 import { useMMKVNumber } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import ReorderableList, { type ReorderableListReorderEvent, reorderItems } from "react-native-reorderable-list"
-import queryUtils from "@/queries/utils"
 import Semaphore from "@/lib/semaphore"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
@@ -88,7 +87,7 @@ export const Playlist = memo(() => {
 					updated: Date.now()
 				})
 
-				queryUtils.usePlaylistsQuerySet({
+				playlistsQueryUpdate({
 					updater: prev => prev.map(p => (p.uuid === playlist.uuid ? newPlaylist : p))
 				})
 			} catch (e) {

@@ -5,19 +5,22 @@ import { t } from "@/lib/i18n"
 import { type ChatConversation, type ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import authService from "./auth.service"
-import queryUtils from "@/queries/utils"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import contactsService from "./contacts.service"
 import { randomUUID } from "expo-crypto"
 import { type Contact } from "@filen/sdk/dist/types/api/v3/contacts"
-import queryClient from "@/queries/client"
 import * as ImagePicker from "expo-image-picker"
 import * as DocumentPicker from "expo-document-picker"
 import { promiseAllChunked } from "@/lib/utils"
-import { fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatusQuery"
+import { fetchData as fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatus.query"
 import { FILE_PUBLIC_LINK_BASE_URL, DIRECTORY_PUBLIC_LINK_BASE_URL } from "@/lib/constants"
 import driveService from "./drive.service"
+import { chatMessagesQueryUpdate } from "@/queries/useChatMessages.query"
+import { chatsLastFocusQueryUpdate } from "@/queries/useChatsLastFocus.query"
+import { chatsQueryUpdate, chatsQueryRefetch } from "@/queries/useChats.query"
+import { chatUnreadCountQueryUpdate } from "@/queries/useChatUnreadCount.query"
+import { chatUnreadQueryUpdate } from "@/queries/useChatUnread.query"
 
 export class ChatsService {
 	public async leaveChat({
@@ -55,7 +58,7 @@ export class ChatsService {
 				conversation: chat.uuid
 			})
 
-			queryUtils.useChatsQuerySet({
+			chatsQueryUpdate({
 				updater: prev => prev.filter(c => c.uuid !== chat.uuid)
 			})
 		} finally {
@@ -101,7 +104,7 @@ export class ChatsService {
 				userId: participant.userId
 			})
 
-			queryUtils.useChatsQuerySet({
+			chatsQueryUpdate({
 				updater: prev =>
 					prev.map(c =>
 						c.uuid === chat.uuid
@@ -153,9 +156,7 @@ export class ChatsService {
 				contacts
 			})
 
-			await queryClient.invalidateQueries({
-				queryKey: ["useChatsQuery"]
-			})
+			await chatsQueryRefetch()
 
 			if (!disableNavigation) {
 				router.push({
@@ -203,7 +204,7 @@ export class ChatsService {
 				conversation: chat.uuid
 			})
 
-			queryUtils.useChatsQuerySet({
+			chatsQueryUpdate({
 				updater: prev => prev.filter(c => c.uuid !== chat.uuid)
 			})
 		} finally {
@@ -261,7 +262,7 @@ export class ChatsService {
 				name: newName
 			})
 
-			queryUtils.useChatsQuerySet({
+			chatsQueryUpdate({
 				updater: prev =>
 					prev.map(c =>
 						c.uuid === chat.uuid
@@ -293,10 +294,12 @@ export class ChatsService {
 		}
 
 		try {
-			queryUtils.useChatUnreadCountQuerySet({
-				uuid: chat.uuid,
+			chatUnreadCountQueryUpdate({
+				params: {
+					conversation: chat.uuid
+				},
 				updater: count => {
-					queryUtils.useChatUnreadQuerySet({
+					chatUnreadQueryUpdate({
 						updater: prev => (prev - count >= 0 ? prev - count : 0)
 					})
 
@@ -306,7 +309,7 @@ export class ChatsService {
 
 			const now = Date.now()
 
-			queryUtils.useChatsLastFocusQuerySet({
+			chatsLastFocusQueryUpdate({
 				updater: prev =>
 					prev.map(v =>
 						v.uuid === chat.uuid
@@ -371,7 +374,7 @@ export class ChatsService {
 				mute
 			})
 
-			queryUtils.useChatsQuerySet({
+			chatsQueryUpdate({
 				updater: prev =>
 					prev.map(c =>
 						c.uuid === chat.uuid
@@ -420,8 +423,10 @@ export class ChatsService {
 				uuid: message.uuid
 			})
 
-			queryUtils.useChatMessagesQuerySet({
-				uuid: chat.uuid,
+			chatMessagesQueryUpdate({
+				params: {
+					conversation: chat.uuid
+				},
 				updater: prev =>
 					prev.map(m =>
 						m.uuid === message.uuid
@@ -470,8 +475,10 @@ export class ChatsService {
 				uuid: message.uuid
 			})
 
-			queryUtils.useChatMessagesQuerySet({
-				uuid: chat.uuid,
+			chatMessagesQueryUpdate({
+				params: {
+					conversation: chat.uuid
+				},
 				updater: prev => prev.filter(m => m.uuid !== message.uuid)
 			})
 		} finally {
@@ -485,7 +492,9 @@ export class ChatsService {
 		return (
 			await promiseAllChunked(
 				items.map(async item => {
-					const linkStatusBefore = await fetchItemPublicLinkStatus(item)
+					const linkStatusBefore = await fetchItemPublicLinkStatus({
+						item
+					})
 
 					if (linkStatusBefore.enabled) {
 						return {
@@ -502,7 +511,9 @@ export class ChatsService {
 						linkUUID: ""
 					})
 
-					const linkStatus = await fetchItemPublicLinkStatus(item)
+					const linkStatus = await fetchItemPublicLinkStatus({
+						item
+					})
 
 					if (!linkStatus.enabled) {
 						return null

@@ -7,7 +7,7 @@ import { Button } from "@/components/nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Menu from "@/components/notes/menu"
-import useNotesQuery from "@/queries/useNotesQuery"
+import useNotesQuery from "@/queries/useNotes.query"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import useNetInfo from "@/hooks/useNetInfo"
 

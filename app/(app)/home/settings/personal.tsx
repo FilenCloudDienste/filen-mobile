@@ -1,6 +1,6 @@
 import { memo, useCallback, useMemo } from "react"
 import { Settings as SettingsComponent } from "@/components/settings"
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { Platform } from "react-native"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"

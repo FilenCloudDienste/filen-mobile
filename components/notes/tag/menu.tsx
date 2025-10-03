@@ -8,11 +8,11 @@ import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { type NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
 import { alertPrompt } from "../../prompts/alertPrompt"
-import queryUtils from "@/queries/utils"
 import { inputPrompt } from "../../prompts/inputPrompt"
 import { Platform } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
+import { notesTagsQueryUpdate } from "@/queries/useNotesTags.query"
 
 export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.ReactNode }) => {
 	const { t } = useTranslation()
@@ -111,7 +111,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 				uuid: tag.uuid
 			})
 
-			queryUtils.useNotesTagsQuerySet({
+			notesTagsQueryUpdate({
 				updater: prev => prev.filter(t => t.uuid !== tag.uuid)
 			})
 		} catch (e) {
@@ -135,7 +135,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 					favorite
 				})
 
-				queryUtils.useNotesTagsQuerySet({
+				notesTagsQueryUpdate({
 					updater: prev =>
 						prev.map(t =>
 							t.uuid === tag.uuid
@@ -191,7 +191,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 				name
 			})
 
-			queryUtils.useNotesTagsQuerySet({
+			notesTagsQueryUpdate({
 				updater: prev =>
 					prev.map(t =>
 						t.uuid === tag.uuid

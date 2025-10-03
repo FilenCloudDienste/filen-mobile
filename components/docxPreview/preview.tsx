@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react"
 import DOMComponent from "./dom"
-import useFileBase64Query from "@/queries/useFileBase64Query"
+import useFileBase64Query from "@/queries/useFileBase64.query"
 import { View, ActivityIndicator } from "react-native"
 import Container from "../Container"
 import { type DOCXPreviewItem } from "@/app/docxPreview"
@@ -46,11 +46,15 @@ export const Preview = memo(({ item }: { item: DOCXPreviewItem }) => {
 		return item.uri
 	}, [item, httpServer.port, httpServer.authToken])
 
-	const query = useFileBase64Query({
-		uri,
-		enabled: uri.length > 0,
-		maxSize: 20 * 1024 * 1024
-	})
+	const query = useFileBase64Query(
+		{
+			url: uri,
+			maxSize: 20 * 1024 * 1024
+		},
+		{
+			enabled: uri.length > 0
+		}
+	)
 
 	if (query.status !== "success") {
 		return null

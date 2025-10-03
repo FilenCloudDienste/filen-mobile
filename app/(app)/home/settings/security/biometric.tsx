@@ -1,6 +1,6 @@
 import { memo, useCallback, useMemo } from "react"
 import { Settings as SettingsComponent } from "@/components/settings"
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import { useMMKVObject } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
@@ -18,7 +18,7 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import fileProvider from "@/lib/fileProvider"
 import alerts from "@/lib/alerts"
-import useLocalAuthenticationQuery from "@/queries/useLocalAuthenticationQuery"
+import useLocalAuthenticationQuery from "@/queries/useLocalAuthentication.query"
 
 export const Biometric = memo(() => {
 	const [biometricAuth, setBiometricAuth] = useMMKVObject<BiometricAuth>(BIOMETRIC_AUTH_KEY, mmkvInstance)
@@ -29,7 +29,7 @@ export const Biometric = memo(() => {
 		enabled: false
 	})
 
-	const localAuthentication = useLocalAuthenticationQuery({})
+	const localAuthentication = useLocalAuthenticationQuery()
 
 	const lockAppAfterDropdownItems = useMemo(() => {
 		return [0, 60, 300, 600, 900, 1800, 3600, Number.MAX_SAFE_INTEGER].map(seconds =>

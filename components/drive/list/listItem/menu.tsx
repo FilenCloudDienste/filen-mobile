@@ -15,7 +15,7 @@ import TurboImage from "react-native-turbo-image"
 import events from "@/lib/events"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
-import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
+import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatus.query"
 import driveService from "@/services/drive.service"
 import { useShallow } from "zustand/shallow"
 import { usePhotosStore } from "@/stores/photos.store"
@@ -51,10 +51,14 @@ export const Menu = memo(
 		const isSelectedDrive = useDriveStore(useShallow(state => state.selectedItems.some(i => i.uuid === item.uuid)))
 		const isSelectedPhotos = usePhotosStore(useShallow(state => state.selectedItems.some(i => i.uuid === item.uuid)))
 
-		const fileOfflineStatus = useFileOfflineStatusQuery({
-			uuid: item.uuid,
-			enabled: item.type === "file"
-		})
+		const fileOfflineStatus = useFileOfflineStatusQuery(
+			{
+				uuid: item.uuid
+			},
+			{
+				enabled: item.type === "file"
+			}
+		)
 
 		const offlineStatus = useMemo(() => {
 			return item.type === "file" && fileOfflineStatus.status === "success" ? fileOfflineStatus.data : null

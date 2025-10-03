@@ -1,7 +1,7 @@
 import { memo, useMemo, useCallback } from "react"
 import { Settings as SettingsComponent } from "@/components/settings"
 import Avatar from "@/components/avatar"
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { contactName, formatBytes, sanitizeFileName, normalizeFilePathForNode } from "@/lib/utils"
 import { useRouter } from "expo-router"
 import { Platform } from "react-native"

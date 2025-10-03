@@ -1,7 +1,5 @@
 import { memo, useMemo } from "react"
-import { parseFilenPublicLink, getPreviewType } from "@/lib/utils"
-import { useQuery } from "@tanstack/react-query"
-import nodeWorker from "@/lib/nodeWorker"
+import { parseFilenPublicLink } from "@/lib/utils"
 import Image from "../containers/image"
 import Code from "../containers/code"
 import Video from "../containers/video"
@@ -14,7 +12,7 @@ import { type DirLinkInfoDecryptedResponse } from "@filen/sdk/dist/types/api/v3/
 import Directory from "./directory"
 import Fallback from "../containers/fallback"
 import useHTTPServer from "@/hooks/useHTTPServer"
-import useNetInfo from "@/hooks/useNetInfo"
+import useChatEmbedFilenPublicLinkInfoQuery from "@/queries/useChatEmbedFilenPublicLinkInfo.query"
 
 export type PublicLinkInfo =
 	| {
@@ -36,79 +34,19 @@ export type PublicLinkInfo =
 
 export const Filen = memo(({ link }: { link: string }) => {
 	const httpServer = useHTTPServer()
-	const { hasInternet } = useNetInfo()
 
 	const publicLink = useMemo(() => {
 		return parseFilenPublicLink(link)
 	}, [link])
 
-	const query = useQuery({
-		queryKey: ["chatEmbedFilenInfo", publicLink],
-		enabled: publicLink !== null && hasInternet,
-		queryFn: async (): Promise<PublicLinkInfo> => {
-			if (!publicLink) {
-				throw new Error("No publicLink provided.")
-			}
-
-			if (publicLink.type === "directory") {
-				const info = await nodeWorker.proxy("directoryPublicLinkInfo", {
-					uuid: publicLink.uuid,
-					key: publicLink.key
-				})
-
-				return {
-					type: "directory",
-					data: {
-						info
-					}
-				}
-			} else {
-				const password = await nodeWorker.proxy("filePublicLinkHasPassword", {
-					uuid: publicLink.uuid
-				})
-
-				if (password.hasPassword) {
-					return null
-				}
-
-				const info = await nodeWorker.proxy("filePublicLinkInfo", {
-					uuid: publicLink.uuid,
-					key: publicLink.key
-				})
-
-				const previewType = getPreviewType(info.name)
-
-				if (
-					previewType === "code" ||
-					previewType === "text" ||
-					previewType === "image" ||
-					previewType === "video" ||
-					previewType === "audio" ||
-					previewType === "pdf" ||
-					previewType === "docx"
-				) {
-					return {
-						type: "file",
-						data: {
-							info,
-							previewType
-						}
-					}
-				}
-			}
-
-			return null
+	const query = useChatEmbedFilenPublicLinkInfoQuery(
+		{
+			publicLink
 		},
-		throwOnError(err) {
-			console.error(err)
-
-			return false
-		},
-		refetchOnMount: false,
-		refetchOnReconnect: false,
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: false
-	})
+		{
+			enabled: publicLink !== null
+		}
+	)
 
 	const source = useMemo(() => {
 		if (!publicLink || query.status !== "success" || !query.data || query.data.type === "directory") {

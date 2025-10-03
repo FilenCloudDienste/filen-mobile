@@ -1,6 +1,6 @@
 import { memo, useMemo, useState, useCallback, useEffect, useRef } from "react"
 import TextEditorDOM from "./dom"
-import useTextEditorItemContentQuery from "@/queries/useTextEditorItemContentQuery"
+import useTextEditorItemContentQuery from "@/queries/useTextEditorItemContent.query"
 import { View, Platform, ActivityIndicator } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "../nativewindui/Toolbar"
@@ -92,11 +92,15 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 		return item.uri
 	}, [item, httpServer.port, httpServer.authToken])
 
-	const query = useTextEditorItemContentQuery({
-		uri,
-		enabled: uri.length > 0,
-		maxSize: 10 * 1024 * 1024
-	})
+	const query = useTextEditorItemContentQuery(
+		{
+			url: uri,
+			maxSize: 10 * 1024 * 1024
+		},
+		{
+			enabled: uri.length > 0
+		}
+	)
 
 	const itemName = useMemo(() => {
 		if (item.type === "cloud") {

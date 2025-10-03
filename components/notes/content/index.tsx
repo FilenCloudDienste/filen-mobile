@@ -1,6 +1,6 @@
 import { memo, useMemo, useCallback, useRef, useEffect, useState } from "react"
 import { type Note, type NoteType } from "@filen/sdk/dist/types/api/v3/notes"
-import { useNoteContentQueryNoFocusRefresh } from "@/queries/useNoteContentQuery"
+import { useNoteContentQuery, noteContentQueryUpdate } from "@/queries/useNoteContent.query"
 import { Platform, View, ActivityIndicator } from "react-native"
 import Container from "@/components/Container"
 import TextEditorDOM from "./text/dom"
@@ -11,7 +11,6 @@ import Checklist from "./checklist"
 import nodeWorker from "@/lib/nodeWorker"
 import { useDebouncedCallback } from "use-debounce"
 import alerts from "@/lib/alerts"
-import queryUtils from "@/queries/utils"
 import { useFocusEffect } from "expo-router"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import { KeyboardAvoidingView } from "react-native-keyboard-controller"
@@ -32,7 +31,7 @@ export const Content = memo(
 	}) => {
 		const { isDarkColorScheme, colors } = useColorScheme()
 		const lastValueRef = useRef<string | null>(null)
-		const noteContentQuery = useNoteContentQueryNoFocusRefresh({
+		const noteContentQuery = useNoteContentQuery({
 			uuid: note.uuid
 		})
 		const [noteContentQueryDataUpdatedAt, setNoteContentQueryDataUpdatedAt] = useState<number>(noteContentQuery.dataUpdatedAt)
@@ -159,8 +158,10 @@ export const Content = memo(
 			useCallback(() => {
 				return () => {
 					if (didChangeRef.current.changed && !isPreview && hasWriteAccess) {
-						queryUtils.useNoteContentQuerySet({
-							uuid: didChangeRef.current.uuid,
+						noteContentQueryUpdate({
+							params: {
+								uuid: didChangeRef.current.uuid
+							},
 							updater: prev => ({
 								...prev,
 								content: didChangeRef.current.content,

@@ -5,7 +5,7 @@ import { Button } from "@/components/nativewindui/Button"
 import { cn } from "@/lib/cn"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import useContactsRequestsQuery from "@/queries/useContactsRequestsQuery"
+import useContactsRequestsQuery from "@/queries/useContactsRequests.query"
 import { useTranslation } from "react-i18next"
 
 export const ListHeader = memo(() => {

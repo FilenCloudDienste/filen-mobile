@@ -1,14 +1,14 @@
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
-import queryUtils from "@/queries/utils"
-import queryClient from "@/queries/client"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { t } from "@/lib/i18n"
 import { Contact } from "@filen/sdk/dist/types/api/v3/contacts"
 import { randomUUID } from "expo-crypto"
 import events from "@/lib/events"
+import { contactsQueryUpdate, contactsQueryRefetch } from "@/queries/useContacts.query"
+import { contactsRequestsQueryRefetch, contactsRequestsQueryUpdate } from "@/queries/useContactsRequests.query"
 
 export type SelectContactsResponse =
 	| {
@@ -108,8 +108,10 @@ export class ContactsService {
 				uuid
 			})
 
-			queryUtils.useContactsQuerySet({
-				type: "all",
+			contactsQueryUpdate({
+				params: {
+					type: "all"
+				},
 				updater: prev => prev.filter(c => c.uuid !== uuid)
 			})
 		} finally {
@@ -167,12 +169,14 @@ export class ContactsService {
 				email
 			})
 
-			await queryClient.refetchQueries({
-				queryKey: ["useContactsQuery", "blocked"]
+			await contactsQueryRefetch({
+				type: "blocked"
 			})
 
-			queryUtils.useContactsQuerySet({
-				type: "all",
+			contactsQueryUpdate({
+				params: {
+					type: "all"
+				},
 				updater: prev => prev.filter(c => c.email !== email)
 			})
 		} finally {
@@ -230,12 +234,14 @@ export class ContactsService {
 				uuid
 			})
 
-			await queryClient.refetchQueries({
-				queryKey: ["useContactsQuery", "all"]
+			await contactsQueryRefetch({
+				type: "all"
 			})
 
-			queryUtils.useContactsQuerySet({
-				type: "blocked",
+			contactsQueryUpdate({
+				params: {
+					type: "blocked"
+				},
 				updater: prev => prev.filter(c => c.uuid !== uuid)
 			})
 		} finally {
@@ -255,11 +261,11 @@ export class ContactsService {
 				uuid
 			})
 
-			await queryClient.refetchQueries({
-				queryKey: ["useContactsQuery", "all"]
+			await contactsQueryRefetch({
+				type: "all"
 			})
 
-			queryUtils.useContactsRequestsQuerySet({
+			contactsRequestsQueryUpdate({
 				updater: prev => ({
 					...prev,
 					incoming: prev.incoming.filter(r => r.uuid !== uuid)
@@ -282,7 +288,7 @@ export class ContactsService {
 				uuid
 			})
 
-			queryUtils.useContactsRequestsQuerySet({
+			contactsRequestsQueryUpdate({
 				updater: prev => ({
 					...prev,
 					incoming: prev.incoming.filter(r => r.uuid !== uuid)
@@ -305,7 +311,7 @@ export class ContactsService {
 				uuid
 			})
 
-			queryUtils.useContactsRequestsQuerySet({
+			contactsRequestsQueryUpdate({
 				updater: prev => ({
 					...prev,
 					outgoing: prev.outgoing.filter(r => r.uuid !== uuid)
@@ -355,9 +361,7 @@ export class ContactsService {
 				email
 			})
 
-			await queryClient.refetchQueries({
-				queryKey: ["useContactsRequestsQuery"]
-			})
+			await contactsRequestsQueryRefetch()
 
 			if (!disableAlert) {
 				alerts.normal(

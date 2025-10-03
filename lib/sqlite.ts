@@ -2,8 +2,9 @@ import paths from "./paths"
 import { Directory } from "expo-file-system"
 import pathModule from "path"
 import { open, type NitroSQLiteConnection } from "react-native-nitro-sqlite"
+import { pack, unpack } from "msgpackr"
 
-export const SQLITE_VERSION: number = 2
+export const SQLITE_VERSION: number = 6
 
 export const INIT_QUERIES: {
 	query: string
@@ -70,7 +71,7 @@ export const INIT_QUERIES: {
 		pragma: true
 	},
 	{
-		query: `CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL) WITHOUT ROWID`,
+		query: `CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY NOT NULL, value BLOB NOT NULL) WITHOUT ROWID`,
 		pragma: false
 	},
 	{
@@ -98,15 +99,11 @@ export const INIT_QUERIES: {
 		pragma: false
 	},
 	{
-		query: `CREATE TABLE IF NOT EXISTS offline_files (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, uuid TEXT NOT NULL, item TEXT NOT NULL)`,
+		query: `CREATE TABLE IF NOT EXISTS offline_files (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, uuid TEXT NOT NULL, item BLOB NOT NULL)`,
 		pragma: false
 	},
 	{
 		query: `CREATE INDEX IF NOT EXISTS offline_files_uuid ON offline_files (uuid)`,
-		pragma: false
-	},
-	{
-		query: `CREATE INDEX IF NOT EXISTS offline_files_json_name ON offline_files(json_extract(item, '$.name'))`,
 		pragma: false
 	},
 	{
@@ -155,7 +152,7 @@ export class SQLite {
 			return rows.length > 0
 		},
 		get: async (uuid: string): Promise<DriveCloudItem | null> => {
-			const { rows } = await this.db.executeAsync<{ item: string }>("SELECT item FROM offline_files WHERE uuid = ?", [uuid])
+			const { rows } = this.db.execute<{ item: ArrayBuffer }>("SELECT item FROM offline_files WHERE uuid = ?", [uuid])
 
 			if (!rows || rows.length === 0) {
 				return null
@@ -167,12 +164,12 @@ export class SQLite {
 				return null
 			}
 
-			return JSON.parse(row.item) as DriveCloudItem
+			return unpack(new Uint8Array(row.item)) as DriveCloudItem
 		},
 		add: async (item: DriveCloudItem): Promise<number | null> => {
-			const { insertId } = await this.db.executeAsync("INSERT OR REPLACE INTO offline_files (uuid, item) VALUES (?, ?)", [
+			const { insertId } = this.db.execute("INSERT OR REPLACE INTO offline_files (uuid, item) VALUES (?, ?)", [
 				item.uuid,
-				JSON.stringify(item)
+				new Uint8Array(pack(item)).buffer
 			])
 
 			return insertId ?? null
@@ -191,19 +188,6 @@ export class SQLite {
 		},
 		clear: async (): Promise<void> => {
 			await this.db.executeAsync("DELETE FROM offline_files")
-		},
-		find: async (input: string): Promise<DriveCloudItem[]> => {
-			const searchTerm = input.trim().toLowerCase()
-			const { rows } = await this.db.executeAsync<{ item: string }>(
-				"SELECT item FROM offline_files WHERE json_extract(item, '$.name') LIKE ? COLLATE NOCASE",
-				[`%${searchTerm}%`]
-			)
-
-			if (!rows) {
-				return []
-			}
-
-			return rows._array.map(row => JSON.parse(row.item) as DriveCloudItem)
 		},
 		verify: async (): Promise<void> => {
 			const { rows } = await this.db.executeAsync<{ uuid: string }>("SELECT uuid FROM offline_files")
@@ -250,7 +234,7 @@ export class SQLite {
 
 	public kvAsync = {
 		get: async <T>(key: string): Promise<T | null> => {
-			const { rows } = await this.db.executeAsync<{ value: string }>("SELECT value FROM kv WHERE key = ?", [key])
+			const { rows } = this.db.execute<{ value: ArrayBuffer }>("SELECT value FROM kv WHERE key = ?", [key])
 
 			if (!rows || rows.length === 0) {
 				return null
@@ -262,16 +246,16 @@ export class SQLite {
 				return null
 			}
 
-			return JSON.parse(row.value) as T
+			return unpack(new Uint8Array(row.value)) as T
 		},
 		set: async <T>(key: string, value: T): Promise<number | null> => {
 			if (!value) {
 				return null
 			}
 
-			const { insertId } = await this.db.executeAsync("INSERT OR REPLACE INTO kv (key, value) VALUES (?, ?)", [
+			const { insertId } = this.db.execute("INSERT OR REPLACE INTO kv (key, value) VALUES (?, ?)", [
 				key,
-				JSON.stringify(value)
+				new Uint8Array(pack(value)).buffer
 			])
 
 			return insertId ?? null

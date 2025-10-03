@@ -2,7 +2,7 @@ import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react"
 import { List, ListDataItem } from "@/components/nativewindui/List"
-import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
+import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import { simpleDate, formatBytes, orderItemsByType, type OrderByType } from "@/lib/utils"
 import { Container } from "@/components/Container"
 import ListItem, { type ListItemInfo } from "./listItem"
@@ -38,7 +38,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	const keyboardState = useKeyboardState()
 	const { t } = useTranslation()
 
-	const cloudItemsQuery = useCloudItemsQuery(queryParams)
+	const cloudItemsQuery = useDriveItemsQuery(queryParams)
 
 	const items = useMemo((): ListItemInfo[] => {
 		if (cloudItemsQuery.status !== "success") {

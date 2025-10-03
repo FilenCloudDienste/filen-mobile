@@ -44,14 +44,6 @@ export const ANONYMOUS_SDK_CONFIG: Required<FilenSDKConfig> = {
 	tmpPath: "/tmp"
 } satisfies Required<FilenSDKConfig>
 
-export const UNCACHED_QUERY_KEYS: string[] = [
-	"useIsHTTPServerOnlineQuery",
-	"useTextEditorItemContentQuery",
-	"useItemToPathQuery",
-	"useItemPublicLinkStatusQuery",
-	"useFileBase64Query"
-]
-
 export const WEB_APP_BASE_URL: string = "https://app.filen.io"
 export const WEB_APP_ACCOUNT_SETTINGS_URL: string = `${WEB_APP_BASE_URL}/#/settings/account`
 export const FILE_PUBLIC_LINK_BASE_URL: string = `${WEB_APP_BASE_URL}/#/d/`

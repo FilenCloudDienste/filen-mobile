@@ -1,6 +1,6 @@
 import { memo, useCallback, useMemo } from "react"
 import { Settings as SettingsComponent } from "@/components/settings"
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import alerts from "@/lib/alerts"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"

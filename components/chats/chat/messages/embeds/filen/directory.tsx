@@ -7,13 +7,10 @@ import { type PublicLinkInfo } from "."
 import { ColoredFolderSVGIcon } from "@/assets/fileIcons"
 import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
-import { useQuery } from "@tanstack/react-query"
-import nodeWorker from "@/lib/nodeWorker"
-import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
-import useNetInfo from "@/hooks/useNetInfo"
+import useChatEmbedFilenPublicLinkDirectorySizeQuery from "@/queries/useChatEmbedFilenPublicLinkDirectorySize.query"
 
 export const Directory = memo(
 	({
@@ -31,33 +28,17 @@ export const Directory = memo(
 	}) => {
 		const { colors } = useColorScheme()
 		const chatEmbedContainerStyle = useChatEmbedContainerStyle()
-		const { hasInternet } = useNetInfo()
 
-		const query = useQuery({
-			queryKey: ["chatEmbedFilenPublicLinkDirectorySize", [info, parsedLink]],
-			enabled: info !== null && info.type === "directory" && parsedLink.type === "directory" && hasInternet,
-			queryFn: async () => {
-				if (!info || info.type === "file" || parsedLink.type === "file") {
-					throw new Error("No directory provided.")
-				}
-
-				return await nodeWorker.proxy("directorySizePublicLink", {
-					uuid: info.data.info.parent,
-					linkUUID: parsedLink.uuid
-				})
+		const query = useChatEmbedFilenPublicLinkDirectorySizeQuery(
+			{
+				info,
+				link,
+				parsedLink
 			},
-			throwOnError(err) {
-				console.error(err)
-
-				return false
-			},
-			refetchOnMount: DEFAULT_QUERY_OPTIONS.refetchOnMount,
-			refetchOnReconnect: DEFAULT_QUERY_OPTIONS.refetchOnReconnect,
-			refetchOnWindowFocus: DEFAULT_QUERY_OPTIONS.refetchOnWindowFocus,
-			staleTime: DEFAULT_QUERY_OPTIONS.staleTime,
-			gcTime: DEFAULT_QUERY_OPTIONS.gcTime,
-			refetchInterval: false
-		})
+			{
+				enabled: info !== null && info.type === "directory" && parsedLink.type === "directory"
+			}
+		)
 
 		const onPress = useCallback(
 			async (e: GestureResponderEvent) => {
