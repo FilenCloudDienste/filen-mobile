@@ -1,5 +1,5 @@
 import { memo, useCallback, Fragment } from "react"
-import { type FileVersion } from "@filen/sdk/dist/types/api/v3/file/versions"
+import type { FileVersion } from "@filen/sdk/dist/types/api/v3/file/versions"
 import { Button } from "@/components/nativewindui/Button"
 import { View } from "react-native"
 import { Text } from "@/components/nativewindui/Text"

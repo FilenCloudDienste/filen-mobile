@@ -1,6 +1,6 @@
 import * as FileSystemLegacy from "expo-file-system/legacy"
 import paths from "@/lib/paths"
-import { type FilenSDKConfig } from "@filen/sdk"
+import type { FilenSDKConfig } from "@filen/sdk"
 
 export type AuthFileSchema = {
 	providerEnabled: boolean

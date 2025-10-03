@@ -6,7 +6,7 @@ import { memo, useRef, useId, useState, useEffect, useCallback, useMemo, Fragmen
 import { BackHandler, TextInput, View } from "react-native"
 import Animated, { FadeIn, FadeInRight, FadeInUp, FadeOut, FadeOutRight, ZoomIn, withTiming } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { type AdaptiveSearchBarRef, type AdaptiveSearchHeaderProps, type NativeStackNavigationSearchBarOptions } from "./types"
+import type { AdaptiveSearchBarRef, AdaptiveSearchHeaderProps, NativeStackNavigationSearchBarOptions } from "./types"
 import { Button } from "@/components/nativewindui/Button"
 import { Text } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"

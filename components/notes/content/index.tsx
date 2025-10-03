@@ -1,5 +1,5 @@
 import { memo, useMemo, useCallback, useRef, useEffect, useState } from "react"
-import { type Note, type NoteType } from "@filen/sdk/dist/types/api/v3/notes"
+import type { Note, NoteType } from "@filen/sdk/dist/types/api/v3/notes"
 import { useNoteContentQuery, noteContentQueryUpdate } from "@/queries/useNoteContent.query"
 import { Platform, View, ActivityIndicator } from "react-native"
 import Container from "@/components/Container"

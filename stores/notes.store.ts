@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
+import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
 
 export type NotesStore = {
 	selectedNotes: Note[]

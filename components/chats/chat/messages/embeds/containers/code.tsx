@@ -1,7 +1,7 @@
 import { memo, useCallback } from "react"
 import { type GestureResponderEvent, View } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
-import { type TextEditorItem } from "@/components/textEditor/editor"
+import type { TextEditorItem } from "@/components/textEditor/editor"
 import { useRouter } from "expo-router"
 import { Button } from "@/components/nativewindui/Button"
 import { FileNameToSVGIcon } from "@/assets/fileIcons"

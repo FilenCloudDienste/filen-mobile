@@ -1,5 +1,5 @@
 import { memo, useMemo, useEffect, useState, Fragment, useCallback } from "react"
-import { type GalleryItem } from "@/stores/gallery.store"
+import type { GalleryItem } from "@/stores/gallery.store"
 import { View, ActivityIndicator, Pressable, Platform } from "react-native"
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio"
 import { useColorScheme } from "@/lib/useColorScheme"

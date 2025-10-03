@@ -1,7 +1,7 @@
 import { memo, useMemo, useCallback } from "react"
 import Menu from "../menu"
 import { useRouter } from "expo-router"
-import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
+import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
 import { Button } from "@/components/nativewindui/Button"
 import { View, Platform } from "react-native"
 import useSDKConfig from "@/hooks/useSDKConfig"

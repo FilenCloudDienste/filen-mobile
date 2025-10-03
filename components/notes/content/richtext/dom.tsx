@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, memo } from "react"
 import Quill from "quill"
-import { type NoteType } from "@filen/sdk/dist/types/api/v3/notes"
+import type { NoteType } from "@filen/sdk/dist/types/api/v3/notes"
 import { type QuillThemeOptions, QuillThemeCustomizer } from "./quillTheme"
 import DOMPurify from "dompurify"
 import "quill/dist/quill.snow.css"

@@ -6,7 +6,7 @@ import { useDirectorySizeQuery } from "@/queries/useDirectorySize.query"
 import { formatBytes, getPreviewType } from "@/lib/utils"
 import LeftView from "./leftView"
 import { useShallow } from "zustand/shallow"
-import { type PreviewType } from "@/stores/gallery.store"
+import type { PreviewType } from "@/stores/gallery.store"
 import pathModule from "path"
 import { Platform } from "react-native"
 

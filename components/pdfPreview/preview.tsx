@@ -3,7 +3,7 @@ import { ActivityIndicator, View, type StyleProp, type ViewStyle } from "react-n
 import { useColorScheme } from "@/lib/useColorScheme"
 import Container from "../Container"
 import PdfRendererView from "react-native-pdf-renderer"
-import { type PDFPreviewItem } from "@/app/pdfPreview"
+import type { PDFPreviewItem } from "@/app/pdfPreview"
 import useHTTPServer from "@/hooks/useHTTPServer"
 import alerts from "@/lib/alerts"
 import useDownloadFileTemporaryLocalQuery from "@/queries/useDownloadFileTemporaryLocal.query"

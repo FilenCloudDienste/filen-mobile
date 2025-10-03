@@ -1,6 +1,6 @@
 import { memo, useId, useCallback } from "react"
 import { View } from "react-native"
-import { type SegmentControlProps } from "./types"
+import type { SegmentControlProps } from "./types"
 import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
 import { cn } from "@/lib/cn"

@@ -1,7 +1,7 @@
 import { memo, useMemo, useCallback } from "react"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { createDropdownItem, createDropdownSubMenu } from "@/components/nativewindui/DropdownMenu/utils"
-import { type DropdownItem, type DropdownSubMenu } from "../nativewindui/DropdownMenu/types"
+import type { DropdownItem, DropdownSubMenu } from "../nativewindui/DropdownMenu/types"
 import { Button } from "../nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"

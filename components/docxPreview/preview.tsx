@@ -3,9 +3,9 @@ import DOMComponent from "./dom"
 import useFileBase64Query from "@/queries/useFileBase64.query"
 import { View, ActivityIndicator } from "react-native"
 import Container from "../Container"
-import { type DOCXPreviewItem } from "@/app/docxPreview"
+import type { DOCXPreviewItem } from "@/app/docxPreview"
 import useHTTPServer from "@/hooks/useHTTPServer"
-import { type DOMProps } from "expo/dom"
+import type { DOMProps } from "expo/dom"
 
 const dom: DOMProps = {
 	contentInsetAdjustmentBehavior: "automatic",

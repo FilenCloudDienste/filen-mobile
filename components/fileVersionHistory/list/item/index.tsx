@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react"
 import { ListItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
-import { type FileVersion } from "@filen/sdk/dist/types/api/v3/file/versions"
+import type { FileVersion } from "@filen/sdk/dist/types/api/v3/file/versions"
 import { formatMessageDate } from "@/lib/utils"
 import RightView from "./rightView"
 import { Platform } from "react-native"

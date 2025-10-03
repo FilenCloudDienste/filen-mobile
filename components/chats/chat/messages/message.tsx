@@ -1,12 +1,12 @@
 import { memo, useMemo, useCallback } from "react"
-import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
+import type { ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import { Button } from "@/components/nativewindui/Button"
 import { Text } from "@/components/nativewindui/Text"
 import Avatar from "@/components/avatar"
 import { View, Platform, type ViewStyle, type StyleProp } from "react-native"
 import { contactName, isTimestampSameDay, isTimestampSameMinute, simpleDateNoTime } from "@/lib/utils"
 import Menu from "./menu"
-import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { useChatsStore } from "@/stores/chats.store"
 import { cn } from "@/lib/cn"
 import Animated, {
@@ -35,7 +35,7 @@ import mmkvInstance from "@/lib/mmkv"
 import useNetInfo from "@/hooks/useNetInfo"
 import { useTranslation } from "react-i18next"
 import chatsService from "@/services/chats.service"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
+import type { ListRenderItemInfo } from "@shopify/flash-list"
 import assets from "@/lib/assets"
 
 const avatarStyle = {

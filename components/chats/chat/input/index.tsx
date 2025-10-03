@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useMemo, useEffect } from "react"
-import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import {
 	View,
 	TextInput,
@@ -10,7 +10,7 @@ import {
 	type TextStyle
 } from "react-native"
 import useDimensions from "@/hooks/useDimensions"
-import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
+import type { ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import { contactName, findClosestIndexString } from "@/lib/utils"
 import { Button } from "@/components/nativewindui/Button"
 import { Icon } from "@roninoss/icons"

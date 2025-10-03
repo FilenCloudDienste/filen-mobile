@@ -1,5 +1,5 @@
 import "ts-node/register"
-import { type ExpoConfig, type ConfigContext } from "expo/config"
+import type { ExpoConfig, ConfigContext } from "expo/config"
 
 export const VERSION: string = "3.0.22"
 

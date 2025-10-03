@@ -1,17 +1,17 @@
 import useSDKConfig from "@/hooks/useSDKConfig"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Ionicons from "@expo/vector-icons/Ionicons"
-import { type Note, type NoteType } from "@filen/sdk/dist/types/api/v3/notes"
-import { useMemo } from "react"
+import type { Note, NoteType } from "@filen/sdk/dist/types/api/v3/notes"
+import { useMemo, memo } from "react"
 
-type Props = {
+export type Props = {
 	note: Note
 	iconSize: number
 }
 
-type NoteIconKey = NoteType | "trash" | "archive" | "canEdit" | "canView"
+export type NoteIconKey = NoteType | "trash" | "archive" | "canEdit" | "canView"
 
-const ICON_PROPS: Record<
+export const ICON_PROPS: Record<
 	NoteIconKey,
 	{
 		name:
@@ -70,7 +70,7 @@ const ICON_PROPS: Record<
 /**
  * Renders the corresponding icon for a note based on its type and state.
  */
-export const NoteIcon = ({ note, iconSize }: Props) => {
+export const NoteIcon = memo(({ note, iconSize }: Props) => {
 	const [{ userId }] = useSDKConfig()
 	const { colors } = useColorScheme()
 
@@ -81,12 +81,17 @@ export const NoteIcon = ({ note, iconSize }: Props) => {
 				? "canEdit"
 				: "canView"
 		}
-		if (note.trash) return "trash"
-		if (note.archive) return "archive"
+		if (note.trash) {
+			return "trash"
+		}
+
+		if (note.archive) {
+			return "archive"
+		}
 		return note.type
 	}, [note.isOwner, note.trash, note.archive, note.type, note.participants, userId])
 
-	const { color, ...iconProps } = ICON_PROPS[noteIconKey]
+	const { color, ...iconProps } = useMemo(() => ICON_PROPS[noteIconKey], [noteIconKey])
 
 	return (
 		<Ionicons
@@ -95,4 +100,6 @@ export const NoteIcon = ({ note, iconSize }: Props) => {
 			size={iconSize}
 		/>
 	)
-}
+})
+
+NoteIcon.displayName = "NoteIcon"

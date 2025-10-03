@@ -1,5 +1,5 @@
 import { memo } from "react"
-import { type MessageLinkType } from "@/lib/utils"
+import type { MessageLinkType } from "@/lib/utils"
 import YouTube from "./youtube"
 import Filen from "./filen"
 import Fetch from "./fetch"

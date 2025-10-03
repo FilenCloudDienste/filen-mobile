@@ -1,9 +1,9 @@
 import { useAugmentedRef, useControllableState } from "@rn-primitives/hooks"
 import { Icon } from "@roninoss/icons"
 import { memo, forwardRef, useState, useCallback, useMemo } from "react"
-import { Pressable, TextInput, View, ViewStyle, type NativeSyntheticEvent, type TextInputFocusEventData } from "react-native"
+import { Pressable, TextInput, View, ViewStyle } from "react-native"
 import Animated, { measure, useAnimatedRef, useAnimatedStyle, useDerivedValue, withTiming } from "react-native-reanimated"
-import { type SearchInputProps } from "./types"
+import type { SearchInputProps } from "./types"
 import { Text } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -109,14 +109,6 @@ export const SearchInput = memo(
 				}
 			})
 
-			const onFocus = useCallback(
-				(e: NativeSyntheticEvent<TextInputFocusEventData>) => {
-					setShowCancel(true)
-					onFocusProp?.(e)
-				},
-				[onFocusProp, setShowCancel]
-			)
-
 			const onPress = useCallback(() => {
 				onChangeText?.("")
 
@@ -151,7 +143,10 @@ export const SearchInput = memo(
 							)}
 							value={value}
 							onChangeText={onChangeText}
-							onFocus={onFocus}
+							onFocus={e => {
+								setShowCancel(true)
+								onFocusProp?.(e)
+							}}
 							clearButtonMode="while-editing"
 							role="searchbox"
 							{...props}

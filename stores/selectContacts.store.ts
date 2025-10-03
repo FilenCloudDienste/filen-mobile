@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { type Contact } from "@filen/sdk/dist/types/api/v3/contacts"
+import type { Contact } from "@filen/sdk/dist/types/api/v3/contacts"
 
 export type SelectContactsStore = {
 	selectedContacts: Contact[]

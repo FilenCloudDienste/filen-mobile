@@ -18,7 +18,7 @@ import iso from "./svg/iso.svg"
 import psd from "./svg/psd.svg"
 import cad from "./svg/cad.svg"
 import { memo, useMemo } from "react"
-import { type DirColors } from "@filen/sdk/dist/types/api/v3/dir/color"
+import type { DirColors } from "@filen/sdk/dist/types/api/v3/dir/color"
 import { isValidHexColor } from "@/lib/utils"
 import Svg, { Path } from "react-native-svg"
 
@@ -231,16 +231,16 @@ export function directoryColorToHex(color: DirColors | null): string {
 		color === "blue"
 			? "#037AFF"
 			: color === "gray"
-				? "#8F8E93"
-				: color === "green"
-					? "#33C759"
-					: color === "purple"
-						? "#AF52DE"
-						: color === "red"
-							? "#FF3B30"
-							: color.includes("#")
-								? color
-								: DEFAULT_DIRECTORY_COLOR
+			? "#8F8E93"
+			: color === "green"
+			? "#33C759"
+			: color === "purple"
+			? "#AF52DE"
+			: color === "red"
+			? "#FF3B30"
+			: color.includes("#")
+			? color
+			: DEFAULT_DIRECTORY_COLOR
 	).toLowerCase()
 
 	if (!isValidHexColor(hexColor)) {

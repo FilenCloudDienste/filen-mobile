@@ -6,7 +6,7 @@ import { loadLanguage } from "@/components/textEditor/dom/langs"
 import { xcodeLight, xcodeDark } from "@uiw/codemirror-theme-xcode"
 import { materialDark, materialLight } from "@uiw/codemirror-theme-material"
 import MDEditor from "@uiw/react-md-editor"
-import { type NoteType } from "@filen/sdk/dist/types/api/v3/notes"
+import type { NoteType } from "@filen/sdk/dist/types/api/v3/notes"
 import { createTextThemes } from "./textThemes"
 
 const TextEditor = memo(

@@ -1,7 +1,7 @@
 import { memo, useMemo, useCallback, Fragment } from "react"
 import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextSubMenu, createContextItem } from "@/components/nativewindui/ContextMenu/utils"
-import { type ContextItem, type ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
+import type { ContextItem, ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { useTranslation } from "react-i18next"
 import { useRouter, usePathname } from "expo-router"

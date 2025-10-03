@@ -1,4 +1,4 @@
-import { type Note, type NoteType, type NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
+import type { Note, NoteType, NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import authService from "./auth.service"

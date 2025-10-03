@@ -5,7 +5,7 @@ import useChatUnreadQuery from "@/queries/useChatUnread.query"
 import Tabs from "@/components/tabs"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Platform } from "react-native"
-import { type NativeBottomTabNavigationOptions } from "@bottom-tabs/react-navigation"
+import type { NativeBottomTabNavigationOptions } from "@bottom-tabs/react-navigation"
 import { useTranslation } from "react-i18next"
 
 export default function TabsLayout() {

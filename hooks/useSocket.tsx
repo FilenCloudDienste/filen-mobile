@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { AppState, type AppStateStatus } from "react-native"
 import { TypedEventEmitter } from "@/lib/events"
-import { type SocketEvent, type FilenSDKConfig } from "@filen/sdk"
+import type { SocketEvent, FilenSDKConfig } from "@filen/sdk"
 import Semaphore from "@/lib/semaphore"
 import mmkvInstance from "@/lib/mmkv"
 import { SDK_CONFIG_STORAGE_KEY } from "@/lib/constants"

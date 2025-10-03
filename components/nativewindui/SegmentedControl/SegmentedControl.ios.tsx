@@ -1,6 +1,6 @@
 import RNSegmentedControl from "@react-native-segmented-control/segmented-control"
 import { memo, useCallback } from "react"
-import { type SegmentControlProps } from "./types"
+import type { SegmentControlProps } from "./types"
 
 export const SegmentedControl = memo(
 	({

@@ -1,6 +1,6 @@
 import { memo, useMemo, useCallback } from "react"
-import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
-import { type ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
+import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import useHeaderHeight from "@/hooks/useHeaderHeight"
 import { Button } from "@/components/nativewindui/Button"
 import { Text } from "@/components/nativewindui/Text"

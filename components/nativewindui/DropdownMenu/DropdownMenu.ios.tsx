@@ -3,7 +3,7 @@ import { memo, forwardRef } from "react"
 import { View } from "react-native"
 // @ts-expect-error Types exported wrong
 import { ContextMenuButton, MenuAttributes, MenuConfig, MenuElementConfig, OnPressMenuItemEvent } from "react-native-ios-context-menu"
-import { type DropdownItem, type DropdownMenuConfig, type DropdownMenuProps, type DropdownMenuRef, type DropdownSubMenu } from "./types"
+import { type DropdownItem, DropdownMenuConfig, DropdownMenuProps, DropdownMenuRef, DropdownSubMenu } from "./types"
 
 export const DropdownMenu = memo(
 	forwardRef<DropdownMenuRef, DropdownMenuProps>(

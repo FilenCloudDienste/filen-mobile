@@ -1,6 +1,6 @@
 import contactsService from "./contacts.service"
-import { type Contact } from "@filen/sdk/dist/types/api/v3/contacts"
-import { type ContactRequest } from "@filen/sdk/dist/types/api/v3/contacts/requests/in"
+import type { Contact } from "@filen/sdk/dist/types/api/v3/contacts"
+import type { ContactRequest } from "@filen/sdk/dist/types/api/v3/contacts/requests/in"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { t } from "@/lib/i18n"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"

@@ -1,7 +1,7 @@
 import { useLocalSearchParams, Redirect } from "expo-router"
 import { useMemo, useCallback, useState, memo } from "react"
 import { View, Platform, RefreshControl } from "react-native"
-import { type ChatConversation, type ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { ChatConversation, ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { ListItem, List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import Container from "@/components/Container"

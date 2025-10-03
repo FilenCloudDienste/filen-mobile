@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { type ViewStyle, type StyleProp } from "react-native"
+import type { ViewStyle, StyleProp } from "react-native"
 import { useChatsStore } from "@/stores/chats.store"
 import { useShallow } from "zustand/shallow"
 

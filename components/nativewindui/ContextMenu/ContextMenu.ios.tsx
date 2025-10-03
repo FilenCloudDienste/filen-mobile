@@ -4,7 +4,7 @@ import { memo, forwardRef } from "react"
 import { View } from "react-native"
 // @ts-expect-error Types exported wrong
 import { ContextMenuView, MenuAttributes, MenuConfig, MenuElementConfig, OnPressMenuItemEvent } from "react-native-ios-context-menu"
-import { type ContextItem, type ContextMenuConfig, type ContextMenuProps, type ContextMenuRef, type ContextSubMenu } from "./types"
+import type { ContextItem, ContextMenuConfig, ContextMenuProps, ContextMenuRef, ContextSubMenu } from "./types"
 
 cssInterop(ContextMenuView, {
 	className: "style"

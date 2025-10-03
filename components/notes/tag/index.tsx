@@ -1,7 +1,7 @@
 import { memo, useCallback, useMemo } from "react"
 import Menu from "./menu"
 import { Button } from "@/components/nativewindui/Button"
-import { type NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
+import type { NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
 import { Icon } from "@roninoss/icons"
 import { Text } from "@/components/nativewindui/Text"
 import { useMMKVString } from "react-native-mmkv"

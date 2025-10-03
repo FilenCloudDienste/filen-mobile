@@ -2,7 +2,7 @@ import { Fragment, useMemo, useCallback, useState, useEffect, useRef, memo } fro
 import Container from "@/components/Container"
 import ListHeader from "@/components/notes/listHeader"
 import useNotesQuery from "@/queries/useNotes.query"
-import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
+import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
 import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useNotesStore } from "@/stores/notes.store"

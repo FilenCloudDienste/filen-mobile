@@ -1,6 +1,6 @@
-import { type FilenSDKConfig } from "@filen/sdk"
+import type { FilenSDKConfig } from "@filen/sdk"
 import { Platform } from "react-native"
-import { type Stack } from "expo-router"
+import type { Stack } from "expo-router"
 
 export const SCREEN_OPTIONS = {
 	base: {

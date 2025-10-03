@@ -1,4 +1,4 @@
-import { type Playlist } from "@/queries/usePlaylists.query"
+import type { Playlist } from "@/queries/usePlaylists.query"
 import { randomUUID } from "expo-crypto"
 import events from "@/lib/events"
 
