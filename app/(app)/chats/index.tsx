@@ -13,6 +13,7 @@ import OfflineListHeader from "@/components/offlineListHeader"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
+import useDimensions from "@/hooks/useDimensions"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -24,6 +25,7 @@ export const Chats = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { hasInternet } = useNetInfo()
 	const { t } = useTranslation()
+	const { screen } = useDimensions()
 
 	const chatsQuery = useChatsQuery()
 
@@ -142,7 +144,7 @@ export const Chats = memo(() => {
 					refreshControl={refreshControl}
 					ListHeaderComponent={ListHeaderComponent}
 					maxItemsInRecyclePool={0}
-					drawDistance={0}
+					drawDistance={Math.floor(screen.height / 4)}
 				/>
 			</Container>
 		</Fragment>

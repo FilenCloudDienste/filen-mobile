@@ -19,6 +19,7 @@ import { sortAndFilterNotes } from "@/lib/utils"
 import { useFocusEffect } from "expo-router"
 import useNetInfo from "@/hooks/useNetInfo"
 import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
+import useDimensions from "@/hooks/useDimensions"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -32,6 +33,7 @@ export const Notes = memo(() => {
 	const listRef = useRef<FlashListRef<Note>>(null)
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
+	const { screen } = useDimensions()
 
 	const notesQuery = useNotesQuery()
 	const notesTagsQuery = useNotesTagsQuery()
@@ -158,7 +160,7 @@ export const Notes = memo(() => {
 					refreshControl={refreshControl}
 					keyExtractor={keyExtractor}
 					maxItemsInRecyclePool={0}
-					drawDistance={0}
+					drawDistance={Math.floor(screen.height / 4)}
 				/>
 			</Container>
 		</Fragment>

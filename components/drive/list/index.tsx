@@ -34,7 +34,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
-	const { isTablet, isPortrait } = useDimensions()
+	const { isTablet, isPortrait, screen } = useDimensions()
 	const keyboardState = useKeyboardState()
 	const { t } = useTranslation()
 
@@ -225,7 +225,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						ListFooterComponent={ListFooterComponent}
 						refreshControl={refreshControl}
 						maxItemsInRecyclePool={0}
-						drawDistance={0}
+						drawDistance={Math.floor(screen.height / 4)}
 					/>
 				) : (
 					<List

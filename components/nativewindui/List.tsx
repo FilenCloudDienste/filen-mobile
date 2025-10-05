@@ -2,7 +2,7 @@ import { cva } from "class-variance-authority"
 import { cssInterop } from "nativewind"
 import { memo, forwardRef, useMemo, useCallback, Fragment } from "react"
 import { Platform, PressableProps, StyleProp, TextStyle, View, ViewProps, ViewStyle } from "react-native"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+import useDimensions from "@/hooks/useDimensions"
 import { Text, TextClassContext } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
 import { cn } from "@/lib/cn"
@@ -86,7 +86,7 @@ export function ListComponent<T extends ListDataItem>(
 	}: ListProps<T>,
 	ref: ListRef<T>
 ) {
-	const insets = useSafeAreaInsets()
+	const { insets, screen } = useDimensions()
 
 	const contentContainerClassNameMemo = useMemo(() => {
 		return cn(variant === "insets" && (!data || (typeof data?.[0] !== "string" && "pt-4")), contentContainerClassName)
@@ -124,7 +124,7 @@ export function ListComponent<T extends ListDataItem>(
 			contentContainerClassName={contentContainerClassNameMemo}
 			contentContainerStyle={contentContainerStyleMemo}
 			maxItemsInRecyclePool={0}
-			drawDistance={0}
+			drawDistance={Math.floor(screen.height / 4)}
 			{...props}
 			ref={ref}
 		/>

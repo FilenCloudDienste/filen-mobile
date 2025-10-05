@@ -32,6 +32,7 @@ import Dropdown from "@/components/photos/header/rightView/dropdown"
 import { Checkbox } from "@/components/nativewindui/Checkbox"
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
+import useDimensions from "@/hooks/useDimensions"
 
 const contentContainerStyle = {
 	paddingBottom: 100,
@@ -194,6 +195,7 @@ export const Photos = memo(() => {
 	const { t } = useTranslation()
 	const selectedItemsCount = usePhotosStore(useShallow(state => state.selectedItems.length))
 	const listRef = useRef<FlashListRef<DriveCloudItem>>(null)
+	const { screen } = useDimensions()
 
 	const queryParams = useMemo(
 		(): FetchCloudItemsParams => ({
@@ -469,7 +471,7 @@ export const Photos = memo(() => {
 						contentContainerStyle={contentContainerStyle}
 						refreshControl={refreshControl}
 						maxItemsInRecyclePool={0}
-						drawDistance={0}
+						drawDistance={Math.floor(screen.height / 4)}
 					/>
 				</View>
 			</Container>

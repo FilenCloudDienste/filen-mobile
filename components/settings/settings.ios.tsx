@@ -7,6 +7,7 @@ import { Text } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 import { useColorScheme } from "@/lib/useColorScheme"
 import type { SettingsItem, SettingsProps } from "."
+import useDimensions from "@/hooks/useDimensions"
 
 export const ChevronRight = memo(() => {
 	const { colors } = useColorScheme()
@@ -119,6 +120,7 @@ const contentContainerStyle = {
 
 export const Settings = memo((props: SettingsProps) => {
 	const { colors } = useColorScheme()
+	const { screen } = useDimensions()
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
 		return typeof item === "string" ? item : item.id
@@ -174,6 +176,8 @@ export const Settings = memo((props: SettingsProps) => {
 				sectionHeaderAsGap={true}
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
+				drawDistance={Math.floor(screen.height / 4)}
+				maxItemsInRecyclePool={0}
 				refreshing={props.loading}
 				ListEmptyComponent={ListEmptyComponent}
 				ListHeaderComponent={props.listHeader ? () => props.listHeader : undefined}
