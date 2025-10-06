@@ -84,7 +84,7 @@ export const queryClientPersister = createAsyncStoragePersister({
 		return unpacked as unknown as PersistedClient
 	},
 	key: QUERY_CLIENT_PERSISTER_PREFIX,
-	throttleTime: 3000
+	throttleTime: 5000
 })
 
 export const DEFAULT_QUERY_OPTIONS: Pick<
