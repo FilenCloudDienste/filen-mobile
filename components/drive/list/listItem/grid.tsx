@@ -8,6 +8,7 @@ import { formatBytes, simpleDateNoTime } from "@/lib/utils"
 import { cn } from "@/lib/cn"
 import { Checkbox } from "@/components/nativewindui/Checkbox"
 import Menu from "./menu"
+import useAllowed from "@/hooks/useAllowed"
 
 export const Grid = memo(
 	({
@@ -16,7 +17,6 @@ export const Grid = memo(
 		isAvailableOffline,
 		onPress,
 		item,
-		pathname,
 		queryParams,
 		directorySize,
 		select,
@@ -29,7 +29,6 @@ export const Grid = memo(
 		isAvailableOffline: boolean
 		onPress: () => void
 		item: DriveCloudItem
-		pathname: string
 		queryParams: FetchCloudItemsParams
 		directorySize?: FetchDirectorySizeResult
 		select: () => void
@@ -37,6 +36,8 @@ export const Grid = memo(
 		isSelected: boolean
 		highlight?: boolean
 	}) => {
+		const allowed = useAllowed()
+
 		const thumbnailSize = useMemo(() => {
 			return Math.floor(itemSize / 2.25)
 		}, [itemSize])
@@ -98,7 +99,7 @@ export const Grid = memo(
 									/>
 								</View>
 							)}
-							{item.favorited && !pathname.startsWith("/home/favorites") && (
+							{item.favorited && allowed.upload && (
 								<View className="w-[16px] h-[16px] absolute -bottom-[1px] -right-[1px] bg-red-500 rounded-full z-50 flex-row items-center justify-center border-white border-[1px]">
 									<Icon
 										name="heart"

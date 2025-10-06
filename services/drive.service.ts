@@ -37,6 +37,7 @@ import cache from "@/lib/cache"
 import pathModule from "path"
 import { driveItemsQueryUpdate } from "@/queries/useDriveItems.query"
 import { fileOfflineStatusQueryUpdate } from "@/queries/useFileOfflineStatus.query"
+import { validate as validateUUID } from "uuid"
 
 export type SelectDriveItemsResponse =
 	| {
@@ -437,7 +438,10 @@ export class DriveService {
 			}
 
 			if (queryParams) {
-				if (queryParams.of === "favorites" && !newFavoriteStatus) {
+				if (
+					(queryParams.of === "favorites" && !newFavoriteStatus && !validateUUID(queryParams.parent)) ||
+					(queryParams.of === "drive" && !newFavoriteStatus && queryParams.parent === "favorites")
+				) {
 					driveItemsQueryUpdate({
 						params: queryParams,
 						updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
@@ -468,11 +472,29 @@ export class DriveService {
 					},
 					updater: prev => [...prev.filter(prevItem => prevItem.uuid !== item.uuid), item]
 				})
+
+				driveItemsQueryUpdate({
+					params: {
+						parent: "favorites",
+						of: "drive",
+						receiverId: 0
+					},
+					updater: prev => [...prev.filter(prevItem => prevItem.uuid !== item.uuid), item]
+				})
 			} else {
 				driveItemsQueryUpdate({
 					params: {
 						parent: "favorites",
 						of: "favorites",
+						receiverId: 0
+					},
+					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
+				})
+
+				driveItemsQueryUpdate({
+					params: {
+						parent: "favorites",
+						of: "drive",
 						receiverId: 0
 					},
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)

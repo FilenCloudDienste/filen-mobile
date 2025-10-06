@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/nativewindui/Checkbox"
 import Animated, { SlideInLeft, SlideOutLeft } from "react-native-reanimated"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Icon } from "@roninoss/icons"
-import { usePathname } from "expo-router"
+import useAllowed from "@/hooks/useAllowed"
 
 export const ICON_HEIGHT: number = 42
 
@@ -26,7 +26,7 @@ export const LeftView = memo(
 		queryParams: FetchCloudItemsParams
 	}) => {
 		const { colors } = useColorScheme()
-		const pathname = usePathname()
+		const allowed = useAllowed()
 
 		const imageStyle = useMemo(() => {
 			return {
@@ -60,7 +60,7 @@ export const LeftView = memo(
 							/>
 						</View>
 					)}
-					{item.favorited && !pathname.startsWith("/home/favorites") && (
+					{item.favorited && allowed.upload && (
 						<View className="w-[16px] h-[16px] absolute -bottom-[1px] -right-[1px] bg-red-500 rounded-full z-50 flex-row items-center justify-center border-white border-[1px]">
 							<Icon
 								name="heart"

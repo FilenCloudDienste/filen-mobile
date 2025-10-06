@@ -125,6 +125,17 @@ export const Item = memo(
 					return
 				}
 
+				if (type === "favorites") {
+					routerPush({
+						pathname: "/(app)/home/favorites/[uuid]",
+						params: {
+							uuid: item.uuid
+						}
+					})
+
+					return
+				}
+
 				if (type === "sharedIn") {
 					routerPush({
 						pathname: "/(app)/home/sharedIn/[uuid]",
@@ -277,7 +288,7 @@ export const Item = memo(
 								/>
 							</View>
 						)}
-						{item.favorited && type !== "favorites" && (
+						{item.favorited && type !== "favorites" && type !== "trash" && (
 							<View className="w-[16px] h-[16px] absolute -bottom-[1px] -right-[1px] bg-red-500 rounded-full z-50 flex-row items-center justify-center border-white border-[1px]">
 								<Icon
 									name="heart"

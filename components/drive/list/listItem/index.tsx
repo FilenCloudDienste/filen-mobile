@@ -207,6 +207,12 @@ export const ListItem = memo(
 									parent: info.item.item.uuid,
 									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
 							  }
+							: pathname.startsWith("/home/favorites")
+							? {
+									of: "favorites",
+									parent: info.item.item.uuid,
+									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
+							  }
 							: pathname.startsWith("/home/sharedOut")
 							? {
 									of: "sharedOut",
@@ -216,12 +222,6 @@ export const ListItem = memo(
 							: pathname.startsWith("/home/sharedIn")
 							? {
 									of: "sharedIn",
-									parent: info.item.item.uuid,
-									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
-							  }
-							: pathname.startsWith("/home/offline")
-							? {
-									of: "offline",
 									parent: info.item.item.uuid,
 									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
 							  }
@@ -246,6 +246,8 @@ export const ListItem = memo(
 				routerPush({
 					pathname: pathname.startsWith("/home/links")
 						? "/home/links/[uuid]"
+						: pathname.startsWith("/home/favorites")
+						? "/home/favorites/[uuid]"
 						: pathname.startsWith("/home/sharedOut")
 						? "/home/sharedOut/[uuid]"
 						: pathname.startsWith("/home/sharedIn")
@@ -387,7 +389,6 @@ export const ListItem = memo(
 					item={info.item.item}
 					itemSize={itemSize}
 					spacing={spacing}
-					pathname={pathname}
 					isAvailableOffline={offlineStatus && offlineStatus.exists ? true : false}
 					queryParams={queryParams}
 					onPress={onPress}

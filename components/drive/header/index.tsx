@@ -31,10 +31,6 @@ export const Header = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 			return t("drive.header.title.recents")
 		}
 
-		if (queryParams.of === "favorites" || queryParams.parent === "favorites") {
-			return t("drive.header.title.favorites")
-		}
-
 		if (queryParams.of === "trash" || queryParams.parent === "trash") {
 			return t("drive.header.title.trash")
 		}
@@ -45,6 +41,10 @@ export const Header = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 
 		if ((queryParams.of === "links" || queryParams.parent === "links") && !validateUUID(uuid)) {
 			return t("drive.header.title.links")
+		}
+
+		if ((queryParams.of === "favorites" || queryParams.parent === "favorites") && !validateUUID(uuid)) {
+			return t("drive.header.title.favorites")
 		}
 
 		if ((queryParams.of === "sharedIn" || queryParams.parent === "shared-in") && !validateUUID(uuid)) {
