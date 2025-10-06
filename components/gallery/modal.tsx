@@ -1,4 +1,4 @@
-import { useEffect, memo, useCallback, useMemo } from "react"
+import { useEffect, memo, useCallback, useMemo, Fragment } from "react"
 import { BackHandler, View, Pressable, type StyleProp, type ViewStyle, FlatList } from "react-native"
 import { useGalleryStore, type GalleryItem } from "@/stores/gallery.store"
 import { useShallow } from "zustand/shallow"
@@ -224,39 +224,39 @@ export const GalleryModal = memo(() => {
 		}
 	}, [visible])
 
-	if (!visible) {
-		return null
-	}
-
 	return (
 		<Portal name="gallery-modal">
-			<Header />
-			<Animated.View
-				className="flex-1"
-				entering={FadeIn}
-				exiting={FadeOut}
-				style={animatedStyle}
-			>
-				<GestureViewer
-					data={items}
-					width={screen.width}
-					enableLoop={false}
-					dismissThreshold={150}
-					enableDismissGesture={true}
-					enableDoubleTapGesture={true}
-					enableSwipeGesture={true}
-					enableZoomGesture={true}
-					enableZoomPanGesture={true}
-					onIndexChange={onIndexChange}
-					maxZoomScale={3}
-					renderItem={renderItem}
-					ListComponent={FlatList}
-					initialIndex={validatedInitialScrollIndex}
-					listProps={listProps}
-					onDismiss={onDismiss}
-					onDismissStart={onDismissStart}
-				/>
-			</Animated.View>
+			{visible && (
+				<Fragment>
+					<Header />
+					<Animated.View
+						className="flex-1"
+						entering={FadeIn}
+						exiting={FadeOut}
+						style={animatedStyle}
+					>
+						<GestureViewer
+							data={items}
+							width={screen.width}
+							enableLoop={false}
+							dismissThreshold={150}
+							enableDismissGesture={true}
+							enableDoubleTapGesture={true}
+							enableSwipeGesture={true}
+							enableZoomGesture={true}
+							enableZoomPanGesture={true}
+							onIndexChange={onIndexChange}
+							maxZoomScale={3}
+							renderItem={renderItem}
+							ListComponent={FlatList}
+							initialIndex={validatedInitialScrollIndex}
+							listProps={listProps}
+							onDismiss={onDismiss}
+							onDismissStart={onDismissStart}
+						/>
+					</Animated.View>
+				</Fragment>
+			)}
 		</Portal>
 	)
 })

@@ -18,9 +18,13 @@ import { FullWindowOverlay } from "react-native-screens"
 import useLocalAuthenticationQuery from "@/queries/useLocalAuthentication.query"
 import useIsAuthed from "@/hooks/useIsAuthed"
 
-export const ParentComponent = memo(({ children }: { children: React.ReactNode }) => {
+export const ParentComponent = memo(({ children, show }: { children: React.ReactNode; show: boolean }) => {
 	if (Platform.OS === "android") {
-		return <Portal name="biometric-modal">{children}</Portal>
+		return <Portal name="biometric-modal">{show ? children : null}</Portal>
+	}
+
+	if (!show) {
+		return null
 	}
 
 	return <FullWindowOverlay>{children}</FullWindowOverlay>
@@ -307,12 +311,8 @@ export const Biometric = memo(() => {
 		}
 	}, [onNextAppState, onBackButtonPress])
 
-	if (!show) {
-		return null
-	}
-
 	return (
-		<ParentComponent>
+		<ParentComponent show={show}>
 			<Animated.View
 				exiting={FadeOut}
 				className="flex-1 items-center justify-center bg-background absolute top-0 left-0 right-0 bottom-0 z-[900] w-full h-full"

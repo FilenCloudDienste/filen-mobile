@@ -207,126 +207,130 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 					</View>
 				</Button>
 			</View>
-			{showSearchBar && (
-				<Portal name={`large-title:${id}`}>
-					<Animated.View
-						exiting={FadeOut}
-						className={cn("absolute left-0 right-0 top-0", !props.searchBar?.contentTransparent && "bottom-0")}
-					>
-						<View
-							style={{
-								paddingTop: insets.top + 6
-							}}
-							className="bg-background relative z-50 overflow-hidden"
-						>
-							<Animated.View
-								entering={customEntering}
-								exiting={customExiting}
-								className="bg-muted/25 dark:bg-card absolute bottom-2.5 left-4 right-4 h-14 rounded-full"
-							/>
-							<View className="pb-2.5">
+			<Portal name={`large-title:${id}`}>
+				<View
+					className={cn("absolute left-0 right-0 top-0", !props.searchBar?.contentTransparent && "bottom-0")}
+					style={{
+						display: showSearchBar ? "flex" : "none"
+					}}
+				>
+					{showSearchBar && (
+						<Fragment>
+							<View
+								style={{
+									paddingTop: insets.top + 6
+								}}
+								className="bg-background relative z-50 overflow-hidden"
+							>
 								<Animated.View
-									entering={FadeIn}
-									exiting={FadeOut}
-									className="h-14 flex-row items-center pl-3.5 pr-5"
-								>
+									entering={customEntering}
+									exiting={customExiting}
+									className="bg-muted/25 dark:bg-card absolute bottom-2.5 left-4 right-4 h-14 rounded-full"
+								/>
+								<View className="pb-2.5">
 									<Animated.View
-										entering={FadeInRight}
-										exiting={FadeOutRight}
+										entering={FadeIn}
+										exiting={FadeOut}
+										className="h-14 flex-row items-center pl-3.5 pr-5"
 									>
 										<Animated.View
-											entering={FadeIn}
-											exiting={FadeOut}
+											entering={FadeInRight}
+											exiting={FadeOutRight}
 										>
-											<Button
-												variant="plain"
-												size="icon"
-												onPress={onSearchBackPress}
-											>
-												<Icon
-													color={colors.grey}
-													name="arrow-left"
-													size={24}
-												/>
-											</Button>
-										</Animated.View>
-									</Animated.View>
-									<Animated.View
-										entering={FadeInRight}
-										exiting={FadeOutRight}
-										className="flex-1"
-									>
-										<TextInput
-											autoFocus={true}
-											placeholder={props.searchBar?.placeholder ?? t("nwui.search.placeholder")}
-											className="flex-1 rounded-r-full p-2 text-[17px]"
-											style={{
-												color: props.searchBar?.textColor ?? colors.foreground
-											}}
-											placeholderTextColor={colors.grey2}
-											onFocus={props.searchBar?.onFocus}
-											value={searchValue}
-											onChangeText={onChangeText}
-											autoCapitalize={props.searchBar?.autoCapitalize}
-											keyboardType={searchBarInputTypeToKeyboardType(props.searchBar?.inputType)}
-											returnKeyType="search"
-											blurOnSubmit={props.searchBar?.materialBlurOnSubmit}
-											onSubmitEditing={props.searchBar?.materialOnSubmitEditing}
-										/>
-									</Animated.View>
-									<View className="flex-row items-center gap-3 pr-1.5">
-										{!!searchValue && (
 											<Animated.View
 												entering={FadeIn}
 												exiting={FadeOut}
 											>
 												<Button
-													size="icon"
 													variant="plain"
-													onPress={onClearText}
+													size="icon"
+													onPress={onSearchBackPress}
 												>
 													<Icon
-														color={colors.grey2}
-														name="close"
+														color={colors.grey}
+														name="arrow-left"
 														size={24}
 													/>
 												</Button>
 											</Animated.View>
-										)}
-										{!!props.searchBar?.materialRightView && (
-											<Fragment>
-												{props.searchBar?.materialRightView({
-													canGoBack,
-													tintColor: colors.foreground
-												})}
-											</Fragment>
-										)}
+										</Animated.View>
+										<Animated.View
+											entering={FadeInRight}
+											exiting={FadeOutRight}
+											className="flex-1"
+										>
+											<TextInput
+												autoFocus={true}
+												placeholder={props.searchBar?.placeholder ?? t("nwui.search.placeholder")}
+												className="flex-1 rounded-r-full p-2 text-[17px]"
+												style={{
+													color: props.searchBar?.textColor ?? colors.foreground
+												}}
+												placeholderTextColor={colors.grey2}
+												onFocus={props.searchBar?.onFocus}
+												value={searchValue}
+												onChangeText={onChangeText}
+												autoCapitalize={props.searchBar?.autoCapitalize}
+												keyboardType={searchBarInputTypeToKeyboardType(props.searchBar?.inputType)}
+												returnKeyType="search"
+												blurOnSubmit={props.searchBar?.materialBlurOnSubmit}
+												onSubmitEditing={props.searchBar?.materialOnSubmitEditing}
+											/>
+										</Animated.View>
+										<View className="flex-row items-center gap-3 pr-1.5">
+											{!!searchValue && (
+												<Animated.View
+													entering={FadeIn}
+													exiting={FadeOut}
+												>
+													<Button
+														size="icon"
+														variant="plain"
+														onPress={onClearText}
+													>
+														<Icon
+															color={colors.grey2}
+															name="close"
+															size={24}
+														/>
+													</Button>
+												</Animated.View>
+											)}
+											{!!props.searchBar?.materialRightView && (
+												<Fragment>
+													{props.searchBar?.materialRightView({
+														canGoBack,
+														tintColor: colors.foreground
+													})}
+												</Fragment>
+											)}
+										</View>
+									</Animated.View>
+								</View>
+								<Animated.View
+									entering={ZoomIn}
+									className="bg-border h-px"
+								/>
+							</View>
+							{!props.searchBar?.contentTransparent && props.searchBar?.content && (
+								<Animated.View
+									entering={FadeInUp}
+									className="bg-background flex-1"
+								>
+									<View
+										className="flex-1"
+										style={{
+											paddingBottom: keyboardState.isVisible ? keyboardState.height : 0
+										}}
+									>
+										{props.searchBar?.content}
 									</View>
 								</Animated.View>
-							</View>
-							<Animated.View
-								entering={ZoomIn}
-								className="bg-border h-px"
-							/>
-						</View>
-						{!props.searchBar?.contentTransparent && props.searchBar?.content && (
-							<Animated.View
-								entering={FadeInUp}
-								className="bg-background flex-1"
-							>
-								<View
-									className="flex-1"
-									style={{
-										paddingBottom: keyboardState.isVisible ? keyboardState.height : 0
-									}}
-								>
-									{props.searchBar?.content}
-								</View>
-							</Animated.View>
-						)}
-					</Animated.View>
-				</Portal>
-			)}
+							)}
+						</Fragment>
+					)}
+				</View>
+			</Portal>
 		</Fragment>
 	)
 })
