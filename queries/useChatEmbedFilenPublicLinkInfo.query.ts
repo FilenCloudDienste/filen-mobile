@@ -2,7 +2,7 @@ import { useQuery, type UseQueryOptions, type UseQueryResult } from "@tanstack/r
 import { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams } from "./client"
 import nodeWorker from "@/lib/nodeWorker"
 import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
-import { getPreviewType } from "@/lib/utils"
+import { getPreviewType, sortParams } from "@/lib/utils"
 
 export const BASE_QUERY_KEY = "useChatEmbedFilenPublicLinkInfoQuery"
 
@@ -73,6 +73,8 @@ export function useChatEmbedFilenPublicLinkInfoQuery(
 	params: UseChatEmbedFilenPublicLinkInfoQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
+	params = sortParams(params)
+
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({

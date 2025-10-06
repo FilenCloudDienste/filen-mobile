@@ -2,6 +2,7 @@ import { useQuery, type UseQueryOptions, type UseQueryResult } from "@tanstack/r
 import { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams, DEFAULT_QUERY_OPTIONS_ETERNAL } from "./client"
 import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import axios from "axios"
+import { sortParams } from "@/lib/utils"
 
 export const BASE_QUERY_KEY = "useChatEmbedYouTubeQuery"
 
@@ -49,6 +50,8 @@ export function useChatEmbedYouTubeQuery(
 	params: UseChatEmbedYouTubeQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
+	params = sortParams(params)
+
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({

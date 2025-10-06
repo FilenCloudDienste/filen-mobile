@@ -2,7 +2,7 @@ import { useQuery, type UseQueryOptions, type UseQueryResult } from "@tanstack/r
 import { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams } from "./client"
 import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import axios, { type AxiosResponse } from "axios"
-import { getPreviewTypeFromMime } from "@/lib/utils"
+import { getPreviewTypeFromMime, sortParams } from "@/lib/utils"
 
 export class WebpageMetadata {
 	public title: string = ""
@@ -427,6 +427,8 @@ export function useChatEmbedParsedPageMetadataQuery(
 	params: UseChatEmbedParsedPageMetadataQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
+	params = sortParams(params)
+
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({

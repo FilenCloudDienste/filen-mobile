@@ -550,9 +550,9 @@ export class CameraUpload {
 						if (this.type === "foreground") {
 							driveItemsQueryUpdate({
 								params: {
-									receiverId: 0,
+									parent: state.remote.uuid,
 									of: "photos",
-									parent: state.remote.uuid
+									receiverId: 0
 								},
 								updater: prev => [
 									...prev.filter(i => i.uuid !== item.uuid),

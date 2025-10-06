@@ -184,7 +184,7 @@ export const Home = memo(() => {
 	const favoritesItems = useMemo(() => {
 		return favoritesQuery.status === "success"
 			? orderItemsByType({
-					items: favoritesQuery.data.filter(item => item.type === "file").slice(0, 12),
+					items: favoritesQuery.data.slice(0, 12),
 					type: "lastModifiedDesc"
 			  })
 			: []

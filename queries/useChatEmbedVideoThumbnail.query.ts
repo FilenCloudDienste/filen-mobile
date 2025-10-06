@@ -6,6 +6,7 @@ import * as FileSystem from "expo-file-system"
 import { xxHash32 } from "js-xxhash"
 import nodeWorker from "@/lib/nodeWorker"
 import pathModule from "path"
+import { sortParams } from "@/lib/utils"
 
 export const BASE_QUERY_KEY = "useChatEmbedVideoThumbnailQuery"
 
@@ -55,6 +56,8 @@ export function useChatEmbedVideoThumbnailQuery(
 	params: UseChatEmbedVideoThumbnailQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
+	params = sortParams(params)
+
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({

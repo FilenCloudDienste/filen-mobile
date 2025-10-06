@@ -246,8 +246,8 @@ export class DriveService {
 			for (const ofValue of FETCH_DRIVE_ITEMS_POSSIBLE_OF) {
 				driveItemsQueryUpdate({
 					params: {
-						of: ofValue as FetchCloudItemsParams["of"],
 						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+						of: ofValue as FetchCloudItemsParams["of"],
 						receiverId: 0
 					},
 					updater: prev =>
@@ -364,8 +364,8 @@ export class DriveService {
 			for (const ofValue of FETCH_DRIVE_ITEMS_POSSIBLE_OF) {
 				driveItemsQueryUpdate({
 					params: {
-						of: ofValue as FetchCloudItemsParams["of"],
 						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+						of: ofValue as FetchCloudItemsParams["of"],
 						receiverId: 0
 					},
 					updater: prev =>
@@ -462,8 +462,8 @@ export class DriveService {
 			if (newFavoriteStatus) {
 				driveItemsQueryUpdate({
 					params: {
-						of: "favorites",
 						parent: "favorites",
+						of: "favorites",
 						receiverId: 0
 					},
 					updater: prev => [...prev.filter(prevItem => prevItem.uuid !== item.uuid), item]
@@ -471,8 +471,8 @@ export class DriveService {
 			} else {
 				driveItemsQueryUpdate({
 					params: {
-						of: "favorites",
 						parent: "favorites",
+						of: "favorites",
 						receiverId: 0
 					},
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
@@ -483,8 +483,8 @@ export class DriveService {
 			for (const ofValue of FETCH_DRIVE_ITEMS_POSSIBLE_OF) {
 				driveItemsQueryUpdate({
 					params: {
-						of: ofValue as FetchCloudItemsParams["of"],
 						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+						of: ofValue as FetchCloudItemsParams["of"],
 						receiverId: 0
 					},
 					updater: prev =>
@@ -772,8 +772,8 @@ export class DriveService {
 			for (const ofValue of FETCH_DRIVE_ITEMS_POSSIBLE_OF) {
 				driveItemsQueryUpdate({
 					params: {
-						of: ofValue as FetchCloudItemsParams["of"],
 						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+						of: ofValue as FetchCloudItemsParams["of"],
 						receiverId: 0
 					},
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
@@ -872,8 +872,8 @@ export class DriveService {
 			for (const ofValue of FETCH_DRIVE_ITEMS_POSSIBLE_OF) {
 				driveItemsQueryUpdate({
 					params: {
-						of: ofValue as FetchCloudItemsParams["of"],
 						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+						of: ofValue as FetchCloudItemsParams["of"],
 						receiverId: 0
 					},
 					updater: prev =>
@@ -1132,8 +1132,8 @@ export class DriveService {
 				// Update home screen queries aswell
 				driveItemsQueryUpdate({
 					params: {
-						of: "offline",
 						parent: "offline",
+						of: "offline",
 						receiverId: 0
 					},
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
@@ -1178,8 +1178,8 @@ export class DriveService {
 				// Update home screen queries aswell
 				driveItemsQueryUpdate({
 					params: {
-						of: "offline",
 						parent: "offline",
+						of: "offline",
 						receiverId: 0
 					},
 					updater: prev => [...prev.filter(prevItem => prevItem.uuid !== item.uuid), item]
@@ -1322,8 +1322,8 @@ export class DriveService {
 			// Update home screen queries aswell
 			driveItemsQueryUpdate({
 				params: {
-					of: "sharedIn",
 					parent: "sharedIn",
+					of: "sharedIn",
 					receiverId: 0
 				},
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
@@ -1381,8 +1381,8 @@ export class DriveService {
 			// Update home screen queries aswell
 			driveItemsQueryUpdate({
 				params: {
-					of: "sharedOut",
 					parent: "sharedOut",
+					of: "sharedOut",
 					receiverId: 0
 				},
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
@@ -1442,8 +1442,8 @@ export class DriveService {
 			for (const ofValue of FETCH_DRIVE_ITEMS_POSSIBLE_OF) {
 				driveItemsQueryUpdate({
 					params: {
-						of: ofValue as FetchCloudItemsParams["of"],
 						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+						of: ofValue as FetchCloudItemsParams["of"],
 						receiverId: 0
 					},
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
@@ -1493,8 +1493,8 @@ export class DriveService {
 			// Update home screen queries aswell
 			driveItemsQueryUpdate({
 				params: {
-					of: "trash",
 					parent: "trash",
+					of: "trash",
 					receiverId: 0
 				},
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
@@ -1547,8 +1547,8 @@ export class DriveService {
 			// Update home screen queries aswell
 			driveItemsQueryUpdate({
 				params: {
-					of: "links",
 					parent: "links",
+					of: "links",
 					receiverId: 0
 				},
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)

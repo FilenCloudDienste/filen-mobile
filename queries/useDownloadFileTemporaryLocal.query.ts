@@ -6,6 +6,7 @@ import * as FileSystem from "expo-file-system"
 import paths from "@/lib/paths"
 import { xxHash32 } from "js-xxhash"
 import pathModule from "path"
+import { sortParams } from "@/lib/utils"
 
 export const BASE_QUERY_KEY = "useDownloadFileTemporaryLocalQuery"
 
@@ -45,6 +46,8 @@ export function useDownloadFileTemporaryLocalQuery(
 	params: UseDownloadFileTemporaryLocalQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
+	params = sortParams(params)
+
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({

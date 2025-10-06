@@ -5,6 +5,7 @@ import pathModule from "path"
 import paths from "@/lib/paths"
 import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import queryUpdater from "./updater"
+import { sortParams } from "@/lib/utils"
 
 export const BASE_QUERY_KEY = "useFileOfflineStatusQuery"
 
@@ -40,6 +41,8 @@ export function useFileOfflineStatusQuery(
 	params: UseFileOfflineStatusQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
+	params = sortParams(params)
+
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({
@@ -70,6 +73,8 @@ export function fileOfflineStatusQueryUpdate({
 		| Awaited<ReturnType<typeof fetchData>>
 		| ((prev: Awaited<ReturnType<typeof fetchData>>) => Awaited<ReturnType<typeof fetchData>>)
 }) {
+	params = sortParams(params)
+
 	queryUpdater.set<Awaited<ReturnType<typeof fetchData>>>([BASE_QUERY_KEY, params], prev => {
 		return typeof updater === "function"
 			? updater(

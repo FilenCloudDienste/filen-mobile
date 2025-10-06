@@ -997,3 +997,17 @@ export function getTimeRemaining(endTimestamp: number): {
 		seconds
 	}
 }
+
+export function sortParams<T extends Record<string, unknown>>(params: T): T {
+	return Object.keys(params)
+		.sort((a, b) =>
+			a.localeCompare(b, "en", {
+				numeric: true
+			})
+		)
+		.reduce((acc, key) => {
+			acc[key as keyof T] = params[key as keyof T]
+
+			return acc
+		}, {} as T)
+}

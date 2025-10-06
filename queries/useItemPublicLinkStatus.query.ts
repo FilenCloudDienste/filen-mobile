@@ -3,6 +3,7 @@ import { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams, queryClient } from "./cli
 import nodeWorker from "@/lib/nodeWorker"
 import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import type { PublicLinkExpiration } from "@filen/sdk"
+import { sortParams } from "@/lib/utils"
 
 export const BASE_QUERY_KEY = "useItemPublicLinkStatusQuery"
 
@@ -78,6 +79,8 @@ export function useItemPublicLinkStatusQuery(
 	params: UseItemPublicLinkStatusQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
+	params = sortParams(params)
+
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({
@@ -97,6 +100,8 @@ export function useItemPublicLinkStatusQuery(
 }
 
 export async function itemPublicLinkStatusQueryRefetch(params: Parameters<typeof fetchData>[0]): Promise<void> {
+	params = sortParams(params)
+
 	return await queryClient.refetchQueries({
 		queryKey: [BASE_QUERY_KEY, params]
 	})

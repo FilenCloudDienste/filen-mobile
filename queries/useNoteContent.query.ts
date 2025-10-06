@@ -3,6 +3,7 @@ import { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams, queryClient } from "./cli
 import nodeWorker from "@/lib/nodeWorker"
 import queryUpdater from "./updater"
 import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
+import { sortParams } from "@/lib/utils"
 
 export const BASE_QUERY_KEY = "useNoteContentQuery"
 
@@ -18,6 +19,8 @@ export function useNoteContentQuery(
 	params: UseNoteContentQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
+	params = sortParams(params)
+
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({
@@ -46,6 +49,8 @@ export function noteContentQueryUpdate({
 		| Awaited<ReturnType<typeof fetchData>>
 		| ((prev: Awaited<ReturnType<typeof fetchData>>) => Awaited<ReturnType<typeof fetchData>>)
 }) {
+	params = sortParams(params)
+
 	queryUpdater.set<Awaited<ReturnType<typeof fetchData>>>([BASE_QUERY_KEY, params], prev => {
 		return typeof updater === "function"
 			? updater(
@@ -62,12 +67,16 @@ export function noteContentQueryUpdate({
 }
 
 export async function noteContentQueryRefetch(params: Parameters<typeof fetchData>[0]): Promise<void> {
+	params = sortParams(params)
+
 	return await queryClient.refetchQueries({
 		queryKey: [BASE_QUERY_KEY, params]
 	})
 }
 
 export function noteContentQueryGet(params: Parameters<typeof fetchData>[0]) {
+	params = sortParams(params)
+
 	return queryUpdater.get<Awaited<ReturnType<typeof fetchData>>>([BASE_QUERY_KEY, params])
 }
 
