@@ -14,12 +14,14 @@ import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import { useDriveStore } from "@/stores/drive.store"
 import { useShallow } from "zustand/shallow"
+import { usePathname } from "expo-router"
 
 export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const [result, setResults] = useState<SearchFindItemDecrypted[]>([])
 	const { t } = useTranslation()
 	const searchTerm = useDriveStore(useShallow(state => state.searchTerm))
+	const pathname = usePathname()
 
 	const query = useDriveItemsQuery(queryParams, {
 		enabled: false
@@ -140,7 +142,7 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 	)
 
 	const debouncedSearch = useDebouncedCallback(async (searchValue: string) => {
-		if (searchValue.trim().length === 0 || queryParams.of !== "drive" || searchValue.length < 3) {
+		if (searchValue.trim().length === 0 || queryParams.of !== "drive" || searchValue.length < 3 || !pathname.startsWith("/drive")) {
 			setResults([])
 
 			return
@@ -207,7 +209,7 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 	}, [t, items.length, isLoading])
 
 	useEffect(() => {
-		if (searchTerm.length < 3 || queryParams.of !== "drive") {
+		if (searchTerm.length < 3 || queryParams.of !== "drive" || !pathname.startsWith("/drive")) {
 			setResults([])
 			setIsLoading(false)
 
@@ -217,7 +219,7 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 		setIsLoading(true)
 
 		debouncedSearch(searchTerm)
-	}, [searchTerm, debouncedSearch, queryParams.of])
+	}, [searchTerm, debouncedSearch, queryParams.of, pathname])
 
 	return (
 		<List
