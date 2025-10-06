@@ -137,7 +137,7 @@ export const Chats = memo(() => {
 					contentInsetAdjustmentBehavior="automatic"
 					keyExtractor={keyExtractor}
 					renderItem={renderItem}
-					refreshing={refreshing || chatsQuery.status === "pending"}
+					refreshing={refreshing}
 					contentContainerStyle={contentContainerStyle}
 					ListEmptyComponent={ListEmptyComponent}
 					ListFooterComponent={ListFooterComponent}

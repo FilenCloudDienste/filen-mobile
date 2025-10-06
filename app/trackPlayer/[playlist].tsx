@@ -219,7 +219,7 @@ export const Playlist = memo(() => {
 						contentInsetAdjustmentBehavior="automatic"
 						scrollIndicatorInsets={scrollIndicatorInsets}
 						ListFooterComponent={ListFooterComponent}
-						refreshing={Platform.OS === "ios" ? refreshing : false}
+						refreshing={refreshing}
 						refreshControl={refreshControl}
 						initialNumToRender={initialNumToRender}
 						maxToRenderPerBatch={maxToRenderPerBatch}

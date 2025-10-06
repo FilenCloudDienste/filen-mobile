@@ -472,6 +472,7 @@ export const Photos = memo(() => {
 						refreshControl={refreshControl}
 						maxItemsInRecyclePool={0}
 						drawDistance={Math.floor(screen.height / 4)}
+						refreshing={refreshing}
 					/>
 				</View>
 			</Container>

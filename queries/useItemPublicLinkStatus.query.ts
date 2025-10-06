@@ -1,5 +1,5 @@
 import { useQuery, type UseQueryOptions, type UseQueryResult } from "@tanstack/react-query"
-import { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams } from "./client"
+import { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams, queryClient } from "./client"
 import nodeWorker from "@/lib/nodeWorker"
 import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import type { PublicLinkExpiration } from "@filen/sdk"
@@ -94,6 +94,12 @@ export function useItemPublicLinkStatusQuery(
 	})
 
 	return query as UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error>
+}
+
+export async function itemPublicLinkStatusQueryRefetch(params: Parameters<typeof fetchData>[0]): Promise<void> {
+	return await queryClient.refetchQueries({
+		queryKey: [BASE_QUERY_KEY, params]
+	})
 }
 
 export default useItemPublicLinkStatusQuery

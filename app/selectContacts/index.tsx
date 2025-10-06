@@ -317,7 +317,7 @@ export default function SelectContacts() {
 					data={contacts}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
-					refreshing={refreshing || query.status === "pending"}
+					refreshing={refreshing}
 					contentInsetAdjustmentBehavior="automatic"
 					contentContainerClassName="pb-40 pt-2"
 					ListEmptyComponent={ListEmptyComponent}

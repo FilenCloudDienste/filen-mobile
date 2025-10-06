@@ -216,7 +216,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						numColumns={numColumns}
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
-						refreshing={refreshing || cloudItemsQuery.status === "pending"}
+						refreshing={refreshing}
 						contentInsetAdjustmentBehavior="automatic"
 						initialScrollIndex={initialScrollIndex}
 						contentContainerStyle={contentContainerStyle}
@@ -234,7 +234,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						data={items}
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
-						refreshing={refreshing || cloudItemsQuery.status === "pending"}
+						refreshing={refreshing}
 						contentInsetAdjustmentBehavior="automatic"
 						initialScrollIndex={initialScrollIndex}
 						contentContainerStyle={contentContainerStyle}

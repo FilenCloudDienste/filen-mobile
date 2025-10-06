@@ -384,6 +384,7 @@ export default function Participants() {
 					ListFooterComponent={ListFooterComponent}
 					ListEmptyComponent={ListEmptyComponent}
 					refreshControl={refreshControl}
+					refreshing={refreshing}
 				/>
 			</Container>
 		</RequireInternet>

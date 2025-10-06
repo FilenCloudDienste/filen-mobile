@@ -228,7 +228,6 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 			contentInsetAdjustmentBehavior="automatic"
 			keyboardDismissMode="none"
 			keyboardShouldPersistTaps="never"
-			refreshing={isLoading}
 			ListEmptyComponent={ListEmptyComponent}
 			ListFooterComponent={ListFooterComponent}
 		/>

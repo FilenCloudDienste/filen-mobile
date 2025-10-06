@@ -130,15 +130,6 @@ export const Contacts = memo(() => {
 		contactsRequestsQuery.data
 	])
 
-	const queryPending = useMemo(() => {
-		return (
-			refreshing ||
-			allContactsQuery.status === "pending" ||
-			blockedContactsQuery.status === "pending" ||
-			contactsRequestsQuery.status === "pending"
-		)
-	}, [refreshing, allContactsQuery.status, blockedContactsQuery.status, contactsRequestsQuery.status])
-
 	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
 		return <Contact info={info} />
 	}, [])
@@ -309,7 +300,7 @@ export const Contacts = memo(() => {
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
 				ListEmptyComponent={ListEmptyComponent}
-				refreshing={queryPending}
+				refreshing={refreshing}
 				refreshControl={refreshControl}
 				ListHeaderComponent={ListHeaderComponent}
 			/>

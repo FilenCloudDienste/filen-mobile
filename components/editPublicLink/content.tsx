@@ -1,6 +1,9 @@
-import { memo, useCallback, useState, useEffect, useRef, useMemo } from "react"
-import useItemPublicLinkStatusQuery from "@/queries/useItemPublicLinkStatus.query"
-import { View, Share } from "react-native"
+import { memo, useCallback, useState, useMemo } from "react"
+import useItemPublicLinkStatusQuery, {
+	type UseItemPublicLinkStatusQuery,
+	itemPublicLinkStatusQueryRefetch
+} from "@/queries/useItemPublicLinkStatus.query"
+import { View, Share, Platform } from "react-native"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
@@ -19,24 +22,21 @@ import { createDropdownItem } from "../nativewindui/DropdownMenu/utils"
 import { useTranslation } from "react-i18next"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Icon } from "@roninoss/icons"
+import { ActivityIndicator } from "../nativewindui/ActivityIndicator"
 
-export const Content = memo(({ item }: { item: DriveCloudItem }) => {
-	const [toggleStatus, setToggleStatus] = useState<boolean>(false)
-	const [downloadEnabled, setDownloadEnabled] = useState<boolean>(false)
-	const [expiration, setExpiration] = useState<PublicLinkExpiration>("never")
-	const [password, setPassword] = useState<string | null>(null)
-	const queryDataUpdatedAt = useRef<number>(0)
-	const [didChange, setDidChange] = useState<boolean>(false)
-	const isProUser = useIsProUser()
-	const { colors } = useColorScheme()
+export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: UseItemPublicLinkStatusQuery }) => {
 	const { t } = useTranslation()
-
-	const query = useItemPublicLinkStatusQuery({
-		item
-	})
+	const [didChange, setDidChange] = useState<boolean>(false)
+	const [downloadEnabled, setDownloadEnabled] = useState<boolean>(status.enabled ? status.downloadButton : false)
+	const [expiration, setExpiration] = useState<PublicLinkExpiration>(
+		status.enabled ? (status.expirationText as PublicLinkExpiration) ?? "never" : "never"
+	)
+	const [password, setPassword] = useState<string | null>(null)
+	const [enabled, setEnabled] = useState<boolean>(status.enabled)
+	const { colors } = useColorScheme()
 
 	const save = useCallback(async () => {
-		if (query.status !== "success" || !query.data.enabled || !didChange) {
+		if (!enabled || !didChange || !status.enabled) {
 			return
 		}
 
@@ -48,11 +48,13 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 				itemUUID: item.uuid,
 				enableDownload: downloadEnabled,
 				expiration,
-				linkUUID: query.data.uuid,
+				linkUUID: status.uuid,
 				password: password && password.length > 0 ? password : undefined
 			})
 
-			await query.refetch()
+			await itemPublicLinkStatusQueryRefetch({
+				item
+			})
 
 			setDidChange(false)
 		} catch (e) {
@@ -64,19 +66,19 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [query, downloadEnabled, item, expiration, password, didChange])
+	}, [downloadEnabled, item, expiration, password, didChange, enabled, status])
 
 	const toggleDownload = useCallback(() => {
-		if (query.status !== "success" || !query.data.enabled) {
+		if (!status.enabled) {
 			return
 		}
 
 		setDownloadEnabled(prev => !prev)
 		setDidChange(true)
-	}, [query.status, query.data?.enabled])
+	}, [status])
 
 	const editPassword = useCallback(async () => {
-		if (query.status !== "success" || !query.data.enabled) {
+		if (!status.enabled) {
 			return
 		}
 
@@ -100,23 +102,23 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 		}
 
 		setDidChange(true)
-	}, [query.status, query.data?.enabled, t])
+	}, [status.enabled, t])
 
 	const share = useCallback(async () => {
-		if (query.status !== "success" || !query.data.enabled) {
+		if (!status.enabled) {
 			return
 		}
 
 		try {
 			const key =
 				item.type === "file"
-					? query.data.key
+					? status.key
 					: await nodeWorker.proxy("decryptDirectoryPublicLinkKey", {
-							metadata: query.data.key
+							metadata: status.key
 					  })
 
 			const link = `${item.type === "file" ? FILE_PUBLIC_LINK_BASE_URL : DIRECTORY_PUBLIC_LINK_BASE_URL}${
-				query.data.uuid
+				status.uuid
 			}${encodeURIComponent("#")}${Buffer.from(key, "utf-8").toString("hex")}`
 
 			await Share.share(
@@ -134,37 +136,41 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 				alerts.error(e.message)
 			}
 		}
-	}, [query.status, query.data, item, t])
+	}, [status, item, t])
 
 	const toggle = useCallback(async () => {
-		if (query.status !== "success") {
-			return
-		}
-
 		fullScreenLoadingModal.show()
 
-		setToggleStatus(!query.data.enabled)
+		const statusBefore = structuredClone(status)
+
+		setEnabled(!status.enabled)
 
 		try {
-			if (query.data.enabled) {
-				if (!query.data.uuid) {
+			if (status.enabled) {
+				if (!status.uuid) {
 					return
 				}
 
 				await nodeWorker.proxy("toggleItemPublicLink", {
 					item,
 					enable: false,
-					linkUUID: query.data.uuid
+					linkUUID: status.uuid
 				})
+
+				setEnabled(false)
 			} else {
 				await nodeWorker.proxy("toggleItemPublicLink", {
 					item,
 					enable: true,
 					linkUUID: ""
 				})
+
+				setEnabled(true)
 			}
 
-			await query.refetch()
+			await itemPublicLinkStatusQueryRefetch({
+				item
+			})
 
 			setDidChange(false)
 		} catch (e) {
@@ -173,10 +179,12 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 			if (e instanceof Error) {
 				alerts.error(e.message)
 			}
+
+			setEnabled(statusBefore.enabled)
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [query, item])
+	}, [status, item])
 
 	const expirationText = useMemo(() => {
 		switch (expiration) {
@@ -219,26 +227,6 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 	}, [expiration, t])
 
 	const settingsItems = useMemo(() => {
-		if (query.status !== "success") {
-			return []
-		}
-
-		if (!query.data.enabled) {
-			return [
-				{
-					id: "0",
-					title: t("editPublicLink.items.enabled"),
-					rightView: (
-						<Toggle
-							onChange={toggle}
-							value={toggleStatus}
-							disabled={query.status !== "success"}
-						/>
-					)
-				}
-			] satisfies SettingsItem[]
-		}
-
 		return [
 			{
 				id: "0",
@@ -246,112 +234,178 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 				rightView: (
 					<Toggle
 						onChange={toggle}
-						value={toggleStatus}
-						disabled={query.status !== "success"}
+						value={enabled}
 					/>
 				)
 			},
-			"gap-0",
-			{
-				id: "1",
-				title: t("editPublicLink.items.password"),
-				rightView: (
-					<Button
-						variant="plain"
-						size="none"
-						onPress={editPassword}
-						hitSlop={15}
-					>
-						<Text className="text-blue-500">{t("editPublicLink.items.edit")}</Text>
-					</Button>
-				)
-			},
-			{
-				id: "2",
-				title: t("editPublicLink.items.expiration"),
-				rightView: (
-					<DropdownMenu
-						items={[
-							createDropdownItem({
-								actionKey: "never",
-								title: t("editPublicLink.items.expirationNever")
-							}),
-							createDropdownItem({
-								actionKey: "1h",
-								title: t("editPublicLink.items.expiration1h")
-							}),
-							createDropdownItem({
-								actionKey: "6h",
-								title: t("editPublicLink.items.expiration6h")
-							}),
-							createDropdownItem({
-								actionKey: "1d",
-								title: t("editPublicLink.items.expiration1d")
-							}),
-							createDropdownItem({
-								actionKey: "3d",
-								title: t("editPublicLink.items.expiration3d")
-							}),
-							createDropdownItem({
-								actionKey: "7d",
-								title: t("editPublicLink.items.expiration7d")
-							}),
-							createDropdownItem({
-								actionKey: "14d",
-								title: t("editPublicLink.items.expiration14d")
-							}),
-							createDropdownItem({
-								actionKey: "30d",
-								title: t("editPublicLink.items.expiration30d")
-							})
-						]}
-						onItemPress={({ actionKey }) => {
-							setExpiration(actionKey as PublicLinkExpiration)
-							setDidChange(true)
-						}}
-					>
-						<Button
-							variant="plain"
-							size="none"
-							onPress={e => {
-								e.stopPropagation()
-								e.preventDefault()
-							}}
-							disabled={query.status !== "success" || !query.data.enabled}
-							hitSlop={15}
-						>
-							<Text className="text-blue-500">{expirationText}</Text>
-						</Button>
-					</DropdownMenu>
-				)
-			},
-			{
-				id: "3",
-				title: t("editPublicLink.items.downloadButton"),
-				rightView: (
-					<Toggle
-						onChange={toggleDownload}
-						value={downloadEnabled}
-						disabled={query.status !== "success" || !query.data.enabled}
-					/>
-				)
-			}
+			...(status.enabled
+				? [
+						"gap-0",
+						{
+							id: "1",
+							title: t("editPublicLink.items.password"),
+							rightView: (
+								<Button
+									variant="plain"
+									size="none"
+									onPress={editPassword}
+									hitSlop={15}
+								>
+									<Text className="text-blue-500">{t("editPublicLink.items.edit")}</Text>
+								</Button>
+							)
+						},
+						{
+							id: "2",
+							title: t("editPublicLink.items.expiration"),
+							rightView: (
+								<DropdownMenu
+									items={[
+										createDropdownItem({
+											actionKey: "never",
+											title: t("editPublicLink.items.expirationNever")
+										}),
+										createDropdownItem({
+											actionKey: "1h",
+											title: t("editPublicLink.items.expiration1h")
+										}),
+										createDropdownItem({
+											actionKey: "6h",
+											title: t("editPublicLink.items.expiration6h")
+										}),
+										createDropdownItem({
+											actionKey: "1d",
+											title: t("editPublicLink.items.expiration1d")
+										}),
+										createDropdownItem({
+											actionKey: "3d",
+											title: t("editPublicLink.items.expiration3d")
+										}),
+										createDropdownItem({
+											actionKey: "7d",
+											title: t("editPublicLink.items.expiration7d")
+										}),
+										createDropdownItem({
+											actionKey: "14d",
+											title: t("editPublicLink.items.expiration14d")
+										}),
+										createDropdownItem({
+											actionKey: "30d",
+											title: t("editPublicLink.items.expiration30d")
+										})
+									]}
+									onItemPress={({ actionKey }) => {
+										setExpiration(actionKey as PublicLinkExpiration)
+										setDidChange(true)
+									}}
+								>
+									<Button
+										variant="plain"
+										size="none"
+										onPress={e => {
+											e.stopPropagation()
+											e.preventDefault()
+										}}
+										disabled={!status.enabled}
+										hitSlop={15}
+									>
+										<Text className="text-blue-500">{expirationText}</Text>
+									</Button>
+								</DropdownMenu>
+							)
+						},
+						{
+							id: "3",
+							title: t("editPublicLink.items.downloadButton"),
+							rightView: (
+								<Toggle
+									onChange={toggleDownload}
+									value={downloadEnabled}
+									disabled={!status.enabled}
+								/>
+							)
+						},
+						...(Platform.OS === "android"
+							? [
+									{
+										id: "4",
+										title: t("editPublicLink.items.shareLink"),
+										rightView: (
+											<Button
+												variant="tonal"
+												size="icon"
+												onPress={share}
+												disabled={!status.enabled}
+												hitSlop={15}
+											>
+												<Icon
+													name="send-outline"
+													size={20}
+													color={colors.foreground}
+												/>
+											</Button>
+										)
+									}
+							  ]
+							: [])
+				  ]
+				: [])
 		] satisfies SettingsItem[]
-	}, [toggle, toggleStatus, query.status, query.data?.enabled, editPassword, downloadEnabled, toggleDownload, t, expirationText])
+	}, [toggle, enabled, editPassword, downloadEnabled, toggleDownload, t, expirationText, share, colors.foreground, status.enabled])
 
-	useEffect(() => {
-		if (query.status === "success" && query.dataUpdatedAt > queryDataUpdatedAt.current) {
-			queryDataUpdatedAt.current = query.dataUpdatedAt
+	return (
+		<Container>
+			<Settings
+				title=""
+				showSearchBar={false}
+				items={settingsItems}
+				hideHeader={true}
+				disableAndroidRipple={true}
+			/>
+			<Toolbar
+				iosBlurIntensity={100}
+				iosHint={didChange ? t("editPublicLink.unsavedChanges") : undefined}
+				leftView={Platform.select({
+					ios: (
+						<ToolbarIcon
+							disabled={!status.enabled}
+							icon={{
+								materialIcon: {
+									name: "share-outline"
+								},
+								ios: {
+									name: "square.and.arrow.up"
+								}
+							}}
+							onPress={share}
+						/>
+					),
+					default: undefined
+				})}
+				rightView={
+					<ToolbarCTA
+						disabled={!status.enabled || !didChange}
+						icon={{
+							name: "check"
+						}}
+						onPress={save}
+					/>
+				}
+			/>
+		</Container>
+	)
+})
 
-			setToggleStatus(query.data.enabled)
+Inner.displayName = "Inner"
 
-			if (query.data.enabled) {
-				setDownloadEnabled(query.data.downloadButton)
-				setExpiration((query.data.expirationText as PublicLinkExpiration) ?? "never")
-				setPassword(query.data.password)
-			}
-		}
-	}, [query])
+export const Content = memo(({ item }: { item: DriveCloudItem }) => {
+	const isProUser = useIsProUser()
+	const { colors } = useColorScheme()
+	const { t } = useTranslation()
+
+	const query = useItemPublicLinkStatusQuery({
+		item
+	})
 
 	if (!isProUser) {
 		return (
@@ -368,43 +422,25 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 		)
 	}
 
+	if (query.status !== "success") {
+		return (
+			<Container>
+				<View className="flex-1 flex-col gap-4 items-center justify-center px-16">
+					<ActivityIndicator
+						size="small"
+						color={colors.foreground}
+					/>
+				</View>
+			</Container>
+		)
+	}
+
 	return (
-		<Container>
-			<Settings
-				title=""
-				showSearchBar={false}
-				items={settingsItems}
-				hideHeader={true}
-				disableAndroidRipple={true}
-			/>
-			<Toolbar
-				iosBlurIntensity={100}
-				iosHint={didChange && query.status === "success" ? t("editPublicLink.unsavedChanges") : undefined}
-				leftView={
-					<ToolbarIcon
-						disabled={query.status !== "success" || !query.data?.enabled}
-						icon={{
-							materialIcon: {
-								name: "share-outline"
-							},
-							ios: {
-								name: "square.and.arrow.up"
-							}
-						}}
-						onPress={share}
-					/>
-				}
-				rightView={
-					<ToolbarCTA
-						disabled={query.status !== "success" || !didChange || !query.data?.enabled}
-						icon={{
-							name: "check"
-						}}
-						onPress={save}
-					/>
-				}
-			/>
-		</Container>
+		<Inner
+			key={`${item.uuid}:${query.dataUpdatedAt}`}
+			item={item}
+			status={query.data}
+		/>
 	)
 })
 

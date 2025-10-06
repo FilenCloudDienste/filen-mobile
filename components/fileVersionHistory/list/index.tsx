@@ -75,7 +75,6 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
 				contentInsetAdjustmentBehavior="automatic"
-				refreshing={query.status === "pending"}
 				contentContainerStyle={contentContainerStyle}
 				ListEmptyComponent={ListEmptyComponent}
 			/>

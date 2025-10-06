@@ -320,6 +320,7 @@ export default function Participants() {
 					contentInsetAdjustmentBehavior="automatic"
 					variant="full-width"
 					data={participants}
+					refreshing={refreshing}
 					renderItem={renderItem}
 					keyExtractor={keyExtractor}
 					ListFooterComponent={ListFooterComponent}

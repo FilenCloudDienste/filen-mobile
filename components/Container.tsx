@@ -1,6 +1,6 @@
-import { memo, useMemo } from "react"
-import { useSafeAreaInsets, type SafeAreaViewProps, type Edge } from "react-native-safe-area-context"
-import { View, type StyleProp, type ViewStyle } from "react-native"
+import { memo } from "react"
+import { type SafeAreaViewProps, type Edge, SafeAreaView } from "react-native-safe-area-context"
+import { cn } from "@/lib/cn"
 
 export const Container = memo(
 	({
@@ -14,40 +14,14 @@ export const Container = memo(
 		className?: string
 		edges?: Edge[]
 	}) => {
-		const insets = useSafeAreaInsets()
-
-		const style = useMemo(() => {
-			const style: StyleProp<ViewStyle> = {
-				flex: 1
-			}
-
-			if (edges.includes("top")) {
-				style.paddingTop = insets.top
-			}
-
-			if (edges.includes("bottom")) {
-				style.paddingBottom = insets.bottom
-			}
-
-			if (edges.includes("left")) {
-				style.paddingLeft = insets.left
-			}
-
-			if (edges.includes("right")) {
-				style.paddingRight = insets.right
-			}
-
-			return style
-		}, [edges, insets])
-
 		return (
-			<View
-				style={style}
-				className={className}
+			<SafeAreaView
+				className={cn("flex-1", className)}
+				edges={edges}
 				{...viewProps}
 			>
 				{children}
-			</View>
+			</SafeAreaView>
 		)
 	}
 )

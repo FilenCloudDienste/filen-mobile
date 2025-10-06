@@ -1,5 +1,5 @@
 import { Icon, MaterialIconName } from "@roninoss/icons"
-import { View, ActivityIndicator } from "react-native"
+import { View } from "react-native"
 import { memo, Fragment, useCallback, useMemo } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { List, ListDataItem, ListItem, ListSectionHeader, type ListRenderItemInfo } from "@/components/nativewindui/List"
@@ -7,7 +7,6 @@ import { Text } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 import { useColorScheme } from "@/lib/useColorScheme"
 import type { SettingsItem, SettingsProps } from "."
-import useDimensions from "@/hooks/useDimensions"
 
 export const ChevronRight = memo(() => {
 	const { colors } = useColorScheme()
@@ -119,9 +118,6 @@ const contentContainerStyle = {
 }
 
 export const Settings = memo((props: SettingsProps) => {
-	const { colors } = useColorScheme()
-	const { screen } = useDimensions()
-
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
 		return typeof item === "string" ? item : item.id
 	}, [])
@@ -138,25 +134,6 @@ export const Settings = memo((props: SettingsProps) => {
 			: undefined
 	}, [props.showSearchBar])
 
-	const items = useMemo(() => {
-		return props.loading ? [] : props.items
-	}, [props.loading, props.items])
-
-	const extraData = useMemo(() => {
-		return __DEV__ ? (props.loading ? [] : props.items) : undefined
-	}, [props.loading, props.items])
-
-	const ListEmptyComponent = useCallback(() => {
-		return (
-			<View className="flex-1 items-center justify-center">
-				<ActivityIndicator
-					size="small"
-					color={colors.foreground}
-				/>
-			</View>
-		)
-	}, [colors.foreground])
-
 	return (
 		<Fragment>
 			{!props.hideHeader && (
@@ -165,24 +142,21 @@ export const Settings = memo((props: SettingsProps) => {
 					searchBar={headerSearchBar}
 				/>
 			)}
-			<List
-				contentInsetAdjustmentBehavior="automatic"
-				variant="insets"
-				contentContainerStyle={contentContainerStyle}
-				data={items}
-				extraData={extraData}
-				renderItem={renderItem}
-				keyExtractor={keyExtractor}
-				sectionHeaderAsGap={true}
-				showsHorizontalScrollIndicator={false}
-				showsVerticalScrollIndicator={false}
-				drawDistance={Math.floor(screen.height / 4)}
-				maxItemsInRecyclePool={0}
-				refreshing={props.loading}
-				ListEmptyComponent={ListEmptyComponent}
-				ListHeaderComponent={props.listHeader ? () => props.listHeader : undefined}
-				ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
-			/>
+			{props.items.length > 0 && (
+				<List
+					contentInsetAdjustmentBehavior="automatic"
+					variant="insets"
+					contentContainerStyle={contentContainerStyle}
+					data={props.items}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					showsHorizontalScrollIndicator={false}
+					showsVerticalScrollIndicator={false}
+					sectionHeaderAsGap={true}
+					ListHeaderComponent={props.listHeader ? () => props.listHeader : undefined}
+					ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
+				/>
+			)}
 		</Fragment>
 	)
 })
