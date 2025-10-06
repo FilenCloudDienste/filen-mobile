@@ -121,7 +121,8 @@ export class SQLite {
 
 	public constructor(dbName: string) {
 		this.db = open({
-			name: dbName
+			name: dbName,
+			location: pathModule.posix.basename(paths.db())
 		})
 
 		for (const query of INIT_QUERIES.filter(q => q.pragma)) {
