@@ -7,12 +7,11 @@ import { useTranslation } from "react-i18next"
 import { useRouter, usePathname } from "expo-router"
 import useDimensions from "@/hooks/useDimensions"
 import alerts from "@/lib/alerts"
-import { getPreviewType } from "@/lib/utils"
+import { getPreviewType, hideSearchBarWithDelay } from "@/lib/utils"
 import { useDriveStore } from "@/stores/drive.store"
 import { Platform, View } from "react-native"
 import useIsProUser from "@/hooks/useIsProUser"
 import TurboImage from "react-native-turbo-image"
-import events from "@/lib/events"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatus.query"
@@ -634,14 +633,12 @@ export const Menu = memo(
 				)
 		}, [item, fromPhotos])
 
-		const openDirectory = useCallback(() => {
+		const openDirectory = useCallback(async () => {
 			if (item.type !== "directory") {
 				return
 			}
 
-			events.emit("hideSearchBar", {
-				clearText: true
-			})
+			await hideSearchBarWithDelay(true)
 
 			router.push({
 				pathname: "/drive/[uuid]",

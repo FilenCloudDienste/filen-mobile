@@ -727,7 +727,7 @@ export class DriveService {
 				})
 			}
 
-			await new Promise<void>(resolve => setTimeout(resolve, 250))
+			await new Promise<void>(resolve => setTimeout(resolve, 300))
 
 			await Sharing.shareAsync(tempLocation.uri, {
 				mimeType: item.mime,

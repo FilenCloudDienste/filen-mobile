@@ -325,6 +325,7 @@ export const Item = memo(
 							parent: type,
 							receiverId: item.isShared ? item.receiverId : 0
 						}}
+						fromHome={true}
 					>
 						<Button
 							variant="plain"

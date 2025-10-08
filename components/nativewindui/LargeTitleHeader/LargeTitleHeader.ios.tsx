@@ -101,6 +101,10 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 				ref?.current?.clearText?.()
 				props.searchBar?.onChangeText?.("")
 			}
+
+			setTimeout(() => {
+				events.emit("searchBarHidden", true)
+			}, 100)
 		})
 
 		return () => {

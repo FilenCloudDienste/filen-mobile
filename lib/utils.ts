@@ -8,6 +8,7 @@ import { getRandomValues } from "expo-crypto"
 import mimeTypes from "mime-types"
 import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
 import * as ExpoLocalization from "expo-localization"
+import events from "./events"
 
 let intlLanguage: string = "de-DE"
 
@@ -1010,4 +1011,20 @@ export function sortParams<T extends Record<string, unknown>>(params: T): T {
 
 			return acc
 		}, {} as T)
+}
+
+export async function hideSearchBarWithDelay(clearText: boolean): Promise<void> {
+	const promise = new Promise<void>(resolve => {
+		const sub = events.subscribe("searchBarHidden", () => {
+			sub.remove()
+
+			resolve()
+		})
+	})
+
+	events.emit("hideSearchBar", {
+		clearText
+	})
+
+	await promise
 }

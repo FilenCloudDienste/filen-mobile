@@ -360,7 +360,7 @@ export const Account = memo(() => {
 				fullScreenLoadingModal.hide()
 			}
 
-			await new Promise<void>(resolve => setTimeout(resolve, 250))
+			await new Promise<void>(resolve => setTimeout(resolve, 300))
 
 			await Sharing.shareAsync(tmpFile.uri, {
 				mimeType: "application/json",

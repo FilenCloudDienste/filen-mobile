@@ -2,7 +2,6 @@ import * as DropdownMenuPrimitive from "@rn-primitives/dropdown-menu"
 import { useAugmentedRef } from "@rn-primitives/hooks"
 import { Icon } from "@roninoss/icons"
 import { Image, LayoutChangeEvent, StyleSheet, View, ScrollView } from "react-native"
-import Animated, { FadeIn, FadeInLeft, FadeOut, FadeOutLeft, LayoutAnimationConfig, LinearTransition } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import useDimensions from "@/hooks/useDimensions"
 import { DropdownItem, DropdownMenuProps, DropdownMenuRef, DropdownSubMenu } from "./types"
@@ -74,10 +73,13 @@ export const DropdownMenu = memo(
 
 			const onItemPress = useCallback(
 				(item: Omit<DropdownItem, "icon">) => {
-					closeSubMenus()
-					onItemPressProp?.(item)
+					dismissMenu?.()
+
+					setTimeout(() => {
+						onItemPressProp?.(item)
+					}, 100)
 				},
-				[closeSubMenus, onItemPressProp]
+				[dismissMenu, onItemPressProp]
 			)
 
 			return (
@@ -106,10 +108,8 @@ export const DropdownMenu = memo(
 								style={StyleSheet.absoluteFill}
 								pointerEvents={materialIsSubMenu ? "box-none" : undefined}
 							>
-								<Animated.View
+								<View
 									style={StyleSheet.absoluteFill}
-									entering={FadeIn}
-									exiting={FadeOut}
 									pointerEvents={materialIsSubMenu ? "box-none" : undefined}
 									className={cn(!materialIsSubMenu && "bg-black/20", !materialIsSubMenu && materialOverlayClassName)}
 								>
@@ -124,9 +124,7 @@ export const DropdownMenu = memo(
 										alignOffset={materialAlignOffset}
 										align={materialAlign}
 									>
-										<Animated.View
-											entering={FadeIn}
-											exiting={materialIsSubMenu ? undefined : FadeOut}
+										<View
 											style={{
 												minWidth: materialMinWidth,
 												width: materialWidth
@@ -135,9 +133,9 @@ export const DropdownMenu = memo(
 										>
 											{!!title && <DropdownMenuLabel>{title}</DropdownMenuLabel>}
 											<DropdownMenuInnerContent items={items} />
-										</Animated.View>
+										</View>
 									</DropdownMenuPrimitive.Content>
-								</Animated.View>
+								</View>
 							</DropdownMenuPrimitive.Overlay>
 						</DropdownContext.Provider>
 					</DropdownMenuPrimitive.Portal>
@@ -247,85 +245,70 @@ export const DropdownMenuItem = memo((props: Omit<DropdownItem, "loading">) => {
 	}
 
 	return (
-		<LayoutAnimationConfig
-			skipEntering={true}
-			skipExiting={true}
+		<DropdownMenuPrimitive.Item
+			asChild
+			closeOnPress={!props.keepOpenOnPress}
+			role="checkbox"
+			accessibilityState={{
+				disabled: !!props.disabled,
+				checked: props.state?.checked
+			}}
 		>
-			<DropdownMenuPrimitive.Item
-				asChild
-				closeOnPress={!props.keepOpenOnPress}
-				role="checkbox"
-				accessibilityState={{
-					disabled: !!props.disabled,
-					checked: props.state?.checked
-				}}
+			<Button
+				variant={props.state?.checked ? "tonal" : "plain"}
+				className={cn("h-12 justify-between gap-10 rounded-none px-3", !props.state && !props.title && "justify-center px-4")}
+				androidRootClassName="rounded-none"
+				accessibilityHint={props.subTitle}
+				onPress={onPress}
 			>
-				<Button
-					variant={props.state?.checked ? "tonal" : "plain"}
-					className={cn("h-12 justify-between gap-10 rounded-none px-3", !props.state && !props.title && "justify-center px-4")}
-					androidRootClassName="rounded-none"
-					accessibilityHint={props.subTitle}
-					onPress={onPress}
-				>
-					{!props.state && !props.title ? null : (
-						<View className="flex-row items-center gap-3 py-0.5">
-							{props.state?.checked && (
-								<Animated.View
-									entering={FadeInLeft}
-									exiting={FadeOutLeft}
-								>
-									<Icon
-										name="check"
-										size={21}
-										color={colors.foreground}
-									/>
-								</Animated.View>
-							)}
-							<Animated.View layout={LinearTransition}>
-								<Text
-									numberOfLines={1}
-									className={cn(
-										"font-normal",
-										props.destructive && "text-destructive font-medium",
-										props.disabled && "opacity-60"
-									)}
-								>
-									{props.title}
-								</Text>
-							</Animated.View>
-							{props.state && !props.state?.checked && (
+				{!props.state && !props.title ? null : (
+					<View className="flex-row items-center gap-3 py-0.5">
+						{props.state?.checked && (
+							<View>
 								<Icon
 									name="check"
 									size={21}
-									color="#00000000"
+									color={colors.foreground}
 								/>
-							)}
+							</View>
+						)}
+						<View>
+							<Text
+								numberOfLines={1}
+								className={cn(
+									"font-normal",
+									props.destructive && "text-destructive font-medium",
+									props.disabled && "opacity-60"
+								)}
+							>
+								{props.title}
+							</Text>
 						</View>
-					)}
-					{props.image ? (
-						<Image
-							source={{
-								uri: props.image.url
-							}}
-							style={{
-								width: 22,
-								height: 22,
-								borderRadius:
-									typeof props.image.cornerRadius === "number" && props.image.cornerRadius > 0
-										? props.image.cornerRadius / 4
-										: 0
-							}}
-						/>
-					) : props.icon ? (
-						<Icon
-							color={colors.foreground}
-							{...props.icon}
-							size={22}
-						/>
-					) : null}
-				</Button>
-			</DropdownMenuPrimitive.Item>
-		</LayoutAnimationConfig>
+					</View>
+				)}
+				{props.image ? (
+					<Image
+						source={{
+							uri: props.image.url
+						}}
+						style={{
+							width: 22,
+							height: 22,
+							borderRadius:
+								typeof props.image.cornerRadius === "number" && props.image.cornerRadius > 0
+									? props.image.cornerRadius / 4
+									: 0
+						}}
+					/>
+				) : props.icon ? (
+					<Icon
+						color={colors.foreground}
+						{...props.icon}
+						size={22}
+					/>
+				) : null}
+			</Button>
+		</DropdownMenuPrimitive.Item>
 	)
 })
 
@@ -350,7 +333,10 @@ export const DropdownMenuSubMenu = memo(({ title, subTitle, items }: Omit<Dropdo
 	const onItemPress = useCallback(
 		(item: Omit<DropdownItem, "icon">) => {
 			dismissMenu?.()
-			onDropdownItemPress?.(item)
+
+			setTimeout(() => {
+				onDropdownItemPress?.(item)
+			}, 100)
 		},
 		[dismissMenu, onDropdownItemPress]
 	)

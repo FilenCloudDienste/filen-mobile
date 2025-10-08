@@ -5,14 +5,13 @@ import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
 import Avatar from "@/components/avatar"
 import useSDKConfig from "@/hooks/useSDKConfig"
-import { contactName } from "@/lib/utils"
+import { contactName, hideSearchBarWithDelay } from "@/lib/utils"
 import { getChatName } from "../utils"
 import { useRouter } from "expo-router"
 import Menu from "./menu"
 import Unread from "./unread"
 import LastMessage from "./lastMessage"
 import Date from "../chat/messages/date"
-import events from "@/lib/events"
 import { cn } from "@/lib/cn"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -58,10 +57,8 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 		return getChatName(info.item, userId)
 	}, [info.item, userId])
 
-	const onPress = useCallback(() => {
-		events.emit("hideSearchBar", {
-			clearText: true
-		})
+	const onPress = useCallback(async () => {
+		await hideSearchBarWithDelay(true)
 
 		if (!hasInternet) {
 			const cachedChat = chatMessagesQueryGet({

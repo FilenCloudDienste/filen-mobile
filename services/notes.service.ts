@@ -253,7 +253,7 @@ export class NotesService {
 					return tmpFile.uri
 				}
 
-				await new Promise<void>(resolve => setTimeout(resolve, 250))
+				await new Promise<void>(resolve => setTimeout(resolve, 30))
 
 				if (!disableLoader) {
 					fullScreenLoadingModal.hide()

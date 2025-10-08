@@ -1,5 +1,5 @@
 import { memo, useRef, useLayoutEffect, useMemo, useCallback } from "react"
-import Animated, { FadeInUp, FadeOutUp } from "react-native-reanimated"
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 import { Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -68,8 +68,8 @@ export const Header = memo(() => {
 
 	return (
 		<Animated.View
-			entering={FadeInUp}
-			exiting={FadeOutUp}
+			entering={FadeIn}
+			exiting={FadeOut}
 			ref={viewRef}
 			onLayout={onLayout}
 			className="flex-1 absolute top-0 left-0 right-0 z-[1000]"

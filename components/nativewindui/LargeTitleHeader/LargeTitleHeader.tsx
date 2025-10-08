@@ -5,7 +5,6 @@ import { Icon } from "@roninoss/icons"
 import { Stack, useNavigation } from "expo-router"
 import { memo, useRef, useId, useState, useEffect, useCallback, useMemo, useLayoutEffect, Fragment } from "react"
 import { BackHandler, TextInput, View } from "react-native"
-import Animated, { FadeIn, FadeInRight, FadeInUp, FadeOut, FadeOutRight, ZoomIn, withTiming } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import type { LargeTitleHeaderProps, LargeTitleSearchBarRef, NativeStackNavigationSearchBarOptions } from "./types"
 import { Button } from "@/components/nativewindui/Button"
@@ -119,6 +118,10 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 
 				props.searchBar?.onChangeText?.("")
 			}
+
+			setTimeout(() => {
+				events.emit("searchBarHidden", true)
+			}, 100)
 		})
 
 		return () => {
@@ -242,49 +245,36 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 				<View
 					className={cn("absolute left-0 right-0 top-0", !props.searchBar?.contentTransparent && "bottom-0")}
 					style={{
-						display: searchBarVisible ? "flex" : "none"
+						display: searchBarVisible ? "flex" : "none",
+						height: searchBarVisible ? "100%" : 0,
+						width: searchBarVisible ? "100%" : 0
 					}}
 				>
-					{searchBarVisible && (
-						<Fragment>
-							<View
-								style={{
-									paddingTop: insets.top + 6
-								}}
-								className="bg-background relative z-50 overflow-hidden"
-							>
-								<Animated.View
-									entering={customEntering}
-									exiting={customExiting}
-									className="bg-muted/25 dark:bg-card absolute bottom-2.5 left-4 right-4 h-14 rounded-full"
-								/>
-								<View className="pb-2.5">
-									<Animated.View
-										entering={FadeIn}
-										exiting={FadeOut}
-										className="h-14 flex-row items-center pl-3.5 pr-5"
-									>
-										<Animated.View
-											entering={FadeIn}
-											exiting={FadeOut}
+					<Fragment>
+						<View
+							style={{
+								paddingTop: insets.top + 6
+							}}
+							className="bg-background relative z-50 overflow-hidden"
+						>
+							<View className="bg-muted/25 dark:bg-card absolute bottom-2.5 left-4 right-4 h-14 rounded-full" />
+							<View className="pb-2.5">
+								<View className="h-14 flex-row items-center pl-3.5 pr-5">
+									<View className="pl-1">
+										<Button
+											variant="plain"
+											size="icon"
+											onPress={onSearchBackPress}
 										>
-											<Button
-												variant="plain"
-												size="icon"
-												onPress={onSearchBackPress}
-											>
-												<Icon
-													color={colors.grey}
-													name={"arrow-left"}
-													size={24}
-												/>
-											</Button>
-										</Animated.View>
-										<Animated.View
-											entering={FadeInRight}
-											exiting={FadeOutRight}
-											className="flex-1"
-										>
+											<Icon
+												color={colors.grey}
+												name={"arrow-left"}
+												size={24}
+											/>
+										</Button>
+									</View>
+									<View className="flex-1">
+										{searchBarVisible && (
 											<TextInput
 												autoFocus={true}
 												placeholder={props.searchBar?.placeholder ?? t("nwui.search.placeholder")}
@@ -302,59 +292,49 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 												blurOnSubmit={props.searchBar?.materialBlurOnSubmit}
 												onSubmitEditing={props.searchBar?.materialOnSubmitEditing}
 											/>
-										</Animated.View>
-										<View className="flex-row items-center gap-3 pr-0.5">
-											{!!searchValue && (
-												<Animated.View
-													entering={FadeIn}
-													exiting={FadeOut}
-												>
-													<Button
-														size="icon"
-														variant="plain"
-														onPress={onClearText}
-													>
-														<Icon
-															color={colors.grey2}
-															name="close"
-															size={24}
-														/>
-													</Button>
-												</Animated.View>
-											)}
-											{!!props.searchBar?.materialRightView && (
-												<Fragment>
-													{props.searchBar.materialRightView({
-														canGoBack,
-														tintColor: colors.foreground
-													})}
-												</Fragment>
-											)}
-										</View>
-									</Animated.View>
-								</View>
-								<Animated.View
-									entering={ZoomIn}
-									className="bg-border h-px"
-								/>
-							</View>
-							{!props.searchBar?.contentTransparent && props.searchBar?.content && (
-								<Animated.View
-									entering={FadeInUp}
-									className="bg-background flex-1"
-								>
-									<View
-										className="flex-1"
-										style={{
-											paddingBottom: keyboardState.isVisible ? keyboardState.height : 0
-										}}
-									>
-										{props.searchBar.content}
+										)}
 									</View>
-								</Animated.View>
-							)}
-						</Fragment>
-					)}
+									<View className="flex-row items-center gap-3 pr-0.5">
+										{!!searchValue && (
+											<View>
+												<Button
+													size="icon"
+													variant="plain"
+													onPress={onClearText}
+												>
+													<Icon
+														color={colors.grey2}
+														name="close"
+														size={24}
+													/>
+												</Button>
+											</View>
+										)}
+										{!!props.searchBar?.materialRightView && (
+											<Fragment>
+												{props.searchBar.materialRightView({
+													canGoBack,
+													tintColor: colors.foreground
+												})}
+											</Fragment>
+										)}
+									</View>
+								</View>
+							</View>
+						</View>
+						{!props.searchBar?.contentTransparent && props.searchBar?.content && (
+							<View className="bg-background flex-1">
+								<View
+									className="flex-1"
+									style={{
+										paddingBottom: keyboardState.isVisible ? keyboardState.height : 0
+									}}
+								>
+									{props.searchBar.content}
+								</View>
+							</View>
+						)}
+					</Fragment>
 				</View>
 			</Portal>
 		</Fragment>
@@ -380,59 +360,5 @@ export function searchBarInputTypeToKeyboardType(inputType: NativeStackNavigatio
 		default: {
 			return "default"
 		}
-	}
-}
-
-export const customEntering = () => {
-	"worklet"
-
-	const animations = {
-		transform: [
-			{
-				scale: withTiming(3, {
-					duration: 400
-				})
-			}
-		]
-	}
-
-	const initialValues = {
-		transform: [
-			{
-				scale: 1
-			}
-		]
-	}
-
-	return {
-		initialValues,
-		animations
-	}
-}
-
-export const customExiting = () => {
-	"worklet"
-
-	const animations = {
-		transform: [
-			{
-				scale: withTiming(1)
-			}
-		],
-		opacity: withTiming(0)
-	}
-
-	const initialValues = {
-		transform: [
-			{
-				scale: 3
-			}
-		],
-		opacity: 1
-	}
-
-	return {
-		initialValues,
-		animations
 	}
 }

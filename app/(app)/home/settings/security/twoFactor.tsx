@@ -64,7 +64,7 @@ export const TwoFactor = memo(() => {
 					fullScreenLoadingModal.hide()
 				}
 
-				await new Promise<void>(resolve => setTimeout(resolve, 250))
+				await new Promise<void>(resolve => setTimeout(resolve, 300))
 
 				await Sharing.shareAsync(tmpFile.uri, {
 					mimeType: "text/plain",

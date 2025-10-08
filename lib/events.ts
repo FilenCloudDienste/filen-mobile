@@ -35,6 +35,7 @@ export type Events = {
 	hideSearchBar: {
 		clearText: boolean
 	}
+	searchBarHidden: boolean
 	focusNotesChecklistItem: {
 		id: string
 	}

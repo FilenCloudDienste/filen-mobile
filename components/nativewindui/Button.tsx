@@ -205,7 +205,10 @@ export const Button = memo(
 							)}
 							ref={ref}
 							style={style}
-							android_ripple={ANDROID_RIPPLE[colorScheme][variant]}
+							android_ripple={{
+								...ANDROID_RIPPLE[colorScheme][variant],
+								foreground: true
+							}}
 							delayLongPress={200}
 							onLongPress={noop}
 							unstable_pressDelay={100}

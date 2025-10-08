@@ -9,10 +9,9 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Avatar from "@/components/avatar"
 import { cn } from "@/lib/cn"
-import { simpleDate, contactName } from "@/lib/utils"
+import { simpleDate, contactName, hideSearchBarWithDelay } from "@/lib/utils"
 import { Text } from "@/components/nativewindui/Text"
 import Tag from "../tag"
-import events from "@/lib/events"
 import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
@@ -61,10 +60,8 @@ export const Item = memo(({ note }: { note: Note }) => {
 		})
 	}, [isSelected, note])
 
-	const onPress = useCallback(() => {
-		events.emit("hideSearchBar", {
-			clearText: true
-		})
+	const onPress = useCallback(async () => {
+		await hideSearchBarWithDelay(true)
 
 		if (!hasInternet) {
 			const cachedContent = noteContentQueryGet({

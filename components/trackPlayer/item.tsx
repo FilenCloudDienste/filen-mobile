@@ -18,14 +18,13 @@ import nodeWorker from "@/lib/nodeWorker"
 import { alertPrompt } from "../prompts/alertPrompt"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
-import events from "@/lib/events"
 import { useSelectTrackPlayerPlaylistsStore } from "@/stores/selectTrackPlayerPlaylists.store"
 import { useShallow } from "zustand/shallow"
 import { Checkbox } from "../nativewindui/Checkbox"
 import type { SelectTrackPlayerPlaylistsParams } from "@/services/trackPlayer.service"
 import { ListItem, type ListRenderItemInfo } from "../nativewindui/List"
 import pathModule from "path"
-import { normalizeFilePathForExpo } from "@/lib/utils"
+import { normalizeFilePathForExpo, hideSearchBarWithDelay } from "@/lib/utils"
 import paths from "@/lib/paths"
 import { useTranslation } from "react-i18next"
 
@@ -313,16 +312,14 @@ export const Item = memo(
 			)
 		}, [setSelectedPlaylists, info.item.playlist, isSelected, canSelect])
 
-		const onPress = useCallback(() => {
+		const onPress = useCallback(async () => {
 			if (fromSelect) {
 				select()
 
 				return
 			}
 
-			events.emit("hideSearchBar", {
-				clearText: true
-			})
+			await hideSearchBarWithDelay(true)
 
 			router.push({
 				pathname: "/trackPlayer/[playlist]",

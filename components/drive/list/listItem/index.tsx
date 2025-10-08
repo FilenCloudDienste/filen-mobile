@@ -7,12 +7,11 @@ import LeftView from "./leftView"
 import { useDriveStore } from "@/stores/drive.store"
 import { Platform } from "react-native"
 import { useDirectorySizeQuery } from "@/queries/useDirectorySize.query"
-import { formatBytes, getPreviewType, normalizeFilePathForExpo } from "@/lib/utils"
+import { formatBytes, getPreviewType, normalizeFilePathForExpo, hideSearchBarWithDelay } from "@/lib/utils"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatus.query"
 import useNetInfo from "@/hooks/useNetInfo"
 import { viewDocument } from "@react-native-documents/viewer"
 import alerts from "@/lib/alerts"
-import events from "@/lib/events"
 import { useGalleryStore } from "@/stores/gallery.store"
 import { useMMKVBoolean } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
@@ -136,9 +135,7 @@ export const ListItem = memo(
 
 		const onPressFromSearch = useCallback(async () => {
 			if (info.item.item.type === "directory") {
-				events.emit("hideSearchBar", {
-					clearText: true
-				})
+				await hideSearchBarWithDelay(true)
 
 				routerPush({
 					pathname: "/drive/[uuid]",
@@ -159,9 +156,7 @@ export const ListItem = memo(
 
 				cache.directoryUUIDToName.set(info.item.item.parent, parent.metadataDecrypted.name)
 
-				events.emit("hideSearchBar", {
-					clearText: true
-				})
+				await hideSearchBarWithDelay(true)
 
 				routerPush({
 					pathname: "/drive/[uuid]",
@@ -181,7 +176,7 @@ export const ListItem = memo(
 			}
 		}, [info.item.item, routerPush])
 
-		const onPress = useCallback(() => {
+		const onPress = useCallback(async () => {
 			if (fromSearch) {
 				onPressFromSearch()
 
@@ -239,9 +234,7 @@ export const ListItem = memo(
 					}
 				}
 
-				events.emit("hideSearchBar", {
-					clearText: true
-				})
+				await hideSearchBarWithDelay(true)
 
 				routerPush({
 					pathname: pathname.startsWith("/home/links")
@@ -322,9 +315,7 @@ export const ListItem = memo(
 			}
 
 			if (previewType === "text" || previewType === "code") {
-				events.emit("hideSearchBar", {
-					clearText: true
-				})
+				await hideSearchBarWithDelay(true)
 
 				routerPush({
 					pathname: "/textEditor",
@@ -338,9 +329,7 @@ export const ListItem = memo(
 			}
 
 			if (previewType === "pdf" && info.item.item.size > 0) {
-				events.emit("hideSearchBar", {
-					clearText: true
-				})
+				await hideSearchBarWithDelay(true)
 
 				routerPush({
 					pathname: "/pdfPreview",
@@ -354,9 +343,7 @@ export const ListItem = memo(
 			}
 
 			if (previewType === "docx" && info.item.item.size > 0) {
-				events.emit("hideSearchBar", {
-					clearText: true
-				})
+				await hideSearchBarWithDelay(true)
 
 				routerPush({
 					pathname: "/docxPreview",
