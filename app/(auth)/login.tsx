@@ -12,6 +12,7 @@ import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import alerts from "@/lib/alerts"
+import { useAuthContext } from "@/components/authContextProvider"
 
 const keyboardAwareScrollViewBottomOffset = Platform.select({
 	ios: 175,
@@ -24,6 +25,7 @@ export const Login = memo(() => {
 	const [email, setEmail] = useState<string>("")
 	const [password, setPassword] = useState<string>("")
 	const { t } = useTranslation()
+	const { signIn, forgotPassword: fp } = useAuthContext()
 
 	const disabled = useMemo(() => {
 		return !email || !password
@@ -37,10 +39,7 @@ export const Login = memo(() => {
 				throw new Error(t("auth.login.errors.emptyFields"))
 			}
 
-			const didLogin = await authService.login({
-				email,
-				password
-			})
+			const didLogin = await signIn(email, password)
 
 			if (!didLogin) {
 				setPassword("")
@@ -124,7 +123,7 @@ export const Login = memo(() => {
 	const onSubmitEmail = useCallback(() => {
 		KeyboardController.setFocusTo("next")
 	}, [])
-	
+
 	const onSubmitPassword = useCallback(() => {
 		if (disabled) {
 			KeyboardController.dismiss()

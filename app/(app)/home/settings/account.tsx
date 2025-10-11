@@ -19,13 +19,14 @@ import * as FileSystem from "expo-file-system"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import * as Sharing from "expo-sharing"
-import authService from "@/services/auth.service"
 import assets from "@/lib/assets"
 import pathModule from "path"
+import { useAuthContext } from "@/components/authContextProvider"
 
 export const Account = memo(() => {
 	const router = useRouter()
 	const { t } = useTranslation()
+	const { signOut } = useAuthContext()
 
 	const account = useAccountQuery({
 		enabled: false
@@ -509,11 +510,8 @@ export const Account = memo(() => {
 
 	const logout = useCallback(async () => {
 		try {
-			await authService.logout({})
-
-			router.replace({
-				pathname: "/(auth)"
-			})
+			await signOut()
+			router.replace("/(auth)")
 		} catch (e) {
 			console.error(e)
 

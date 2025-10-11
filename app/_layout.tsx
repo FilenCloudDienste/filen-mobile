@@ -1,13 +1,11 @@
 import "@/lib/global"
 
 import { Stack } from "expo-router"
-import { useEffect, useState, Fragment, useMemo } from "react"
+import { useState, Fragment, useMemo } from "react"
 import { StatusBar } from "expo-status-bar"
 import { ThemeProvider as NavThemeProvider } from "@react-navigation/native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { NAV_THEME } from "@/theme"
-import useIsAuthed from "@/hooks/useIsAuthed"
-import authService from "@/services/auth.service"
 import { PortalHost } from "@rn-primitives/portal"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { KeyboardProvider } from "react-native-keyboard-controller"
@@ -27,26 +25,16 @@ import GalleryModal from "@/components/gallery/modal"
 import SocketEvents from "@/components/socketEvents"
 import { NotifierWrapper } from "react-native-notifier"
 import Biometric from "@/components/biometric"
-import * as SplashScreen from "expo-splash-screen"
 import { SCREEN_OPTIONS } from "@/lib/constants"
-import alerts from "@/lib/alerts"
 import Reminders from "@/components/reminders"
-import { useAppStateStore } from "@/stores/appState.store"
 import { useKeepAwake } from "expo-keep-awake"
-
-SplashScreen.setOptions({
-	duration: 400,
-	fade: true
-})
-
-SplashScreen.preventAutoHideAsync().catch(console.error)
+import { AuthContextProvider, useAuthContext } from "@/components/authContextProvider"
+import { SplashScreenController } from "@/components/splashScreenController"
 
 export default function RootLayout() {
 	useKeepAwake()
 
 	const { colorScheme, colors } = useColorScheme()
-	const [isAuthed] = useIsAuthed()
-	const [setupDone, setSetupDone] = useState<boolean>(false)
 	const [restoredQueries, setRestoredQueries] = useState<boolean>(false)
 
 	const statusBarStyle = useMemo(() => {
@@ -64,33 +52,9 @@ export default function RootLayout() {
 		}
 	}, [colors.background])
 
-	const initialRouteName = useMemo(() => {
-		return isAuthed ? "(app)" : "(auth)"
-	}, [isAuthed])
-
-	useEffect(() => {
-		useAppStateStore.getState().setSetupDone(setupDone)
-	}, [setupDone])
-
-	useEffect(() => {
-		authService
-			.setup()
-			.then(() => {
-				setSetupDone(true)
-
-				SplashScreen.hideAsync().catch(console.error)
-			})
-			.catch(err => {
-				console.error(err)
-
-				if (err instanceof Error) {
-					alerts.error(err.message)
-				}
-			})
-	}, [])
-
 	return (
-		<Fragment>
+		<AuthContextProvider>
+			<SplashScreenController />
 			<StatusBar
 				key={statusBarKey}
 				style={statusBarStyle}
@@ -114,94 +78,7 @@ export default function RootLayout() {
 							<BottomSheetModalProvider>
 								<NavThemeProvider value={NAV_THEME[colorScheme]}>
 									<NotifierWrapper useRNScreensOverlay={true}>
-										{setupDone && restoredQueries && (
-											<ShareIntentProvider>
-												<Stack
-													initialRouteName={initialRouteName}
-													screenOptions={SCREEN_OPTIONS.base}
-												>
-													<Stack.Screen
-														name="(app)"
-														options={SCREEN_OPTIONS.base}
-													/>
-													<Stack.Screen
-														name="(auth)"
-														options={SCREEN_OPTIONS.base}
-													/>
-													<Stack.Screen
-														name="selectContacts"
-														options={SCREEN_OPTIONS.modal}
-													/>
-													<Stack.Screen
-														name="selectDriveItems"
-														options={SCREEN_OPTIONS.modal}
-													/>
-													<Stack.Screen
-														name="editPublicLink"
-														options={SCREEN_OPTIONS.modal}
-													/>
-													<Stack.Screen
-														name="fileVersionHistory"
-														options={SCREEN_OPTIONS.modal}
-													/>
-													<Stack.Screen
-														name="noteHistory"
-														options={SCREEN_OPTIONS.modal}
-													/>
-													<Stack.Screen
-														name="noteParticipants"
-														options={SCREEN_OPTIONS.modal}
-													/>
-													<Stack.Screen
-														name="textEditor"
-														options={SCREEN_OPTIONS.base}
-													/>
-													<Stack.Screen
-														name="pdfPreview"
-														options={SCREEN_OPTIONS.modal}
-													/>
-													<Stack.Screen
-														name="docxPreview"
-														options={SCREEN_OPTIONS.modal}
-													/>
-													<Stack.Screen
-														name="transfers"
-														options={SCREEN_OPTIONS.modal}
-													/>
-													<Stack.Screen
-														name="shareIntent"
-														options={SCREEN_OPTIONS.modal}
-													/>
-													<Stack.Screen
-														name="chat/[uuid]"
-														options={SCREEN_OPTIONS.base}
-													/>
-													<Stack.Screen
-														name="trackPlayer"
-														options={SCREEN_OPTIONS.modal}
-													/>
-													<Stack.Screen
-														name="selectTrackPlayerPlaylists"
-														options={SCREEN_OPTIONS.modal}
-													/>
-												</Stack>
-												<Listeners />
-												{isAuthed && (
-													<Fragment>
-														<ItemInfoSheet />
-														<AuthedListeners />
-														<SocketEvents />
-														<Biometric />
-														<Reminders />
-													</Fragment>
-												)}
-												<InputPrompt />
-												<AlertPrompt />
-												<ColorPickerSheet />
-												<GalleryModal />
-												<PortalHost />
-											</ShareIntentProvider>
-										)}
+										{restoredQueries && <RootNavigator />}
 										<FullScreenLoadingModal />
 									</NotifierWrapper>
 								</NavThemeProvider>
@@ -210,6 +87,105 @@ export default function RootLayout() {
 					</PersistQueryClientProvider>
 				</KeyboardProvider>
 			</GestureHandlerRootView>
-		</Fragment>
+		</AuthContextProvider>
+	)
+}
+
+function RootNavigator() {
+	const { isAuthed, setupDone } = useAuthContext()
+
+	if (!setupDone) {
+		return null
+	}
+	return (
+		<ShareIntentProvider>
+			<Stack screenOptions={SCREEN_OPTIONS.base}>
+				<Stack.Protected guard={!!isAuthed}>
+					<Stack.Screen
+						name="(app)"
+						options={SCREEN_OPTIONS.base}
+					/>
+				</Stack.Protected>
+
+				<Stack.Protected guard={!isAuthed}>
+					<Stack.Screen
+						name="(auth)"
+						options={SCREEN_OPTIONS.base}
+					/>
+				</Stack.Protected>
+
+				<Stack.Screen
+					name="selectContacts"
+					options={SCREEN_OPTIONS.modal}
+				/>
+				<Stack.Screen
+					name="selectDriveItems"
+					options={SCREEN_OPTIONS.modal}
+				/>
+				<Stack.Screen
+					name="editPublicLink"
+					options={SCREEN_OPTIONS.modal}
+				/>
+				<Stack.Screen
+					name="fileVersionHistory"
+					options={SCREEN_OPTIONS.modal}
+				/>
+				<Stack.Screen
+					name="noteHistory"
+					options={SCREEN_OPTIONS.modal}
+				/>
+				<Stack.Screen
+					name="noteParticipants"
+					options={SCREEN_OPTIONS.modal}
+				/>
+				<Stack.Screen
+					name="textEditor"
+					options={SCREEN_OPTIONS.base}
+				/>
+				<Stack.Screen
+					name="pdfPreview"
+					options={SCREEN_OPTIONS.modal}
+				/>
+				<Stack.Screen
+					name="docxPreview"
+					options={SCREEN_OPTIONS.modal}
+				/>
+				<Stack.Screen
+					name="transfers"
+					options={SCREEN_OPTIONS.modal}
+				/>
+				<Stack.Screen
+					name="shareIntent"
+					options={SCREEN_OPTIONS.modal}
+				/>
+				<Stack.Screen
+					name="chat/[uuid]"
+					options={SCREEN_OPTIONS.base}
+				/>
+				<Stack.Screen
+					name="trackPlayer"
+					options={SCREEN_OPTIONS.modal}
+				/>
+				<Stack.Screen
+					name="selectTrackPlayerPlaylists"
+					options={SCREEN_OPTIONS.modal}
+				/>
+			</Stack>
+			<Listeners />
+			{isAuthed && (
+				<Fragment>
+					<ItemInfoSheet />
+					<AuthedListeners />
+					<SocketEvents />
+					<Biometric />
+					<Reminders />
+				</Fragment>
+			)}
+			<InputPrompt />
+			<AlertPrompt />
+			<ColorPickerSheet />
+			<GalleryModal />
+			<PortalHost />
+		</ShareIntentProvider>
 	)
 }
