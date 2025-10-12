@@ -1,28 +1,27 @@
-import { memo, useState, Fragment, useMemo, useCallback, useEffect } from "react"
-import { Button } from "@/components/nativewindui/Button"
-import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { useColorScheme } from "@/lib/useColorScheme"
-import { Platform, RefreshControl, View, ScrollView } from "react-native"
-import { cn } from "@/lib/cn"
-import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import Avatar from "@/components/avatar"
 import { Container } from "@/components/Container"
-import { useRouter, useFocusEffect } from "expo-router"
+import Transfers from "@/components/drive/header/transfers"
+import ContainerComponent from "@/components/home/container"
+import Dropdown from "@/components/home/header/dropdown"
+import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
+import { Button } from "@/components/nativewindui/Button"
+import OfflineListHeader from "@/components/offlineListHeader"
+import useIsProUser from "@/hooks/useIsProUser"
+import useNetInfo from "@/hooks/useNetInfo"
+import alerts from "@/lib/alerts"
+import assets from "@/lib/assets"
+import { foregroundCameraUpload } from "@/lib/cameraUpload"
+import { cn } from "@/lib/cn"
+import { useColorScheme } from "@/lib/useColorScheme"
 import { orderItemsByType } from "@/lib/utils"
 import useAccountQuery from "@/queries/useAccount.query"
-import { Icon } from "@roninoss/icons"
-import Transfers from "@/components/drive/header/transfers"
-import alerts from "@/lib/alerts"
-import useNetInfo from "@/hooks/useNetInfo"
-import OfflineListHeader from "@/components/offlineListHeader"
-import ContainerComponent from "@/components/home/container"
-import { useTranslation } from "react-i18next"
-import Dropdown from "@/components/home/header/dropdown"
-import useIsProUser from "@/hooks/useIsProUser"
-import assets from "@/lib/assets"
+import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import { useDriveStore } from "@/stores/drive.store"
-import { foregroundCameraUpload } from "@/lib/cameraUpload"
-import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
+import { Icon } from "@roninoss/icons"
+import { Stack, useFocusEffect, useRouter } from "expo-router"
+import { Fragment, memo, useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { Platform, RefreshControl, ScrollView, View } from "react-native"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -417,12 +416,20 @@ export const Home = memo(() => {
 
 	return (
 		<Fragment>
-			<LargeTitleHeader
-				title={t("home.title")}
-				backVisible={false}
-				materialPreset="stack"
-				leftView={headerLeftView}
-				rightView={headerRightView}
+			<Stack.Screen
+				options={{
+					title: t("home.title"),
+					headerLargeTitle: true,
+					headerShown: true,
+					headerTransparent: Platform.select({
+						ios: true,
+						android: false,
+						default: false
+					}),
+					headerBlurEffect: "systemChromeMaterial",
+					headerLeft: () => (headerLeftView ? headerLeftView() : null),
+					headerRight: headerRightView
+				}}
 			/>
 			<Container>
 				<ScrollView

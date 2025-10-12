@@ -99,7 +99,7 @@ function RootNavigator() {
 	}
 	return (
 		<ShareIntentProvider>
-			<Stack screenOptions={SCREEN_OPTIONS.base}>
+			<Stack>
 				<Stack.Protected guard={!!isAuthed}>
 					<Stack.Screen
 						name="(app)"

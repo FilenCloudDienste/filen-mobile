@@ -25,7 +25,7 @@ export const Login = memo(() => {
 	const [email, setEmail] = useState<string>("")
 	const [password, setPassword] = useState<string>("")
 	const { t } = useTranslation()
-	const { signIn, forgotPassword: fp } = useAuthContext()
+	const { signIn } = useAuthContext()
 
 	const disabled = useMemo(() => {
 		return !email || !password
