@@ -20,6 +20,37 @@
 			"nodeWorker": ["./nodejs-assets/nodejs-project/src/index.ts"]
 		}
 	},
-	"include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "lib/**/*.d.ts", "nativewind-env.d.ts", "index.d.ts"],
+	"include": [
+		"app/**/*.ts",
+		"app/**/*.tsx",
+		"assets/**/*.ts",
+		"assets/**/*.tsx",
+		"components/**/*.ts",
+		"components/**/*.tsx",
+		"hooks/**/*.ts",
+		"hooks/**/*.tsx",
+		"lib/**/*.ts",
+		"lib/**/*.tsx",
+		"plugins/**/*.ts",
+		"plugins/**/*.tsx",
+		"providers/**/*.ts",
+		"providers/**/*.tsx",
+		"services/**/*.ts",
+		"services/**/*.tsx",
+		"nodejs-assets/**/*.ts",
+		"nodejs-assets/**/*.tsx",
+		"queries/**/*.ts",
+		"queries/**/*.tsx",
+		"stores/**/*.ts",
+		"stores/**/*.tsx",
+		"theme/**/*.ts",
+		"theme/**/*.tsx",
+		".expo/types/**/*.ts",
+		"expo-env.d.ts",
+		"lib/**/*.d.ts",
+		"nativewind-env.d.ts",
+		"index.d.ts",
+		"app.config.ts"
+	],
 	"exclude": ["nodejs-assets/**/*", "android/**/*", "ios/**/*", ".vscode/**/*", ".expo/**/*"]
 }
