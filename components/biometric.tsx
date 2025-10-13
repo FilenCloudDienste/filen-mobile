@@ -19,12 +19,12 @@ import useLocalAuthenticationQuery from "@/queries/useLocalAuthentication.query"
 import useIsAuthed from "@/hooks/useIsAuthed"
 
 export const ParentComponent = memo(({ children, show }: { children: React.ReactNode; show: boolean }) => {
-	if (Platform.OS === "android") {
-		return <Portal name="biometric-modal">{show ? children : null}</Portal>
-	}
-
 	if (!show) {
 		return null
+	}
+
+	if (Platform.OS === "android") {
+		return <Portal name="biometric-modal">{children}</Portal>
 	}
 
 	return <FullWindowOverlay>{children}</FullWindowOverlay>
@@ -66,9 +66,10 @@ export const Action = memo(({ lockedSeconds, pinAuth }: { lockedSeconds: number;
 		</Text>
 	) : (
 		<Button
-			variant="plain"
+			variant="tonal"
 			size={Platform.OS === "ios" ? "none" : "md"}
 			onPress={pinAuth}
+			className={Platform.OS === "ios" ? "px-2.5 py-1.5 rounded-lg" : undefined}
 		>
 			<Text className="text-primary">{t("biometric.authenticateUsingPin")}</Text>
 		</Button>
@@ -120,7 +121,7 @@ export const Biometric = memo(() => {
 			const lockTimeout = biometricAuth.lastLock + biometricAuth.lockAfter
 
 			if (
-				(nextAppState === "active" || nextAppState === "background") &&
+				nextAppState === "background" &&
 				lastAppStateRef.current !== "extension" &&
 				lastAppStateRef.current !== "inactive" &&
 				lastAppStateRef.current !== "unknown" &&

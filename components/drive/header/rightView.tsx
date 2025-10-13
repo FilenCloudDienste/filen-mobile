@@ -14,6 +14,9 @@ import useAllowed from "@/hooks/useAllowed"
 import { useShallow } from "zustand/shallow"
 import useNetInfo from "@/hooks/useNetInfo"
 import driveService from "@/services/drive.service"
+import { useMMKVObject } from "react-native-mmkv"
+import mmkvInstance from "@/lib/mmkv"
+import { type BiometricAuth, BIOMETRIC_AUTH_KEY } from "@/app/(app)/home/settings/security"
 
 export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const { colors } = useColorScheme()
@@ -23,6 +26,7 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 	const { t } = useTranslation()
 	const allowed = useAllowed()
 	const { hasInternet } = useNetInfo()
+	const [, setBiometricAuth] = useMMKVObject<BiometricAuth>(BIOMETRIC_AUTH_KEY, mmkvInstance)
 
 	const options = useMemo(() => {
 		return [
@@ -62,6 +66,22 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 		}
 	}, [options])
 
+	const doNotPromptBiometricAuth = useCallback(() => {
+		setBiometricAuth(prev => {
+			if (!prev || !prev.enabled) {
+				return prev
+			}
+
+			return {
+				...prev,
+				lastLock: Date.now() + 5000,
+				tries: 0,
+				triesLockedUntil: 0,
+				triesLockedUntilMultiplier: 1
+			}
+		})
+	}, [setBiometricAuth])
+
 	const onPlusPress = useCallback(() => {
 		showActionSheetWithOptions(
 			{
@@ -85,6 +105,8 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 
 				try {
 					if (type === "uploadFiles") {
+						doNotPromptBiometricAuth()
+
 						await driveService.uploadFiles({
 							parent: queryParams.parent,
 							queryParams,
@@ -96,18 +118,24 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 							queryParams
 						})
 					} else if (type === "uploadMedia") {
+						doNotPromptBiometricAuth()
+
 						await driveService.uploadMedia({
 							parent: queryParams.parent,
 							queryParams,
 							disableLoader: true
 						})
 					} else if (type === "createPhoto") {
+						doNotPromptBiometricAuth()
+
 						await driveService.createPhotos({
 							parent: queryParams.parent,
 							queryParams,
 							disableLoader: true
 						})
 					} else if (type === "uploadDirectory") {
+						doNotPromptBiometricAuth()
+
 						await driveService.uploadDirectory({
 							parent: queryParams.parent,
 							queryParams,

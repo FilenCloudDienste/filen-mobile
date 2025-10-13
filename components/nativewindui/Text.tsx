@@ -2,7 +2,7 @@ import { VariantProps, cva } from "class-variance-authority"
 import { cssInterop } from "nativewind"
 import { useContext, createContext, memo } from "react"
 import { cn } from "@/lib/cn"
-import { NativeText as RNText } from "react-native-boost/runtime"
+import { Text as RNText } from "react-native"
 
 cssInterop(RNText, {
 	className: "style"
