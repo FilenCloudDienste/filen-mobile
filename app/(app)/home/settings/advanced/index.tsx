@@ -211,7 +211,7 @@ export const Advanced = memo(() => {
 		<SettingsComponent
 			title={t("settings.advanced.title")}
 			showSearchBar={false}
-			loading={status !== "success"}
+			loading={settingsAdvancedCacheQuery.status !== "success"}
 			items={items}
 		/>
 	)
