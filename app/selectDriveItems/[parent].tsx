@@ -65,6 +65,14 @@ export default function SelectDriveItems() {
 		return typeof multiScreen === "string" ? parseInt(multiScreen) === 1 : false
 	}, [multiScreen])
 
+	const idParsed = useMemo(() => {
+		return typeof id === "string" ? id : "none"
+	}, [id])
+
+	const dismissHrefParsed = useMemo(() => {
+		return typeof dismissHref === "string" ? dismissHref : undefined
+	}, [dismissHref])
+
 	const queryParams = useMemo(
 		(): FetchCloudItemsParams => ({
 			parent: typeof parent === "string" ? parent : baseFolderUUID,
