@@ -1,5 +1,5 @@
 import * as Slot from "@rn-primitives/slot"
-import { BlurView } from "expo-blur"
+import BlurView from "@/components/blurView"
 import TurboImage, { type TurboImageProps } from "react-native-turbo-image"
 import { LinearGradient } from "expo-linear-gradient"
 import { cssInterop } from "nativewind"
@@ -175,9 +175,12 @@ CardDescription.displayName = "CardDescription"
 
 export const CardFooter = memo(
 	forwardRef<React.ElementRef<typeof BlurView>, React.ComponentPropsWithoutRef<typeof BlurView>>(({ className, ...props }, ref) => (
-		<BlurView
+		<View
 			ref={ref}
-			intensity={Platform.select({ ios: 15, default: 0 })}
+			intensity={Platform.select({
+				ios: 15,
+				default: 0
+			})}
 			className={cn("ios:px-5 ios:pt-3 flex-row items-center gap-4 px-4 pb-4 pt-0", className)}
 			{...props}
 		/>

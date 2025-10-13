@@ -188,6 +188,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			}
 		],
 		[
+			"expo-video",
+			{
+				supportsBackgroundPlayback: false,
+				supportsPictureInPicture: false
+			}
+		],
+		[
 			"expo-audio",
 			{
 				microphonePermission: "Please allow access to your microphone so that Filen can capture audio when recording videos."
@@ -284,7 +291,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		],
 		"./plugins/withAndroidSigning",
 		"./plugins/withGradleMemory",
-		"react-native-video",
 		"./plugins/withAndroidLocaleConfig"
 	],
 	experiments: {

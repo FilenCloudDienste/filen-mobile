@@ -1,6 +1,6 @@
 import { memo, useMemo, useCallback } from "react"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
-import { BlurView } from "expo-blur"
+import BlurView from "@/components/blurView"
 import { Text } from "../nativewindui/Text"
 import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-reanimated"
 import useBottomTabsHeight from "@/hooks/useBottomTabsHeight"

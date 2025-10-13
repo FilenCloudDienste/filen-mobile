@@ -16,7 +16,9 @@ export const WithAudioPlayer = memo(({ source, name }: { source: string; name: s
 
 	const [loadSuccess, setLoadSuccess] = useState<boolean>(false)
 	const { colors } = useColorScheme()
-	const player = useAudioPlayer(source, 100)
+	const player = useAudioPlayer(source, {
+		updateInterval: 100
+	})
 	const playerStatus = useAudioPlayerStatus(player)
 	const trackPlayerControls = useTrackPlayerControls()
 	const chatEmbedContainerStyle = useChatEmbedContainerStyle()

@@ -59,8 +59,6 @@ export const queryClientPersister = createAsyncStoragePersister({
 		}
 	},
 	serialize: client => {
-		console.log("Serializing query client...")
-
 		return client as unknown as string
 	},
 	deserialize: client => {

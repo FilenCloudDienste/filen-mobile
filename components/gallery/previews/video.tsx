@@ -1,7 +1,7 @@
-import { memo, useMemo, useState, Fragment, useEffect, useCallback } from "react"
+import { memo, useMemo, useState, Fragment, useEffect } from "react"
 import { type GalleryItem, useGalleryStore } from "@/stores/gallery.store"
 import { View, ActivityIndicator } from "react-native"
-import RNVideo, { type OnLoadStartData, type OnVideoErrorData, type OnLoadData } from "react-native-video"
+import { useVideoPlayer, VideoView } from "expo-video"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Animated, { FadeOut } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -11,6 +11,7 @@ import { Icon } from "@roninoss/icons"
 import { Text } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 import { useShallow } from "zustand/shallow"
+import { useEventListener } from "expo"
 
 export const Video = memo(
 	({
@@ -64,18 +65,16 @@ export const Video = memo(
 			return null
 		}, [item, httpServer.port, httpServer.authToken])
 
-		const onLoadStart = useCallback((_: OnLoadStartData) => {
-			setLoading(true)
-		}, [])
+		const player = useVideoPlayer(source, player => {
+			player.loop = true
 
-		const onLoad = useCallback((_: OnLoadData) => {
-			setLoading(false)
-		}, [])
+			player.play()
+		})
 
-		const onError = useCallback((e: OnVideoErrorData) => {
-			setLoading(false)
-			setError(e?.error?.errorString ?? e?.error?.localizedFailureReason ?? "An unknown error occurred")
-		}, [])
+		useEventListener(player, "statusChange", ({ status, error }) => {
+			setLoading(status === "loading")
+			setError(error ? error.message : null)
+		})
 
 		useEffect(() => {
 			trackPlayerControls.stop().catch(console.error)
@@ -145,22 +144,19 @@ export const Video = memo(
 									}
 								]}
 							>
-								<RNVideo
-									source={{
-										uri: source
-									}}
+								<VideoView
+									player={player}
 									style={style}
-									controls={true}
-									focusable={false}
-									playInBackground={false}
-									playWhenInactive={false}
-									allowsExternalPlayback={false}
-									disableFocus={true}
-									disableDisconnectError={true}
-									resizeMode="contain"
-									onLoadStart={onLoadStart}
-									onError={onError}
-									onLoad={onLoad}
+									nativeControls={true}
+									fullscreenOptions={{
+										enable: true
+									}}
+									allowsPictureInPicture={false}
+									allowsVideoFrameAnalysis={false}
+									contentFit="contain"
+									crossOrigin="anonymous"
+									startsPictureInPictureAutomatically={false}
+									useExoShutter={false}
 								/>
 							</View>
 						)}
