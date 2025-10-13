@@ -9,6 +9,7 @@ import { useShallow } from "zustand/shallow"
 import type { PreviewType } from "@/stores/gallery.store"
 import pathModule from "path"
 import { Platform } from "react-native"
+import { useDriveStore } from "@/stores/drive.store"
 
 export type ListItemInfo = {
 	title: string
@@ -25,7 +26,10 @@ export const Item = memo(
 		toMove,
 		queryParams,
 		previewTypes,
-		extensions
+		extensions,
+		id,
+		dismissHref,
+		multiScreen
 	}: {
 		info: ListRenderItemInfo<ListItemInfo>
 		max: number
@@ -34,6 +38,9 @@ export const Item = memo(
 		queryParams: FetchCloudItemsParams
 		previewTypes: PreviewType[]
 		extensions: string[]
+		id: string
+		dismissHref?: string
+		multiScreen: boolean
 	}) => {
 		const { push: routerPush } = useRouter()
 		const setSelectedItems = useSelectDriveItemsStore(useShallow(state => state.setSelectedItems))
@@ -124,10 +131,20 @@ export const Item = memo(
 			}
 
 			if (info.item.item.type === "directory") {
+				useDriveStore.getState().setSelectedItems([])
+
 				routerPush({
 					pathname: "/selectDriveItems/[parent]",
 					params: {
-						parent: info.item.item.uuid
+						parent: info.item.item.uuid,
+						id,
+						max,
+						type,
+						dismissHref,
+						toMove: JSON.stringify(toMove),
+						previewTypes: JSON.stringify(previewTypes),
+						extensions: JSON.stringify(extensions),
+						multiScreen: multiScreen ? 1 : 0
 					}
 				})
 

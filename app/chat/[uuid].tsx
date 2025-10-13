@@ -125,6 +125,18 @@ export const Chat = memo(() => {
 			useChatsStore.getState().setEmojisText({})
 			useChatsStore.getState().setMentionText({})
 			useChatsStore.getState().setShowEmojis({})
+
+			return () => {
+				useChatsStore.getState().setEditMessage({})
+				useChatsStore.getState().setReplyToMessage({})
+				useChatsStore.getState().setEmojisSuggestions({})
+				useChatsStore.getState().setMentionSuggestions({})
+				useChatsStore.getState().setShowEmojis({})
+				useChatsStore.getState().setShowMention({})
+				useChatsStore.getState().setEmojisText({})
+				useChatsStore.getState().setMentionText({})
+				useChatsStore.getState().setShowEmojis({})
+			}
 		}, [])
 	)
 

@@ -15,7 +15,6 @@ import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import cache from "@/lib/cache"
 import Item from "@/components/selectDriveItems/item"
 import { Button } from "@/components/nativewindui/Button"
-import { useShallow } from "zustand/shallow"
 import type { PreviewType } from "@/stores/gallery.store"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
@@ -23,7 +22,6 @@ import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
 import useNetInfo from "@/hooks/useNetInfo"
 import type { FlashListRef } from "@shopify/flash-list"
-import { useDriveStore } from "@/stores/drive.store"
 
 export type ListItemInfo = {
 	title: string
@@ -38,7 +36,6 @@ export default function SelectDriveItems() {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo, back: routerBack } = useRouter()
-	const setSelectedItems = useSelectDriveItemsStore(useShallow(state => state.setSelectedItems))
 	const [{ baseFolderUUID }] = useSDKConfig()
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
@@ -123,10 +120,14 @@ export default function SelectDriveItems() {
 					queryParams={queryParams}
 					previewTypes={previewTypesParsed}
 					extensions={extensionsParsed}
+					id={idParsed}
+					dismissHref={dismissHrefParsed}
+					multiScreen={multiScreenParsed}
+					key={info.item.id}
 				/>
 			)
 		},
-		[maxParsed, typeParsed, toMoveParsed, queryParams, previewTypesParsed, extensionsParsed]
+		[maxParsed, typeParsed, toMoveParsed, queryParams, previewTypesParsed, extensionsParsed, multiScreenParsed]
 	)
 
 	const headerTitle = useMemo(() => {
@@ -282,13 +283,17 @@ export default function SelectDriveItems() {
 
 	useFocusEffect(
 		useCallback(() => {
-			useDriveStore.getState().setSelectedItems([])
+			useSelectDriveItemsStore.getState().setSelectedItems([])
+
+			return () => {
+				useSelectDriveItemsStore.getState().setSelectedItems([])
+			}
 		}, [])
 	)
 
 	useEffect(() => {
 		if (!multiScreenParsed) {
-			setSelectedItems([])
+			useSelectDriveItemsStore.getState().setSelectedItems([])
 		}
 
 		return () => {
@@ -302,7 +307,7 @@ export default function SelectDriveItems() {
 				})
 			}
 		}
-	}, [id, setSelectedItems, parent, baseFolderUUID, multiScreenParsed])
+	}, [id, parent, baseFolderUUID, multiScreenParsed])
 
 	return (
 		<RequireInternet>

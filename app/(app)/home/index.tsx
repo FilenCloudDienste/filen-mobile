@@ -412,6 +412,10 @@ export const Home = memo(() => {
 	useFocusEffect(
 		useCallback(() => {
 			useDriveStore.getState().setSelectedItems([])
+
+			return () => {
+				useDriveStore.getState().setSelectedItems([])
+			}
 		}, [])
 	)
 

@@ -198,6 +198,10 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	useFocusEffect(
 		useCallback(() => {
 			useDriveStore.getState().setSelectedItems([])
+
+			return () => {
+				useDriveStore.getState().setSelectedItems([])
+			}
 		}, [])
 	)
 

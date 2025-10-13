@@ -140,6 +140,10 @@ export const Notes = memo(() => {
 	useFocusEffect(
 		useCallback(() => {
 			useNotesStore.getState().setSelectedNotes([])
+
+			return () => {
+				useNotesStore.getState().setSelectedNotes([])
+			}
 		}, [])
 	)
 
