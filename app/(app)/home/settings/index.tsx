@@ -19,9 +19,7 @@ import assets from "@/lib/assets"
 export const Settings = memo(() => {
 	const router = useRouter()
 	const { t } = useTranslation()
-
 	const account = useAccountQuery()
-
 	const fileProviderEnabledQuery = useFileProviderEnabledQuery()
 
 	const avatarSource = useMemo(() => {
