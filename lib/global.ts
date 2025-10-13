@@ -3,6 +3,16 @@ import "expo-dev-client"
 import "@/lib/reactQueryOnlineStatus"
 import "@/lib/i18n"
 import NetInfo from "@react-native-community/netinfo"
+import { cssInterop } from "nativewind"
+import { NativeText, NativeView } from "react-native-boost/runtime"
+
+cssInterop(NativeText, {
+	className: "style"
+})
+
+cssInterop(NativeView, {
+	className: "style"
+})
 
 if (!__DEV__) {
 	globalThis.console = {
