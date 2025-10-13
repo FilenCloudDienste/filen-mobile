@@ -727,6 +727,10 @@ export class DriveService {
 				})
 			}
 
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+
 			await new Promise<void>(resolve => setTimeout(resolve, 300))
 
 			await Sharing.shareAsync(tempLocation.uri, {

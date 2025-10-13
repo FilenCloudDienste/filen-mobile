@@ -491,6 +491,16 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
 }
 
 export function sanitizeFileName(filename: string, replacement: string = "_"): string {
+	// Normalize to UTF-8 NFC form (canonical decomposition followed by canonical composition)
+	let sanitizedFilename = filename.normalize("NFC")
+
+	// Remove or replace problematic Unicode characters
+	// Remove zero-width characters and other invisible/control characters
+	sanitizedFilename = sanitizedFilename.replace(/[\u200B-\u200D\uFEFF\u00AD\u0000-\u001F\u007F-\u009F]/g, "")
+
+	// Replace non-ASCII characters that might cause issues
+	sanitizedFilename = sanitizedFilename.replace(/[^\x00-\x7F]/g, replacement)
+
 	const illegalCharsWindows = /[<>:"/\\|?*]/g
 	const illegalCharsUnix = /\//g
 	const reservedNamesWindows: Set<string> = new Set([
@@ -518,20 +528,22 @@ export function sanitizeFileName(filename: string, replacement: string = "_"): s
 		"LPT9"
 	])
 
-	let sanitizedFilename = filename.replace(illegalCharsWindows, replacement)
-
+	sanitizedFilename = sanitizedFilename.replace(illegalCharsWindows, replacement)
 	sanitizedFilename = sanitizedFilename.replace(illegalCharsUnix, replacement)
 	sanitizedFilename = sanitizedFilename.replace(/[. ]+$/, "")
-	sanitizedFilename = sanitizedFilename.split(" ").join(replacement)
+	sanitizedFilename = sanitizedFilename.replace(/\s+/g, replacement)
 
 	if (reservedNamesWindows.has(sanitizedFilename.toUpperCase())) {
 		sanitizedFilename += replacement
 	}
 
-	const maxLength = 255
+	// Calculate byte length for UTF-8 to respect filesystem limits
+	const maxByteLength = 255
+	let byteLength = new TextEncoder().encode(sanitizedFilename).length
 
-	if (sanitizedFilename.length > maxLength) {
-		sanitizedFilename = sanitizedFilename.substring(0, maxLength)
+	while (byteLength > maxByteLength && sanitizedFilename.length > 0) {
+		sanitizedFilename = sanitizedFilename.slice(0, -1)
+		byteLength = new TextEncoder().encode(sanitizedFilename).length
 	}
 
 	if (!sanitizedFilename) {

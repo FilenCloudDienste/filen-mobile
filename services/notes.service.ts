@@ -253,11 +253,11 @@ export class NotesService {
 					return tmpFile.uri
 				}
 
-				await new Promise<void>(resolve => setTimeout(resolve, 30))
-
 				if (!disableLoader) {
 					fullScreenLoadingModal.hide()
 				}
+
+				await new Promise<void>(resolve => setTimeout(resolve, 30))
 
 				await Sharing.shareAsync(tmpFile.uri, {
 					mimeType: "text/plain",
