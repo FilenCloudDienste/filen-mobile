@@ -310,9 +310,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 							borderWidth: playing ? 1 : 0,
 							borderColor: playing ? colors.primary : "transparent"
 						}}
-						placeholder={{
-							blurhash: assets.blurhash.images.fallback
-						}}
 					/>
 				) : (
 					<View

@@ -362,9 +362,6 @@ export const Item = memo(
 											width: IMAGE_SIZE / 2 - (playing ? 1 : 0),
 											height: IMAGE_SIZE / 2 - (playing ? 1 : 0)
 										}}
-										placeholder={{
-											blurhash: assets.blurhash.images.fallback
-										}}
 									/>
 								)
 							})}

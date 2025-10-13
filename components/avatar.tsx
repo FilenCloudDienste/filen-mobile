@@ -63,9 +63,6 @@ export const Avatar = memo(({ source, style, className }: { source: Source; styl
 			onFailure={onFailure}
 			style={styleMemo}
 			cachePolicy="dataCache"
-			placeholder={{
-				blurhash: assets.blurhash.images.fallback
-			}}
 		/>
 	)
 })

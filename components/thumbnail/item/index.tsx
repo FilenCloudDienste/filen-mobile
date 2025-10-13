@@ -6,7 +6,6 @@ import { normalizeFilePathForExpo } from "@/lib/utils"
 import thumbnails from "@/lib/thumbnails"
 import cache from "@/lib/cache"
 import { View } from "react-native"
-import assets from "@/lib/assets"
 
 export const Thumbnail = memo(
 	({
@@ -121,9 +120,6 @@ export const Thumbnail = memo(
 						resizeMode={imageResizeMode}
 						cachePolicy={imageCachePolicy}
 						onFailure={onFailure}
-						placeholder={{
-							blurhash: assets.blurhash.images.fallback
-						}}
 					/>
 				) : (
 					<Fragment>

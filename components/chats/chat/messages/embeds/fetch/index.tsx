@@ -11,7 +11,6 @@ import Code from "../containers/code"
 import Outer from "../containers/outer"
 import Fallback from "../containers/fallback"
 import pathModule from "path"
-import assets from "@/lib/assets"
 import useChatEmbedParsedPageMetadataQuery from "@/queries/useChatEmbedParsedPageMetadata.query"
 
 export const Fetch = memo(({ link }: { link: string }) => {
@@ -127,9 +126,6 @@ export const Fetch = memo(({ link }: { link: string }) => {
 						style={{
 							width: "100%",
 							height: "100%"
-						}}
-						placeholder={{
-							blurhash: assets.blurhash.images.fallback
 						}}
 					/>
 				) : undefined}

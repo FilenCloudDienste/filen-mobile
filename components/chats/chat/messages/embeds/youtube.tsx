@@ -8,7 +8,6 @@ import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
 import { Icon } from "@roninoss/icons"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
-import assets from "@/lib/assets"
 import useChatEmbedYouTubeQuery from "@/queries/useChatEmbedYouTube.query"
 
 export const YouTube = memo(({ link }: { link: string }) => {
@@ -91,9 +90,6 @@ export const YouTube = memo(({ link }: { link: string }) => {
 							style={{
 								width: "100%",
 								height: "100%"
-							}}
-							placeholder={{
-								blurhash: assets.blurhash.images.fallback
 							}}
 						/>
 					) : (

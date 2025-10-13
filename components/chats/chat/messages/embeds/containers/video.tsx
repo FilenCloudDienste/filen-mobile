@@ -8,7 +8,6 @@ import alerts from "@/lib/alerts"
 import Fallback from "./fallback"
 import TurboImage from "react-native-turbo-image"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
-import assets from "@/lib/assets"
 import useChatEmbedVideoThumbnailQuery from "@/queries/useChatEmbedVideoThumbnail.query"
 
 export const Video = memo(({ source, link, name }: { source: string; link: string; name: string }) => {
@@ -92,9 +91,6 @@ export const Video = memo(({ source, link, name }: { source: string; link: strin
 					style={{
 						width: "100%",
 						height: "100%"
-					}}
-					placeholder={{
-						blurhash: assets.blurhash.images.fallback
 					}}
 				/>
 			</View>

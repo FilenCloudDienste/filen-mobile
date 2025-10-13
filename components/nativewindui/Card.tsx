@@ -8,7 +8,6 @@ import { Platform, StyleSheet, View } from "react-native"
 import { Text, TextClassContext } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 import { useColorScheme } from "@/lib/useColorScheme"
-import assets from "@/lib/assets"
 
 cssInterop(BlurView, {
 	className: "style"
@@ -122,9 +121,6 @@ export const CardImage = memo(
 					<TurboImage
 						style={style}
 						resizeMode={resizeMode}
-						placeholder={{
-							blurhash: assets.blurhash.images.fallback
-						}}
 						{...props}
 					/>
 				</Root>
