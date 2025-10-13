@@ -1,5 +1,5 @@
-import { memo, useCallback, useRef, useEffect } from "react"
-import { View, TextInput, type NativeSyntheticEvent, type TextInputKeyPressEventData, Platform } from "react-native"
+import { memo, useCallback, useRef, useEffect, useMemo } from "react"
+import { View, TextInput, type TextInputKeyPressEvent, Platform, type TextInputSubmitEditingEvent } from "react-native"
 import MaterialIcons from "@expo/vector-icons/MaterialIcons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import type { ChecklistItem } from "./parser"
@@ -31,10 +31,14 @@ export const Item = memo(
 		const { colors } = useColorScheme()
 		const textInputRef = useRef<TextInput>(null)
 
+		const normalizeItemContent = useCallback((content: string) => {
+			return content.replace(/\n/g, "")
+		}, [])
+
 		const toggleChecked = useCallback(() => {
 			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {})
 
-			if (!item.checked && item.content.trim().length === 0) {
+			if (!item.checked && normalizeItemContent(item.content).trim().length === 0) {
 				return
 			}
 
@@ -44,16 +48,16 @@ export const Item = memo(
 			})
 
 			onDidType()
-		}, [onCheckedChange, item, onDidType])
+		}, [onCheckedChange, item, onDidType, normalizeItemContent])
 
 		const onChangeText = useCallback(
 			(text: string) => {
 				onContentChange({
 					item,
-					content: text
+					content: normalizeItemContent(text)
 				})
 			},
-			[onContentChange, item]
+			[onContentChange, item, normalizeItemContent]
 		)
 
 		const focusItem = useCallback(() => {
@@ -65,27 +69,30 @@ export const Item = memo(
 			textInputRef?.current?.focus()
 		}, [item.content.length])
 
-		const onSubmitEditing = useCallback(() => {
-			if (item.content.length > 0) {
-				addNewLine(item)
-			} else {
-				focusItem()
-			}
-		}, [item, addNewLine, focusItem])
+		const onSubmitEditing = useCallback(
+			(e: TextInputSubmitEditingEvent) => {
+				e.preventDefault()
+				e.stopPropagation()
+
+				if (item.content.length > 0) {
+					addNewLine(item)
+				} else {
+					focusItem()
+				}
+			},
+			[item, addNewLine, focusItem]
+		)
 
 		const onKeyPress = useCallback(
-			(e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
-				if (e.nativeEvent.key === "Enter") {
-					e.preventDefault()
-					e.stopPropagation()
+			(e: TextInputKeyPressEvent) => {
+				e.preventDefault()
+				e.stopPropagation()
 
-					onSubmitEditing()
+				if (e.nativeEvent.key === "Enter") {
+					onSubmitEditing(e as unknown as TextInputSubmitEditingEvent)
 				}
 
 				if (e.nativeEvent.key === "Backspace" && item.content.length === 0) {
-					e.preventDefault()
-					e.stopPropagation()
-
 					removeItem(item)
 				}
 
@@ -93,6 +100,10 @@ export const Item = memo(
 			},
 			[item, removeItem, onDidType, onSubmitEditing]
 		)
+
+		const itemContent = useMemo(() => {
+			return normalizeItemContent(item.content)
+		}, [item.content, normalizeItemContent])
 
 		useEffect(() => {
 			const focusNotesChecklistItemListener = events.subscribe("focusNotesChecklistItem", ({ id }) => {
@@ -141,7 +152,7 @@ export const Item = memo(
 				<TextInput
 					ref={textInputRef}
 					className={cn("text-foreground text-[17px] shrink-0 flex-1", Platform.OS === "android" && "-mt-[7.5px]")}
-					value={item.content}
+					value={itemContent}
 					onChangeText={onChangeText}
 					multiline={true}
 					scrollEnabled={false}
