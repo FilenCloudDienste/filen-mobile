@@ -489,7 +489,8 @@
             "expiration6h": "6 jam",
             "expiration7d": "7 hari",
             "expirationNever": "Tak pernah",
-            "password": "Kata sandi"
+            "password": "Kata sandi",
+            "shareLink": "Bagikan tautan"
         },
         "onlyPro": "Fitur ini hanya tersedia bagi pengguna Filen Pro. Berlangganan salah satu paket Filen untuk mengaktifkannya.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Lanjutkan",
             "stop": "Berhenti",
             "stopAll": "Hentikan semua"
-        }
+        },
+        "infoNoTime": "Mentransfer {{ongoingTransfers}} item di {{speed}}"
     }
 }

@@ -489,7 +489,8 @@
             "expiration6h": "6 Stunden",
             "expiration7d": "7 Tage",
             "expirationNever": "Nie",
-            "password": "Passwort"
+            "password": "Passwort",
+            "shareLink": "Link teilen"
         },
         "onlyPro": "Diese Funktion ist nur für Filen Pro-Benutzer verfügbar. Abonnieren Sie einen Filen-Plan, um es zu aktivieren.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Fortsetzen",
             "stop": "Stopp",
             "stopAll": "Alle stoppen"
-        }
+        },
+        "infoNoTime": "Übertrage {{ongoingTransfers}} Elemente mit {{speed}}"
     }
 }

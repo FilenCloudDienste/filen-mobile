@@ -489,7 +489,8 @@
             "expiration6h": "6小时",
             "expiration7d": "7天",
             "expirationNever": "从不",
-            "password": "密码"
+            "password": "密码",
+            "shareLink": "分享链接"
         },
         "onlyPro": "此功能仅适用于Filen Pro用户。订阅任何Filen计划以启用此功能。",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "恢复",
             "stop": "停止",
             "stopAll": "停止所有"
-        }
+        },
+        "infoNoTime": "正在以 {{speed}} 的速度传输 {{ongoingTransfers}} 项目"
     }
 }

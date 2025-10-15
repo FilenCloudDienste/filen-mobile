@@ -489,7 +489,8 @@
             "expiration6h": "6 timer",
             "expiration7d": "7 dage",
             "expirationNever": "Aldrig",
-            "password": "Adgangskode"
+            "password": "Adgangskode",
+            "shareLink": "Del link"
         },
         "onlyPro": "Denne funktion er kun tilgængelig for Filen Pro brugere. Abonner på en hvilken som helst Filen plan for at aktivere den.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Genoptag",
             "stop": "Stop",
             "stopAll": "Stop alle"
-        }
+        },
+        "infoNoTime": "Overfører {{ongoingTransfers}} elementer med {{speed}}"
     }
 }

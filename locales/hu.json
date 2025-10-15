@@ -489,7 +489,8 @@
             "expiration6h": "6 óra",
             "expiration7d": "7 nap",
             "expirationNever": "Soha",
-            "password": "Jelszó"
+            "password": "Jelszó",
+            "shareLink": "Link megosztása"
         },
         "onlyPro": "Ez a funkció csak a Filen Pro felhasználók számára érhető el. Iratkozzon fel bármelyik Filen csomagra, hogy engedélyezze.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Folytatás",
             "stop": "Megállítás",
             "stopAll": "Összes leállítása"
-        }
+        },
+        "infoNoTime": "{{ongoingTransfers}} elem átvitele {{speed}} sebességgel"
     }
 }

@@ -489,7 +489,8 @@
             "expiration6h": "6 timmar",
             "expiration7d": "7 dagar",
             "expirationNever": "Aldrig",
-            "password": "Lösenord"
+            "password": "Lösenord",
+            "shareLink": "Dela länk"
         },
         "onlyPro": "Den här funktionen är endast tillgänglig för Filen Pro-användare. Prenumerera på någon Filen-plan för att aktivera den.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Återuppta",
             "stop": "Stoppa",
             "stopAll": "Stoppa alla"
-        }
+        },
+        "infoNoTime": "Överför {{ongoingTransfers}} objekt med hastigheten {{speed}}"
     }
 }

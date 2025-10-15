@@ -489,7 +489,8 @@
             "expiration6h": "6시간",
             "expiration7d": "7일",
             "expirationNever": "절대 안 함",
-            "password": "비밀번호"
+            "password": "비밀번호",
+            "shareLink": "링크 공유"
         },
         "onlyPro": "이 기능은 Filen Pro 사용자에게만 제공됩니다. Filen 플랜에 가입하여 활성화하세요.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "다시 시작",
             "stop": "중지",
             "stopAll": "모두 중지"
-        }
+        },
+        "infoNoTime": "{{speed}}에서 {{ongoingTransfers}} 항목 전송 중"
     }
 }
