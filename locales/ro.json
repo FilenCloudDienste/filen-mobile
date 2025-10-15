@@ -489,7 +489,8 @@
             "expiration6h": "6 ore",
             "expiration7d": "7 zile",
             "expirationNever": "Niciodată",
-            "password": "Parolă"
+            "password": "Parolă",
+            "shareLink": "Distribuie link"
         },
         "onlyPro": "Această funcție este disponibilă doar pentru utilizatorii Filen Pro. Abonați-vă la orice plan Filen pentru a o activa.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Reia",
             "stop": "Opriți",
             "stopAll": "Opriți tot"
-        }
+        },
+        "infoNoTime": "Transfer de {{ongoingTransfers}} articole la {{speed}}"
     }
 }

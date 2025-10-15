@@ -489,7 +489,8 @@
             "expiration6h": "6 uur",
             "expiration7d": "7 dagen",
             "expirationNever": "Nooit",
-            "password": "Wachtwoord"
+            "password": "Wachtwoord",
+            "shareLink": "Deel link"
         },
         "onlyPro": "Deze functie is alleen beschikbaar voor Filen Pro-gebruikers. Abonneer je op een Filen-abonnement om het in te schakelen.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Doorgaan",
             "stop": "Stop",
             "stopAll": "Stop alles"
-        }
+        },
+        "infoNoTime": "Bezig met overdragen van {{ongoingTransfers}} items met een snelheid van {{speed}}"
     }
 }

@@ -489,7 +489,8 @@
             "expiration6h": "6 horas",
             "expiration7d": "7 dias",
             "expirationNever": "Nunca",
-            "password": "Senha"
+            "password": "Senha",
+            "shareLink": "Compartilhar link"
         },
         "onlyPro": "Este recurso está disponível apenas para usuários do Filen Pro. Assine qualquer plano da Filen para ativá-lo.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Retomar",
             "stop": "Parar",
             "stopAll": "Parar tudo"
-        }
+        },
+        "infoNoTime": "Transferindo {{ongoingTransfers}} itens a {{speed}}"
     }
 }

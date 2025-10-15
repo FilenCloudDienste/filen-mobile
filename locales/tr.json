@@ -489,7 +489,8 @@
             "expiration6h": "6 saat",
             "expiration7d": "7 gün",
             "expirationNever": "Asla",
-            "password": "Şifre"
+            "password": "Şifre",
+            "shareLink": "Paylaşım bağlantısı"
         },
         "onlyPro": "Bu özellik yalnızca Filen Pro kullanıcıları için mevcuttur. Etkinleştirmek için herhangi bir Filen planına abone olun.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Devam et",
             "stop": "Durdur",
             "stopAll": "Hepsini durdur"
-        }
+        },
+        "infoNoTime": "{{ongoingTransfers}} öğe {{speed}} hızında aktarılıyor"
     }
 }

@@ -489,7 +489,8 @@
             "expiration6h": "6 giờ",
             "expiration7d": "7 ngày",
             "expirationNever": "Không bao giờ",
-            "password": "Mật khẩu"
+            "password": "Mật khẩu",
+            "shareLink": "Chia sẻ liên kết"
         },
         "onlyPro": "Tính năng này chỉ có sẵn cho người dùng Filen Pro. Hãy đăng ký bất kỳ gói Filen nào để kích hoạt nó.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Tiếp tục",
             "stop": "Dừng",
             "stopAll": "Dừng tất cả"
-        }
+        },
+        "infoNoTime": "Đang chuyển {{ongoingTransfers}} mục với tốc độ {{speed}}"
     }
 }

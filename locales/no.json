@@ -489,7 +489,8 @@
             "expiration6h": "6 timer",
             "expiration7d": "7 dager",
             "expirationNever": "Aldri",
-            "password": "Passord"
+            "password": "Passord",
+            "shareLink": "Del lenke"
         },
         "onlyPro": "Denne funksjonen er kun tilgjengelig for Filen Pro-brukere. Abonner på en hvilken som helst Filen-plan for å aktivere den.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Gjenoppta",
             "stop": "Stopp",
             "stopAll": "Stopp alle"
-        }
+        },
+        "infoNoTime": "Overfører {{ongoingTransfers}} elementer med {{speed}}"
     }
 }

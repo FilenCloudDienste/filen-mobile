@@ -489,7 +489,8 @@
             "expiration6h": "6 घंटे",
             "expiration7d": "7 दिन",
             "expirationNever": "कभी नहीं",
-            "password": "पासवर्ड"
+            "password": "पासवर्ड",
+            "shareLink": "लिंक साझा करें"
         },
         "onlyPro": "यह सुविधा केवल Filen Pro उपयोगकर्ताओं के लिए उपलब्ध है। इसे सक्षम करने के लिए किसी भी Filen योजना की सदस्यता लें।",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "पुनरारंभ करें",
             "stop": "रोकें",
             "stopAll": "सभी रोकें"
-        }
+        },
+        "infoNoTime": "{{speed}} की गति से {{ongoingTransfers}} आइटम स्थानांतरित हो रहे हैं"
     }
 }
