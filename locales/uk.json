@@ -489,7 +489,8 @@
             "expiration6h": "6 годин",
             "expiration7d": "7 днів",
             "expirationNever": "Ніколи",
-            "password": "Пароль"
+            "password": "Пароль",
+            "shareLink": "Посилання для спільного доступу"
         },
         "onlyPro": "Ця функція доступна лише для користувачів Filen Pro. Підпишіться на будь-який план Filen, щоб увімкнути її.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Продовжити",
             "stop": "Зупинити",
             "stopAll": "Зупинити все"
-        }
+        },
+        "infoNoTime": "Передача {{ongoingTransfers}} елементів зі швидкістю {{speed}}"
     }
 }

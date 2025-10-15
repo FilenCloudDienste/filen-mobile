@@ -1,12 +1,12 @@
 import { Fragment, useMemo, useCallback, useState, useEffect, useRef, memo } from "react"
 import Container from "@/components/Container"
 import ListHeader from "@/components/notes/listHeader"
-import useNotesQuery from "@/queries/useNotesQuery"
-import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
+import useNotesQuery from "@/queries/useNotes.query"
+import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
 import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { useNotesStore } from "@/stores/notes.store"
-import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
+import useNotesTagsQuery from "@/queries/useNotesTags.query"
 import mmkvInstance from "@/lib/mmkv"
 import { useMMKVString } from "react-native-mmkv"
 import Item from "@/components/notes/item"
@@ -19,6 +19,7 @@ import { sortAndFilterNotes } from "@/lib/utils"
 import { useFocusEffect } from "expo-router"
 import useNetInfo from "@/hooks/useNetInfo"
 import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
+import useDimensions from "@/hooks/useDimensions"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -32,9 +33,10 @@ export const Notes = memo(() => {
 	const listRef = useRef<FlashListRef<Note>>(null)
 	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
+	const { screen } = useDimensions()
 
-	const notesQuery = useNotesQuery({})
-	const notesTagsQuery = useNotesTagsQuery({})
+	const notesQuery = useNotesQuery()
+	const notesTagsQuery = useNotesTagsQuery()
 
 	const notes = useMemo(() => {
 		if (notesQuery.status !== "success") {
@@ -138,6 +140,10 @@ export const Notes = memo(() => {
 	useFocusEffect(
 		useCallback(() => {
 			useNotesStore.getState().setSelectedNotes([])
+
+			return () => {
+				useNotesStore.getState().setSelectedNotes([])
+			}
 		}, [])
 	)
 
@@ -157,6 +163,8 @@ export const Notes = memo(() => {
 					ListHeaderComponent={ListHeaderComponent}
 					refreshControl={refreshControl}
 					keyExtractor={keyExtractor}
+					maxItemsInRecyclePool={0}
+					drawDistance={Math.floor(screen.height / 4)}
 				/>
 			</Container>
 		</Fragment>

@@ -5,7 +5,7 @@ import { randomUUID } from "expo-crypto"
 import events from "../events"
 import { httpHealthCheck } from "./utils"
 import { useTransfersStore } from "@/stores/transfers.store"
-import { type NodeWorkerHandlers } from "nodeWorker"
+import type { NodeWorkerHandlers } from "nodeWorker"
 
 export const nodeChannel: NodeClientChannel = nodejs.channel
 

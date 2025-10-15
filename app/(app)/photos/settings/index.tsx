@@ -8,10 +8,11 @@ import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import { validate as validateUUID } from "uuid"
 import * as MediaLibrary from "expo-media-library"
-import useCameraUploadParentQuery from "@/queries/useCameraUploadParentQuery"
+import useCameraUploadParentQuery from "@/queries/useCameraUploadParent.query"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import { foregroundCameraUpload } from "@/lib/cameraUpload"
+import { View } from "react-native"
 
 export const Settings = memo(() => {
 	const [cameraUpload, setCameraUpload] = useCameraUpload()
@@ -194,11 +195,12 @@ export const Settings = memo(() => {
 				id: "0",
 				title: t("photos.settings.index.items.enabled"),
 				rightView: (
-					<Toggle
-						testID="photos.settings.enabled"
-						value={cameraUpload.enabled}
-						onValueChange={toggleEnabled}
-					/>
+					<View testID="photos.settings.enabled">
+						<Toggle
+							value={cameraUpload.enabled}
+							onValueChange={toggleEnabled}
+						/>
+					</View>
 				)
 			},
 			"gap-0",

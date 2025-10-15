@@ -1,7 +1,7 @@
 import { memo, useCallback, useMemo } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { List, type ListDataItem, ListItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
-import useLocalAlbumsQuery from "@/queries/useLocalAlbumsQuery"
+import useLocalAlbumsQuery from "@/queries/useLocalAlbums.query"
 import * as MediaLibrary from "expo-media-library"
 import Container from "@/components/Container"
 import { View, Platform } from "react-native"
@@ -36,9 +36,11 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 
 	const rightView = useMemo(() => {
 		return (
-			<View className="flex-1 flex-row items-center px-4">
+			<View
+				className="flex-1 flex-row items-center px-4"
+				testID={`photos.settings.albums.toggle.${info.item.album.title}`}
+			>
 				<Toggle
-					testID={`photos.settings.albums.toggle.${info.item.album.title}`}
 					value={enabled}
 					onValueChange={() => {
 						setCameraUpload(prev => ({
@@ -74,7 +76,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 				default: !isDarkColorScheme
 					? {
 							backgroundColor: colors.grey5
-					  }
+						}
 					: undefined
 			})}
 			titleClassName="text-lg"
@@ -92,7 +94,7 @@ Item.displayName = "Item"
 export const Albums = memo(() => {
 	const { t } = useTranslation()
 
-	const localAlbumsQuery = useLocalAlbumsQuery({})
+	const localAlbumsQuery = useLocalAlbumsQuery()
 
 	const items = useMemo((): ListItemInfo[] => {
 		if (localAlbumsQuery.status !== "success") {

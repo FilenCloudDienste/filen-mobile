@@ -5,7 +5,7 @@ import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
-import useChatsQuery from "@/queries/useChatsQuery"
+import useChatsQuery from "@/queries/useChats.query"
 import { getChatName } from "@/components/chats/utils"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import Messages from "@/components/chats/chat/messages"
@@ -125,6 +125,18 @@ export const Chat = memo(() => {
 			useChatsStore.getState().setEmojisText({})
 			useChatsStore.getState().setMentionText({})
 			useChatsStore.getState().setShowEmojis({})
+
+			return () => {
+				useChatsStore.getState().setEditMessage({})
+				useChatsStore.getState().setReplyToMessage({})
+				useChatsStore.getState().setEmojisSuggestions({})
+				useChatsStore.getState().setMentionSuggestions({})
+				useChatsStore.getState().setShowEmojis({})
+				useChatsStore.getState().setShowMention({})
+				useChatsStore.getState().setEmojisText({})
+				useChatsStore.getState().setMentionText({})
+				useChatsStore.getState().setShowEmojis({})
+			}
 		}, [])
 	)
 

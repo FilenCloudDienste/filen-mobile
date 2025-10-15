@@ -1,4 +1,4 @@
-import { type DropdownItem, type DropdownSubMenu } from "./types"
+import type { DropdownItem, DropdownSubMenu } from "./types"
 
 export function createDropdownSubMenu(subMenu: Omit<DropdownSubMenu, "items">, items: DropdownSubMenu["items"]) {
 	return Object.assign(subMenu, { items }) as DropdownSubMenu

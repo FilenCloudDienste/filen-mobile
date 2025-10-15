@@ -4,8 +4,8 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import Menu from "./menu"
-import { type ListRenderItemInfo } from "@/components/nativewindui/List"
-import { type ListItemInfo } from "."
+import type { ListRenderItemInfo } from "@/components/nativewindui/List"
+import type { ListItemInfo } from "."
 
 export const RightView = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
 	const { colors } = useColorScheme()

@@ -1,6 +1,6 @@
 import { memo, useCallback, useMemo } from "react"
 import { Settings as SettingsComponent } from "@/components/settings"
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import alerts from "@/lib/alerts"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
@@ -16,9 +16,10 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Text } from "@/components/nativewindui/Text"
 import { sanitizeFileName } from "@/lib/utils"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import paths from "@/lib/paths"
 import * as Sharing from "expo-sharing"
+import pathModule from "path"
 
 export const TwoFactor = memo(() => {
 	const { t } = useTranslation()
@@ -46,7 +47,7 @@ export const TwoFactor = memo(() => {
 	const exportRecoveryKeys = useCallback(
 		async (recoveryKeys: string) => {
 			const fileName = `${sanitizeFileName(`Two_Factor_Recovery_Keys_${account.data?.account.email ?? ""}_${Date.now()}`)}.txt`
-			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.exports(), fileName))
+			const tmpFile = new FileSystem.File(pathModule.posix.join(paths.exports(), fileName))
 
 			try {
 				fullScreenLoadingModal.show()
@@ -56,12 +57,14 @@ export const TwoFactor = memo(() => {
 						tmpFile.delete()
 					}
 
-					tmpFile.write(recoveryKeys)
+					tmpFile.write(recoveryKeys, {
+						encoding: "utf8"
+					})
 				} finally {
 					fullScreenLoadingModal.hide()
 				}
 
-				await new Promise<void>(resolve => setTimeout(resolve, 250))
+				await new Promise<void>(resolve => setTimeout(resolve, 300))
 
 				await Sharing.shareAsync(tmpFile.uri, {
 					mimeType: "text/plain",

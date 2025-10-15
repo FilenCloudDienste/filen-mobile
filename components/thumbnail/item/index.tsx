@@ -1,4 +1,4 @@
-import { memo, Fragment, useCallback, useMemo, useEffect } from "react"
+import { memo, Fragment, useCallback, useMemo, useEffect, useState, useRef } from "react"
 import TurboImage, { type TurboImageProps } from "react-native-turbo-image"
 import { ColoredFolderSVGIcon, FileNameToSVGIcon } from "@/assets/fileIcons"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -6,8 +6,6 @@ import { normalizeFilePathForExpo } from "@/lib/utils"
 import thumbnails from "@/lib/thumbnails"
 import cache from "@/lib/cache"
 import { View } from "react-native"
-import { useRecyclingState } from "@shopify/flash-list"
-import assets from "@/lib/assets"
 
 export const Thumbnail = memo(
 	({
@@ -31,11 +29,19 @@ export const Thumbnail = memo(
 		spacing?: number
 		queryParams?: FetchCloudItemsParams
 	}) => {
+		const lastItemUuidRef = useRef<string | null>(null)
 		const { colors } = useColorScheme()
-		const [localPath, setLocalPath] = useRecyclingState<string | undefined>(
-			item.thumbnail ?? cache.availableThumbnails.get(item.uuid),
-			[item.uuid]
-		)
+		const [localPath, setLocalPath] = useState<string | undefined>(item.thumbnail ?? cache.availableThumbnails.get(item.uuid))
+		const abortControllerRef = useRef<AbortController | null>(null)
+
+		// If the item changed, reset the local path (due to FlashList recycling items)
+		if (lastItemUuidRef.current !== item.uuid) {
+			lastItemUuidRef.current = item.uuid
+
+			abortControllerRef.current?.abort()
+
+			setLocalPath(item.thumbnail ?? cache.availableThumbnails.get(item.uuid))
+		}
 
 		const style = useMemo(
 			() =>
@@ -59,13 +65,23 @@ export const Thumbnail = memo(
 				return
 			}
 
+			abortControllerRef.current?.abort()
+			abortControllerRef.current = new AbortController()
+
 			thumbnails
 				.generate({
 					item,
 					queryParams,
-					disableInViewCheck: true
+					abortSignal: abortControllerRef.current.signal
 				})
-				.then(thumbnailPath => setLocalPath(thumbnailPath))
+				.then(thumbnailPath => {
+					// Item changed while we were generating the thumbnail
+					if (lastItemUuidRef.current !== item.uuid) {
+						return
+					}
+
+					setLocalPath(thumbnailPath)
+				})
 				.catch(() => {})
 		}, [item, localPath, queryParams, setLocalPath])
 
@@ -81,10 +97,14 @@ export const Thumbnail = memo(
 			generate()
 		}, [generate, item])
 
+		useEffect(() => {
+			return () => {
+				abortControllerRef.current?.abort()
+			}
+		}, [])
+
 		return (
-			<View
-				testID={`thumbnail.item.${item.name}`}
-			>
+			<View testID={`thumbnail.item.${item.name}`}>
 				{item.type === "directory" ? (
 					<ColoredFolderSVGIcon
 						color={item.color}
@@ -95,15 +115,13 @@ export const Thumbnail = memo(
 					<Fragment>
 						{source.uri.length > 0 ? (
 							<TurboImage
+								key={`thumbnail-${item.uuid}-${source.uri}-${size}`}
 								className={imageClassName}
 								source={source}
 								style={style}
 								resizeMode={imageResizeMode}
 								cachePolicy={imageCachePolicy}
 								onFailure={onFailure}
-								placeholder={{
-									blurhash: assets.blurhash.images.fallback
-								}}
 							/>
 						) : (
 							<Fragment>

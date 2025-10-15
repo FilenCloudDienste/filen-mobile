@@ -1,9 +1,9 @@
 import nodeWorker from "@/lib/nodeWorker"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import { getSDK } from "@/lib/sdk"
 import { Readable } from "stream"
-import { type ReadableStream } from "stream/web"
-import { type NodeWorkerHandlers } from "nodeWorker"
+import type { ReadableStream } from "stream/web"
+import type { NodeWorkerHandlers } from "nodeWorker"
 import thumbnails from "./thumbnails"
 import { normalizeFilePathForExpo } from "./utils"
 import { useTransfersStore } from "@/stores/transfers.store"
@@ -81,8 +81,7 @@ export class Upload {
 				await thumbnails
 					.generate({
 						item,
-						originalFilePath: normalizeFilePathForExpo(params.localPath),
-						disableInViewCheck: true
+						originalFilePath: normalizeFilePathForExpo(params.localPath)
 					})
 					.catch(e => {
 						console.error("Failed to generate thumbnail for", item.uuid, e)
@@ -153,8 +152,7 @@ export class Upload {
 										type: "file",
 										selected: false
 								  }) satisfies DriveCloudItem,
-							originalFilePath: normalizeFilePathForExpo(params.localPath),
-							disableInViewCheck: true
+							originalFilePath: normalizeFilePathForExpo(params.localPath)
 						})
 						.catch(() => {
 							// We don't want to throw an error if thumbnail generation fails

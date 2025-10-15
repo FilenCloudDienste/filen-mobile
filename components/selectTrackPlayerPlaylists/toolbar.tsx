@@ -8,9 +8,8 @@ import alerts from "@/lib/alerts"
 import { useRouter, useLocalSearchParams } from "expo-router"
 import { useShallow } from "zustand/shallow"
 import { useTranslation } from "react-i18next"
-import usePlaylistsQuery, { type Playlist, updatePlaylist } from "@/queries/usePlaylistsQuery"
+import usePlaylistsQuery, { type Playlist, updatePlaylist, playlistsQueryUpdate } from "@/queries/usePlaylists.query"
 import { randomUUID } from "expo-crypto"
-import queryUtils from "@/queries/utils"
 
 export const Toolbar = memo(() => {
 	const { canGoBack, dismissTo, back } = useRouter()
@@ -116,10 +115,16 @@ export const Toolbar = memo(() => {
 		fullScreenLoadingModal.show()
 
 		try {
-			await updatePlaylist(newPlaylist)
+			const { fileUuid } = await updatePlaylist(newPlaylist)
 
-			queryUtils.usePlaylistsQuerySet({
-				updater: prev => [...prev.filter(p => p.uuid !== uuid), newPlaylist]
+			playlistsQueryUpdate({
+				updater: prev => [
+					...prev.filter(p => p.uuid !== uuid),
+					{
+						...newPlaylist,
+						fileUUID: fileUuid
+					}
+				]
 			})
 		} catch (e) {
 			console.error(e)

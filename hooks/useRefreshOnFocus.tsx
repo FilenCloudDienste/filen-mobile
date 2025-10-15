@@ -1,8 +1,15 @@
 import { useRef, useCallback } from "react"
 import { useFocusEffect } from "@react-navigation/native"
 import alerts from "@/lib/alerts"
+import type { UseQueryResult } from "@tanstack/react-query"
 
-export default function useRefreshOnFocus<T>(refetch: () => Promise<T>, enabled?: boolean) {
+export default function useRefreshOnFocus({
+	isEnabled,
+	refetch
+}: {
+	isEnabled: UseQueryResult["isEnabled"]
+	refetch: UseQueryResult["refetch"]
+}): void {
 	const firstTimeRef = useRef<boolean>(true)
 
 	useFocusEffect(
@@ -13,7 +20,7 @@ export default function useRefreshOnFocus<T>(refetch: () => Promise<T>, enabled?
 				return
 			}
 
-			if (typeof enabled === "boolean" && !enabled) {
+			if (!isEnabled) {
 				return
 			}
 
@@ -24,6 +31,6 @@ export default function useRefreshOnFocus<T>(refetch: () => Promise<T>, enabled?
 					alerts.error(err.message)
 				}
 			})
-		}, [refetch, enabled])
+		}, [isEnabled, refetch])
 	)
 }

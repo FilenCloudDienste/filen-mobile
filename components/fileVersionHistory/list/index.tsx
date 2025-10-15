@@ -1,6 +1,6 @@
 import { memo, useMemo, useCallback } from "react"
 import { List as ListComponent, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
-import useFileVersionsQuery from "@/queries/useFileVersionsQuery"
+import useFileVersionsQuery from "@/queries/useFileVersions.query"
 import { simpleDate } from "@/lib/utils"
 import Item, { type ListItemInfo } from "./item"
 import Container from "@/components/Container"
@@ -75,7 +75,6 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
 				contentInsetAdjustmentBehavior="automatic"
-				refreshing={query.status === "pending"}
 				contentContainerStyle={contentContainerStyle}
 				ListEmptyComponent={ListEmptyComponent}
 			/>

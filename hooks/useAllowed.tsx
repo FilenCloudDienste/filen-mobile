@@ -15,6 +15,7 @@ export default function useAllowed(): {
 		const upload =
 			route.name === "[uuid]" ||
 			(route.name === "links/[uuid]" && typeof routeParams.uuid === "string" && validateUUID(routeParams.uuid)) ||
+			(route.name === "favorites/[uuid]" && typeof routeParams.uuid === "string" && validateUUID(routeParams.uuid)) ||
 			(route.name === "sharedOut/[uuid]" && typeof routeParams.uuid === "string" && validateUUID(routeParams.uuid))
 
 		return {

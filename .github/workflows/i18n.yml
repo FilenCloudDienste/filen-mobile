@@ -34,13 +34,13 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          if [[ -n $(git status --porcelain packages/filen-web/) ]]; then
+          if [[ -n $(git status --porcelain locales/) ]]; then
             echo "changes=true" >> $GITHUB_OUTPUT
-            echo "Changes detected in packages/filen-web/:"
-            git status --short packages/filen-web/
+            echo "Changes detected in locales/:"
+            git status --short locales/
           else
             echo "changes=false" >> $GITHUB_OUTPUT
-            echo "No changes detected in packages/filen-web/"
+            echo "No changes detected in locales/"
           fi
 
       - name: Create Pull Request

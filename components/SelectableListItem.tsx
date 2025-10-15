@@ -2,8 +2,9 @@ import { Checkbox } from "@/components/nativewindui/Checkbox"
 import { cn } from "@/lib/cn"
 import { Pressable, I18nManager } from "react-native"
 import Animated, { LinearTransition, SlideInLeft, SlideInRight, SlideOutLeft, SlideOutRight } from "react-native-reanimated"
+import { memo } from "react"
 
-type Props = {
+export type Props = {
 	selectionActive: boolean
 	selected: boolean
 	onSelected: (selected: boolean) => void
@@ -13,7 +14,7 @@ type Props = {
 /**
  * Renders a list item that has a checkbox at the leading end that animates into view when selectionActive is true, respect text direction
  */
-export const SelectableListItem = ({ selectionActive, selected, onSelected, children }: Props) => {
+export const SelectableListItem = memo(({ selectionActive, selected, onSelected, children }: Props) => {
 	const isRTL = I18nManager.isRTL
 
 	return (
@@ -36,11 +37,14 @@ export const SelectableListItem = ({ selectionActive, selected, onSelected, chil
 			)}
 			<Animated.View
 				className={cn(isRTL ? "flex-row-reverse" : "flex-row", "flex-shrink")}
-				entering={isRTL ? SlideInRight : SlideInLeft}
 				layout={LinearTransition}
 			>
 				{children}
 			</Animated.View>
 		</Pressable>
 	)
-}
+})
+
+SelectableListItem.displayName = "SelectableListItem"
+
+export default SelectableListItem

@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { type AppStateStatus } from "react-native"
+import type { AppStateStatus } from "react-native"
 
 export type AppStateStore = {
 	appState: AppStateStatus

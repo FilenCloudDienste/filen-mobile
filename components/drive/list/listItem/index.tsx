@@ -6,27 +6,26 @@ import RightView from "./rightView"
 import LeftView from "./leftView"
 import { useDriveStore } from "@/stores/drive.store"
 import { Platform, View } from "react-native"
-import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
-import { formatBytes, getPreviewType, normalizeFilePathForExpo } from "@/lib/utils"
-import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
+import { useDirectorySizeQuery } from "@/queries/useDirectorySize.query"
+import { formatBytes, getPreviewType, normalizeFilePathForExpo, hideSearchBarWithDelay } from "@/lib/utils"
+import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatus.query"
 import useNetInfo from "@/hooks/useNetInfo"
 import { viewDocument } from "@react-native-documents/viewer"
 import alerts from "@/lib/alerts"
-import events from "@/lib/events"
 import { useGalleryStore } from "@/stores/gallery.store"
 import { useMMKVBoolean } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import Grid from "./grid"
 import { useShallow } from "zustand/shallow"
-import { type TextEditorItem } from "@/components/textEditor/editor"
-import { type PDFPreviewItem } from "@/app/pdfPreview"
-import { type DOCXPreviewItem } from "@/app/docxPreview"
+import type { TextEditorItem } from "@/components/textEditor/editor"
+import type { PDFPreviewItem } from "@/app/pdfPreview"
+import type { DOCXPreviewItem } from "@/app/docxPreview"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import cache from "@/lib/cache"
 import { useTranslation } from "react-i18next"
-import queryUtils from "@/queries/utils"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
+import type { ListRenderItemInfo } from "@shopify/flash-list"
+import { driveItemsQueryGet } from "@/queries/useDriveItems.query"
 
 export type ListItemInfo = {
 	title: string
@@ -64,18 +63,26 @@ export const ListItem = memo(
 		const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
 		const { t } = useTranslation()
 
-		const directorySize = useDirectorySizeQuery({
-			uuid: info.item.item.uuid,
-			enabled: info.item.item.type === "directory",
-			sharerId: queryParams.of === "sharedIn" && info.item.item.isShared ? info.item.item.sharerId : undefined,
-			receiverId: queryParams.of === "sharedOut" && info.item.item.isShared ? info.item.item.receiverId : undefined,
-			trash: queryParams.of === "trash" ? true : undefined
-		})
+		const directorySize = useDirectorySizeQuery(
+			{
+				uuid: info.item.item.uuid,
+				sharerId: queryParams.of === "sharedIn" && info.item.item.isShared ? info.item.item.sharerId : undefined,
+				receiverId: queryParams.of === "sharedOut" && info.item.item.isShared ? info.item.item.receiverId : undefined,
+				trash: queryParams.of === "trash" ? true : undefined
+			},
+			{
+				enabled: info.item.item.type === "directory"
+			}
+		)
 
-		const fileOfflineStatus = useFileOfflineStatusQuery({
-			uuid: info.item.item.uuid,
-			enabled: info.item.item.type === "file"
-		})
+		const fileOfflineStatus = useFileOfflineStatusQuery(
+			{
+				uuid: info.item.item.uuid
+			},
+			{
+				enabled: info.item.item.type === "file"
+			}
+		)
 
 		const item = useMemo(() => {
 			if (info.item.item.type !== "directory" || directorySize.status !== "success") {
@@ -128,9 +135,7 @@ export const ListItem = memo(
 
 		const onPressFromSearch = useCallback(async () => {
 			if (info.item.item.type === "directory") {
-				events.emit("hideSearchBar", {
-					clearText: true
-				})
+				await hideSearchBarWithDelay(true)
 
 				routerPush({
 					pathname: "/drive/[uuid]",
@@ -151,9 +156,7 @@ export const ListItem = memo(
 
 				cache.directoryUUIDToName.set(info.item.item.parent, parent.metadataDecrypted.name)
 
-				events.emit("hideSearchBar", {
-					clearText: true
-				})
+				await hideSearchBarWithDelay(true)
 
 				routerPush({
 					pathname: "/drive/[uuid]",
@@ -173,7 +176,7 @@ export const ListItem = memo(
 			}
 		}, [info.item.item, routerPush])
 
-		const onPress = useCallback(() => {
+		const onPress = useCallback(async () => {
 			if (fromSearch) {
 				onPressFromSearch()
 
@@ -192,10 +195,16 @@ export const ListItem = memo(
 				}
 
 				if (!hasInternet) {
-					const cachedContent = queryUtils.useCloudItemsQueryGet(
+					const cachedContent = driveItemsQueryGet(
 						pathname.startsWith("/home/links")
 							? {
 									of: "links",
+									parent: info.item.item.uuid,
+									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
+							  }
+							: pathname.startsWith("/home/favorites")
+							? {
+									of: "favorites",
 									parent: info.item.item.uuid,
 									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
 							  }
@@ -208,12 +217,6 @@ export const ListItem = memo(
 							: pathname.startsWith("/home/sharedIn")
 							? {
 									of: "sharedIn",
-									parent: info.item.item.uuid,
-									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
-							  }
-							: pathname.startsWith("/home/offline")
-							? {
-									of: "offline",
 									parent: info.item.item.uuid,
 									receiverId: info.item.item.isShared ? info.item.item.receiverId : 0
 							  }
@@ -231,13 +234,13 @@ export const ListItem = memo(
 					}
 				}
 
-				events.emit("hideSearchBar", {
-					clearText: true
-				})
+				await hideSearchBarWithDelay(true)
 
 				routerPush({
 					pathname: pathname.startsWith("/home/links")
 						? "/home/links/[uuid]"
+						: pathname.startsWith("/home/favorites")
+						? "/home/favorites/[uuid]"
 						: pathname.startsWith("/home/sharedOut")
 						? "/home/sharedOut/[uuid]"
 						: pathname.startsWith("/home/sharedIn")
@@ -312,9 +315,7 @@ export const ListItem = memo(
 			}
 
 			if (previewType === "text" || previewType === "code") {
-				events.emit("hideSearchBar", {
-					clearText: true
-				})
+				await hideSearchBarWithDelay(true)
 
 				routerPush({
 					pathname: "/textEditor",
@@ -328,9 +329,7 @@ export const ListItem = memo(
 			}
 
 			if (previewType === "pdf" && info.item.item.size > 0) {
-				events.emit("hideSearchBar", {
-					clearText: true
-				})
+				await hideSearchBarWithDelay(true)
 
 				routerPush({
 					pathname: "/pdfPreview",
@@ -344,9 +343,7 @@ export const ListItem = memo(
 			}
 
 			if (previewType === "docx" && info.item.item.size > 0) {
-				events.emit("hideSearchBar", {
-					clearText: true
-				})
+				await hideSearchBarWithDelay(true)
 
 				routerPush({
 					pathname: "/docxPreview",
@@ -379,7 +376,6 @@ export const ListItem = memo(
 					item={info.item.item}
 					itemSize={itemSize}
 					spacing={spacing}
-					pathname={pathname}
 					isAvailableOffline={offlineStatus && offlineStatus.exists ? true : false}
 					queryParams={queryParams}
 					onPress={onPress}
@@ -412,9 +408,7 @@ export const ListItem = memo(
 		}
 
 		return (
-			<View
-				testID={`drive.list.listItem.${info.item.item.name}`}
-			>
+			<View testID={`drive.list.listItem.${info.item.item.name}`}>
 				<Menu
 					type="context"
 					item={info.item.item}

@@ -15,10 +15,14 @@ import { useTranslation } from "react-i18next"
 import { Portal } from "@rn-primitives/portal"
 import { useAppStateStore } from "@/stores/appState.store"
 import { FullWindowOverlay } from "react-native-screens"
-import useLocalAuthenticationQuery from "@/queries/useLocalAuthenticationQuery"
+import useLocalAuthenticationQuery from "@/queries/useLocalAuthentication.query"
 import useIsAuthed from "@/hooks/useIsAuthed"
 
-export const ParentComponent = memo(({ children }: { children: React.ReactNode }) => {
+export const ParentComponent = memo(({ children, show }: { children: React.ReactNode; show: boolean }) => {
+	if (!show) {
+		return null
+	}
+
 	if (Platform.OS === "android") {
 		return <Portal name="biometric-modal">{children}</Portal>
 	}
@@ -62,9 +66,10 @@ export const Action = memo(({ lockedSeconds, pinAuth }: { lockedSeconds: number;
 		</Text>
 	) : (
 		<Button
-			variant="plain"
+			variant="tonal"
 			size={Platform.OS === "ios" ? "none" : "md"}
 			onPress={pinAuth}
+			className={Platform.OS === "ios" ? "px-2.5 py-1.5 rounded-lg" : undefined}
 		>
 			<Text className="text-primary">{t("biometric.authenticateUsingPin")}</Text>
 		</Button>
@@ -82,7 +87,7 @@ export const Biometric = memo(() => {
 	const lastAppStateRef = useRef<AppStateStatus>("active")
 	const [isAuthed] = useIsAuthed()
 
-	const localAuthentication = useLocalAuthenticationQuery({})
+	const localAuthentication = useLocalAuthenticationQuery()
 
 	const enabled = useMemo(() => {
 		return isAuthed && (biometricAuth?.enabled ?? false)
@@ -116,7 +121,7 @@ export const Biometric = memo(() => {
 			const lockTimeout = biometricAuth.lastLock + biometricAuth.lockAfter
 
 			if (
-				(nextAppState === "active" || nextAppState === "background") &&
+				nextAppState === "background" &&
 				lastAppStateRef.current !== "extension" &&
 				lastAppStateRef.current !== "inactive" &&
 				lastAppStateRef.current !== "unknown" &&
@@ -307,12 +312,8 @@ export const Biometric = memo(() => {
 		}
 	}, [onNextAppState, onBackButtonPress])
 
-	if (!show) {
-		return null
-	}
-
 	return (
-		<ParentComponent>
+		<ParentComponent show={show}>
 			<Animated.View
 				exiting={FadeOut}
 				className="flex-1 items-center justify-center bg-background absolute top-0 left-0 right-0 bottom-0 z-[900] w-full h-full"

@@ -1,5 +1,5 @@
-import { type MaterialIconName, type SfSymbolIconName } from "@roninoss/icons"
-import { type View, type ViewProps } from "react-native"
+import type { MaterialIconName, SfSymbolIconName } from "@roninoss/icons"
+import type { View, ViewProps } from "react-native"
 
 export type MaterialIcon = {
 	name: MaterialIconName

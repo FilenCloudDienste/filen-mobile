@@ -1,7 +1,4 @@
 import { memo, useCallback, useMemo } from "react"
-import { useQuery } from "@tanstack/react-query"
-import { DEFAULT_QUERY_OPTIONS } from "@/queries/client"
-import { WebpageMetadataParser } from "./parser"
 import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
 import TurboImage from "react-native-turbo-image"
@@ -13,32 +10,16 @@ import Audio from "../containers/audio"
 import Code from "../containers/code"
 import Outer from "../containers/outer"
 import Fallback from "../containers/fallback"
-import * as FileSystem from "expo-file-system/next"
-import useNetInfo from "@/hooks/useNetInfo"
-import assets from "@/lib/assets"
+import pathModule from "path"
+import useChatEmbedParsedPageMetadataQuery from "@/queries/useChatEmbedParsedPageMetadata.query"
 
 export const Fetch = memo(({ link }: { link: string }) => {
-	const { hasInternet } = useNetInfo()
-
-	const query = useQuery({
-		queryKey: ["chatEmbedFetchDataParsed", link],
-		queryFn: () => new WebpageMetadataParser(link).parseWebpageMetadata(),
-		throwOnError(err) {
-			console.error(err)
-
-			return false
-		},
-		refetchOnMount: DEFAULT_QUERY_OPTIONS.refetchOnMount,
-		refetchOnReconnect: DEFAULT_QUERY_OPTIONS.refetchOnReconnect,
-		refetchOnWindowFocus: DEFAULT_QUERY_OPTIONS.refetchOnWindowFocus,
-		staleTime: DEFAULT_QUERY_OPTIONS.staleTime,
-		gcTime: DEFAULT_QUERY_OPTIONS.gcTime,
-		refetchInterval: false,
-		enabled: hasInternet
+	const query = useChatEmbedParsedPageMetadataQuery({
+		link
 	})
 
 	const name = useMemo(() => {
-		return FileSystem.Paths.basename(link)
+		return pathModule.posix.basename(link)
 	}, [link])
 
 	const onPress = useCallback(async () => {
@@ -145,9 +126,6 @@ export const Fetch = memo(({ link }: { link: string }) => {
 						style={{
 							width: "100%",
 							height: "100%"
-						}}
-						placeholder={{
-							blurhash: assets.blurhash.images.fallback
 						}}
 					/>
 				) : undefined}

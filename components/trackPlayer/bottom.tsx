@@ -1,6 +1,6 @@
 import { memo, useMemo, useCallback } from "react"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
-import { BlurView } from "expo-blur"
+import BlurView from "@/components/blurView"
 import { Text } from "../nativewindui/Text"
 import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-reanimated"
 import useBottomTabsHeight from "@/hooks/useBottomTabsHeight"
@@ -16,7 +16,6 @@ import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { cn } from "@/lib/cn"
 import Container from "../Container"
 import { useTranslation } from "react-i18next"
-import assets from "@/lib/assets"
 
 export const Bottom = memo(() => {
 	const trackPlayerState = useTrackPlayerState()
@@ -113,9 +112,6 @@ export const Bottom = memo(() => {
 										resizeMode="cover"
 										cachePolicy="dataCache"
 										style={imageStyle}
-										placeholder={{
-											blurhash: assets.blurhash.images.fallback
-										}}
 									/>
 								) : (
 									<View

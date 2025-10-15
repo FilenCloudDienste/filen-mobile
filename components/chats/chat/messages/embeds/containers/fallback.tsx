@@ -1,5 +1,5 @@
 import { memo, useCallback } from "react"
-import { type GestureResponderEvent } from "react-native"
+import type { GestureResponderEvent } from "react-native"
 import * as Linking from "expo-linking"
 import alerts from "@/lib/alerts"
 import { Button } from "@/components/nativewindui/Button"

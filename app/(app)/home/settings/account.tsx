@@ -1,7 +1,7 @@
 import { memo, useMemo, useCallback } from "react"
 import { Settings as SettingsComponent } from "@/components/settings"
 import Avatar from "@/components/avatar"
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { contactName, formatBytes, sanitizeFileName, normalizeFilePathForNode } from "@/lib/utils"
 import { useRouter } from "expo-router"
 import { Platform } from "react-native"
@@ -15,12 +15,13 @@ import { useTranslation } from "react-i18next"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import * as ImagePicker from "expo-image-picker"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import * as Sharing from "expo-sharing"
 import authService from "@/services/auth.service"
 import assets from "@/lib/assets"
+import pathModule from "path"
 
 export const Account = memo(() => {
 	const router = useRouter()
@@ -70,7 +71,7 @@ export const Account = memo(() => {
 				throw new Error("No image selected.")
 			}
 
-			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+			const tmpFile = new FileSystem.File(pathModule.posix.join(paths.temporaryUploads(), randomUUID()))
 
 			fullScreenLoadingModal.show()
 
@@ -340,7 +341,7 @@ export const Account = memo(() => {
 
 	const gdpr = useCallback(async () => {
 		const fileName = `${sanitizeFileName(`GDPR_Information_${account.data?.account.email ?? ""}_${Date.now()}`)}.json`
-		const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.exports(), fileName))
+		const tmpFile = new FileSystem.File(pathModule.posix.join(paths.exports(), fileName))
 
 		try {
 			fullScreenLoadingModal.show()
@@ -352,12 +353,14 @@ export const Account = memo(() => {
 
 				const content = await nodeWorker.proxy("fetchGDPR", undefined)
 
-				tmpFile.write(JSON.stringify(content, null, 4))
+				tmpFile.write(JSON.stringify(content, null, 4), {
+					encoding: "utf8"
+				})
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
 
-			await new Promise<void>(resolve => setTimeout(resolve, 250))
+			await new Promise<void>(resolve => setTimeout(resolve, 300))
 
 			await Sharing.shareAsync(tmpFile.uri, {
 				mimeType: "application/json",

@@ -7,7 +7,14 @@ import NetInfo from "@react-native-community/netinfo"
 if (!__DEV__) {
 	globalThis.console = {
 		...globalThis.console,
-		log: () => {}
+		log: () => {},
+		error: () => {},
+		warn: () => {},
+		info: () => {},
+		debug: () => {},
+		trace: () => {},
+		table: () => {},
+		dir: () => {}
 	}
 }
 

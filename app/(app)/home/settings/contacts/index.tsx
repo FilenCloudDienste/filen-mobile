@@ -2,11 +2,11 @@ import { memo, Fragment, useMemo, useCallback, useState } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { List, type ListRenderItemInfo, type ListDataItem } from "@/components/nativewindui/List"
 import { RefreshControl } from "react-native"
-import useContactsQuery from "@/queries/useContactsQuery"
+import useContactsQuery from "@/queries/useContacts.query"
 import { contactName, convertTimestampToMs } from "@/lib/utils"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import useContactsRequestsQuery from "@/queries/useContactsRequestsQuery"
+import useContactsRequestsQuery from "@/queries/useContactsRequests.query"
 import Contact, { type ListItemInfo } from "@/components/contacts/contact"
 import ListHeader from "@/components/contacts/listHeader"
 import ListEmpty from "@/components/listEmpty"
@@ -41,7 +41,7 @@ export const Contacts = memo(() => {
 		type: "blocked"
 	})
 
-	const contactsRequestsQuery = useContactsRequestsQuery({})
+	const contactsRequestsQuery = useContactsRequestsQuery()
 
 	const activeTab = useMemo(() => {
 		return contactsActiveTab ?? "all"
@@ -129,15 +129,6 @@ export const Contacts = memo(() => {
 		contactsRequestsQuery.status,
 		contactsRequestsQuery.data
 	])
-
-	const queryPending = useMemo(() => {
-		return (
-			refreshing ||
-			allContactsQuery.status === "pending" ||
-			blockedContactsQuery.status === "pending" ||
-			contactsRequestsQuery.status === "pending"
-		)
-	}, [refreshing, allContactsQuery.status, blockedContactsQuery.status, contactsRequestsQuery.status])
 
 	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
 		return <Contact info={info} />
@@ -309,7 +300,7 @@ export const Contacts = memo(() => {
 				renderItem={renderItem}
 				keyExtractor={keyExtractor}
 				ListEmptyComponent={ListEmptyComponent}
-				refreshing={queryPending}
+				refreshing={refreshing}
 				refreshControl={refreshControl}
 				ListHeaderComponent={ListHeaderComponent}
 			/>

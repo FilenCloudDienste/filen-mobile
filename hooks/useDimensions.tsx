@@ -29,8 +29,6 @@ export default function useDimensions() {
 			}, 100)
 		}
 
-		calc()
-
 		const subscription = Dimensions.addEventListener("change", calc)
 		const sub = ScreenOrientation.addOrientationChangeListener(calc)
 

@@ -1,13 +1,12 @@
 import RequireInternet from "@/components/requireInternet"
 import { type ListRenderItemInfo, RefreshControl, View, Platform } from "react-native"
-import { usePlaylistsQuery, updatePlaylist, type Playlist as PlaylistType } from "@/queries/usePlaylistsQuery"
+import { usePlaylistsQuery, updatePlaylist, type Playlist as PlaylistType, playlistsQueryUpdate } from "@/queries/usePlaylists.query"
 import { useMemo, memo, useCallback, useRef, useState } from "react"
 import Header from "@/components/trackPlayer/header"
 import { useLocalSearchParams } from "expo-router"
 import { useMMKVNumber } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import ReorderableList, { type ReorderableListReorderEvent, reorderItems } from "react-native-reorderable-list"
-import queryUtils from "@/queries/utils"
 import Semaphore from "@/lib/semaphore"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
@@ -15,7 +14,7 @@ import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import Container from "@/components/Container"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/trackPlayer/playlist/item"
-import { type ListDataItem } from "@/components/nativewindui/List"
+import type { ListDataItem } from "@/components/nativewindui/List"
 import useDimensions from "@/hooks/useDimensions"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
@@ -88,7 +87,7 @@ export const Playlist = memo(() => {
 					updated: Date.now()
 				})
 
-				queryUtils.usePlaylistsQuerySet({
+				playlistsQueryUpdate({
 					updater: prev => prev.map(p => (p.uuid === playlist.uuid ? newPlaylist : p))
 				})
 			} catch (e) {
@@ -220,7 +219,7 @@ export const Playlist = memo(() => {
 						contentInsetAdjustmentBehavior="automatic"
 						scrollIndicatorInsets={scrollIndicatorInsets}
 						ListFooterComponent={ListFooterComponent}
-						refreshing={Platform.OS === "ios" ? refreshing : false}
+						refreshing={refreshing}
 						refreshControl={refreshControl}
 						initialNumToRender={initialNumToRender}
 						maxToRenderPerBatch={maxToRenderPerBatch}

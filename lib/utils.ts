@@ -1,19 +1,14 @@
-import {
-	UNCACHED_QUERY_KEYS,
-	TURBO_IMAGE_SUPPORTED_EXTENSIONS,
-	EXPO_VIDEO_SUPPORTED_EXTENSIONS,
-	EXPO_AUDIO_SUPPORTED_EXTENSIONS
-} from "./constants"
-import memoize from "lodash/memoize"
-import { type PreviewType } from "@/stores/gallery.store"
-import { Paths } from "expo-file-system/next"
+import { TURBO_IMAGE_SUPPORTED_EXTENSIONS, EXPO_VIDEO_SUPPORTED_EXTENSIONS, EXPO_AUDIO_SUPPORTED_EXTENSIONS } from "./constants"
+import type { PreviewType } from "@/stores/gallery.store"
+import pathModule from "path"
 import { t } from "@/lib/i18n"
 import { validate as validateUUID } from "uuid"
 import { Buffer } from "buffer"
 import { getRandomValues } from "expo-crypto"
 import mimeTypes from "mime-types"
-import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
+import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
 import * as ExpoLocalization from "expo-localization"
+import events from "./events"
 
 let intlLanguage: string = "de-DE"
 
@@ -271,15 +266,6 @@ export function orderItemsByType({ items, type }: { items: DriveCloudItem[]; typ
 	return [...items].sort(compareFunction)
 }
 
-export const shouldPersistQuery = memoize(
-	(queryKey: unknown[]) => {
-		const shouldNotPersist = queryKey.some(queryKey => typeof queryKey === "string" && UNCACHED_QUERY_KEYS.includes(queryKey))
-
-		return !shouldNotPersist
-	},
-	queryKey => queryKey.join(":")
-)
-
 export function normalizeTransferProgress(size: number, bytes: number): number {
 	const result = parseInt(((bytes / size) * 100).toFixed(0))
 
@@ -317,7 +303,7 @@ export function bpsToReadable(bps: number): string {
 }
 
 export function getPreviewType(name: string): PreviewType {
-	const extname = Paths.extname(name.trim().toLowerCase())
+	const extname = pathModule.posix.extname(name.trim().toLowerCase())
 
 	if (TURBO_IMAGE_SUPPORTED_EXTENSIONS.includes(extname)) {
 		return "image"
@@ -505,6 +491,16 @@ export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
 }
 
 export function sanitizeFileName(filename: string, replacement: string = "_"): string {
+	// Normalize to UTF-8 NFC form (canonical decomposition followed by canonical composition)
+	let sanitizedFilename = filename.normalize("NFC")
+
+	// Remove or replace problematic Unicode characters
+	// Remove zero-width characters and other invisible/control characters
+	sanitizedFilename = sanitizedFilename.replace(/[\u200B-\u200D\uFEFF\u00AD\u0000-\u001F\u007F-\u009F]/g, "")
+
+	// Replace non-ASCII characters that might cause issues
+	sanitizedFilename = sanitizedFilename.replace(/[^\x00-\x7F]/g, replacement)
+
 	const illegalCharsWindows = /[<>:"/\\|?*]/g
 	const illegalCharsUnix = /\//g
 	const reservedNamesWindows: Set<string> = new Set([
@@ -532,20 +528,22 @@ export function sanitizeFileName(filename: string, replacement: string = "_"): s
 		"LPT9"
 	])
 
-	let sanitizedFilename = filename.replace(illegalCharsWindows, replacement)
-
+	sanitizedFilename = sanitizedFilename.replace(illegalCharsWindows, replacement)
 	sanitizedFilename = sanitizedFilename.replace(illegalCharsUnix, replacement)
 	sanitizedFilename = sanitizedFilename.replace(/[. ]+$/, "")
-	sanitizedFilename = sanitizedFilename.split(" ").join(replacement)
+	sanitizedFilename = sanitizedFilename.replace(/\s+/g, replacement)
 
 	if (reservedNamesWindows.has(sanitizedFilename.toUpperCase())) {
 		sanitizedFilename += replacement
 	}
 
-	const maxLength = 255
+	// Calculate byte length for UTF-8 to respect filesystem limits
+	const maxByteLength = 255
+	let byteLength = new TextEncoder().encode(sanitizedFilename).length
 
-	if (sanitizedFilename.length > maxLength) {
-		sanitizedFilename = sanitizedFilename.substring(0, maxLength)
+	while (byteLength > maxByteLength && sanitizedFilename.length > 0) {
+		sanitizedFilename = sanitizedFilename.slice(0, -1)
+		byteLength = new TextEncoder().encode(sanitizedFilename).length
 	}
 
 	if (!sanitizedFilename) {
@@ -1011,4 +1009,50 @@ export function getTimeRemaining(endTimestamp: number): {
 		minutes,
 		seconds
 	}
+}
+
+export function sortParams<T extends Record<string, unknown>>(params: T): T {
+	return Object.keys(params)
+		.sort((a, b) =>
+			a.localeCompare(b, "en", {
+				numeric: true
+			})
+		)
+		.reduce((acc, key) => {
+			acc[key as keyof T] = params[key as keyof T]
+
+			return acc
+		}, {} as T)
+}
+
+export async function hideSearchBarWithDelay(clearText: boolean): Promise<void> {
+	const promise = new Promise<void>(resolve => {
+		const sub = events.subscribe("searchBarHidden", () => {
+			sub.remove()
+
+			resolve()
+		})
+	})
+
+	events.emit("hideSearchBar", {
+		clearText
+	})
+
+	await promise
+}
+
+export function jsonBigIntReplacer(_: string, value: unknown) {
+	if (typeof value === "bigint") {
+		return `$bigint:${value.toString()}n`
+	}
+
+	return value
+}
+
+export function jsonBigIntReviver(_: string, value: unknown) {
+	if (typeof value === "string" && value.startsWith("$bigint:") && value.endsWith("n")) {
+		return BigInt(value.substring(8, -1))
+	}
+
+	return value
 }

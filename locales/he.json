@@ -489,7 +489,8 @@
             "expiration6h": "6 שעות",
             "expiration7d": "7 ימים",
             "expirationNever": "אף פעם",
-            "password": "סיסמה"
+            "password": "סיסמה",
+            "shareLink": "שתף קישור"
         },
         "onlyPro": "תכונה זו זמינה רק למשתמשי Filen Pro. הירשם לכל תוכנית של Filen כדי להפעיל אותה.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "המשך",
             "stop": "עצור",
             "stopAll": "עצור הכל"
-        }
+        },
+        "infoNoTime": "מעביר {{ongoingTransfers}} פריטים במהירות של {{speed}}"
     }
 }

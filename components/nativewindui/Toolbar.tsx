@@ -1,5 +1,5 @@
 import { Icon, type IconProps as ROIconProps } from "@roninoss/icons"
-import { BlurView } from "expo-blur"
+import BlurView from "@/components/blurView"
 import { cssInterop } from "nativewind"
 import { memo, forwardRef, Fragment } from "react"
 import { Platform, View, ViewProps } from "react-native"

@@ -1,7 +1,7 @@
 import { memo, useMemo, useCallback } from "react"
 import Menu from "../menu"
 import { useRouter } from "expo-router"
-import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
+import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
 import { Button } from "@/components/nativewindui/Button"
 import { View, Platform } from "react-native"
 import useSDKConfig from "@/hooks/useSDKConfig"
@@ -9,11 +9,9 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Avatar from "@/components/avatar"
 import { cn } from "@/lib/cn"
-import { simpleDate, contactName } from "@/lib/utils"
+import { simpleDate, contactName, hideSearchBarWithDelay } from "@/lib/utils"
 import { Text } from "@/components/nativewindui/Text"
 import Tag from "../tag"
-import events from "@/lib/events"
-import queryUtils from "@/queries/utils"
 import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
@@ -23,6 +21,7 @@ import assets from "@/lib/assets"
 import { useMappingHelper } from "@shopify/flash-list"
 import { NoteIcon } from "./NoteIcon"
 import { SelectableListItem } from "../../SelectableListItem"
+import { noteContentQueryGet } from "@/queries/useNoteContent.query"
 
 const ICON_SIZE = 24
 
@@ -61,13 +60,11 @@ export const Item = memo(({ note }: { note: Note }) => {
 		})
 	}, [isSelected, note])
 
-	const onPress = useCallback(() => {
-		events.emit("hideSearchBar", {
-			clearText: true
-		})
+	const onPress = useCallback(async () => {
+		await hideSearchBarWithDelay(true)
 
 		if (!hasInternet) {
-			const cachedContent = queryUtils.useNoteContentQueryGet({
+			const cachedContent = noteContentQueryGet({
 				uuid: note.uuid
 			})
 
@@ -180,10 +177,10 @@ export const Item = memo(({ note }: { note: Note }) => {
 														participant.avatar?.startsWith("https")
 															? {
 																	uri: participant.avatar
-																}
+															  }
 															: {
 																	uri: assets.uri.images.avatar_fallback()
-																}
+															  }
 													}
 													style={{
 														width: 36,
@@ -195,6 +192,31 @@ export const Item = memo(({ note }: { note: Note }) => {
 									</View>
 								)}
 							</View>
+							{participants.length > 0 && (
+								<View className="flex-row items-center">
+									{participants.map((participant, index) => {
+										return (
+											<Avatar
+												key={getMappingKey(participant.userId, index)}
+												className={cn("h-7 w-7", index > 0 && "-ml-3")}
+												source={
+													participant.avatar?.startsWith("https")
+														? {
+																uri: participant.avatar
+														  }
+														: {
+																uri: assets.uri.images.avatar_fallback()
+														  }
+												}
+												style={{
+													width: 36,
+													height: 36
+												}}
+											/>
+										)
+									})}
+								</View>
+							)}
 						</View>
 					</SelectableListItem>
 				</Button>

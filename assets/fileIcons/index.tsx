@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system/next"
+import pathModule from "path"
 import other from "./svg/other.svg"
 import Folder from "./svg/folder.svg"
 import txt from "./svg/txt.svg"
@@ -18,7 +18,7 @@ import iso from "./svg/iso.svg"
 import psd from "./svg/psd.svg"
 import cad from "./svg/cad.svg"
 import { memo, useMemo } from "react"
-import { type DirColors } from "@filen/sdk/dist/types/api/v3/dir/color"
+import type { DirColors } from "@filen/sdk/dist/types/api/v3/dir/color"
 import { isValidHexColor } from "@/lib/utils"
 import Svg, { Path } from "react-native-svg"
 
@@ -51,7 +51,7 @@ FileNameToSVGIcon.displayName = "FileNameToSVGIcon"
  * @returns {*}
  */
 export function fileNameToSVGIcon(name: string) {
-	const parsed = FileSystem.Paths.parse(name.toLowerCase())
+	const parsed = pathModule.posix.parse(name.toLowerCase())
 
 	switch (parsed.ext) {
 		case ".dmg":

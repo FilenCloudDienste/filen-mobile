@@ -1,11 +1,11 @@
 import { memo, useMemo, useState, useCallback, useEffect, useRef } from "react"
 import TextEditorDOM from "./dom"
-import useTextEditorItemContentQuery from "@/queries/useTextEditorItemContentQuery"
+import useTextEditorItemContentQuery from "@/queries/useTextEditorItemContent.query"
 import { View, Platform, ActivityIndicator } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "../nativewindui/Toolbar"
 import { getPreviewType } from "@/lib/utils"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
 import fullScreenLoadingModal from "../modals/fullScreenLoadingModal"
@@ -15,9 +15,10 @@ import * as Sharing from "expo-sharing"
 import Container from "../Container"
 import mimeTypes from "mime-types"
 import useHTTPServer from "@/hooks/useHTTPServer"
-import { type DOMProps } from "expo/dom"
+import type { DOMProps } from "expo/dom"
 import { useTranslation } from "react-i18next"
 import upload from "@/lib/upload"
+import pathModule from "path"
 
 export const bgColors = {
 	normal: {
@@ -91,11 +92,15 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 		return item.uri
 	}, [item, httpServer.port, httpServer.authToken])
 
-	const query = useTextEditorItemContentQuery({
-		uri,
-		enabled: uri.length > 0,
-		maxSize: 10 * 1024 * 1024
-	})
+	const query = useTextEditorItemContentQuery(
+		{
+			url: uri,
+			maxSize: 10 * 1024 * 1024
+		},
+		{
+			enabled: uri.length > 0
+		}
+	)
 
 	const itemName = useMemo(() => {
 		if (item.type === "cloud") {
@@ -132,7 +137,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 				throw new Error(t("errors.sharingNotAvailable"))
 			}
 
-			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID(), itemName))
+			const tmpFile = new FileSystem.File(pathModule.posix.join(paths.temporaryDownloads(), randomUUID(), itemName))
 
 			try {
 				if (!tmpFile.parentDirectory.exists) {
@@ -143,7 +148,9 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 					tmpFile.delete()
 				}
 
-				tmpFile.write(valueCopied)
+				tmpFile.write(valueCopied, {
+					encoding: "utf8"
+				})
 
 				fullScreenLoadingModal.hide()
 
@@ -184,7 +191,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 
 		try {
 			tmpFile = new FileSystem.File(
-				FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(itemName)}`)
+				pathModule.posix.join(paths.temporaryUploads(), `${randomUUID()}${pathModule.posix.extname(itemName)}`)
 			)
 
 			if (tmpFile.exists) {
@@ -194,7 +201,9 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 			tmpFile.create()
 
 			if (valueCopied.length > 0) {
-				tmpFile.write(valueCopied)
+				tmpFile.write(valueCopied, {
+					encoding: "utf8"
+				})
 			}
 
 			await upload.file.foreground({

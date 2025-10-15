@@ -1,6 +1,6 @@
-import { type Stack } from "expo-router"
-import { type NativeSyntheticEvent, type TextInputSubmitEditingEventData } from "react-native"
-import { type SearchBarCommands } from "react-native-screens"
+import type { Stack } from "expo-router"
+import type { NativeSyntheticEvent, TextInputSubmitEditingEventData } from "react-native"
+import type { SearchBarCommands } from "react-native-screens"
 
 export type NativeStackNavigationOptions = Exclude<
 	NonNullable<React.ComponentPropsWithoutRef<typeof Stack.Screen>["options"]>,

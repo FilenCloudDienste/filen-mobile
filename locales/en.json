@@ -1183,7 +1183,8 @@
 			"expiration7d": "7 days",
 			"expiration14d": "14 days",
 			"expiration30d": "30 days",
-			"downloadButton": "Download button"
+			"downloadButton": "Download button",
+			"shareLink": "Share link"
 		},
 		"onlyPro": "This feature is only available for Filen Pro users. Subscribe to any Filen plan to enable it.",
 		"unsavedChanges": "Unsaved changes"

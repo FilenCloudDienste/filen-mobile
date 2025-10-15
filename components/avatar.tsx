@@ -1,7 +1,7 @@
 import { memo, useCallback, useState, useMemo } from "react"
 import { cn } from "@/lib/cn"
 import TurboImage, { type Source, type Failure } from "react-native-turbo-image"
-import { type StyleProp, type ImageStyle, type NativeSyntheticEvent } from "react-native"
+import type { StyleProp, ImageStyle, NativeSyntheticEvent } from "react-native"
 import assets from "@/lib/assets"
 
 export const Avatar = memo(({ source, style, className }: { source: Source; style?: StyleProp<ImageStyle>; className?: string }) => {
@@ -63,9 +63,6 @@ export const Avatar = memo(({ source, style, className }: { source: Source; styl
 			onFailure={onFailure}
 			style={styleMemo}
 			cachePolicy="dataCache"
-			placeholder={{
-				blurhash: assets.blurhash.images.fallback
-			}}
 		/>
 	)
 })

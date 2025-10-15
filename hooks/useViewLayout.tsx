@@ -1,4 +1,4 @@
-import { type View } from "react-native"
+import type { View } from "react-native"
 import { useState, useCallback, useLayoutEffect } from "react"
 
 export default function useViewLayout(ref: React.RefObject<View | null>) {

@@ -5,7 +5,7 @@ import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { t, waitForInitialization as waitForI18n } from "@/lib/i18n"
 import { AUTHED_STORAGE_KEY, SDK_CONFIG_STORAGE_KEY, ANONYMOUS_SDK_CONFIG } from "@/lib/constants"
 import mmkvInstance from "@/lib/mmkv"
-import { type FilenSDKConfig } from "@filen/sdk"
+import type { FilenSDKConfig } from "@filen/sdk"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import sqlite from "@/lib/sqlite"
 import paths from "@/lib/paths"
@@ -14,10 +14,11 @@ import { reinitSDK } from "@/lib/sdk"
 import thumbnails from "@/lib/thumbnails"
 import assets from "@/lib/assets"
 import { normalizeFilePathForNode, sanitizeFileName } from "@/lib/utils"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import fileProvider from "@/lib/fileProvider"
 import cache from "@/lib/cache"
 import * as Sharing from "expo-sharing"
+import pathModule from "path"
 
 export type SetupResult =
 	| {
@@ -407,7 +408,7 @@ export class AuthService {
 		try {
 			const sdkConfig = this.getSDKConfig()
 			const fileName = `${sanitizeFileName(sdkConfig.email)}.masterKeys.txt`
-			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.exports(), fileName))
+			const tmpFile = new FileSystem.File(pathModule.posix.join(paths.exports(), fileName))
 
 			try {
 				if (!(await Sharing.isAvailableAsync())) {
@@ -425,12 +426,14 @@ export class AuthService {
 					tmpFile.delete()
 				}
 
-				tmpFile.write(base64)
+				tmpFile.write(base64, {
+					encoding: "base64"
+				})
 
 				if (!disableSharing) {
 					fullScreenLoadingModal.hide()
 
-					await new Promise<void>(resolve => setTimeout(resolve, 250))
+					await new Promise<void>(resolve => setTimeout(resolve, 300))
 
 					await Sharing.shareAsync(tmpFile.uri, {
 						mimeType: "text/plain",

@@ -2,15 +2,14 @@ import { memo, useCallback, useMemo } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import TurboImage from "react-native-turbo-image"
 import { Text } from "@/components/nativewindui/Text"
-import { type CustomEmoji } from "@/components/chats/chat/messages/customEmojis"
-import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { CustomEmoji } from "@/components/chats/chat/messages/customEmojis"
+import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { useChatsStore } from "@/stores/chats.store"
 import { findClosestIndexString } from "@/lib/utils"
 import { View } from "react-native"
 import { useShallow } from "zustand/shallow"
-import assets from "@/lib/assets"
 
 export const Emoji = memo(({ emoji, chat }: { emoji: CustomEmoji; chat: ChatConversation }) => {
 	const [value, setValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
@@ -81,9 +80,6 @@ export const Emoji = memo(({ emoji, chat }: { emoji: CustomEmoji; chat: ChatConv
 					style={style}
 					cachePolicy="dataCache"
 					className="shrink-0"
-					placeholder={{
-						blurhash: assets.blurhash.images.fallback
-					}}
 				/>
 				<Text
 					className="text-foreground text-sm shrink"

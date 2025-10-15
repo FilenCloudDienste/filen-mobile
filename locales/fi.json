@@ -489,7 +489,8 @@
             "expiration6h": "6 tuntia",
             "expiration7d": "7 päivää",
             "expirationNever": "Ei koskaan",
-            "password": "Salasana"
+            "password": "Salasana",
+            "shareLink": "Jaa linkki"
         },
         "onlyPro": "Tämä ominaisuus on saatavilla vain Filen Pro -käyttäjille. Tilaa mikä tahansa Filen-suunnitelma ottaaksesi sen käyttöön.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Jatka",
             "stop": "Pysäytä",
             "stopAll": "Pysäytä kaikki"
-        }
+        },
+        "infoNoTime": "Siirretään {{ongoingTransfers}} kohdetta nopeudella {{speed}}"
     }
 }

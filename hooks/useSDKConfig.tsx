@@ -2,7 +2,7 @@ import { mmkvInstance } from "@/lib/mmkv"
 import { useMMKVString } from "react-native-mmkv"
 import { SDK_CONFIG_STORAGE_KEY, ANONYMOUS_SDK_CONFIG } from "@/lib/constants"
 import { useMemo } from "react"
-import { type FilenSDKConfig } from "@filen/sdk"
+import type { FilenSDKConfig } from "@filen/sdk"
 
 export type UseSDKConfig = [
 	Required<FilenSDKConfig>,

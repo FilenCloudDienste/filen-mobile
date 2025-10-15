@@ -16,8 +16,8 @@ import mmkvInstance from "@/lib/mmkv"
 import { View } from "react-native"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { createDropdownItem } from "../nativewindui/DropdownMenu/utils"
-import { type NoteType } from "@filen/sdk/dist/types/api/v3/notes"
-import { type DropdownItem } from "@/components/nativewindui/DropdownMenu/types"
+import type { NoteType } from "@filen/sdk/dist/types/api/v3/notes"
+import type { DropdownItem } from "@/components/nativewindui/DropdownMenu/types"
 import { createDropdownNativeIcon } from "../nativewindui/DropdownMenu/createDropdownNativeIcon"
 
 export const Header = memo(() => {
@@ -59,7 +59,7 @@ export const Header = memo(() => {
 							count: selectedNotesCount
 						})}
 					</Text>
-				)
+			  )
 			: undefined
 	}, [selectedNotesCount, t])
 

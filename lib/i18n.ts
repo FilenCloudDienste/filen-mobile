@@ -31,7 +31,7 @@ import zh from "@/locales/zh.json"
 
 //TODO: adapt views in the future to support textDirection for set locale (e.g. right-to-left/left-to-right), rename left/right views to leading/trailing as part of this
 
-const resources = {
+export const resources = {
 	en: {
 		translation: en
 	},

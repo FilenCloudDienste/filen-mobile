@@ -72,7 +72,7 @@ export function convertToRGBA(rgb: string, opacity: number): string {
 	if (!rgbValues || rgbValues.length !== 3 || !rgbValues[0] || !rgbValues[1] || !rgbValues[2]) {
 		//throw new Error("Invalid RGB color format")
 
-		return "rgba(0,0,0,0)" // Fallback to black with 0 opacity
+		return "rgba(0, 0, 0, 0)" // Fallback to black with 0 opacity
 	}
 
 	const red = parseInt(rgbValues[0], 10)
@@ -82,10 +82,10 @@ export function convertToRGBA(rgb: string, opacity: number): string {
 	if (opacity < 0 || opacity > 1) {
 		//throw new Error("Opacity must be a number between 0 and 1")
 
-		return "rgba(0,0,0,0)" // Fallback to black with 0 opacity
+		return "rgba(0, 0, 0, 0)" // Fallback to black with 0 opacity
 	}
 
-	return `rgba(${red},${green},${blue},${opacity})`
+	return `rgba(${red}, ${green}, ${blue}, ${opacity})`
 }
 
 export const ANDROID_RIPPLE = {
@@ -205,7 +205,10 @@ export const Button = memo(
 							)}
 							ref={ref}
 							style={style}
-							android_ripple={ANDROID_RIPPLE[colorScheme][variant]}
+							android_ripple={{
+								...ANDROID_RIPPLE[colorScheme][variant],
+								foreground: true
+							}}
 							delayLongPress={200}
 							onLongPress={noop}
 							unstable_pressDelay={100}

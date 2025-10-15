@@ -6,18 +6,19 @@ import nodeWorker from "./nodeWorker"
 import { convertTimestampToMs, normalizeFilePathForExpo, promiseAllChunked } from "./utils"
 import { useAppStateStore } from "@/stores/appState.store"
 import { randomUUID } from "expo-crypto"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import paths from "./paths"
 import { useCameraUploadStore } from "@/stores/cameraUpload.store"
 import { getNetInfoState } from "@/hooks/useNetInfo"
 import * as Battery from "expo-battery"
 import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS } from "./constants"
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator"
-import { type FileMetadata } from "@filen/sdk"
+import type { FileMetadata } from "@filen/sdk"
 import { getSDK } from "./sdk"
 import upload from "@/lib/upload"
-import queryUtils from "@/queries/utils"
 import { xxHash32 } from "js-xxhash"
+import pathModule from "path"
+import { driveItemsQueryUpdate } from "@/queries/useDriveItems.query"
 
 export type TreeItem = (
 	| {
@@ -128,21 +129,21 @@ export class CameraUpload {
 				? MediaLibrary.getPermissionsAsync(false, this.type === "background" ? ["photo"] : ["photo", "video"])
 				: Promise.resolve({
 						status: MediaLibrary.PermissionStatus.GRANTED
-					}),
+				  }),
 			checkNetwork
 				? getNetInfoState()
 				: Promise.resolve({
 						hasInternet: true,
 						isWifiEnabled: true,
 						cellular: false
-					}),
+				  }),
 			checkBattery
 				? Battery.getPowerStateAsync()
 				: Promise.resolve({
 						lowPowerMode: false,
 						batteryLevel: 1,
 						batteryState: Battery.BatteryState.FULL
-					})
+				  })
 		])
 
 		if (
@@ -171,27 +172,27 @@ export class CameraUpload {
 	}
 
 	private modifyLocalAssetPathOnDuplicate(iteration: number, asset: MediaLibrary.Asset, albumTitle: string): string {
-		const ext = FileSystem.Paths.extname(asset.filename)
-		const basename = FileSystem.Paths.basename(asset.filename, ext)
+		const ext = pathModule.posix.extname(asset.filename)
+		const basename = pathModule.posix.basename(asset.filename, ext)
 
 		switch (iteration) {
 			case 0: {
-				return this.normalizePath(FileSystem.Paths.join(albumTitle, `${basename}_${asset.creationTime}${ext}`))
+				return this.normalizePath(pathModule.posix.join(albumTitle, `${basename}_${asset.creationTime}${ext}`))
 			}
 
 			case 1: {
-				return this.normalizePath(FileSystem.Paths.join(albumTitle, `${basename}_${xxHash32(asset.id).toString(16)}${ext}`))
+				return this.normalizePath(pathModule.posix.join(albumTitle, `${basename}_${xxHash32(asset.id).toString(16)}${ext}`))
 			}
 
 			case 2: {
 				return this.normalizePath(
-					FileSystem.Paths.join(albumTitle, `${basename}_${xxHash32(`${asset.id}:${asset.filename}`).toString(16)}${ext}`)
+					pathModule.posix.join(albumTitle, `${basename}_${xxHash32(`${asset.id}:${asset.filename}`).toString(16)}${ext}`)
 				)
 			}
 
 			case 3: {
 				return this.normalizePath(
-					FileSystem.Paths.join(
+					pathModule.posix.join(
 						albumTitle,
 						`${basename}_${xxHash32(`${asset.id}:${asset.filename}:${asset.creationTime}`).toString(16)}${ext}`
 					)
@@ -200,7 +201,7 @@ export class CameraUpload {
 
 			case 4: {
 				return this.normalizePath(
-					FileSystem.Paths.join(
+					pathModule.posix.join(
 						albumTitle,
 						`${basename}_${xxHash32(`${asset.id}:${asset.filename}:${asset.creationTime}:${asset.mediaType}`).toString(
 							16
@@ -210,7 +211,7 @@ export class CameraUpload {
 			}
 
 			default: {
-				return this.normalizePath(FileSystem.Paths.join(albumTitle, asset.filename))
+				return this.normalizePath(pathModule.posix.join(albumTitle, asset.filename))
 			}
 		}
 	}
@@ -250,7 +251,7 @@ export class CameraUpload {
 						}
 					)
 				)) {
-					let path = this.normalizePath(FileSystem.Paths.join(album.title, asset.filename))
+					let path = this.normalizePath(pathModule.posix.join(album.title, asset.filename))
 					let iteration = 0
 
 					while (existingPaths[path.toLowerCase()]) {
@@ -264,7 +265,7 @@ export class CameraUpload {
 					items[path.toLowerCase()] = {
 						type: "local",
 						asset,
-						name: FileSystem.Paths.basename(path),
+						name: pathModule.posix.basename(path),
 						creation: convertTimestampToMs(Math.floor(asset.creationTime)),
 						lastModified: convertTimestampToMs(Math.floor(asset.modificationTime)),
 						path
@@ -289,11 +290,11 @@ export class CameraUpload {
 				? await nodeWorker.proxy("getDirectoryTree", {
 						uuid: state.remote.uuid,
 						type: "normal"
-					})
+				  })
 				: await getSDK().cloud().getDirectoryTree({
 						uuid: state.remote.uuid,
 						type: "normal"
-					})
+				  })
 
 		for (const path in tree) {
 			const file = tree[path]
@@ -349,7 +350,7 @@ export class CameraUpload {
 	}
 
 	public async compress({ item, file }: { item: TreeItem; file: FileSystem.File }): Promise<void> {
-		const extname = FileSystem.Paths.extname(item.name.trim().toLowerCase())
+		const extname = pathModule.posix.extname(item.name.trim().toLowerCase())
 
 		if (!EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS.includes(extname)) {
 			return
@@ -416,26 +417,26 @@ export class CameraUpload {
 						throw new Error("Aborted")
 					}
 
-					const parentName = FileSystem.Paths.dirname(delta.item.path)
+					const parentName = pathModule.posix.dirname(delta.item.path)
 					const parentUUID =
 						!parentName || parentName.length === 0 || parentName === "."
 							? state.remote.uuid
 							: this.type === "foreground"
-								? await nodeWorker.proxy("createDirectory", {
-										name: parentName,
-										parent: state.remote.uuid
-									})
-								: await getSDK().cloud().createDirectory({
-										name: parentName,
-										parent: state.remote.uuid
-									})
+							? await nodeWorker.proxy("createDirectory", {
+									name: parentName,
+									parent: state.remote.uuid
+							  })
+							: await getSDK().cloud().createDirectory({
+									name: parentName,
+									parent: state.remote.uuid
+							  })
 
 					if (abortSignal?.aborted) {
 						throw new Error("Aborted")
 					}
 
 					const tmpFile = new FileSystem.File(
-						FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(delta.item.name)}`)
+						pathModule.posix.join(paths.temporaryUploads(), `${randomUUID()}${pathModule.posix.extname(delta.item.name)}`)
 					)
 
 					if (abortSignal?.aborted) {
@@ -506,7 +507,7 @@ export class CameraUpload {
 										deleteAfterUpload: true,
 										creation: delta.item.creation,
 										lastModified: delta.item.lastModified
-									})
+								  })
 								: await upload.file.background({
 										parent: parentUUID,
 										localPath: tmpFile.uri,
@@ -518,7 +519,7 @@ export class CameraUpload {
 										creation: delta.item.creation,
 										lastModified: delta.item.lastModified,
 										abortSignal
-									})
+								  })
 
 						if (item.type !== "file") {
 							throw new Error("Invalid response from uploadFile.")
@@ -547,16 +548,18 @@ export class CameraUpload {
 						}
 
 						if (this.type === "foreground") {
-							queryUtils.useCloudItemsQuerySet({
-								receiverId: 0,
-								of: "photos",
-								parent: state.remote.uuid,
+							driveItemsQueryUpdate({
+								params: {
+									parent: state.remote.uuid,
+									of: "photos",
+									receiverId: 0
+								},
 								updater: prev => [
 									...prev.filter(i => i.uuid !== item.uuid),
 									{
 										...item,
 										...newFileMetadata
-									}
+									} satisfies DriveCloudItem
 								]
 							})
 						}
@@ -661,11 +664,11 @@ export class CameraUpload {
 					? await nodeWorker.proxy("directoryExists", {
 							name: state.remote.name,
 							parent: state.remote.parent
-						})
+					  })
 					: await getSDK().cloud().directoryExists({
 							name: state.remote.name,
 							parent: state.remote.parent
-						})
+					  })
 
 			if (!exists.exists || exists.uuid !== state.remote.uuid) {
 				return

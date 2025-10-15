@@ -1,25 +1,23 @@
 import { memo, useMemo, useCallback, Fragment } from "react"
 import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextSubMenu, createContextItem } from "@/components/nativewindui/ContextMenu/utils"
-import { type ContextItem, type ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
+import type { ContextItem, ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { useTranslation } from "react-i18next"
 import { useRouter, usePathname } from "expo-router"
 import useDimensions from "@/hooks/useDimensions"
 import alerts from "@/lib/alerts"
-import { getPreviewType } from "@/lib/utils"
+import { getPreviewType, hideSearchBarWithDelay } from "@/lib/utils"
 import { useDriveStore } from "@/stores/drive.store"
 import { Platform, View } from "react-native"
 import useIsProUser from "@/hooks/useIsProUser"
 import TurboImage from "react-native-turbo-image"
-import events from "@/lib/events"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
-import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatusQuery"
+import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatus.query"
 import driveService from "@/services/drive.service"
 import { useShallow } from "zustand/shallow"
 import { usePhotosStore } from "@/stores/photos.store"
-import assets from "@/lib/assets"
 
 export const Menu = memo(
 	({
@@ -51,10 +49,14 @@ export const Menu = memo(
 		const isSelectedDrive = useDriveStore(useShallow(state => state.selectedItems.some(i => i.uuid === item.uuid)))
 		const isSelectedPhotos = usePhotosStore(useShallow(state => state.selectedItems.some(i => i.uuid === item.uuid)))
 
-		const fileOfflineStatus = useFileOfflineStatusQuery({
-			uuid: item.uuid,
-			enabled: item.type === "file"
-		})
+		const fileOfflineStatus = useFileOfflineStatusQuery(
+			{
+				uuid: item.uuid
+			},
+			{
+				enabled: item.type === "file"
+			}
+		)
 
 		const offlineStatus = useMemo(() => {
 			return item.type === "file" && fileOfflineStatus.status === "success" ? fileOfflineStatus.data : null
@@ -630,14 +632,12 @@ export const Menu = memo(
 				)
 		}, [item, fromPhotos])
 
-		const openDirectory = useCallback(() => {
+		const openDirectory = useCallback(async () => {
 			if (item.type !== "directory") {
 				return
 			}
 
-			events.emit("hideSearchBar", {
-				clearText: true
-			})
+			await hideSearchBarWithDelay(true)
 
 			router.push({
 				pathname: "/drive/[uuid]",
@@ -901,9 +901,6 @@ export const Menu = memo(
 						style={{
 							width: "100%",
 							height: "100%"
-						}}
-						placeholder={{
-							blurhash: assets.blurhash.images.fallback
 						}}
 					/>
 				</View>

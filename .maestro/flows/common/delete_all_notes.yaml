@@ -9,6 +9,12 @@ env:
       visible:
         id: ${NOTE_ID}
     commands:
+      - scrollUntilVisible:
+          element:
+            id: ${NOTE_ID}
+            index: 0
+          direction: UP
+          centerElement: true
       - longPressOn:
           id: ${NOTE_ID}
       - scrollUntilVisible:

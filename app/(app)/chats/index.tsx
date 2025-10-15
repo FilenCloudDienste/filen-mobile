@@ -1,8 +1,8 @@
 import { memo, useMemo, useState, Fragment, useRef, useCallback } from "react"
-import useChatsQuery from "@/queries/useChatsQuery"
+import useChatsQuery from "@/queries/useChats.query"
 import Header from "@/components/chats/header"
 import Container from "@/components/Container"
-import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { contactName } from "@/lib/utils"
@@ -13,6 +13,7 @@ import OfflineListHeader from "@/components/offlineListHeader"
 import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
 import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
+import useDimensions from "@/hooks/useDimensions"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -24,8 +25,9 @@ export const Chats = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { hasInternet } = useNetInfo()
 	const { t } = useTranslation()
+	const { screen } = useDimensions()
 
-	const chatsQuery = useChatsQuery({})
+	const chatsQuery = useChatsQuery()
 
 	const chats = useMemo(() => {
 		if (chatsQuery.status !== "success") {
@@ -135,12 +137,14 @@ export const Chats = memo(() => {
 					contentInsetAdjustmentBehavior="automatic"
 					keyExtractor={keyExtractor}
 					renderItem={renderItem}
-					refreshing={refreshing || chatsQuery.status === "pending"}
+					refreshing={refreshing}
 					contentContainerStyle={contentContainerStyle}
 					ListEmptyComponent={ListEmptyComponent}
 					ListFooterComponent={ListFooterComponent}
 					refreshControl={refreshControl}
 					ListHeaderComponent={ListHeaderComponent}
+					maxItemsInRecyclePool={0}
+					drawDistance={Math.floor(screen.height / 4)}
 				/>
 			</Container>
 		</Fragment>

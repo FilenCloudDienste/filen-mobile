@@ -1,5 +1,5 @@
 import { View, Platform, type ListRenderItemInfo } from "react-native"
-import { type PlaylistFile, updatePlaylist, type Playlist } from "@/queries/usePlaylistsQuery"
+import { type PlaylistFile, updatePlaylist, type Playlist, playlistsQueryUpdate } from "@/queries/usePlaylists.query"
 import { memo, useCallback, useMemo, useRef } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { Icon } from "@roninoss/icons"
@@ -14,14 +14,13 @@ import { useReorderableDrag } from "react-native-reorderable-list"
 import { useActionSheet } from "@expo/react-native-action-sheet"
 import useDimensions from "@/hooks/useDimensions"
 import Semaphore from "@/lib/semaphore"
-import queryUtils from "@/queries/utils"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { cn } from "@/lib/cn"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import trackPlayerService from "@/services/trackPlayer.service"
 import { ListItem } from "../../nativewindui/List"
-import { Paths } from "expo-file-system/next"
+import pathModule from "path"
 import { normalizeFilePathForExpo } from "@/lib/utils"
 import paths from "@/lib/paths"
 import { useTranslation } from "react-i18next"
@@ -128,13 +127,17 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 		await updatePlaylistRemoteMutex.current.acquire()
 
 		try {
-			await updatePlaylist({
+			const { fileUuid } = await updatePlaylist({
 				...newPlaylist,
 				updated: Date.now()
 			})
 
-			queryUtils.usePlaylistsQuerySet({
-				updater: prev => prev.map(p => (p.uuid === info.item.playlist.uuid ? newPlaylist : p))
+			playlistsQueryUpdate({
+				updater: prev =>
+					prev.map(p => ({
+						...(p.uuid === info.item.playlist.uuid ? newPlaylist : p),
+						fileUUID: fileUuid
+					}))
 			})
 		} finally {
 			updatePlaylistRemoteMutex.current.release()
@@ -194,10 +197,16 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 						files: [...selectedPlaylist.files.filter(f => f.uuid !== info.item.file.uuid), info.item.file]
 					} satisfies Playlist
 
-					await updatePlaylist(newPlaylist)
+					const { fileUuid } = await updatePlaylist(newPlaylist)
 
-					queryUtils.usePlaylistsQuerySet({
-						updater: prev => [...prev.filter(p => p.uuid !== selectedPlaylist.uuid), newPlaylist]
+					playlistsQueryUpdate({
+						updater: prev => [
+							...prev.filter(p => p.uuid !== selectedPlaylist.uuid),
+							{
+								...newPlaylist,
+								fileUUID: fileUuid
+							}
+						]
 					})
 				})
 			)
@@ -285,7 +294,10 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 					<TurboImage
 						source={{
 							uri: normalizeFilePathForExpo(
-								Paths.join(paths.trackPlayerPictures(), Paths.basename(trackPlayerFileMetadata.picture))
+								pathModule.posix.join(
+									paths.trackPlayerPictures(),
+									pathModule.posix.basename(trackPlayerFileMetadata.picture)
+								)
 							)
 						}}
 						resizeMode="cover"
@@ -297,9 +309,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 							backgroundColor: colors.card,
 							borderWidth: playing ? 1 : 0,
 							borderColor: playing ? colors.primary : "transparent"
-						}}
-						placeholder={{
-							blurhash: assets.blurhash.images.fallback
 						}}
 					/>
 				) : (

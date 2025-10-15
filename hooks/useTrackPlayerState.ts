@@ -8,17 +8,24 @@ import {
 } from "@/lib/trackPlayer"
 import mmkvInstance from "@/lib/mmkv"
 import { useMMKVObject, useMMKVString } from "react-native-mmkv"
-import { useAudioPro } from "@/lib/audioPro"
+import { useAudioPro } from "react-native-audio-pro"
 import { AudioProState } from "react-native-audio-pro"
 import { useShallow } from "zustand/shallow"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import { validate as validateUuid } from "uuid"
-import { Paths } from "expo-file-system/next"
+import pathModule from "path"
 import { normalizeFilePathForExpo } from "@/lib/utils"
 import paths from "@/lib/paths"
 
 export function useTrackPlayerState() {
-	const trackPlayerState = useAudioPro()
+	const trackPlayerState = useAudioPro(state => ({
+		state: state.playerState,
+		error: state.error,
+		duration: state.duration,
+		position: state.position,
+		volume: state.volume,
+		playbackSpeed: state.playbackSpeed
+	}))
 	const [trackPlayerQueueMMKV] = useMMKVObject<AudioProTrackExtended[]>(TRACK_PLAYER_QUEUE_KEY, mmkvInstance)
 	const [playingTrackMMKV] = useMMKVObject<AudioProTrackExtended>(TRACK_PLAYER_PLAYING_TRACK_KEY, mmkvInstance)
 	const loadingTrack = useTrackPlayerStore(useShallow(state => state.loadingTrack))
@@ -120,7 +127,7 @@ export function useTrackPlayerState() {
 	}, [repeatModeMMKV])
 
 	const isPlayingTrackArtworkValid = useMemo(() => {
-		return typeof playingTrack?.artwork === "string" && validateUuid(Paths.parse(playingTrack.artwork).name)
+		return typeof playingTrack?.artwork === "string" && validateUuid(pathModule.posix.parse(playingTrack.artwork).name)
 	}, [playingTrack])
 
 	const playingTrackArtworkSource = useMemo(() => {
@@ -129,7 +136,9 @@ export function useTrackPlayerState() {
 		}
 
 		return {
-			uri: normalizeFilePathForExpo(Paths.join(paths.trackPlayerPictures(), Paths.basename(playingTrack.artwork)))
+			uri: normalizeFilePathForExpo(
+				pathModule.posix.join(paths.trackPlayerPictures(), pathModule.posix.basename(playingTrack.artwork))
+			)
 		}
 	}, [isPlayingTrackArtworkValid, playingTrack])
 

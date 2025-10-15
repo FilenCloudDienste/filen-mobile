@@ -489,7 +489,8 @@
             "expiration6h": "6 ชั่วโมง",
             "expiration7d": "7 วัน",
             "expirationNever": "ไม่เคย",
-            "password": "รหัสผ่าน"
+            "password": "รหัสผ่าน",
+            "shareLink": "แชร์ลิงก์"
         },
         "onlyPro": "คุณสมบัตินี้มีให้เฉพาะผู้ใช้ Filen Pro เท่านั้น สมัครสมาชิกแผนใดก็ได้ของ Filen เพื่อเปิดใช้งาน.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "ดำเนินการต่อ",
             "stop": "หยุด",
             "stopAll": "หยุดทั้งหมด"
-        }
+        },
+        "infoNoTime": "กำลังโอนย้าย {{ongoingTransfers}} ไฟล์ด้วยความเร็ว {{speed}}"
     }
 }

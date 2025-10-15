@@ -1,10 +1,9 @@
-import { memo, useEffect, useRef } from "react"
+import { memo, useEffect, useRef, useState } from "react"
 import { formatMessageDate } from "@/lib/utils"
 import { AppState } from "react-native"
-import { useRecyclingState } from "@shopify/flash-list"
 
-export const Date = memo(({ timestamp, uuid }: { timestamp: number; uuid: string }) => {
-	const [date, setDate] = useRecyclingState<string>(formatMessageDate(timestamp), [uuid])
+export const Date = memo(({ timestamp }: { timestamp: number }) => {
+	const [date, setDate] = useState<string>(formatMessageDate(timestamp))
 	const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
 
 	useEffect(() => {

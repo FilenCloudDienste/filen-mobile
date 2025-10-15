@@ -489,7 +489,8 @@
             "expiration6h": "6 hodin",
             "expiration7d": "7 dnů",
             "expirationNever": "Nikdy",
-            "password": "Heslo"
+            "password": "Heslo",
+            "shareLink": "Sdílet odkaz"
         },
         "onlyPro": "Tato funkce je k dispozici pouze pro uživatele Filen Pro. Přihlaste se k libovolnému plánu Filen a aktivujte ji.",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "Pokračovat",
             "stop": "Zastavit",
             "stopAll": "Zastavit vše"
-        }
+        },
+        "infoNoTime": "Přenáší se {{ongoingTransfers}} položek při rychlosti {{speed}}"
     }
 }

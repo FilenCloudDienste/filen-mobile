@@ -1,7 +1,7 @@
 import mmkvInstance from "@/lib/mmkv"
 import { useMMKVObject } from "react-native-mmkv"
 import { useMemo, useCallback } from "react"
-import { type Album } from "expo-media-library"
+import type { Album } from "expo-media-library"
 
 export const CAMERA_UPLOAD_MMKV_KEY: string = "cameraUploadState"
 

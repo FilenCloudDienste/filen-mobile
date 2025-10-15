@@ -1,15 +1,15 @@
 import { memo, useMemo, useCallback } from "react"
 import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextItem } from "@/components/nativewindui/ContextMenu/utils"
-import { type ContextItem, type ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
+import type { ContextItem, ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { Platform } from "react-native"
 import alerts from "@/lib/alerts"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { type ListItemInfo } from "."
+import type { ListItemInfo } from "."
 import contactsService from "@/services/contacts.service"
 import { useTranslation } from "react-i18next"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
+import type { ListRenderItemInfo } from "@shopify/flash-list"
 
 export const Menu = memo(
 	({ info, type, children }: { info: ListRenderItemInfo<ListItemInfo>; type: "context" | "dropdown"; children: React.ReactNode }) => {

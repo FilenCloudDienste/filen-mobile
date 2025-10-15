@@ -1,5 +1,5 @@
 import notesService from "./notes.service"
-import { type NoteType, type Note, type NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
+import type { NoteType, Note, NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { promiseAllChunked } from "@/lib/utils"
 import { alertPrompt } from "@/components/prompts/alertPrompt"

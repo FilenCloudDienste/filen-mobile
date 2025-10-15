@@ -2,13 +2,14 @@ import { useRouter } from "expo-router"
 import { memo, useCallback, useMemo } from "react"
 import { ListItem as ListItemComponent, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import { useSelectDriveItemsStore } from "@/stores/selectDriveItems.store"
-import { useDirectorySizeQuery } from "@/queries/useDirectorySizeQuery"
+import { useDirectorySizeQuery } from "@/queries/useDirectorySize.query"
 import { formatBytes, getPreviewType } from "@/lib/utils"
 import LeftView from "./leftView"
 import { useShallow } from "zustand/shallow"
-import { type PreviewType } from "@/stores/gallery.store"
-import { Paths } from "expo-file-system/next"
+import type { PreviewType } from "@/stores/gallery.store"
+import pathModule from "path"
 import { Platform } from "react-native"
+import { useDriveStore } from "@/stores/drive.store"
 
 export type ListItemInfo = {
 	title: string
@@ -25,7 +26,10 @@ export const Item = memo(
 		toMove,
 		queryParams,
 		previewTypes,
-		extensions
+		extensions,
+		id,
+		dismissHref,
+		multiScreen
 	}: {
 		info: ListRenderItemInfo<ListItemInfo>
 		max: number
@@ -34,19 +38,26 @@ export const Item = memo(
 		queryParams: FetchCloudItemsParams
 		previewTypes: PreviewType[]
 		extensions: string[]
+		id: string
+		dismissHref?: string
+		multiScreen: boolean
 	}) => {
 		const { push: routerPush } = useRouter()
 		const setSelectedItems = useSelectDriveItemsStore(useShallow(state => state.setSelectedItems))
 		const isSelected = useSelectDriveItemsStore(useShallow(state => state.selectedItems.some(i => i.uuid === info.item.item.uuid)))
 		const selectedItemsCount = useSelectDriveItemsStore(useShallow(state => state.selectedItems.length))
 
-		const directorySize = useDirectorySizeQuery({
-			uuid: info.item.item.uuid,
-			enabled: info.item.item.type === "directory",
-			sharerId: queryParams.of === "sharedIn" && info.item.item.isShared ? info.item.item.sharerId : undefined,
-			receiverId: queryParams.of === "sharedOut" && info.item.item.isShared ? info.item.item.receiverId : undefined,
-			trash: queryParams.of === "trash" ? true : undefined
-		})
+		const directorySize = useDirectorySizeQuery(
+			{
+				uuid: info.item.item.uuid,
+				sharerId: queryParams.of === "sharedIn" && info.item.item.isShared ? info.item.item.sharerId : undefined,
+				receiverId: queryParams.of === "sharedOut" && info.item.item.isShared ? info.item.item.receiverId : undefined,
+				trash: queryParams.of === "trash" ? true : undefined
+			},
+			{
+				enabled: info.item.item.type === "directory"
+			}
+		)
 
 		const canSelect = useMemo(() => {
 			if (isSelected) {
@@ -57,7 +68,7 @@ export const Item = memo(
 				return false
 			}
 
-			if (extensions.length > 0 && !extensions.includes(Paths.extname(info.item.item.name))) {
+			if (extensions.length > 0 && !extensions.includes(pathModule.posix.extname(info.item.item.name))) {
 				return false
 			}
 
@@ -120,10 +131,20 @@ export const Item = memo(
 			}
 
 			if (info.item.item.type === "directory") {
+				useDriveStore.getState().setSelectedItems([])
+
 				routerPush({
 					pathname: "/selectDriveItems/[parent]",
 					params: {
-						parent: info.item.item.uuid
+						parent: info.item.item.uuid,
+						id,
+						max,
+						type,
+						dismissHref,
+						toMove: JSON.stringify(toMove),
+						previewTypes: JSON.stringify(previewTypes),
+						extensions: JSON.stringify(extensions),
+						multiScreen: multiScreen ? 1 : 0
 					}
 				})
 

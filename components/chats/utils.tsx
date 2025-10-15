@@ -1,4 +1,4 @@
-import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { contactName } from "@/lib/utils"
 import { t } from "@/lib/i18n"
 

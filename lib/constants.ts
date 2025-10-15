@@ -1,25 +1,37 @@
-import { type FilenSDKConfig } from "@filen/sdk"
+import type { FilenSDKConfig } from "@filen/sdk"
 import { Platform } from "react-native"
-import { type Stack } from "expo-router"
+import type { Stack } from "expo-router"
 
 export const SCREEN_OPTIONS = {
 	base: {
 		headerShown: false,
-		headerBlurEffect: "systemChromeMaterial"
+		headerBlurEffect: "systemChromeMaterial",
+		freezeOnBlur: true,
+		unmountOnBlur: false,
+		lazy: false
 	},
 	modal: {
 		headerShown: false,
 		headerBlurEffect: "systemChromeMaterial",
 		presentation: "modal",
-		animation: "slide_from_bottom"
+		animation: "slide_from_bottom",
+		freezeOnBlur: true
 	},
 	fullscreenModal: {
 		headerShown: false,
 		headerBlurEffect: "systemChromeMaterial",
 		presentation: "fullScreenModal",
-		animation: "slide_from_bottom"
+		animation: "slide_from_bottom",
+		freezeOnBlur: true
 	}
-} satisfies Record<string, NonNullable<React.ComponentPropsWithoutRef<typeof Stack.Screen>["options"]>>
+} satisfies Record<
+	string,
+	NonNullable<React.ComponentPropsWithoutRef<typeof Stack.Screen>["options"]> & {
+		freezeOnBlur?: boolean
+		unmountOnBlur?: boolean
+		lazy?: boolean
+	}
+>
 
 export const AUTHED_VERSION: number = 1
 export const SDK_CONFIG_VERSION: number = 1
@@ -43,14 +55,6 @@ export const ANONYMOUS_SDK_CONFIG: Required<FilenSDKConfig> = {
 	userId: 1,
 	tmpPath: "/tmp"
 } satisfies Required<FilenSDKConfig>
-
-export const UNCACHED_QUERY_KEYS: string[] = [
-	"useIsHTTPServerOnlineQuery",
-	"useTextEditorItemContentQuery",
-	"useItemToPathQuery",
-	"useItemPublicLinkStatusQuery",
-	"useFileBase64Query"
-]
 
 export const WEB_APP_BASE_URL: string = "https://app.filen.io"
 export const WEB_APP_ACCOUNT_SETTINGS_URL: string = `${WEB_APP_BASE_URL}/#/settings/account`

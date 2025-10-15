@@ -1,5 +1,5 @@
 import { useRef, useCallback } from "react"
-import { type NotifyOnChangeProps } from "@tanstack/query-core"
+import type { NotifyOnChangeProps } from "@tanstack/query-core"
 import { useFocusEffect } from "@react-navigation/native"
 
 export default function useFocusNotifyOnChangeProps(notifyOnChangeProps?: NotifyOnChangeProps) {

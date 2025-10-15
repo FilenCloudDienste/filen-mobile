@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useCallback, useMemo } from "react"
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { alertPrompt } from "./prompts/alertPrompt"
 import { useAppStateStore } from "@/stores/appState.store"
 import { useShallow } from "zustand/shallow"

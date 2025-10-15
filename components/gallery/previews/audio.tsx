@@ -1,10 +1,10 @@
 import { memo, useMemo, useEffect, useState, Fragment, useCallback } from "react"
-import { type GalleryItem } from "@/stores/gallery.store"
+import type { GalleryItem } from "@/stores/gallery.store"
 import { View, ActivityIndicator, Pressable, Platform } from "react-native"
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Icon } from "@roninoss/icons"
-import { BlurView } from "expo-blur"
+import BlurView from "@/components/blurView"
 import Animated, { FadeOut } from "react-native-reanimated"
 import useSetExpoAudioMode from "@/hooks/useSetExpoAudioMode"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
@@ -16,14 +16,15 @@ import Container from "@/components/Container"
 import { cn } from "@/lib/cn"
 import { Button } from "@/components/nativewindui/Button"
 import * as Sharing from "expo-sharing"
-import * as FileSystem from "expo-file-system/next"
-import * as FileSystemLegacy from "expo-file-system"
+import * as FileSystem from "expo-file-system"
+import * as FileSystemLegacy from "expo-file-system/legacy"
 import { randomUUID } from "expo-crypto"
 import paths from "@/lib/paths"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import useHTTPServer from "@/hooks/useHTTPServer"
 import download from "@/lib/download"
 import alerts from "@/lib/alerts"
+import pathModule from "path"
 
 export const Audio = memo(
 	({
@@ -78,7 +79,10 @@ export const Audio = memo(
 			return null
 		}, [item, httpServer.port, httpServer.authToken])
 
-		const player = useAudioPlayer(source, 100)
+		const player = useAudioPlayer(source, {
+			updateInterval: 100
+		})
+
 		const playerStatus = useAudioPlayerStatus(player)
 
 		const togglePlay = useCallback(() => {
@@ -122,7 +126,7 @@ export const Audio = memo(
 
 			fullScreenLoadingModal.show()
 
-			const tempLocation = new FileSystem.File(FileSystem.Paths.join(paths.exports(), sanitizeFileName(item.data.item.name)))
+			const tempLocation = new FileSystem.File(pathModule.posix.join(paths.exports(), sanitizeFileName(item.data.item.name)))
 
 			try {
 				if (tempLocation.exists) {
@@ -152,7 +156,7 @@ export const Audio = memo(
 				fullScreenLoadingModal.hide()
 			}
 
-			await new Promise<void>(resolve => setTimeout(resolve, 250))
+			await new Promise<void>(resolve => setTimeout(resolve, 300))
 
 			await Sharing.shareAsync(tempLocation.uri, {
 				mimeType: item.data.item.mime,

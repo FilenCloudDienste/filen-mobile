@@ -3,15 +3,15 @@ import { Semaphore } from "./semaphore"
 import nodeWorker from "./nodeWorker"
 import { randomUUID } from "expo-crypto"
 import paths from "./paths"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import cache from "./cache"
 import { normalizeFilePathForExpo } from "./utils"
 import sqlite from "./sqlite"
-import queryUtils from "@/queries/utils"
 import * as VideoThumbnails from "expo-video-thumbnails"
 import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS, EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS } from "./constants"
 import download from "./download"
-import { useDriveStore } from "@/stores/drive.store"
+import pathModule from "path"
+import { driveItemsQueryUpdate } from "@/queries/useDriveItems.query"
 
 export const THUMBNAILS_MAX_ERRORS: number = 3
 export const THUMBNAILS_SIZE: number = 128
@@ -20,12 +20,12 @@ export const THUMBNAILS_COMPRESSION: number = 0.8
 export const THUMBNAILS_SUPPORTED_FORMATS = [...EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS, ...EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS]
 
 export class Thumbnails {
-	private readonly semaphore: Semaphore = new Semaphore(5)
+	private readonly semaphore: Semaphore = new Semaphore(1)
 	private readonly uuidMutex: Record<string, Semaphore> = {}
 	private readonly errorCount: Record<string, number> = {}
 
 	public canGenerate(name: string): boolean {
-		return THUMBNAILS_SUPPORTED_FORMATS.includes(FileSystem.Paths.extname(name.trim().toLowerCase()))
+		return THUMBNAILS_SUPPORTED_FORMATS.includes(pathModule.posix.extname(name.trim().toLowerCase()))
 	}
 
 	public async getThumbnailsUsage(): Promise<number> {
@@ -41,13 +41,15 @@ export class Thumbnails {
 			size: number
 		}[]
 	> {
-		const db = await sqlite.openAsync()
+		const { rows } = await sqlite.db.executeAsync<{ uuid: string; path: string; size: number }>(
+			"SELECT uuid, path, size FROM thumbnails"
+		)
 
-		return await db.getAllAsync<{
-			uuid: string
-			path: string
-			size: number
-		}>("SELECT uuid, path, size FROM thumbnails")
+		if (!rows || rows.length === 0) {
+			return []
+		}
+
+		return rows._array
 	}
 
 	public async warmupCache(): Promise<void> {
@@ -61,7 +63,11 @@ export class Thumbnails {
 	public async delete(item: DriveCloudItem): Promise<void> {
 		const uuidMutex = this.uuidMutex[item.uuid]
 
-		await Promise.all([this.semaphore.acquire(), uuidMutex?.acquire()])
+		if (!uuidMutex) {
+			throw new Error("Uuid Mutex not found.")
+		}
+
+		await Promise.all([this.semaphore.acquire(), uuidMutex.acquire()])
 
 		try {
 			if (cache.availableThumbnails.has(item.uuid)) {
@@ -69,7 +75,7 @@ export class Thumbnails {
 			}
 
 			const thumbnailPath = paths.thumbnails()
-			const thumbnailFile = new FileSystem.File(normalizeFilePathForExpo(FileSystem.Paths.join(thumbnailPath, `${item.uuid}.png`)))
+			const thumbnailFile = new FileSystem.File(normalizeFilePathForExpo(pathModule.posix.join(thumbnailPath, `${item.uuid}.png`)))
 
 			if (thumbnailFile.exists) {
 				thumbnailFile.delete()
@@ -77,40 +83,30 @@ export class Thumbnails {
 				this.errorCount[item.uuid] = 0
 			}
 
-			const db = await sqlite.openAsync()
-
-			await db.runAsync("DELETE FROM thumbnails WHERE uuid = ?", [item.uuid])
+			await sqlite.db.executeAsync("DELETE FROM thumbnails WHERE uuid = ?", [item.uuid])
 		} finally {
 			this.semaphore.release()
 
-			uuidMutex?.release()
+			uuidMutex.release()
 		}
-	}
-
-	public isItemInView(uuid: string): boolean {
-		return useDriveStore.getState().visibleItemUuids.includes(uuid)
 	}
 
 	public async generate({
 		item,
 		queryParams,
 		originalFilePath,
-		disableInViewCheck
+		abortSignal
 	}: {
 		item: DriveCloudItem
 		queryParams?: FetchCloudItemsParams
 		originalFilePath?: string
-		disableInViewCheck?: boolean
+		abortSignal?: AbortSignal
 	}): Promise<string> {
 		if (item.type !== "file") {
 			throw new Error("Item is not of type file.")
 		}
 
-		if (!disableInViewCheck && !this.isItemInView(item.uuid)) {
-			throw new Error("Item is not in view.")
-		}
-
-		const extname = FileSystem.Paths.extname(item.name.trim().toLowerCase())
+		const extname = pathModule.posix.extname(item.name.trim().toLowerCase())
 
 		if (!this.canGenerate(item.name)) {
 			throw new Error(`Cannot generate a thumbnail for item format ${extname}.`)
@@ -130,21 +126,20 @@ export class Thumbnails {
 
 		const uuidMutex = this.uuidMutex[item.uuid]
 
-		await Promise.all([this.semaphore.acquire(), uuidMutex?.acquire()])
+		if (!uuidMutex) {
+			throw new Error("Uuid Mutex not found.")
+		}
+
+		await Promise.all([this.semaphore.acquire(), uuidMutex.acquire()])
 
 		try {
-			if (!disableInViewCheck && !this.isItemInView(item.uuid)) {
-				throw new Error("Item is not in view.")
-			}
-
 			const temporaryDownloadsPath = paths.temporaryDownloads()
 			const thumbnailsPath = paths.thumbnails()
-			const thumbnailDestination = normalizeFilePathForExpo(FileSystem.Paths.join(thumbnailsPath, `${item.uuid}.png`))
+			const thumbnailDestination = normalizeFilePathForExpo(pathModule.posix.join(thumbnailsPath, `${item.uuid}.png`))
 			const destinationFile = new FileSystem.File(thumbnailDestination)
-			const db = await sqlite.openAsync()
 
 			if (destinationFile.exists) {
-				await db.runAsync("INSERT OR REPLACE INTO thumbnails (uuid, path, size) VALUES (?, ?, ?)", [
+				await sqlite.db.executeAsync("INSERT OR REPLACE INTO thumbnails (uuid, path, size) VALUES (?, ?, ?)", [
 					item.uuid,
 					destinationFile.uri,
 					destinationFile.size ?? 0
@@ -155,8 +150,8 @@ export class Thumbnails {
 				delete this.errorCount[item.uuid]
 
 				if (queryParams) {
-					queryUtils.useCloudItemsQuerySet({
-						...queryParams,
+					driveItemsQueryUpdate({
+						params: queryParams,
 						updater: prev =>
 							prev.map(prevItem =>
 								prevItem.uuid === item.uuid
@@ -172,9 +167,13 @@ export class Thumbnails {
 				return thumbnailDestination
 			}
 
+			if (abortSignal?.aborted) {
+				throw new Error("Aborted")
+			}
+
 			const id = randomUUID()
 			const tempDestinationFile = new FileSystem.File(
-				normalizeFilePathForExpo(FileSystem.Paths.join(temporaryDownloadsPath, `${id}${extname}`))
+				normalizeFilePathForExpo(pathModule.posix.join(temporaryDownloadsPath, `${id}${extname}`))
 			)
 
 			if (tempDestinationFile.exists) {
@@ -305,7 +304,7 @@ export class Thumbnails {
 					throw new Error(`Cannot generate a thumbnail for item format ${extname}.`)
 				}
 
-				await db.runAsync("INSERT OR REPLACE INTO thumbnails (uuid, path, size) VALUES (?, ?, ?)", [
+				await sqlite.db.executeAsync("INSERT OR REPLACE INTO thumbnails (uuid, path, size) VALUES (?, ?, ?)", [
 					item.uuid,
 					destinationFile.uri,
 					destinationFile.size ?? 0
@@ -316,8 +315,8 @@ export class Thumbnails {
 				delete this.errorCount[item.uuid]
 
 				if (queryParams) {
-					queryUtils.useCloudItemsQuerySet({
-						...queryParams,
+					driveItemsQueryUpdate({
+						params: queryParams,
 						updater: prev =>
 							prev.map(prevItem =>
 								prevItem.uuid === item.uuid
@@ -348,8 +347,7 @@ export class Thumbnails {
 			throw e
 		} finally {
 			this.semaphore.release()
-
-			uuidMutex?.release()
+			uuidMutex.release()
 		}
 	}
 }

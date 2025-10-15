@@ -1,11 +1,12 @@
 import { memo, useRef, useMemo, useCallback } from "react"
 import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
-import useNotesTagsQuery from "@/queries/useNotesTagsQuery"
+import useNotesTagsQuery from "@/queries/useNotesTags.query"
 import { useTranslation } from "react-i18next"
 import Tag from "./tag"
 import useNetInfo from "@/hooks/useNetInfo"
 import { View } from "react-native"
 import OfflineListHeader from "../offlineListHeader"
+import useDimensions from "@/hooks/useDimensions"
 
 export const Item = memo((info: ListRenderItemInfo<string>) => {
 	const { t } = useTranslation()
@@ -65,6 +66,7 @@ Item.displayName = "Item"
 export const ListHeader = memo(() => {
 	const tagsListRef = useRef<FlashListRef<string>>(null)
 	const { hasInternet } = useNetInfo()
+	const { screen } = useDimensions()
 
 	const notesTagsQuery = useNotesTagsQuery({
 		enabled: false
@@ -121,6 +123,8 @@ export const ListHeader = memo(() => {
 				keyExtractor={keyExtractor}
 				renderItem={renderItem}
 				contentContainerStyle={contentContainerStyle}
+				maxItemsInRecyclePool={0}
+				drawDistance={Math.floor(screen.width / 2)}
 			/>
 		</View>
 	)

@@ -1,4 +1,4 @@
-import { serializeError, sleep, calcSpeed, calcTimeLeft, normalizeTransferProgress, promiseAllSettledChunked } from "./lib/utils"
+import { serializeError, calcSpeed, calcTimeLeft, normalizeTransferProgress } from "./lib/utils"
 import * as handlers from "./handlers"
 import { PauseSignal } from "@filen/sdk"
 import transfersStore from "./stores/transfers.store"

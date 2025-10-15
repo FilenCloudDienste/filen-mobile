@@ -1,27 +1,26 @@
 import { memo, useMemo, useCallback } from "react"
 import { View, Platform } from "react-native"
-import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
 import Avatar from "@/components/avatar"
 import useSDKConfig from "@/hooks/useSDKConfig"
-import { contactName } from "@/lib/utils"
+import { contactName, hideSearchBarWithDelay } from "@/lib/utils"
 import { getChatName } from "../utils"
 import { useRouter } from "expo-router"
 import Menu from "./menu"
 import Unread from "./unread"
-import queryUtils from "@/queries/utils"
 import LastMessage from "./lastMessage"
 import Date from "../chat/messages/date"
-import events from "@/lib/events"
 import { cn } from "@/lib/cn"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
 import { useTranslation } from "react-i18next"
-import { type ListRenderItemInfo } from "@shopify/flash-list"
+import type { ListRenderItemInfo } from "@shopify/flash-list"
 import assets from "@/lib/assets"
+import { chatMessagesQueryGet } from "@/queries/useChatMessages.query"
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation> }) => {
 	const [{ userId }] = useSDKConfig()
@@ -58,14 +57,12 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 		return getChatName(info.item, userId)
 	}, [info.item, userId])
 
-	const onPress = useCallback(() => {
-		events.emit("hideSearchBar", {
-			clearText: true
-		})
+	const onPress = useCallback(async () => {
+		await hideSearchBarWithDelay(true)
 
 		if (!hasInternet) {
-			const cachedChat = queryUtils.useChatMessagesQueryGet({
-				uuid: info.item.uuid
+			const cachedChat = chatMessagesQueryGet({
+				conversation: info.item.uuid
 			})
 
 			if (!cachedChat) {
@@ -127,10 +124,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 							</View>
 							<Text className="text-muted-foreground font-normal text-xs">
 								{info.item.lastMessageTimestamp && info.item.lastMessageTimestamp > 0 ? (
-									<Date
-										timestamp={info.item.lastMessageTimestamp}
-										uuid={info.item.uuid}
-									/>
+									<Date timestamp={info.item.lastMessageTimestamp} />
 								) : (
 									""
 								)}

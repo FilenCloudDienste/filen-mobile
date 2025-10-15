@@ -1,8 +1,8 @@
-import { View, RefreshControl, type ViewabilityConfig } from "react-native"
+import { View, RefreshControl } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
 import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react"
 import { List, ListDataItem } from "@/components/nativewindui/List"
-import useCloudItemsQuery from "@/queries/useCloudItemsQuery"
+import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import { simpleDate, formatBytes, orderItemsByType, type OrderByType } from "@/lib/utils"
 import { Container } from "@/components/Container"
 import ListItem, { type ListItemInfo } from "./listItem"
@@ -19,7 +19,7 @@ import { useKeyboardState } from "react-native-keyboard-controller"
 import ListEmpty from "@/components/listEmpty"
 import { useTranslation } from "react-i18next"
 import alerts from "@/lib/alerts"
-import { FlashList, type ListRenderItemInfo, type FlashListRef, type ViewToken } from "@shopify/flash-list"
+import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -34,11 +34,11 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
-	const { isTablet, isPortrait } = useDimensions()
+	const { isTablet, isPortrait, screen } = useDimensions()
 	const keyboardState = useKeyboardState()
 	const { t } = useTranslation()
 
-	const cloudItemsQuery = useCloudItemsQuery(queryParams)
+	const cloudItemsQuery = useDriveItemsQuery(queryParams)
 
 	const items = useMemo((): ListItemInfo[] => {
 		if (cloudItemsQuery.status !== "success") {
@@ -191,29 +191,6 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 		}
 	}, [keyboardState.isVisible, keyboardState.height, queryParams.of])
 
-	const viewabilityConfig = useMemo(() => {
-		return {
-			itemVisiblePercentThreshold: 75
-		} satisfies ViewabilityConfig
-	}, [])
-
-	const onViewableItemsChanged = useCallback((e: { viewableItems: ViewToken<ListItemInfo>[]; changed: ViewToken<ListItemInfo>[] }) => {
-		useDriveStore.getState().setVisibleItemUuids(e.viewableItems.map(item => item.item.item.uuid))
-	}, [])
-
-	const calculateVisibleItemsOnFocus = useCallback(() => {
-		if (!listRef?.current) {
-			return
-		}
-
-		const visibleIndices = listRef.current.computeVisibleIndices()
-		const uuids = items
-			.slice(visibleIndices.startIndex <= 0 ? 0 : visibleIndices.startIndex, visibleIndices.endIndex + 1)
-			.map(item => item.item.uuid)
-
-		useDriveStore.getState().setVisibleItemUuids(uuids)
-	}, [items])
-
 	useLayoutEffect(() => {
 		onLayout()
 	}, [onLayout])
@@ -222,8 +199,10 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 		useCallback(() => {
 			useDriveStore.getState().setSelectedItems([])
 
-			calculateVisibleItemsOnFocus()
-		}, [calculateVisibleItemsOnFocus])
+			return () => {
+				useDriveStore.getState().setSelectedItems([])
+			}
+		}, [])
 	)
 
 	return (
@@ -241,7 +220,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						numColumns={numColumns}
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
-						refreshing={refreshing || cloudItemsQuery.status === "pending"}
+						refreshing={refreshing}
 						contentInsetAdjustmentBehavior="automatic"
 						initialScrollIndex={initialScrollIndex}
 						contentContainerStyle={contentContainerStyle}
@@ -249,8 +228,8 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						ListEmptyComponent={ListEmptyComponent}
 						ListFooterComponent={ListFooterComponent}
 						refreshControl={refreshControl}
-						viewabilityConfig={viewabilityConfig}
-						onViewableItemsChanged={onViewableItemsChanged}
+						maxItemsInRecyclePool={0}
+						drawDistance={Math.floor(screen.height / 4)}
 					/>
 				) : (
 					<List
@@ -259,7 +238,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						data={items}
 						renderItem={renderItem}
 						keyExtractor={keyExtractor}
-						refreshing={refreshing || cloudItemsQuery.status === "pending"}
+						refreshing={refreshing}
 						contentInsetAdjustmentBehavior="automatic"
 						initialScrollIndex={initialScrollIndex}
 						contentContainerStyle={contentContainerStyle}
@@ -267,8 +246,6 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 						ListEmptyComponent={ListEmptyComponent}
 						ListFooterComponent={ListFooterComponent}
 						refreshControl={refreshControl}
-						viewabilityConfig={viewabilityConfig}
-						onViewableItemsChanged={onViewableItemsChanged}
 					/>
 				)}
 			</View>

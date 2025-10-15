@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { type Playlist } from "@/queries/usePlaylistsQuery"
+import type { Playlist } from "@/queries/usePlaylists.query"
 
 export type SelectTrackPlayerPlaylistsStore = {
 	selectedPlaylists: Playlist[]

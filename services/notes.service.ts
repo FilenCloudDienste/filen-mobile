@@ -1,21 +1,23 @@
-import { type Note, type NoteType, type NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
+import type { Note, NoteType, NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
-import queryUtils from "@/queries/utils"
 import authService from "./auth.service"
 import alerts from "@/lib/alerts"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import * as Sharing from "expo-sharing"
 import striptags from "striptags"
 import { sanitizeFileName } from "@/lib/utils"
 import paths from "@/lib/paths"
-import * as FileSystemLegacy from "expo-file-system"
+import * as FileSystemLegacy from "expo-file-system/legacy"
 import { t } from "@/lib/i18n"
 import * as Clipboard from "expo-clipboard"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 import { router } from "expo-router"
 import { randomUUID } from "expo-crypto"
+import pathModule from "path"
+import { noteContentQueryUpdate } from "@/queries/useNoteContent.query"
+import { notesQueryUpdate } from "@/queries/useNotes.query"
 
 export class NotesService {
 	public async changeNoteType({
@@ -37,7 +39,7 @@ export class NotesService {
 				newType
 			})
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev =>
 					prev.map(n =>
 						n.uuid === note.uuid
@@ -50,8 +52,10 @@ export class NotesService {
 					)
 			})
 
-			queryUtils.useNoteContentQuerySet({
-				uuid: note.uuid,
+			noteContentQueryUpdate({
+				params: {
+					uuid: note.uuid
+				},
 				updater: prev => ({
 					...prev,
 					type: newType,
@@ -85,7 +89,7 @@ export class NotesService {
 				pin: pinned
 			})
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev =>
 					prev.map(n =>
 						n.uuid === note.uuid
@@ -123,7 +127,7 @@ export class NotesService {
 				favorite
 			})
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev =>
 					prev.map(n =>
 						n.uuid === note.uuid
@@ -151,7 +155,7 @@ export class NotesService {
 				uuid: note.uuid
 			})
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev => [
 					...prev.filter(n => n.uuid !== newUUID),
 					{
@@ -234,24 +238,26 @@ export class NotesService {
 			}
 
 			const fileName = `${sanitizeFileName(note.title)}.txt`
-			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.exports(), fileName))
+			const tmpFile = new FileSystem.File(pathModule.posix.join(paths.exports(), fileName))
 
 			try {
 				if (tmpFile.exists) {
 					tmpFile.delete()
 				}
 
-				tmpFile.write(content)
+				tmpFile.write(content, {
+					encoding: "utf8"
+				})
 
 				if (returnFilePath) {
 					return tmpFile.uri
 				}
 
-				await new Promise<void>(resolve => setTimeout(resolve, 250))
-
 				if (!disableLoader) {
 					fullScreenLoadingModal.hide()
 				}
+
+				await new Promise<void>(resolve => setTimeout(resolve, 30))
 
 				await Sharing.shareAsync(tmpFile.uri, {
 					mimeType: "text/plain",
@@ -307,7 +313,7 @@ export class NotesService {
 				uuid: note.uuid
 			})
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev =>
 					prev.map(n =>
 						n.uuid === note.uuid
@@ -355,7 +361,7 @@ export class NotesService {
 				uuid: note.uuid
 			})
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev =>
 					prev.map(n =>
 						n.uuid === note.uuid
@@ -385,7 +391,7 @@ export class NotesService {
 				uuid: note.uuid
 			})
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev =>
 					prev.map(n =>
 						n.uuid === note.uuid
@@ -447,7 +453,7 @@ export class NotesService {
 				title: newTitle
 			})
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev =>
 					prev.map(n =>
 						n.uuid === note.uuid
@@ -497,7 +503,7 @@ export class NotesService {
 				uuid: note.uuid
 			})
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev => prev.filter(n => n.uuid !== note.uuid)
 			})
 		} finally {
@@ -545,7 +551,7 @@ export class NotesService {
 				userId: userId ?? authService.getSDKConfig().userId
 			})
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev => prev.filter(n => n.uuid !== note.uuid)
 			})
 		} finally {
@@ -576,7 +582,7 @@ export class NotesService {
 				tag: tag.uuid
 			})
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev =>
 					prev.map(n =>
 						n.uuid === note.uuid
@@ -611,7 +617,7 @@ export class NotesService {
 				tag: tag.uuid
 			})
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev =>
 					prev.map(n =>
 						n.uuid === note.uuid
@@ -686,7 +692,7 @@ export class NotesService {
 
 			const notes = await nodeWorker.proxy("fetchNotes", undefined)
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: () => notes
 			})
 

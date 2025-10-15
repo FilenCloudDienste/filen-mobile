@@ -1,6 +1,6 @@
 import { Icon, MaterialIconName } from "@roninoss/icons"
-import { View, ActivityIndicator } from "react-native"
-import { type SettingsItem, type SettingsProps } from "."
+import { View } from "react-native"
+import type { SettingsItem, SettingsProps } from "."
 import { Button } from "~/components/nativewindui/Button"
 import { List, ListDataItem, ListRenderItemInfo } from "~/components/nativewindui/List"
 import { Text } from "~/components/nativewindui/Text"
@@ -74,8 +74,6 @@ const contentContainerStyle = {
 }
 
 export const Settings = memo((props: SettingsProps) => {
-	const { colors } = useColorScheme()
-
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
 		return typeof item === "string" ? item : item.id
 	}, [])
@@ -100,25 +98,6 @@ export const Settings = memo((props: SettingsProps) => {
 			: undefined
 	}, [props.showSearchBar])
 
-	const items = useMemo(() => {
-		return props.loading ? [] : props.items
-	}, [props.loading, props.items])
-
-	const extraData = useMemo(() => {
-		return __DEV__ ? (props.loading ? [] : props.items) : undefined
-	}, [props.loading, props.items])
-
-	const ListEmptyComponent = useCallback(() => {
-		return (
-			<View className="flex-1 items-center justify-center">
-				<ActivityIndicator
-					size="small"
-					color={colors.foreground}
-				/>
-			</View>
-		)
-	}, [colors.foreground])
-
 	return (
 		<Fragment>
 			{!props.hideHeader && (
@@ -127,23 +106,22 @@ export const Settings = memo((props: SettingsProps) => {
 					searchBar={headerSearchBar}
 				/>
 			)}
-			<List
-				rootClassName="bg-background"
-				contentContainerStyle={contentContainerStyle}
-				contentInsetAdjustmentBehavior="automatic"
-				variant="full-width"
-				data={items}
-				extraData={extraData}
-				renderItem={renderItem}
-				keyExtractor={keyExtractor}
-				sectionHeaderAsGap={true}
-				showsHorizontalScrollIndicator={false}
-				showsVerticalScrollIndicator={false}
-				refreshing={props.loading}
-				ListEmptyComponent={ListEmptyComponent}
-				ListHeaderComponent={props.listHeader ? () => props.listHeader : undefined}
-				ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
-			/>
+			{props.items.length > 0 && (
+				<List
+					rootClassName="bg-background"
+					contentContainerStyle={contentContainerStyle}
+					contentInsetAdjustmentBehavior="automatic"
+					variant="full-width"
+					data={props.items}
+					sectionHeaderAsGap={true}
+					renderItem={renderItem}
+					keyExtractor={keyExtractor}
+					showsHorizontalScrollIndicator={false}
+					showsVerticalScrollIndicator={false}
+					ListHeaderComponent={props.listHeader ? () => props.listHeader : undefined}
+					ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
+				/>
+			)}
 		</Fragment>
 	)
 })

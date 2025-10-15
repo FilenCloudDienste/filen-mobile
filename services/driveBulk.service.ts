@@ -4,7 +4,7 @@ import { colorPicker } from "@/components/sheets/colorPickerSheet"
 import { DEFAULT_DIRECTORY_COLOR } from "@/assets/fileIcons"
 import contactsService from "./contacts.service"
 import { promiseAllChunked } from "@/lib/utils"
-import { type Contact } from "@filen/sdk/dist/types/api/v3/contacts"
+import type { Contact } from "@filen/sdk/dist/types/api/v3/contacts"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { t } from "@/lib/i18n"
 

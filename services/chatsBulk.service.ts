@@ -1,6 +1,6 @@
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { t } from "@/lib/i18n"
-import { type ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
+import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import chatsService from "./chats.service"
 import { promiseAllChunked } from "@/lib/utils"
@@ -9,13 +9,11 @@ export class ChatsBulkService {
 	public async leaveChats({
 		chats,
 		disableAlertPrompt,
-		disableLoader,
-		userId
+		disableLoader
 	}: {
 		chats: ChatConversation[]
 		disableAlertPrompt?: boolean
 		disableLoader?: boolean
-		userId?: number
 	}): Promise<void> {
 		if (chats.length === 0) {
 			return
@@ -42,8 +40,7 @@ export class ChatsBulkService {
 					chatsService.leaveChat({
 						chat,
 						disableAlertPrompt: true,
-						disableLoader: true,
-						userId
+						disableLoader: true
 					})
 				)
 			)

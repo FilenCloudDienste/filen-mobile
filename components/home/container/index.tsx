@@ -24,14 +24,6 @@ export const Container = memo(
 		const { layout, onLayout } = useViewLayout(viewRef)
 
 		const onPress = useCallback(() => {
-			if (type === "favorites") {
-				push({
-					pathname: "/(app)/home/favorites"
-				})
-
-				return
-			}
-
 			if (type === "recents") {
 				push({
 					pathname: "/(app)/home/recents"
@@ -56,6 +48,17 @@ export const Container = memo(
 					pathname: "/(app)/home/links/[uuid]",
 					params: {
 						uuid: "links"
+					}
+				})
+
+				return
+			}
+
+			if (type === "favorites") {
+				push({
+					pathname: "/(app)/home/favorites/[uuid]",
+					params: {
+						uuid: "favorites"
 					}
 				})
 

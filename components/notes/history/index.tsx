@@ -1,7 +1,7 @@
 import { useMemo, Fragment, useCallback, memo } from "react"
 import { View, Platform } from "react-native"
-import { type Note } from "@filen/sdk/dist/types/api/v3/notes"
-import { type NoteHistory } from "@filen/sdk/dist/types/api/v3/notes/history"
+import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
+import type { NoteHistory } from "@filen/sdk/dist/types/api/v3/notes/history"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { ListItem, List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import Container from "@/components/Container"
@@ -11,13 +11,14 @@ import { Button } from "@/components/nativewindui/Button"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
-import queryUtils from "@/queries/utils"
-import useNoteHistoryQuery from "@/queries/useNoteHistoryQuery"
+import useNoteHistoryQuery from "@/queries/useNoteHistory.query"
 import { useTranslation } from "react-i18next"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import ListEmpty from "@/components/listEmpty"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { useColorScheme } from "@/lib/useColorScheme"
+import { noteContentQueryUpdate } from "@/queries/useNoteContent.query"
+import { notesQueryUpdate } from "@/queries/useNotes.query"
 
 export type ListItemInfo = {
 	title: string
@@ -29,10 +30,14 @@ export type ListItemInfo = {
 export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInfo>; note: Note }) => {
 	const { t } = useTranslation()
 
-	const noteHistoryQuery = useNoteHistoryQuery({
-		uuid: note.uuid,
-		enabled: false
-	})
+	const noteHistoryQuery = useNoteHistoryQuery(
+		{
+			uuid: note.uuid
+		},
+		{
+			enabled: false
+		}
+	)
 
 	const restore = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
@@ -54,7 +59,7 @@ export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInf
 
 			await noteHistoryQuery.refetch()
 
-			queryUtils.useNotesQuerySet({
+			notesQueryUpdate({
 				updater: prev =>
 					prev.map(n =>
 						n.uuid === note.uuid
@@ -68,8 +73,10 @@ export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInf
 					)
 			})
 
-			queryUtils.useNoteContentQuerySet({
-				uuid: note.uuid,
+			noteContentQueryUpdate({
+				params: {
+					uuid: note.uuid
+				},
 				updater: prev => ({
 					...prev,
 					type: info.item.history.type,

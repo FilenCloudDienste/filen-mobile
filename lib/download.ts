@@ -1,12 +1,13 @@
 import nodeWorker from "@/lib/nodeWorker"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
 import { getSDK } from "@/lib/sdk"
 import Semaphore from "@/lib/semaphore"
-import { type NodeWorkerHandlers } from "nodeWorker"
+import type { NodeWorkerHandlers } from "nodeWorker"
 import type Cloud from "@filen/sdk/dist/types/cloud"
 import { useTransfersStore } from "@/stores/transfers.store"
+import pathModule from "path"
 
 export class Download {
 	private readonly setHiddenTransfers = useTransfersStore.getState().setHiddenTransfers
@@ -28,7 +29,7 @@ export class Download {
 			}
 
 			const destination = new FileSystem.Directory(
-				params.destination ?? FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID())
+				params.destination ?? pathModule.posix.join(paths.temporaryDownloads(), randomUUID())
 			)
 
 			if (!destination.parentDirectory.exists) {
@@ -62,7 +63,7 @@ export class Download {
 			}
 
 			const destination = new FileSystem.Directory(
-				params.destination ?? FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID())
+				params.destination ?? pathModule.posix.join(paths.temporaryDownloads(), randomUUID())
 			)
 
 			if (!destination.parentDirectory.exists) {
@@ -115,7 +116,7 @@ export class Download {
 				return
 			}
 
-			const semaphore = new Semaphore(10)
+			const semaphore = new Semaphore(8)
 
 			await Promise.all(
 				files
@@ -128,7 +129,7 @@ export class Download {
 						await semaphore.acquire()
 
 						try {
-							const uri = FileSystem.Paths.join(destination.uri, file.path)
+							const uri = pathModule.posix.join(destination.uri, file.path)
 							const entry = new FileSystem.File(uri)
 
 							if (!entry.parentDirectory.exists) {
@@ -190,7 +191,7 @@ export class Download {
 
 			const destination = new FileSystem.File(
 				params.destination ??
-					FileSystem.Paths.join(paths.temporaryDownloads(), `${randomUUID()}${FileSystem.Paths.extname(params.name)}`)
+					pathModule.posix.join(paths.temporaryDownloads(), `${randomUUID()}${pathModule.posix.extname(params.name)}`)
 			)
 
 			if (!destination.parentDirectory.exists) {
@@ -227,7 +228,7 @@ export class Download {
 
 			const destination = new FileSystem.File(
 				params.destination ??
-					FileSystem.Paths.join(paths.temporaryDownloads(), `${randomUUID()}${FileSystem.Paths.extname(params.name)}`)
+					pathModule.posix.join(paths.temporaryDownloads(), `${randomUUID()}${pathModule.posix.extname(params.name)}`)
 			)
 
 			if (!destination.parentDirectory.exists) {

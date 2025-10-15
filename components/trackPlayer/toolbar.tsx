@@ -6,7 +6,7 @@ import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Slider } from "@/components/nativewindui/Slider"
 import TurboImage from "react-native-turbo-image"
-import { BlurView } from "expo-blur"
+import BlurView from "@/components/blurView"
 import useDimensions from "@/hooks/useDimensions"
 import useViewLayout from "@/hooks/useViewLayout"
 import { useMMKVNumber } from "react-native-mmkv"
@@ -17,7 +17,6 @@ import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import Container from "../Container"
 import { useTranslation } from "react-i18next"
-import assets from "@/lib/assets"
 
 export const Toolbar = memo(() => {
 	const { colors } = useColorScheme()
@@ -141,9 +140,6 @@ export const Toolbar = memo(() => {
 								resizeMode="cover"
 								cachePolicy="dataCache"
 								style={imageStyle}
-								placeholder={{
-									blurhash: assets.blurhash.images.fallback
-								}}
 							/>
 						) : (
 							<View

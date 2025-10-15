@@ -1,5 +1,5 @@
-import { useEffect, memo, useCallback, useMemo } from "react"
-import { BackHandler, View, Pressable, type StyleProp, type ViewStyle, FlatList } from "react-native"
+import { useEffect, memo, useCallback, useMemo, Fragment } from "react"
+import { BackHandler, View, Pressable, type StyleProp, type ViewStyle, FlatList, Modal } from "react-native"
 import { useGalleryStore, type GalleryItem } from "@/stores/gallery.store"
 import { useShallow } from "zustand/shallow"
 import { KeyboardController } from "react-native-keyboard-controller"
@@ -11,38 +11,19 @@ import useDimensions from "@/hooks/useDimensions"
 import Header from "./header"
 import { useTranslation } from "react-i18next"
 import { Text } from "../nativewindui/Text"
-import { Portal } from "@rn-primitives/portal"
 import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-reanimated"
 import { ActivityIndicator } from "../nativewindui/ActivityIndicator"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { cn } from "@/lib/cn"
 
-export const animatedStyle = {
-	flex: 1,
-	backgroundColor: "transparent",
-	position: "absolute",
-	top: 0,
-	left: 0,
-	right: 0,
-	bottom: 0
-} satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
-
-export const Item = memo(({ item, index }: { item: GalleryItem; index: number }) => {
+export const Item = memo(({ item, index, layout }: { item: GalleryItem; index: number; layout: { width: number; height: number } }) => {
 	const { t } = useTranslation()
 	const { colors, isDarkColorScheme } = useColorScheme()
 	const currentVisibleIndex = useGalleryStore(useShallow(state => state.currentVisibleIndex))
-	const { screen } = useDimensions()
 
 	const visible = useMemo(() => {
 		return (currentVisibleIndex ?? -1) === index
 	}, [currentVisibleIndex, index])
-
-	const layout = useMemo(() => {
-		return {
-			width: screen.width,
-			height: screen.height
-		}
-	}, [screen.width, screen.height])
 
 	const onPress = useCallback(() => {
 		if (item.previewType !== "image") {
@@ -65,11 +46,13 @@ export const Item = memo(({ item, index }: { item: GalleryItem; index: number })
 			className="flex-1 flex-row items-center justify-center overflow-hidden"
 			entering={FadeIn}
 			exiting={FadeOut}
+			style={layout}
 		>
 			<Pressable
 				className="flex-1"
 				onPress={onPress}
 				onLongPress={onLongPress}
+				style={layout}
 			>
 				{!visible ? (
 					<Animated.View
@@ -139,14 +122,18 @@ export const GalleryModal = memo(() => {
 		}
 	}, [screen.width, screen.height])
 
-	const renderItem = useCallback((item: GalleryItem, index: number) => {
-		return (
-			<Item
-				item={item}
-				index={index}
-			/>
-		)
-	}, [])
+	const renderItem = useCallback(
+		(item: GalleryItem, index: number) => {
+			return (
+				<Item
+					item={item}
+					index={index}
+					layout={layout}
+				/>
+			)
+		},
+		[layout]
+	)
 
 	const keyExtractor = useCallback((item: GalleryItem) => {
 		return item.itemType === "cloudItem" ? item.data.item.uuid : item.data.uri
@@ -196,6 +183,20 @@ export const GalleryModal = memo(() => {
 		useGalleryStore.getState().setShowHeader(false)
 	}, [])
 
+	const animatedStyle = useMemo(() => {
+		return {
+			flex: 1,
+			backgroundColor: "transparent",
+			position: "absolute",
+			width: layout.width,
+			height: layout.height,
+			top: 0,
+			left: 0,
+			right: 0,
+			bottom: 0
+		} satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
+	}, [layout.width, layout.height])
+
 	useGestureViewerEvent("zoomChange", ({ scale }) => {
 		useGalleryStore.getState().setShowHeader(scale <= 1)
 	})
@@ -222,40 +223,49 @@ export const GalleryModal = memo(() => {
 		}
 	}, [visible])
 
-	if (!visible) {
-		return null
-	}
-
 	return (
-		<Portal name="gallery-modal">
-			<Header />
-			<Animated.View
-				className="flex-1"
-				entering={FadeIn}
-				exiting={FadeOut}
-				style={animatedStyle}
-			>
-				<GestureViewer
-					data={items}
-					width={screen.width}
-					enableLoop={false}
-					dismissThreshold={150}
-					enableDismissGesture={true}
-					enableDoubleTapGesture={true}
-					enableSwipeGesture={true}
-					enableZoomGesture={true}
-					enableZoomPanGesture={true}
-					onIndexChange={onIndexChange}
-					maxZoomScale={3}
-					renderItem={renderItem}
-					ListComponent={FlatList}
-					initialIndex={validatedInitialScrollIndex}
-					listProps={listProps}
-					onDismiss={onDismiss}
-					onDismissStart={onDismissStart}
-				/>
-			</Animated.View>
-		</Portal>
+		<Modal
+			visible={visible}
+			transparent={true}
+			animationType="none"
+			presentationStyle="overFullScreen"
+			onRequestClose={onDismiss}
+			statusBarTranslucent={true}
+			navigationBarTranslucent={true}
+			supportedOrientations={["portrait", "landscape"]}
+		>
+			{visible && (
+				<Fragment>
+					<Header />
+					<Animated.View
+						className="flex-1"
+						entering={FadeIn}
+						exiting={FadeOut}
+						style={animatedStyle}
+					>
+						<GestureViewer
+							data={items}
+							width={screen.width}
+							enableLoop={false}
+							dismissThreshold={150}
+							enableDismissGesture={true}
+							enableDoubleTapGesture={true}
+							enableSwipeGesture={true}
+							enableZoomGesture={true}
+							enableZoomPanGesture={true}
+							onIndexChange={onIndexChange}
+							maxZoomScale={3}
+							renderItem={renderItem}
+							ListComponent={FlatList}
+							initialIndex={validatedInitialScrollIndex}
+							listProps={listProps}
+							onDismiss={onDismiss}
+							onDismissStart={onDismissStart}
+						/>
+					</Animated.View>
+				</Fragment>
+			)}
+		</Modal>
 	)
 })
 

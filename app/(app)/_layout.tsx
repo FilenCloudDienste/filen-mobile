@@ -1,7 +1,7 @@
 import useIsAuthed from "@/hooks/useIsAuthed"
 import { Redirect } from "expo-router"
 import { useMemo } from "react"
-import useChatUnreadQuery from "@/queries/useChatUnreadQuery"
+import useChatUnreadQuery from "@/queries/useChatUnread.query"
 import Tabs from "@/components/tabs"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Platform, View } from "react-native"

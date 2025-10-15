@@ -3,18 +3,17 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import * as Clipboard from "expo-clipboard"
 import alerts from "@/lib/alerts"
 import { t } from "@/lib/i18n"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
-import { type FileMetadata, type FolderMetadata } from "@filen/sdk"
-import queryUtils from "@/queries/utils"
-import { FETCH_CLOUD_ITEMS_POSSIBLE_OF } from "@/queries/useCloudItemsQuery"
+import type { FileMetadata, FolderMetadata } from "@filen/sdk"
+import { FETCH_DRIVE_ITEMS_POSSIBLE_OF } from "@/queries/useDriveItems.query"
 import { useGalleryStore, type PreviewType } from "@/stores/gallery.store"
 import { colorPicker } from "@/components/sheets/colorPickerSheet"
 import { DEFAULT_DIRECTORY_COLOR } from "@/assets/fileIcons"
 import { itemInfo } from "@/components/sheets/itemInfoSheet"
 import contactsService from "./contacts.service"
 import { promiseAllChunked, sanitizeFileName, normalizeFilePathForExpo, simpleDate } from "@/lib/utils"
-import * as FileSystemLegacy from "expo-file-system"
+import * as FileSystemLegacy from "expo-file-system/legacy"
 import * as Sharing from "expo-sharing"
 import paths from "@/lib/paths"
 import { randomUUID } from "expo-crypto"
@@ -23,8 +22,8 @@ import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { Platform } from "react-native"
 import ReactNativeBlobUtil from "react-native-blob-util"
 import * as MediaLibrary from "expo-media-library"
-import { fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatusQuery"
-import { type Contact } from "@filen/sdk/dist/types/api/v3/contacts"
+import { fetchData as fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatus.query"
+import type { Contact } from "@filen/sdk/dist/types/api/v3/contacts"
 import { useDriveStore } from "@/stores/drive.store"
 import download from "@/lib/download"
 import events from "@/lib/events"
@@ -33,8 +32,12 @@ import upload from "@/lib/upload"
 import queryClient from "@/queries/client"
 import * as ImagePicker from "expo-image-picker"
 import { router } from "expo-router"
-import { type TextEditorItem } from "@/components/textEditor/editor"
+import type { TextEditorItem } from "@/components/textEditor/editor"
 import cache from "@/lib/cache"
+import pathModule from "path"
+import { driveItemsQueryUpdate } from "@/queries/useDriveItems.query"
+import { fileOfflineStatusQueryUpdate } from "@/queries/useFileOfflineStatus.query"
+import { validate as validateUUID } from "uuid"
 
 export type SelectDriveItemsResponse =
 	| {
@@ -165,7 +168,7 @@ export class DriveService {
 		newName?: string
 	}): Promise<void> {
 		if (!newName) {
-			const itemNameParsed = FileSystem.Paths.parse(item.name)
+			const itemNameParsed = pathModule.posix.parse(item.name)
 			const itemName = item.type === "file" && item.name.includes(".") ? itemNameParsed?.name ?? item.name : item.name
 			const itemExt = item.type === "file" && item.name.includes(".") ? itemNameParsed?.ext ?? "" : ""
 
@@ -226,8 +229,8 @@ export class DriveService {
 			}
 
 			if (queryParams) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev =>
 						prev.map(prevItem =>
 							prevItem.uuid === item.uuid
@@ -241,11 +244,13 @@ export class DriveService {
 			}
 
 			// Update home screen queries aswell
-			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
-				queryUtils.useCloudItemsQuerySet({
-					of: ofValue as FetchCloudItemsParams["of"],
-					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
-					receiverId: 0,
+			for (const ofValue of FETCH_DRIVE_ITEMS_POSSIBLE_OF) {
+				driveItemsQueryUpdate({
+					params: {
+						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+						of: ofValue as FetchCloudItemsParams["of"],
+						receiverId: 0
+					},
 					updater: prev =>
 						prev.map(prevItem =>
 							prevItem.uuid === item.uuid
@@ -342,8 +347,8 @@ export class DriveService {
 			})
 
 			if (queryParams) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev =>
 						prev.map(prevItem =>
 							prevItem.uuid === item.uuid
@@ -357,11 +362,13 @@ export class DriveService {
 			}
 
 			// Update home screen queries aswell
-			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
-				queryUtils.useCloudItemsQuerySet({
-					of: ofValue as FetchCloudItemsParams["of"],
-					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
-					receiverId: 0,
+			for (const ofValue of FETCH_DRIVE_ITEMS_POSSIBLE_OF) {
+				driveItemsQueryUpdate({
+					params: {
+						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+						of: ofValue as FetchCloudItemsParams["of"],
+						receiverId: 0
+					},
 					updater: prev =>
 						prev.map(prevItem =>
 							prevItem.uuid === item.uuid
@@ -431,15 +438,18 @@ export class DriveService {
 			}
 
 			if (queryParams) {
-				if (queryParams.of === "favorites" && !newFavoriteStatus) {
-					queryUtils.useCloudItemsQuerySet({
-						...queryParams,
+				if (
+					(queryParams.of === "favorites" && !newFavoriteStatus && !validateUUID(queryParams.parent)) ||
+					(queryParams.of === "drive" && !newFavoriteStatus && queryParams.parent === "favorites")
+				) {
+					driveItemsQueryUpdate({
+						params: queryParams,
 						updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 					})
 				}
 
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev =>
 						prev.map(prevItem =>
 							prevItem.uuid === item.uuid
@@ -454,27 +464,51 @@ export class DriveService {
 
 			// Update favorites home screen, add if not already there, otherwise remove it
 			if (newFavoriteStatus) {
-				queryUtils.useCloudItemsQuerySet({
-					of: "favorites",
-					parent: "favorites",
-					receiverId: 0,
+				driveItemsQueryUpdate({
+					params: {
+						parent: "favorites",
+						of: "favorites",
+						receiverId: 0
+					},
+					updater: prev => [...prev.filter(prevItem => prevItem.uuid !== item.uuid), item]
+				})
+
+				driveItemsQueryUpdate({
+					params: {
+						parent: "favorites",
+						of: "drive",
+						receiverId: 0
+					},
 					updater: prev => [...prev.filter(prevItem => prevItem.uuid !== item.uuid), item]
 				})
 			} else {
-				queryUtils.useCloudItemsQuerySet({
-					of: "favorites",
-					parent: "favorites",
-					receiverId: 0,
+				driveItemsQueryUpdate({
+					params: {
+						parent: "favorites",
+						of: "favorites",
+						receiverId: 0
+					},
+					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
+				})
+
+				driveItemsQueryUpdate({
+					params: {
+						parent: "favorites",
+						of: "drive",
+						receiverId: 0
+					},
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			}
 
 			// Update home screen queries aswell
-			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
-				queryUtils.useCloudItemsQuerySet({
-					of: ofValue as FetchCloudItemsParams["of"],
-					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
-					receiverId: 0,
+			for (const ofValue of FETCH_DRIVE_ITEMS_POSSIBLE_OF) {
+				driveItemsQueryUpdate({
+					params: {
+						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+						of: ofValue as FetchCloudItemsParams["of"],
+						receiverId: 0
+					},
 					updater: prev =>
 						prev.map(prevItem =>
 							prevItem.uuid === item.uuid
@@ -631,7 +665,7 @@ export class DriveService {
 			}
 		}
 
-		const offlinePath = FileSystem.Paths.join(paths.offlineFiles(), `${item.uuid}${FileSystem.Paths.extname(item.name)}`)
+		const offlinePath = pathModule.posix.join(paths.offlineFiles(), `${item.uuid}${pathModule.posix.extname(item.name)}`)
 		const offlineFile = new FileSystem.File(offlinePath)
 
 		if (!offlineFile.exists) {
@@ -660,7 +694,7 @@ export class DriveService {
 			fullScreenLoadingModal.show()
 		}
 
-		const tempLocation = new FileSystem.File(FileSystem.Paths.join(paths.exports(), sanitizeFileName(item.name)))
+		const tempLocation = new FileSystem.File(pathModule.posix.join(paths.exports(), sanitizeFileName(item.name)))
 
 		try {
 			if (tempLocation.exists) {
@@ -693,7 +727,11 @@ export class DriveService {
 				})
 			}
 
-			await new Promise<void>(resolve => setTimeout(resolve, 250))
+			if (!disableLoader) {
+				fullScreenLoadingModal.hide()
+			}
+
+			await new Promise<void>(resolve => setTimeout(resolve, 300))
 
 			await Sharing.shareAsync(tempLocation.uri, {
 				mimeType: item.mime,
@@ -750,18 +788,20 @@ export class DriveService {
 			}
 
 			if (queryParams) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			}
 
 			// Update home screen queries aswell
-			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
-				queryUtils.useCloudItemsQuerySet({
-					of: ofValue as FetchCloudItemsParams["of"],
-					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
-					receiverId: 0,
+			for (const ofValue of FETCH_DRIVE_ITEMS_POSSIBLE_OF) {
+				driveItemsQueryUpdate({
+					params: {
+						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+						of: ofValue as FetchCloudItemsParams["of"],
+						receiverId: 0
+					},
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			}
@@ -848,18 +888,20 @@ export class DriveService {
 			}
 
 			if (queryParams && item.parent === queryParams.parent) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			}
 
 			// Update home screen queries aswell
-			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
-				queryUtils.useCloudItemsQuerySet({
-					of: ofValue as FetchCloudItemsParams["of"],
-					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
-					receiverId: 0,
+			for (const ofValue of FETCH_DRIVE_ITEMS_POSSIBLE_OF) {
+				driveItemsQueryUpdate({
+					params: {
+						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+						of: ofValue as FetchCloudItemsParams["of"],
+						receiverId: 0
+					},
 					updater: prev =>
 						prev.map(prevItem =>
 							prevItem.uuid === item.uuid
@@ -905,7 +947,7 @@ export class DriveService {
 		}
 
 		if (item.type === "directory") {
-			const tmpDir = new FileSystem.Directory(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID()))
+			const tmpDir = new FileSystem.Directory(pathModule.posix.join(paths.temporaryDownloads(), randomUUID()))
 
 			if (!disableLoader) {
 				fullScreenLoadingModal.show()
@@ -992,10 +1034,10 @@ export class DriveService {
 							await ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
 								{
 									name: file.name,
-									parentFolder: FileSystem.Paths.join(
+									parentFolder: pathModule.posix.join(
 										"Filen",
 										item.name,
-										FileSystem.Paths.dirname(file.path.replace(tmpDir.uri.replace("file://", ""), ""))
+										pathModule.posix.dirname(file.path.replace(tmpDir.uri.replace("file://", ""), ""))
 									),
 									mimeType: file.mime
 								},
@@ -1020,7 +1062,7 @@ export class DriveService {
 				}
 			}
 		} else {
-			const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID()))
+			const tmpFile = new FileSystem.File(pathModule.posix.join(paths.temporaryDownloads(), randomUUID()))
 
 			if (!disableLoader) {
 				fullScreenLoadingModal.show()
@@ -1094,7 +1136,7 @@ export class DriveService {
 			const offlineStatus = await this.itemExistsOffline(item)
 			const toggle = typeof offline === "boolean" ? offline : !offlineStatus.exists
 			const offlineFileDestination = new FileSystem.File(
-				FileSystem.Paths.join(paths.offlineFiles(), `${item.uuid}${FileSystem.Paths.extname(item.name)}`)
+				pathModule.posix.join(paths.offlineFiles(), `${item.uuid}${pathModule.posix.extname(item.name)}`)
 			)
 
 			if (!toggle) {
@@ -1104,18 +1146,22 @@ export class DriveService {
 
 				await sqlite.offlineFiles.remove(item)
 
-				queryUtils.useFileOfflineStatusQuerySet({
-					uuid: item.uuid,
+				fileOfflineStatusQueryUpdate({
+					params: {
+						uuid: item.uuid
+					},
 					updater: () => ({
 						exists: false
 					})
 				})
 
 				// Update home screen queries aswell
-				queryUtils.useCloudItemsQuerySet({
-					of: "offline",
-					parent: "offline",
-					receiverId: 0,
+				driveItemsQueryUpdate({
+					params: {
+						parent: "offline",
+						of: "offline",
+						receiverId: 0
+					},
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			} else {
@@ -1145,8 +1191,10 @@ export class DriveService {
 
 				await sqlite.offlineFiles.add(item)
 
-				queryUtils.useFileOfflineStatusQuerySet({
-					uuid: item.uuid,
+				fileOfflineStatusQueryUpdate({
+					params: {
+						uuid: item.uuid
+					},
 					updater: () => ({
 						exists: true,
 						path: offlineFileDestination.uri
@@ -1154,10 +1202,12 @@ export class DriveService {
 				})
 
 				// Update home screen queries aswell
-				queryUtils.useCloudItemsQuerySet({
-					of: "offline",
-					parent: "offline",
-					receiverId: 0,
+				driveItemsQueryUpdate({
+					params: {
+						parent: "offline",
+						of: "offline",
+						receiverId: 0
+					},
 					updater: prev => [...prev.filter(prevItem => prevItem.uuid !== item.uuid), item]
 				})
 			}
@@ -1179,7 +1229,7 @@ export class DriveService {
 			return
 		}
 
-		const tmpFile = new FileSystem.File(FileSystem.Paths.join(paths.temporaryDownloads(), randomUUID(), item.name))
+		const tmpFile = new FileSystem.File(pathModule.posix.join(paths.temporaryDownloads(), randomUUID(), item.name))
 
 		if (!disableLoader) {
 			fullScreenLoadingModal.show()
@@ -1289,17 +1339,19 @@ export class DriveService {
 			})
 
 			if (queryParams) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			}
 
 			// Update home screen queries aswell
-			queryUtils.useCloudItemsQuerySet({
-				of: "sharedIn",
-				parent: "sharedIn",
-				receiverId: 0,
+			driveItemsQueryUpdate({
+				params: {
+					parent: "sharedIn",
+					of: "sharedIn",
+					receiverId: 0
+				},
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 			})
 		} finally {
@@ -1346,17 +1398,19 @@ export class DriveService {
 			})
 
 			if (queryParams) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			}
 
 			// Update home screen queries aswell
-			queryUtils.useCloudItemsQuerySet({
-				of: "sharedOut",
-				parent: "sharedOut",
-				receiverId: 0,
+			driveItemsQueryUpdate({
+				params: {
+					parent: "sharedOut",
+					of: "sharedOut",
+					receiverId: 0
+				},
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 			})
 		} finally {
@@ -1404,18 +1458,20 @@ export class DriveService {
 			}
 
 			if (queryParams) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			}
 
 			// Update home screen queries aswell
-			for (const ofValue of FETCH_CLOUD_ITEMS_POSSIBLE_OF) {
-				queryUtils.useCloudItemsQuerySet({
-					of: ofValue as FetchCloudItemsParams["of"],
-					parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
-					receiverId: 0,
+			for (const ofValue of FETCH_DRIVE_ITEMS_POSSIBLE_OF) {
+				driveItemsQueryUpdate({
+					params: {
+						parent: ofValue === "sharedIn" ? "shared-in" : ofValue === "sharedOut" ? "shared-out" : ofValue,
+						of: ofValue as FetchCloudItemsParams["of"],
+						receiverId: 0
+					},
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			}
@@ -1454,17 +1510,19 @@ export class DriveService {
 			}
 
 			if (queryParams) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			}
 
 			// Update home screen queries aswell
-			queryUtils.useCloudItemsQuerySet({
-				of: "trash",
-				parent: "trash",
-				receiverId: 0,
+			driveItemsQueryUpdate({
+				params: {
+					parent: "trash",
+					of: "trash",
+					receiverId: 0
+				},
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 			})
 
@@ -1491,7 +1549,9 @@ export class DriveService {
 		}
 
 		try {
-			const status = await fetchItemPublicLinkStatus(item)
+			const status = await fetchItemPublicLinkStatus({
+				item
+			})
 
 			if (!status.enabled) {
 				return
@@ -1504,17 +1564,19 @@ export class DriveService {
 			})
 
 			if (queryParams) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 				})
 			}
 
 			// Update home screen queries aswell
-			queryUtils.useCloudItemsQuerySet({
-				of: "links",
-				parent: "links",
-				receiverId: 0,
+			driveItemsQueryUpdate({
+				params: {
+					parent: "links",
+					of: "links",
+					receiverId: 0
+				},
 				updater: prev => prev.filter(prevItem => prevItem.uuid !== item.uuid)
 			})
 
@@ -1595,8 +1657,8 @@ export class DriveService {
 			}
 
 			if (queryParams && uploadedItems.length > 0) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev => [
 						...prev.filter(item => !uploadedItems.some(uploadedItem => uploadedItem.uuid === item.uuid)),
 						...uploadedItems
@@ -1669,8 +1731,8 @@ export class DriveService {
 			}
 
 			if (queryParams) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev => [
 						...prev.filter(item => item.uuid !== directoryUUID),
 						...[
@@ -1769,7 +1831,7 @@ export class DriveService {
 						}
 
 						const tmpFile = new FileSystem.File(
-							FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(asset.fileName)}`)
+							pathModule.posix.join(paths.temporaryUploads(), `${randomUUID()}${pathModule.posix.extname(asset.fileName)}`)
 						)
 
 						try {
@@ -1816,8 +1878,8 @@ export class DriveService {
 			}
 
 			if (queryParams && uploadedItems.length > 0) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev => [
 						...prev.filter(item => !uploadedItems.some(uploadedItem => uploadedItem.uuid === item.uuid)),
 						...uploadedItems
@@ -1897,7 +1959,7 @@ export class DriveService {
 						}
 
 						const tmpFile = new FileSystem.File(
-							FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(asset.fileName)}`)
+							pathModule.posix.join(paths.temporaryUploads(), `${randomUUID()}${pathModule.posix.extname(asset.fileName)}`)
 						)
 
 						try {
@@ -1944,8 +2006,8 @@ export class DriveService {
 			}
 
 			if (queryParams && uploadedItems.length > 0) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev => [
 						...prev.filter(item => !uploadedItems.some(uploadedItem => uploadedItem.uuid === item.uuid)),
 						...uploadedItems
@@ -2001,12 +2063,12 @@ export class DriveService {
 
 		fullScreenLoadingModal.show()
 
-		const fileNameParsed = FileSystem.Paths.parse(name)
+		const fileNameParsed = pathModule.posix.parse(name)
 		const fileNameWithExtension = sanitizeFileName(
 			fileNameParsed.ext && fileNameParsed.ext.length > 0 && fileNameParsed.ext.includes(".") ? name : `${fileNameParsed.name}.txt`
 		)
 		const tmpFile = new FileSystem.File(
-			FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(fileNameWithExtension)}`)
+			pathModule.posix.join(paths.temporaryUploads(), `${randomUUID()}${pathModule.posix.extname(fileNameWithExtension)}`)
 		)
 
 		try {
@@ -2027,8 +2089,8 @@ export class DriveService {
 			})
 
 			if (queryParams) {
-				queryUtils.useCloudItemsQuerySet({
-					...queryParams,
+				driveItemsQueryUpdate({
+					params: queryParams,
 					updater: prev => [...prev.filter(item => item.uuid !== uploadedItem.uuid), uploadedItem]
 				})
 			}
@@ -2092,7 +2154,7 @@ export class DriveService {
 			selectedSafDirectoryUri = selectedDirectory.directoryUri
 		}
 
-		const tmpDir = new FileSystem.Directory(FileSystem.Paths.join(paths.temporaryUploads(), randomUUID()))
+		const tmpDir = new FileSystem.Directory(pathModule.posix.join(paths.temporaryUploads(), randomUUID()))
 
 		if (!disableLoader) {
 			fullScreenLoadingModal.show()
@@ -2105,7 +2167,7 @@ export class DriveService {
 
 			tmpDir.create()
 
-			const directoryName = FileSystem.Paths.parse(decodeURIComponent(selectedSafDirectoryUri)).name
+			const directoryName = pathModule.posix.parse(decodeURIComponent(selectedSafDirectoryUri)).name
 
 			await FileSystemLegacy.StorageAccessFramework.copyAsync({
 				from: selectedSafDirectoryUri,

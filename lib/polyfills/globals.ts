@@ -6,8 +6,9 @@ import RNQuickCrypto from "react-native-quick-crypto"
 import { URL, URLSearchParams } from "react-native-url-polyfill"
 // @ts-expect-error Polyfills
 import { TextDecoder, TextEncoder } from "text-encoding"
-import "web-streams-polyfill/polyfill"
 import { Readable } from "stream"
+import { Packr } from "msgpackr"
+import "web-streams-polyfill/polyfill"
 
 // @ts-expect-error For the TS SDK
 global.IS_EXPO_REACT_NATIVE = true
@@ -57,8 +58,11 @@ if (typeof EventTarget === "undefined") {
 
 if (!global.structuredClone) {
 	try {
-		// eslint-disable-next-line @typescript-eslint/no-require-imports
-		global.structuredClone = require("realistic-structured-clone")
+		const packr = new Packr({
+			structuredClone: true
+		})
+
+		global.structuredClone = val => packr.unpack(packr.pack(val))
 	} catch {
 		// Noop
 	}

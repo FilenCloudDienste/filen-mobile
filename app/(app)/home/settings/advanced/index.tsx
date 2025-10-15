@@ -5,88 +5,37 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { formatBytes } from "@/lib/utils"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { Platform } from "react-native"
-import { useQuery } from "@tanstack/react-query"
 import paths from "@/lib/paths"
-import * as FileSystem from "expo-file-system/next"
 import sqlite from "@/lib/sqlite"
 import trackPlayer from "@/lib/trackPlayer"
 import { useTranslation } from "react-i18next"
 import TurboImage from "react-native-turbo-image"
+import useSettingsAdvancedCacheQuery, { settingsAdvancedCacheQueryRefetch } from "@/queries/useSettingsAdvancedCache.query"
 
 export const Advanced = memo(() => {
 	const { t } = useTranslation()
 
-	const { data, refetch, status } = useQuery({
-		queryKey: ["settingsAdvancedCacheQuery"],
-		queryFn: async () => {
-			const thumbnailsSize = new FileSystem.Directory(paths.thumbnails())
-				.list()
-				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
-				.reduce((a, b) => a + b, 0)
-
-			const exportsSize = new FileSystem.Directory(paths.exports())
-				.list()
-				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
-				.reduce((a, b) => a + b, 0)
-
-			const offlineFilesSize = new FileSystem.Directory(paths.offlineFiles())
-				.list()
-				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
-				.reduce((a, b) => a + b, 0)
-
-			const temporaryDownloadsSize = new FileSystem.Directory(paths.temporaryDownloads())
-				.list()
-				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
-				.reduce((a, b) => a + b, 0)
-
-			const temporaryUploadsSize = new FileSystem.Directory(paths.temporaryUploads())
-				.list()
-				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
-				.reduce((a, b) => a + b, 0)
-
-			const trackPlayerSize = new FileSystem.Directory(paths.trackPlayer())
-				.list()
-				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
-				.reduce((a, b) => a + b, 0)
-
-			const trackPlayerPicturesSize = new FileSystem.Directory(paths.trackPlayerPictures())
-				.list()
-				.map(entry => (entry instanceof FileSystem.File ? entry.size ?? 0 : 0))
-				.reduce((a, b) => a + b, 0)
-
-			return {
-				thumbnailsSize,
-				exportsSize,
-				offlineFilesSize,
-				temporaryDownloadsSize,
-				temporaryUploadsSize,
-				trackPlayerSize,
-				trackPlayerPicturesSize
-			}
-		},
-		throwOnError(err) {
-			console.error(err)
-			alerts.error(err.message)
-
-			return false
-		}
-	})
+	const settingsAdvancedCacheQuery = useSettingsAdvancedCacheQuery()
 
 	const cacheSize = useMemo(() => {
-		return (data?.exportsSize ?? 0) + (data?.temporaryDownloadsSize ?? 0) + (data?.temporaryUploadsSize ?? 0)
-	}, [data])
+		return (
+			(settingsAdvancedCacheQuery.data?.exportsSize ?? 0) +
+			(settingsAdvancedCacheQuery.data?.temporaryDownloadsSize ?? 0) +
+			(settingsAdvancedCacheQuery.data?.temporaryUploadsSize ?? 0)
+		)
+	}, [settingsAdvancedCacheQuery.data])
 
 	const thumbnailsSize = useMemo(() => {
-		return data?.thumbnailsSize ?? 0
-	}, [data])
+		return settingsAdvancedCacheQuery.data?.thumbnailsSize ?? 0
+	}, [settingsAdvancedCacheQuery.data])
 
 	const trackPlayerSize = useMemo(() => {
-		return (data?.trackPlayerSize ?? 0) + (data?.trackPlayerPicturesSize ?? 0)
-	}, [data])
+		return (settingsAdvancedCacheQuery.data?.trackPlayerSize ?? 0) + (settingsAdvancedCacheQuery.data?.trackPlayerPicturesSize ?? 0)
+	}, [settingsAdvancedCacheQuery.data])
 
 	const offlineFilesSize = useMemo(() => {
-		return data?.offlineFilesSize ?? 0
-	}, [data])
+		return settingsAdvancedCacheQuery.data?.offlineFilesSize ?? 0
+	}, [settingsAdvancedCacheQuery.data])
 
 	const clearCache = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
@@ -105,7 +54,7 @@ export const Advanced = memo(() => {
 
 			await Promise.all([TurboImage.clearDiskCache(), TurboImage.clearMemoryCache()])
 
-			await refetch()
+			await settingsAdvancedCacheQueryRefetch()
 		} catch (e) {
 			console.error(e)
 
@@ -115,7 +64,7 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [refetch, t])
+	}, [t])
 
 	const clearThumbnails = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
@@ -132,7 +81,7 @@ export const Advanced = memo(() => {
 		try {
 			paths.clearThumbnails()
 
-			await refetch()
+			await settingsAdvancedCacheQueryRefetch()
 		} catch (e) {
 			console.error(e)
 
@@ -142,7 +91,7 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [refetch, t])
+	}, [t])
 
 	const clearTrackPlayer = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
@@ -160,7 +109,7 @@ export const Advanced = memo(() => {
 			paths.clearTrackPlayer()
 			trackPlayer.clearState()
 
-			await refetch()
+			await settingsAdvancedCacheQueryRefetch()
 		} catch (e) {
 			console.error(e)
 
@@ -170,7 +119,7 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [refetch, t])
+	}, [t])
 
 	const clearOfflineFiles = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
@@ -189,7 +138,7 @@ export const Advanced = memo(() => {
 
 			await sqlite.offlineFiles.clear()
 
-			await refetch()
+			await settingsAdvancedCacheQueryRefetch()
 		} catch (e) {
 			console.error(e)
 
@@ -199,7 +148,7 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [refetch, t])
+	}, [t])
 
 	const items = useMemo(() => {
 		return [
@@ -262,7 +211,7 @@ export const Advanced = memo(() => {
 		<SettingsComponent
 			title={t("settings.advanced.title")}
 			showSearchBar={false}
-			loading={status !== "success"}
+			loading={settingsAdvancedCacheQuery.status !== "success"}
 			items={items}
 		/>
 	)

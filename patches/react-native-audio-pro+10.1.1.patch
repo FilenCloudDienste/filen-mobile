@@ -1,0 +1,56 @@
+diff --git a/node_modules/react-native-audio-pro/android/build.gradle b/node_modules/react-native-audio-pro/android/build.gradle
+index afeb518..fa76270 100644
+--- a/node_modules/react-native-audio-pro/android/build.gradle
++++ b/node_modules/react-native-audio-pro/android/build.gradle
+@@ -78,10 +78,11 @@ dependencies {
+ 	implementation "com.facebook.react:react-android"
+ 	implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+ 
+-	implementation "androidx.media3:media3-exoplayer:1.6.0"
+-	implementation "androidx.media3:media3-session:1.6.0"
+-	implementation "androidx.media3:media3-common:1.6.0"
+-	implementation "androidx.media3:media3-common-ktx:1.6.0"
++	// Align media3 version with expo-video and expo-audio
++	implementation "androidx.media3:media3-exoplayer:1.8.0"
++	implementation "androidx.media3:media3-session:1.8.0"
++	implementation "androidx.media3:media3-common:1.8.0"
++	implementation "androidx.media3:media3-common-ktx:1.8.0"
+ 
+ 	implementation "androidx.core:core-ktx:1.16.0"
+ 	implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7"
+diff --git a/node_modules/react-native-audio-pro/lib/module/useAudioPro.js b/node_modules/react-native-audio-pro/lib/module/useAudioPro.js
+index 219a107..a8e28f2 100644
+--- a/node_modules/react-native-audio-pro/lib/module/useAudioPro.js
++++ b/node_modules/react-native-audio-pro/lib/module/useAudioPro.js
+@@ -1,6 +1,6 @@
+ "use strict";
+ 
+-import { shallow } from 'zustand/shallow';
++import { useShallow } from 'zustand/shallow';
+ import { internalStore } from "./internalStore.js";
+ const selectAll = state => ({
+   state: state.playerState,
+@@ -12,9 +12,6 @@ const selectAll = state => ({
+   error: state.error
+ });
+ 
+-// Typed wrapper around the Zustand hook so we can reuse it below.
+-const select = internalStore;
+-
+ /**
+  * React hook for accessing the current state of the audio player.
+  *
+@@ -23,10 +20,7 @@ const select = internalStore;
+  * subscribe only to the specific piece of state your component needs.
+  */
+ 
+-export function useAudioPro(selector, equalityFn) {
+-  if (selector) {
+-    return select(selector, equalityFn);
+-  }
+-  return select(selectAll, shallow);
++export function useAudioPro(selector) {
++  return internalStore(useShallow(selector ?? selectAll));
+ }
+ //# sourceMappingURL=useAudioPro.js.map
+\ No newline at end of file

@@ -1,16 +1,16 @@
 import "ts-node/register"
-import { type ExpoConfig, type ConfigContext } from "expo/config"
+import type { ExpoConfig, ConfigContext } from "expo/config"
 
-export const VERSION: string = "3.0.20"
+export const VERSION: string = "3.0.25"
 
 export const APPLE_TEAM_ID: string = "7YTW5D2K7P"
 export const IOS_APP_GROUP_ID: string = "group.io.filen.app"
 export const JS_ENGINE: "hermes" | "jsc" = "hermes"
 export const NEW_ARCH_ENABLED: boolean = true
 export const ANDROID_MIN_SDK_VERSION: number = 31
-export const ANDROID_TARGET_SDK_VERSION: number = 35
-export const ANDROID_COMPILE_SDK_VERSION: number = 35
-export const ANDROID_BUILD_TOOLS_VERSION: string = "35.0.0"
+export const ANDROID_TARGET_SDK_VERSION: number = 36
+export const ANDROID_COMPILE_SDK_VERSION: number = 36
+export const ANDROID_BUILD_TOOLS_VERSION: string = "36.0.0"
 export const IOS_DEPLOYMENT_TARGET: string = "16.0"
 export const NAME: string = "Filen"
 export const IDENTIFIER: string = "io.filen.app"
@@ -188,6 +188,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			}
 		],
 		[
+			"expo-video",
+			{
+				supportsBackgroundPlayback: false,
+				supportsPictureInPicture: false
+			}
+		],
+		[
 			"expo-audio",
 			{
 				microphonePermission: "Please allow access to your microphone so that Filen can capture audio when recording videos."
@@ -219,13 +226,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 			"expo-local-authentication",
 			{
 				faceIDPermission: "Please allow Filen to use FaceID or TouchID to lock itself."
-			}
-		],
-		[
-			"expo-sqlite",
-			{
-				enableFTS: true,
-				useSQLCipher: true
 			}
 		],
 		"expo-background-task",
@@ -291,7 +291,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 		],
 		"./plugins/withAndroidSigning",
 		"./plugins/withGradleMemory",
-		"react-native-video",
 		"./plugins/withAndroidLocaleConfig"
 	],
 	experiments: {

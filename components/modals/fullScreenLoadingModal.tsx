@@ -76,7 +76,7 @@ export const FullScreenLoadingModal = memo(() => {
 			) : (
 				<Modal
 					testID="fullScreenLoadingModal"
-					visible={visible}
+					visible={true}
 					transparent={true}
 					animationType="fade"
 					className="pointer-events-none"
@@ -84,7 +84,7 @@ export const FullScreenLoadingModal = memo(() => {
 					onRequestClose={onRequestClose}
 					statusBarTranslucent={true}
 					navigationBarTranslucent={true}
-					supportedOrientations={["portrait", "landscape", "portrait-upside-down", "landscape-left", "landscape-right"]}
+					supportedOrientations={["portrait", "landscape"]}
 				>
 					<View
 						className="flex-1 absolute top-0 left-0 bottom-0 right-0 z-[9999] w-full h-full justify-center items-center pointer-events-none"

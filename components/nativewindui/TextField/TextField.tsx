@@ -2,9 +2,9 @@ import { useAugmentedRef, useControllableState } from "@rn-primitives/hooks"
 import { Icon } from "@roninoss/icons"
 import { cva } from "class-variance-authority"
 import { memo, forwardRef, useState, useMemo, useCallback, Fragment } from "react"
-import { Pressable, TextInput, View, ViewProps, ViewStyle, type NativeSyntheticEvent, type TextInputFocusEventData } from "react-native"
+import { Pressable, TextInput, View, ViewProps, ViewStyle } from "react-native"
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useDerivedValue, withTiming } from "react-native-reanimated"
-import { type TextFieldProps, type TextFieldRef } from "./types"
+import type { TextFieldProps, TextFieldRef } from "./types"
 import { cn } from "~/lib/cn"
 import { useColorScheme } from "~/lib/useColorScheme"
 
@@ -59,22 +59,6 @@ export const TextField = memo(
 			}, [inputRef])
 
 			const [isFocused, setIsFocused] = useState(false)
-
-			const onFocus = useCallback(
-				(e: NativeSyntheticEvent<TextInputFocusEventData>) => {
-					setIsFocused(true)
-					onFocusProp?.(e)
-				},
-				[onFocusProp]
-			)
-
-			const onBlur = useCallback(
-				(e: NativeSyntheticEvent<TextInputFocusEventData>) => {
-					setIsFocused(false)
-					onBlurProp?.(e)
-				},
-				[onBlurProp]
-			)
 
 			const InputWrapper = useMemo(() => {
 				return materialVariant === "filled" ? FilledWrapper : FilledWrapper
@@ -140,8 +124,14 @@ export const TextField = memo(
 									className
 								)}
 								placeholder={isFocused || !label ? placeholder : ""}
-								onFocus={onFocus}
-								onBlur={onBlur}
+								onFocus={e => {
+									setIsFocused(true)
+									onFocusProp?.(e)
+								}}
+								onBlur={e => {
+									setIsFocused(false)
+									onBlurProp?.(e)
+								}}
 								onChangeText={onChangeText}
 								value={value}
 								accessibilityHint={accessibilityHint ?? errorMessage}

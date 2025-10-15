@@ -7,7 +7,7 @@ import TurboImage from "react-native-turbo-image"
 import { getPreviewType, formatBytes } from "@/lib/utils"
 import driveService from "@/services/drive.service"
 import { randomUUID } from "expo-crypto"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
@@ -20,7 +20,7 @@ import paths from "@/lib/paths"
 import RequireInternet from "@/components/requireInternet"
 import { useTranslation } from "react-i18next"
 import upload from "@/lib/upload"
-import assets from "@/lib/assets"
+import pathModule from "path"
 
 export type ListItemInfo = {
 	title: string
@@ -50,9 +50,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 							height: ICON_HEIGHT,
 							borderRadius: 6,
 							backgroundColor: colors.background
-						}}
-						placeholder={{
-							blurhash: assets.blurhash.images.fallback
 						}}
 					/>
 				) : (
@@ -133,7 +130,7 @@ export default function ShareIntent() {
 					}
 
 					const tmpFile = new FileSystem.File(
-						FileSystem.Paths.join(paths.temporaryUploads(), `${randomUUID()}${FileSystem.Paths.extname(file.fileName)}`)
+						pathModule.posix.join(paths.temporaryUploads(), `${randomUUID()}${pathModule.posix.extname(file.fileName)}`)
 					)
 
 					try {

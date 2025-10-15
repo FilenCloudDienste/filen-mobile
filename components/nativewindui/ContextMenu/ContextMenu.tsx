@@ -4,7 +4,6 @@ import { Icon } from "@roninoss/icons"
 import * as Haptics from "expo-haptics"
 import { createContext, forwardRef, memo, useState, useRef, useContext, useId, useCallback } from "react"
 import { Image, LayoutChangeEvent, LayoutRectangle, Pressable, StyleSheet, View, ViewProps } from "react-native"
-import Animated, { FadeIn, FadeInLeft, FadeOut, FadeOutLeft, LayoutAnimationConfig, LinearTransition } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { ContextItem, ContextMenuProps, ContextMenuRef, ContextSubMenu } from "./types"
 import { ActivityIndicator } from "~/components/nativewindui/ActivityIndicator"
@@ -102,7 +101,12 @@ export const ContextMenu = memo(
 
 			const onTriggerLongPress = useCallback(() => {
 				rootRef.current?.measure((_x, _y, width, height, pageX, pageY) => {
-					setRootLayout({ height, width, pageX, pageY })
+					setRootLayout({
+						height,
+						width,
+						pageX,
+						pageY
+					})
 				})
 			}, [rootRef])
 
@@ -114,10 +118,13 @@ export const ContextMenu = memo(
 
 			const onItemPress = useCallback(
 				(item: Omit<ContextItem, "icon">) => {
-					closeSubMenus()
-					onItemPressProp?.(item)
+					dismissMenu?.()
+
+					setTimeout(() => {
+						onItemPressProp?.(item)
+					}, 100)
 				},
-				[onItemPressProp, closeSubMenus]
+				[onItemPressProp, dismissMenu]
 			)
 
 			const onOpenChange = useCallback(
@@ -166,10 +173,8 @@ export const ContextMenu = memo(
 								}}
 							>
 								<ContextMenuPrimitive.Overlay style={StyleSheet.absoluteFill}>
-									<Animated.View
+									<View
 										style={StyleSheet.absoluteFill}
-										entering={FadeIn}
-										exiting={FadeOut}
 										className={cn("bg-black/20", materialOverlayClassName)}
 									>
 										{renderAuxiliaryPreview && contentLayout && (
@@ -194,9 +199,7 @@ export const ContextMenu = memo(
 											pointerEvents={!title && items.length === 0 ? "none" : undefined}
 											onLayout={onContentLayout}
 										>
-											<Animated.View
-												entering={FadeIn}
-												exiting={FadeOut}
+											<View
 												style={{
 													minWidth: materialMinWidth,
 													width: materialWidth
@@ -205,9 +208,9 @@ export const ContextMenu = memo(
 											>
 												{!!title && <ContextMenuLabel>{title}</ContextMenuLabel>}
 												<ContextMenuInnerContent items={items} />
-											</Animated.View>
+											</View>
 										</ContextMenuPrimitive.Content>
-									</Animated.View>
+									</View>
 								</ContextMenuPrimitive.Overlay>
 							</ContextMenuContext.Provider>
 						</ContextMenuPrimitive.Portal>
@@ -326,85 +329,70 @@ export const ContextMenuItem = memo((props: Omit<ContextItem, "loading">) => {
 	}
 
 	return (
-		<LayoutAnimationConfig
-			skipEntering
-			skipExiting
+		<ContextMenuPrimitive.Item
+			asChild={true}
+			closeOnPress={!props.keepOpenOnPress}
+			role="checkbox"
+			accessibilityState={{
+				disabled: !!props.disabled,
+				checked: props.state?.checked
+			}}
 		>
-			<ContextMenuPrimitive.Item
-				asChild={true}
-				closeOnPress={!props.keepOpenOnPress}
-				role="checkbox"
-				accessibilityState={{
-					disabled: !!props.disabled,
-					checked: props.state?.checked
-				}}
+			<Button
+				variant={props.state?.checked ? "tonal" : "plain"}
+				className={cn("h-12 justify-between gap-10 rounded-none px-3", !props.state && !props.title && "justify-center px-4")}
+				androidRootClassName="rounded-none"
+				accessibilityHint={props.subTitle}
+				onPress={onPress}
 			>
-				<Button
-					variant={props.state?.checked ? "tonal" : "plain"}
-					className={cn("h-12 justify-between gap-10 rounded-none px-3", !props.state && !props.title && "justify-center px-4")}
-					androidRootClassName="rounded-none"
-					accessibilityHint={props.subTitle}
-					onPress={onPress}
-				>
-					{!props.state && !props.title ? null : (
-						<View className="flex-row items-center gap-3 py-0.5">
-							{props.state?.checked && (
-								<Animated.View
-									entering={FadeInLeft}
-									exiting={FadeOutLeft}
-								>
-									<Icon
-										name="check"
-										size={21}
-										color={colors.foreground}
-									/>
-								</Animated.View>
-							)}
-							<Animated.View layout={LinearTransition}>
-								<Text
-									numberOfLines={1}
-									className={cn(
-										"font-normal",
-										props.destructive && "text-destructive font-medium",
-										props.disabled && "opacity-60"
-									)}
-								>
-									{props.title}
-								</Text>
-							</Animated.View>
-							{props.state && !props.state?.checked && (
+				{!props.state && !props.title ? null : (
+					<View className="flex-row items-center gap-3 py-0.5">
+						{props.state?.checked && (
+							<View>
 								<Icon
 									name="check"
 									size={21}
-									color="#00000000"
+									color={colors.foreground}
 								/>
-							)}
+							</View>
+						)}
+						<View>
+							<Text
+								numberOfLines={1}
+								className={cn(
+									"font-normal",
+									props.destructive && "text-destructive font-medium",
+									props.disabled && "opacity-60"
+								)}
+							>
+								{props.title}
+							</Text>
 						</View>
-					)}
-					{props.image ? (
-						<Image
-							source={{
-								uri: props.image.url
-							}}
-							style={{
-								width: 22,
-								height: 22,
-								borderRadius:
-									typeof props.image.cornerRadius === "number" && props.image.cornerRadius > 0
-										? props.image.cornerRadius / 4
-										: 0
-							}}
-						/>
-					) : props.icon ? (
-						<Icon
-							color={colors.foreground}
-							{...props.icon}
-							size={22}
-						/>
-					) : null}
-				</Button>
-			</ContextMenuPrimitive.Item>
-		</LayoutAnimationConfig>
+					</View>
+				)}
+				{props.image ? (
+					<Image
+						source={{
+							uri: props.image.url
+						}}
+						style={{
+							width: 22,
+							height: 22,
+							borderRadius:
+								typeof props.image.cornerRadius === "number" && props.image.cornerRadius > 0
+									? props.image.cornerRadius / 4
+									: 0
+						}}
+					/>
+				) : props.icon ? (
+					<Icon
+						color={colors.foreground}
+						{...props.icon}
+						size={22}
+					/>
+				) : null}
+			</Button>
+		</ContextMenuPrimitive.Item>
 	)
 })
 
@@ -429,7 +417,10 @@ export const ContextMenuSubMenu = memo(({ title, subTitle, items }: Omit<Context
 	const onItemPress = useCallback(
 		(item: Omit<ContextItem, "icon">) => {
 			dismissMenu?.()
-			onContextMenuItemPress?.(item)
+
+			setTimeout(() => {
+				onContextMenuItemPress?.(item)
+			}, 100)
 		},
 		[dismissMenu, onContextMenuItemPress]
 	)

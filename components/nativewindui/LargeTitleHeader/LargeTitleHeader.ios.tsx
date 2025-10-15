@@ -101,6 +101,10 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 				ref?.current?.clearText?.()
 				props.searchBar?.onChangeText?.("")
 			}
+
+			setTimeout(() => {
+				events.emit("searchBarHidden", true)
+			}, 100)
 		})
 
 		return () => {
@@ -111,17 +115,20 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 	return (
 		<Fragment>
 			<Stack.Screen options={options} />
-			{props.searchBar?.content && isFocused && (
-				<Portal name={`large-title:${id}`}>
-					<Animated.View
-						entering={FadeIn.delay(100)}
-						style={viewStyle}
-						className="absolute bottom-0 left-0 right-0"
-					>
-						{props.searchBar?.content}
-					</Animated.View>
-				</Portal>
-			)}
+			<Portal name={`large-title:${id}`}>
+				<Animated.View
+					entering={FadeIn.delay(100)}
+					style={[
+						viewStyle,
+						{
+							display: props.searchBar?.content && isFocused ? "flex" : "none"
+						}
+					]}
+					className="absolute bottom-0 left-0 right-0"
+				>
+					{props.searchBar?.content}
+				</Animated.View>
+			</Portal>
 		</Fragment>
 	)
 })

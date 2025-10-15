@@ -1,13 +1,13 @@
 import { memo, useMemo, useCallback } from "react"
 import { Settings as SettingsComponent, IconView } from "@/components/settings"
 import Avatar from "@/components/avatar"
-import useAccountQuery from "@/queries/useAccountQuery"
+import useAccountQuery from "@/queries/useAccount.query"
 import { formatBytes } from "@/lib/utils"
 import { useRouter } from "expo-router"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import { useTranslation } from "react-i18next"
-import { Platform } from "react-native"
-import { useQuery } from "@tanstack/react-query"
+import { Platform, View } from "react-native"
+import useFileProviderEnabledQuery, { fileProviderEnabledQueryRefetch } from "@/queries/useFileProviderEnabled.query"
 import fileProvider from "@/lib/fileProvider"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
@@ -19,19 +19,8 @@ import assets from "@/lib/assets"
 export const Settings = memo(() => {
 	const router = useRouter()
 	const { t } = useTranslation()
-
-	const account = useAccountQuery({})
-
-	const { refetch: fileProviderEnabledQueryRefetch, data: fileProviderEnabledQueryData } = useQuery({
-		queryKey: ["fileProviderEnabledQuery"],
-		queryFn: () => fileProvider.enabled(),
-		throwOnError(err) {
-			console.error(err)
-			alerts.error(err.message)
-
-			return false
-		}
-	})
+	const account = useAccountQuery()
+	const fileProviderEnabledQuery = useFileProviderEnabledQuery()
 
 	const avatarSource = useMemo(() => {
 		if (account.status !== "success" || !account.data.account.avatarURL || !account.data.account.avatarURL.startsWith("https://")) {
@@ -130,7 +119,7 @@ export const Settings = memo(() => {
 				fullScreenLoadingModal.hide()
 			}
 		},
-		[fileProviderEnabledQueryRefetch, t]
+		[t]
 	)
 
 	const items = useMemo(() => {
@@ -211,11 +200,12 @@ export const Settings = memo(() => {
 					/>
 				),
 				rightView: (
-					<Toggle
-						testID="home.settings.fileProvider.toggle"
-						value={fileProviderEnabledQueryData ?? false}
-						onValueChange={onChangeFileProvider}
-					/>
+					<View testID="home.settings.fileProvider.toggle">
+						<Toggle
+							value={fileProviderEnabledQuery.data ?? false}
+							onValueChange={onChangeFileProvider}
+						/>
+					</View>
 				)
 			},
 			"gap-2",
@@ -257,7 +247,7 @@ export const Settings = memo(() => {
 		onPressContacts,
 		onPressAdvanced,
 		onPressCameraUpload,
-		fileProviderEnabledQueryData,
+		fileProviderEnabledQuery.data,
 		onChangeFileProvider
 	])
 

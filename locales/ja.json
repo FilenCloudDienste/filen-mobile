@@ -489,7 +489,8 @@
             "expiration6h": "6時間",
             "expiration7d": "7日間",
             "expirationNever": "無し",
-            "password": "パスワード"
+            "password": "パスワード",
+            "shareLink": "共有リンク"
         },
         "onlyPro": "この機能は Filen Pro ユーザーのみ利用可能です。Filen のプランに加入して有効にしてください。",
         "prompts": {
@@ -1397,6 +1398,7 @@
             "resume": "再開",
             "stop": "停止",
             "stopAll": "すべて停止"
-        }
+        },
+        "infoNoTime": "{{speed}}で{{ongoingTransfers}}個のアイテムを転送中"
     }
 }

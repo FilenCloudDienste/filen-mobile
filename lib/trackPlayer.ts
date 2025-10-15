@@ -1,17 +1,18 @@
 import { AudioProEventType, type AudioProTrack, AudioProContentType, AudioProState } from "react-native-audio-pro"
 import Semaphore from "./semaphore"
 import mmkvInstance from "./mmkv"
-import * as FileSystem from "expo-file-system/next"
+import * as FileSystem from "expo-file-system"
 import paths from "./paths"
 import { randomUUID } from "expo-crypto"
-import { type FileEncryptionVersion } from "@filen/sdk"
+import type { FileEncryptionVersion } from "@filen/sdk"
 import { normalizeFilePathForExpo, shuffleArray } from "./utils"
 import mimeTypes from "mime-types"
-import { AudioPro } from "./audioPro"
+import { AudioPro } from "react-native-audio-pro"
 import { useTrackPlayerStore } from "@/stores/trackPlayer.store"
 import assets from "./assets"
 import download from "@/lib/download"
 import { getAudioMetadata } from "@missingcore/audio-metadata"
+import pathModule from "path"
 
 export type AudioProTrackExtended = AudioProTrack & {
 	file: {
@@ -44,7 +45,7 @@ export const TRACK_PLAYER_PLAYING_TRACK_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Playin
 export const TRACK_PLAYER_TIMINGS_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Timings`
 export const TRACK_PLAYER_REPEAT_MODE_KEY = `${TRACK_PLAYER_MMKV_PREFIX}RepeatMode`
 export const TRACK_PLAYER_PLAYBACK_SPEED_KEY = `${TRACK_PLAYER_MMKV_PREFIX}PlaybackSpeed`
-export const TRACK_PLAYER_VOLUME_KEY = `${TRACK_PLAYER_MMKV_PREFIX}>Volume`
+export const TRACK_PLAYER_VOLUME_KEY = `${TRACK_PLAYER_MMKV_PREFIX}Volume`
 
 export class TrackPlayer {
 	private readonly loadFileForTrackMutex: Semaphore = new Semaphore(1)
@@ -270,7 +271,7 @@ export class TrackPlayer {
 				return
 			}
 
-			const name = FileSystem.Paths.parse(file.uri).name
+			const name = pathModule.posix.parse(file.uri).name
 
 			if (tracksToKeepNames.includes(name)) {
 				continue
@@ -617,14 +618,16 @@ export class TrackPlayer {
 
 						if (fileExtension) {
 							const destination = new FileSystem.File(
-								FileSystem.Paths.join(paths.trackPlayerPictures(), `${uuid}.${fileExtension}`)
+								pathModule.posix.join(paths.trackPlayerPictures(), `${uuid}.${fileExtension}`)
 							)
 
 							if (destination.exists) {
 								destination.delete()
 							}
 
-							destination.write(new Uint8Array(Buffer.from(base64String, "base64")))
+							destination.write(base64String, {
+								encoding: "base64"
+							})
 
 							coverURI = normalizeFilePathForExpo(destination.uri)
 						}
@@ -714,7 +717,7 @@ export class TrackPlayer {
 
 		try {
 			const destination = new FileSystem.File(
-				FileSystem.Paths.join(paths.trackPlayer(), `${track.file.uuid}${FileSystem.Paths.extname(track.file.name)}`)
+				pathModule.posix.join(paths.trackPlayer(), `${track.file.uuid}${pathModule.posix.extname(track.file.name)}`)
 			)
 
 			if (!destination.exists) {
