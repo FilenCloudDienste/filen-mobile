@@ -12,8 +12,8 @@ import { PortalHost } from "@rn-primitives/portal"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { KeyboardProvider } from "react-native-keyboard-controller"
 import { ActionSheetProvider } from "@expo/react-native-action-sheet"
-import { queryClientPersister, queryClient, shouldPersistQuery, QUERY_CLIENT_CACHE_TIME } from "@/queries/client"
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client"
+import { queryClient, restoreQueries } from "@/queries/client"
+import { QueryClientProvider } from "@tanstack/react-query"
 import InputPrompt from "@/components/prompts/inputPrompt"
 import ColorPickerSheet from "@/components/sheets/colorPickerSheet"
 import ItemInfoSheet from "@/components/sheets/itemInfoSheet"
@@ -47,7 +47,6 @@ export default function RootLayout() {
 	const { colorScheme, colors } = useColorScheme()
 	const [isAuthed] = useIsAuthed()
 	const [setupDone, setSetupDone] = useState<boolean>(false)
-	const [restoredQueries, setRestoredQueries] = useState<boolean>(false)
 
 	const statusBarStyle = useMemo(() => {
 		return colorScheme === "dark" ? "light" : "auto"
@@ -73,8 +72,7 @@ export default function RootLayout() {
 	}, [setupDone])
 
 	useEffect(() => {
-		authService
-			.setup()
+		Promise.all([authService.setup(), restoreQueries()])
 			.then(() => {
 				setSetupDone(true)
 
@@ -97,24 +95,12 @@ export default function RootLayout() {
 			/>
 			<GestureHandlerRootView style={gestureHandlerRootViewStyle}>
 				<KeyboardProvider>
-					<PersistQueryClientProvider
-						client={queryClient}
-						persistOptions={{
-							persister: queryClientPersister,
-							maxAge: QUERY_CLIENT_CACHE_TIME,
-							buster: "v1",
-							dehydrateOptions: {
-								shouldDehydrateQuery: shouldPersistQuery
-							}
-						}}
-						onError={console.error}
-						onSuccess={() => setRestoredQueries(true)}
-					>
+					<QueryClientProvider client={queryClient}>
 						<ActionSheetProvider>
 							<BottomSheetModalProvider>
 								<NavThemeProvider value={NAV_THEME[colorScheme]}>
 									<NotifierWrapper useRNScreensOverlay={true}>
-										{setupDone && restoredQueries && (
+										{setupDone && (
 											<ShareIntentProvider>
 												<Stack
 													initialRouteName={initialRouteName}
@@ -207,7 +193,7 @@ export default function RootLayout() {
 								</NavThemeProvider>
 							</BottomSheetModalProvider>
 						</ActionSheetProvider>
-					</PersistQueryClientProvider>
+					</QueryClientProvider>
 				</KeyboardProvider>
 			</GestureHandlerRootView>
 		</Fragment>

@@ -1,4 +1,4 @@
-import queryClient from "./client"
+import queryClient, { queryClientPersister } from "./client"
 
 export class QueryUpdater {
 	public get<T>(queryKey: unknown[]): T | undefined {
@@ -19,6 +19,8 @@ export class QueryUpdater {
 				updatedAt: Date.now()
 			}
 		)
+
+		queryClientPersister.persistQueryByKey(queryKey, queryClient).catch(console.error)
 	}
 }
 

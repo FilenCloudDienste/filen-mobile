@@ -1,16 +1,14 @@
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister"
-import { QueryClient, type UseQueryOptions, type Query } from "@tanstack/react-query"
+import { QueryClient, type UseQueryOptions } from "@tanstack/react-query"
 import cache from "@/lib/cache"
 import alerts from "@/lib/alerts"
-import type { PersistedClient } from "@tanstack/query-persist-client-core"
+import { experimental_createQueryPersister, type PersistedQuery } from "@tanstack/query-persist-client-core"
 import { useMemo } from "react"
 import useFocusNotifyOnChangeProps from "@/hooks/useFocusNotifyOnChangeProps"
 import useQueryFocusAware from "@/hooks/useQueryFocusAware"
 import useNetInfo from "@/hooks/useNetInfo"
-import * as FileSystem from "expo-file-system"
-import paths from "@/lib/paths"
-import pathModule from "path"
-import { pack, unpack } from "msgpackr"
+import sqlite from "@/lib/sqlite"
+import Semaphore from "@/lib/semaphore"
+import { jsonBigIntReplacer, jsonBigIntReviver } from "@/lib/utils"
 
 export const VERSION = 3
 export const QUERY_CLIENT_PERSISTER_PREFIX = `reactQuery_v${VERSION}`
@@ -23,10 +21,11 @@ export const UNCACHED_QUERY_KEYS: string[] = [
 	"useFileProviderEnabledQuery",
 	"useLocalAlbumsQuery",
 	"useLocalAuthenticationQuery",
-	"useSettingsAdvancedCacheQuery"
+	"useSettingsAdvancedCacheQuery",
+	"useFileOfflineStatusQuery"
 ]
 
-export const shouldPersistQuery = (query: Query<unknown, Error, unknown, readonly unknown[]>): boolean => {
+export const shouldPersistQuery = (query: PersistedQuery): boolean => {
 	const shouldNotPersist = (query.queryKey as unknown[]).some(
 		queryKey => typeof queryKey === "string" && UNCACHED_QUERY_KEYS.includes(queryKey)
 	)
@@ -34,56 +33,100 @@ export const shouldPersistQuery = (query: Query<unknown, Error, unknown, readonl
 	return !shouldNotPersist && query.state.status === "success"
 }
 
-export const queryClientPersister = createAsyncStoragePersister({
-	storage: {
-		getItem: async <T>(key: string): Promise<T | null> => {
-			const file = new FileSystem.File(pathModule.posix.join(paths.db(), `${key}_${QUERY_CLIENT_PERSISTER_PREFIX}.bin`))
+const persisterMutex = new Semaphore(1)
 
-			if (!file.exists) {
-				return null
-			}
+export const queryClientPersisterKv = {
+	getItem: async <T>(key: string): Promise<T | null> => {
+		return await sqlite.kvAsync.get(`${QUERY_CLIENT_PERSISTER_PREFIX}:${key}`)
+	},
+	setItem: async (key: string, value: unknown): Promise<void> => {
+		await persisterMutex.acquire()
 
-			return unpack(await file.bytes()) as T
-		},
-		setItem: async (key: string, value: unknown): Promise<void> => {
-			const file = new FileSystem.File(pathModule.posix.join(paths.db(), `${key}_${QUERY_CLIENT_PERSISTER_PREFIX}.bin`))
-
-			file.write(pack(value), {})
-		},
-		removeItem: async (key: string): Promise<void> => {
-			const file = new FileSystem.File(pathModule.posix.join(paths.db(), `${key}_${QUERY_CLIENT_PERSISTER_PREFIX}.bin`))
-
-			if (file.exists) {
-				file.delete()
-			}
+		try {
+			await sqlite.kvAsync.set(`${QUERY_CLIENT_PERSISTER_PREFIX}:${key}`, value)
+		} finally {
+			persisterMutex.release()
 		}
 	},
-	serialize: client => {
-		return client as unknown as string
+	removeItem: async (key: string): Promise<void> => {
+		await persisterMutex.acquire()
+
+		try {
+			return await sqlite.kvAsync.remove(`${QUERY_CLIENT_PERSISTER_PREFIX}:${key}`)
+		} finally {
+			persisterMutex.release()
+		}
 	},
-	deserialize: client => {
-		const unpacked = client as unknown as { clientState?: { queries?: Query[] } }
-		const queries = unpacked?.clientState?.queries as Query[]
+	keys: async (): Promise<string[]> => {
+		return (await sqlite.kvAsync.keys()).map(key => key.replace(`${QUERY_CLIENT_PERSISTER_PREFIX}:`, ""))
+	},
+	clear: async (): Promise<void> => {
+		return sqlite.kvAsync.clear()
+	}
+} as const
 
-		if (queries && Array.isArray(queries) && queries.length > 0) {
-			for (const query of queries) {
-				if (query.state.status !== "success" || !query.state.data) {
-					continue
-				}
+export const queryClientPersister = experimental_createQueryPersister({
+	storage: queryClientPersisterKv,
+	maxAge: QUERY_CLIENT_CACHE_TIME,
+	serialize: query => {
+		if (query.state.status !== "success" || !shouldPersistQuery(query)) {
+			return undefined
+		}
 
-				if (query.queryKey.at(0) === "useCloudItemsQuery") {
-					for (const item of (query.state.data as DriveCloudItem[]).filter(item => item.type === "directory")) {
-						cache.directoryUUIDToName.set(item.uuid, item.name)
+		return JSON.stringify(query, jsonBigIntReplacer)
+	},
+	deserialize: query => {
+		return JSON.parse(query as unknown as string, jsonBigIntReviver) as unknown as PersistedQuery
+	},
+	prefix: QUERY_CLIENT_PERSISTER_PREFIX,
+	buster: VERSION.toString()
+})
+
+export async function restoreQueries(): Promise<void> {
+	try {
+		const keys = await queryClientPersisterKv.keys()
+
+		await Promise.all(
+			keys.map(async key => {
+				if (key.startsWith(QUERY_CLIENT_PERSISTER_PREFIX)) {
+					const query = (await queryClientPersisterKv.getItem(key)) as unknown as string | null
+
+					if (!query) {
+						return
+					}
+
+					const persistedQuery = JSON.parse(query, jsonBigIntReviver) as unknown as PersistedQuery
+
+					if (
+						!persistedQuery ||
+						!persistedQuery.state ||
+						!shouldPersistQuery(persistedQuery) ||
+						persistedQuery.state.dataUpdatedAt + QUERY_CLIENT_CACHE_TIME < Date.now() ||
+						persistedQuery.state.status !== "success"
+					) {
+						await queryClientPersisterKv.removeItem(key)
+
+						return
+					}
+
+					queryClient.setQueryData(persistedQuery.queryKey, persistedQuery.state.data, {
+						updatedAt: persistedQuery.state.dataUpdatedAt
+					})
+
+					if (persistedQuery.queryKey.at(0) === "useDriveItemsQuery") {
+						for (const item of persistedQuery.state.data as unknown as DriveCloudItem[]) {
+							if (item.type === "directory") {
+								cache.directoryUUIDToName.set(item.uuid, item.name)
+							}
+						}
 					}
 				}
-			}
-		}
-
-		return unpacked as unknown as PersistedClient
-	},
-	key: QUERY_CLIENT_PERSISTER_PREFIX,
-	throttleTime: 5000
-})
+			})
+		)
+	} catch (e) {
+		console.error(e)
+	}
+}
 
 export const DEFAULT_QUERY_OPTIONS: Pick<
 	UseQueryOptions,
@@ -170,7 +213,8 @@ export const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
 			...DEFAULT_QUERY_OPTIONS,
-			queryKeyHashFn: queryKey => pack(queryKey).toString("base64")
+			persister: queryClientPersister.persisterFn,
+			queryKeyHashFn: queryKey => JSON.stringify(queryKey, jsonBigIntReplacer)
 		}
 	}
 })

@@ -1040,3 +1040,19 @@ export async function hideSearchBarWithDelay(clearText: boolean): Promise<void> 
 
 	await promise
 }
+
+export function jsonBigIntReplacer(_: string, value: unknown) {
+	if (typeof value === "bigint") {
+		return `$bigint:${value.toString()}n`
+	}
+
+	return value
+}
+
+export function jsonBigIntReviver(_: string, value: unknown) {
+	if (typeof value === "string" && value.startsWith("$bigint:") && value.endsWith("n")) {
+		return BigInt(value.substring(8, -1))
+	}
+
+	return value
+}
