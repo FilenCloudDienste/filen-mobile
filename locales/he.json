@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "הזן את מספר הזיהוי האישי שלך"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "התחבר באמצעות זיהוי ביומטרי"
     },
     "bpsToReadable": {
         "b": "ב/ש",

@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "Skriv inn din PIN"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "Autentiser ved bruk av biometrikk"
     },
     "bpsToReadable": {
         "b": "B/s",

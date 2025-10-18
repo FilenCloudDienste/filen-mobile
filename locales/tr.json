@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "PIN kodunuzu girin"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "Biyometrik ile Kimlik Doğrula"
     },
     "bpsToReadable": {
         "b": "B/s",

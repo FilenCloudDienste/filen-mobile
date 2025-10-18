@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "Введіть свій PIN-код"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "Автентифікуйтеся з використанням біометрії"
     },
     "bpsToReadable": {
         "b": "B/s",

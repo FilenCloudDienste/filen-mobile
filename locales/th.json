@@ -132,7 +132,8 @@
                 "placeholder": "รหัส PIN",
                 "title": "กรอก PIN ของคุณ"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "ยืนยันตัวตนโดยใช้ไบโอเมตริก"
     },
     "bpsToReadable": {
         "b": "B/s",

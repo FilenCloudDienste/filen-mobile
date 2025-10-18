@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "Wprowadź swój PIN"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "Uwierzytelnij się za pomocą danych biometrycznych"
     },
     "bpsToReadable": {
         "b": "B/s",

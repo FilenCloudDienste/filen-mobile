@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "Masukkan PIN Anda"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "Otentikasi menggunakan Biometrics"
     },
     "bpsToReadable": {
         "b": "B/s",

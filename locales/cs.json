@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "Zadejte svůj PIN"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "Ověřte se pomocí biometrie"
     },
     "bpsToReadable": {
         "b": "B/s",

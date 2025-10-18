@@ -132,7 +132,8 @@
                 "placeholder": "پن",
                 "title": "اپنا PIN درج کریں"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "بایومیٹرکس کے ذریعے توثیق کریں"
     },
     "bpsToReadable": {
         "b": "B/s",
