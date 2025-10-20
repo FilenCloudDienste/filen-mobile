@@ -46,7 +46,7 @@ export type Delta = {
 export type CameraUploadType = "foreground" | "background"
 
 const runMutex: Semaphore = new Semaphore(1)
-const processDeltaSemaphore: Semaphore = new Semaphore(8)
+const processDeltaSemaphore: Semaphore = new Semaphore(3)
 let nextRunTimeout: number = 0
 
 export class CameraUpload {
@@ -229,7 +229,7 @@ export class CameraUpload {
 					const result = await MediaLibrary.getAssetsAsync({
 						mediaType: this.mediaTypes.includes("video") && !state.videos ? ["photo"] : this.mediaTypes,
 						album: album.id,
-						first: 1024,
+						first: 128,
 						after
 					})
 
