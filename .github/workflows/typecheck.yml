@@ -24,8 +24,14 @@ jobs:
         with:
           node-version: 24
 
-      - name: Install dependencies
+      - name: Install nodeThread dependencies
+        run: cd nodejs-assets/nodejs-project && npm install --force --include=dev && cd .. && cd ..
+
+      - name: Install main dependencies
         run: npm install --force --include=dev
+
+      - name: Build nodeThread
+        run: npm run buildNodeThread
 
       - name: Typecheck
         run: npm run typecheck
