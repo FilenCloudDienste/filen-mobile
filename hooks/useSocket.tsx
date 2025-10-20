@@ -233,7 +233,7 @@ export const appStateMutex = new Semaphore(1)
 
 export default function useSocket() {
 	const [isConnected, setIsConnected] = useState<boolean>(false)
-	const socketRef = useRef<Socket>(socket)
+	const [socketRef] = useState<Socket>(socket)
 	const appStateRef = useRef<AppStateStatus>("active")
 	const [authed] = useIsAuthed()
 
@@ -249,9 +249,9 @@ export default function useSocket() {
 				.acquire()
 				.then(() => {
 					if (nextAppState === "active") {
-						socketRef.current.connect().catch(console.error)
+						socketRef.connect().catch(console.error)
 					} else if (nextAppState === "background" || nextAppState === "inactive") {
-						socketRef.current.disconnect().catch(console.error)
+						socketRef.disconnect().catch(console.error)
 					}
 				})
 				.finally(() => {
@@ -264,16 +264,16 @@ export default function useSocket() {
 		return () => {
 			subscription.remove()
 		}
-	}, [authed])
+	}, [authed, socketRef])
 
 	useEffect(() => {
 		if (appStateRef.current === "active" && authed) {
-			socketRef.current.connect().catch(console.error)
+			socketRef.connect().catch(console.error)
 		}
-	}, [authed])
+	}, [authed, socketRef])
 
 	useEffect(() => {
-		const socketEventListener = socketRef.current.eventEmitter.subscribe("state", state => {
+		const socketEventListener = socketRef.eventEmitter.subscribe("state", state => {
 			if (state === "connected") {
 				setIsConnected(true)
 			} else if (state === "disconnected") {
@@ -284,12 +284,12 @@ export default function useSocket() {
 		return () => {
 			socketEventListener.remove()
 		}
-	}, [])
+	}, [socketRef])
 
 	return {
 		connected: isConnected,
-		socket: socketRef.current,
-		emit: socketRef.current.emit,
-		events: socketRef.current.eventEmitter
+		socket: socketRef,
+		emit: socketRef.emit,
+		events: socketRef.eventEmitter
 	}
 }

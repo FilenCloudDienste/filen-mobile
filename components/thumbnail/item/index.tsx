@@ -35,9 +35,12 @@ export const Thumbnail = memo(
 		const abortControllerRef = useRef<AbortController | null>(null)
 
 		// If the item changed, reset the local path (due to FlashList recycling items)
+		// eslint-disable-next-line react-hooks/refs
 		if (lastItemUuidRef.current !== item.uuid) {
+			// eslint-disable-next-line react-hooks/refs
 			lastItemUuidRef.current = item.uuid
 
+			// eslint-disable-next-line react-hooks/refs
 			abortControllerRef.current?.abort()
 
 			setLocalPath(item.thumbnail ?? cache.availableThumbnails.get(item.uuid))

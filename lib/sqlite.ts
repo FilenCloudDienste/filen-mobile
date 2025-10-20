@@ -70,43 +70,43 @@ export const INIT_QUERIES: {
 		pragma: true
 	},
 	{
-		query: `CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL) WITHOUT ROWID`,
+		query: "CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL) WITHOUT ROWID",
 		pragma: false
 	},
 	{
-		query: `CREATE INDEX IF NOT EXISTS kv_key ON kv (key)`,
+		query: "CREATE INDEX IF NOT EXISTS kv_key ON kv (key)",
 		pragma: false
 	},
 	{
-		query: `CREATE UNIQUE INDEX IF NOT EXISTS kv_key_unique ON kv (key)`,
+		query: "CREATE UNIQUE INDEX IF NOT EXISTS kv_key_unique ON kv (key)",
 		pragma: false
 	},
 	{
-		query: `CREATE TABLE IF NOT EXISTS thumbnails (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, uuid TEXT NOT NULL, path TEXT NOT NULL, size INTEGER NOT NULL)`,
+		query: "CREATE TABLE IF NOT EXISTS thumbnails (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, uuid TEXT NOT NULL, path TEXT NOT NULL, size INTEGER NOT NULL)",
 		pragma: false
 	},
 	{
-		query: `CREATE INDEX IF NOT EXISTS thumbnails_uuid ON thumbnails (uuid)`,
+		query: "CREATE INDEX IF NOT EXISTS thumbnails_uuid ON thumbnails (uuid)",
 		pragma: false
 	},
 	{
-		query: `CREATE INDEX IF NOT EXISTS thumbnails_path ON thumbnails (path)`,
+		query: "CREATE INDEX IF NOT EXISTS thumbnails_path ON thumbnails (path)",
 		pragma: false
 	},
 	{
-		query: `CREATE UNIQUE INDEX IF NOT EXISTS thumbnails_uuid_unique ON thumbnails (uuid)`,
+		query: "CREATE UNIQUE INDEX IF NOT EXISTS thumbnails_uuid_unique ON thumbnails (uuid)",
 		pragma: false
 	},
 	{
-		query: `CREATE TABLE IF NOT EXISTS offline_files (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, uuid TEXT NOT NULL, item TEXT NOT NULL)`,
+		query: "CREATE TABLE IF NOT EXISTS offline_files (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, uuid TEXT NOT NULL, item TEXT NOT NULL)",
 		pragma: false
 	},
 	{
-		query: `CREATE INDEX IF NOT EXISTS offline_files_uuid ON offline_files (uuid)`,
+		query: "CREATE INDEX IF NOT EXISTS offline_files_uuid ON offline_files (uuid)",
 		pragma: false
 	},
 	{
-		query: `CREATE UNIQUE INDEX IF NOT EXISTS offline_files_uuid_unique ON offline_files (uuid)`,
+		query: "CREATE UNIQUE INDEX IF NOT EXISTS offline_files_uuid_unique ON offline_files (uuid)",
 		pragma: false
 	},
 	{

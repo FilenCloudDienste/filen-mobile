@@ -28,7 +28,7 @@ export const LeftView = memo(
 	}) => {
 		const isOnline = useMemo(() => {
 			if (info.item.type === "contact") {
-				return convertTimestampToMs(info.item.contact.lastActive) > Date.now() - CONTACTS_ONLINE_TIMEOUT
+				return convertTimestampToMs(info.item.contact.lastActive) > new Date().getTime() - CONTACTS_ONLINE_TIMEOUT
 			}
 
 			return null

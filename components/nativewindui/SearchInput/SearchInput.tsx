@@ -16,7 +16,6 @@ export const SearchInput = memo(
 				value: valueProp,
 				onChangeText: onChangeTextProp,
 				placeholder,
-				cancelText,
 				containerClassName,
 				iconContainerClassName,
 				className,

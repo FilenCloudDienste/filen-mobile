@@ -14,17 +14,17 @@ import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 export const WithAudioPlayer = memo(({ source, name }: { source: string; name: string; link: string }) => {
 	useSetExpoAudioMode()
 
-	const [loadSuccess, setLoadSuccess] = useState<boolean>(false)
 	const { colors } = useColorScheme()
 	const player = useAudioPlayer(source, {
-		updateInterval: 100
+		updateInterval: 100,
+		crossOrigin: "anonymous"
 	})
 	const playerStatus = useAudioPlayerStatus(player)
 	const trackPlayerControls = useTrackPlayerControls()
 	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
 
 	const togglePlay = useCallback(() => {
-		if (!loadSuccess) {
+		if (!playerStatus.isLoaded) {
 			return
 		}
 
@@ -39,7 +39,7 @@ export const WithAudioPlayer = memo(({ source, name }: { source: string; name: s
 		}
 
 		player.play()
-	}, [player, loadSuccess, playerStatus.playing, playerStatus.currentTime, playerStatus.duration])
+	}, [player, playerStatus.isLoaded, playerStatus.playing, playerStatus.currentTime, playerStatus.duration])
 
 	const seek = useCallback(
 		(value: number) => {
@@ -47,12 +47,6 @@ export const WithAudioPlayer = memo(({ source, name }: { source: string; name: s
 		},
 		[player, playerStatus.duration]
 	)
-
-	useEffect(() => {
-		player.loop = true
-
-		setLoadSuccess(playerStatus.isLoaded)
-	}, [player, playerStatus.isLoaded])
 
 	useEffect(() => {
 		if (playerStatus.isLoaded && playerStatus.playing) {
@@ -83,7 +77,7 @@ export const WithAudioPlayer = memo(({ source, name }: { source: string; name: s
 					onPress={togglePlay}
 					unstable_pressDelay={100}
 				>
-					{loadSuccess ? (
+					{playerStatus.isLoaded ? (
 						<Icon
 							name={playerStatus.playing ? "pause-circle-outline" : "play-circle-outline"}
 							size={32}

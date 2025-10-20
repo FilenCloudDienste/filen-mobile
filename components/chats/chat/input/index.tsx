@@ -337,16 +337,17 @@ export const Input = memo(
 			async (type: "up" | "down") => {
 				await sendTypingEventMutex.current.acquire()
 
-				try {
-					await nodeWorker.proxy("sendChatTyping", {
+				await nodeWorker
+					.proxy("sendChatTyping", {
 						conversation: chat.uuid,
 						type
 					})
-				} catch (e) {
-					console.error(e)
-				} finally {
-					sendTypingEventMutex.current.release()
-				}
+					.catch(e => {
+						console.error(e)
+					})
+					.finally(() => {
+						sendTypingEventMutex.current.release()
+					})
 			},
 			[chat.uuid]
 		)

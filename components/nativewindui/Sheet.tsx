@@ -4,7 +4,7 @@ import { useColorScheme } from "@/lib/useColorScheme"
 
 export const Sheet = memo(
 	forwardRef<BottomSheetModal, React.ComponentPropsWithoutRef<typeof BottomSheetModal>>(
-		({ index = 0, backgroundStyle, style, handleIndicatorStyle, ...props }, ref) => {
+		({ backgroundStyle, style, handleIndicatorStyle, ...props }, ref) => {
 			const { colors } = useColorScheme()
 
 			const renderBackdrop = useCallback(

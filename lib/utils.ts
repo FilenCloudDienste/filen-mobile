@@ -392,9 +392,11 @@ export function sanitizeFileName(filename: string, replacement: string = "_"): s
 
 	// Remove or replace problematic Unicode characters
 	// Remove zero-width characters and other invisible/control characters
+	// eslint-disable-next-line no-control-regex
 	sanitizedFilename = sanitizedFilename.replace(/[\u200B-\u200D\uFEFF\u00AD\u0000-\u001F\u007F-\u009F]/g, "")
 
 	// Replace non-ASCII characters that might cause issues
+	// eslint-disable-next-line no-control-regex
 	sanitizedFilename = sanitizedFilename.replace(/[^\x00-\x7F]/g, replacement)
 
 	const illegalCharsWindows = /[<>:"/\\|?*]/g

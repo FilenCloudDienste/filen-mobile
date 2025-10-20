@@ -20,7 +20,6 @@ export const TextField = memo(
 				placeholder,
 				editable,
 				className,
-				children,
 				leftView,
 				rightView,
 				label,

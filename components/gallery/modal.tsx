@@ -1,5 +1,5 @@
-import { useEffect, memo, useCallback, useMemo, Fragment } from "react"
-import { BackHandler, View, Pressable, type StyleProp, type ViewStyle, FlatList, Modal } from "react-native"
+import { useEffect, memo, useCallback, useMemo } from "react"
+import { BackHandler, View, Pressable, type StyleProp, type ViewStyle, FlatList, Platform } from "react-native"
 import { useGalleryStore, type GalleryItem } from "@/stores/gallery.store"
 import { useShallow } from "zustand/shallow"
 import { KeyboardController } from "react-native-keyboard-controller"
@@ -15,6 +15,8 @@ import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-rean
 import { ActivityIndicator } from "../nativewindui/ActivityIndicator"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { cn } from "@/lib/cn"
+import { Portal } from "@rn-primitives/portal"
+import { FullWindowOverlay } from "react-native-screens"
 
 export const Item = memo(({ item, index, layout }: { item: GalleryItem; index: number; layout: { width: number; height: number } }) => {
 	const { colors, isDarkColorScheme } = useColorScheme()
@@ -108,18 +110,28 @@ export const Item = memo(({ item, index, layout }: { item: GalleryItem; index: n
 
 Item.displayName = "Item"
 
+export const ParentComponent = memo(({ children }: { children: React.ReactNode }) => {
+	if (Platform.OS === "android") {
+		return <Portal name="biometric-modal">{children}</Portal>
+	}
+
+	return <FullWindowOverlay>{children}</FullWindowOverlay>
+})
+
+ParentComponent.displayName = "ParentComponent"
+
 export const GalleryModal = memo(() => {
 	const visible = useGalleryStore(useShallow(state => state.visible))
 	const items = useGalleryStore(useShallow(state => state.items))
-	const { screen } = useDimensions()
+	const { window } = useDimensions()
 	const initialIndex = useGalleryStore(useShallow(state => state.initialIndex))
 
 	const layout = useMemo(() => {
 		return {
-			width: screen.width,
-			height: screen.height
+			width: window.width,
+			height: window.height
 		}
-	}, [screen.width, screen.height])
+	}, [window.width, window.height])
 
 	const renderItem = useCallback(
 		(item: GalleryItem, index: number) => {
@@ -212,7 +224,7 @@ export const GalleryModal = memo(() => {
 				return false
 			}
 
-			useGalleryStore.getState().reset()
+			onDismiss()
 
 			return true
 		})
@@ -220,51 +232,42 @@ export const GalleryModal = memo(() => {
 		return () => {
 			backHandler.remove()
 		}
-	}, [visible])
+	}, [visible, onDismiss])
+
+	if (!visible) {
+		return null
+	}
 
 	return (
-		<Modal
-			visible={visible}
-			transparent={true}
-			animationType="none"
-			presentationStyle="overFullScreen"
-			onRequestClose={onDismiss}
-			statusBarTranslucent={true}
-			navigationBarTranslucent={true}
-			supportedOrientations={["portrait", "landscape"]}
-		>
-			{visible && (
-				<Fragment>
-					<Header />
-					<Animated.View
-						className="flex-1"
-						entering={FadeIn}
-						exiting={FadeOut}
-						style={animatedStyle}
-					>
-						<GestureViewer
-							data={items}
-							width={screen.width}
-							enableLoop={false}
-							dismissThreshold={150}
-							enableDismissGesture={true}
-							enableDoubleTapGesture={true}
-							enableSwipeGesture={true}
-							enableZoomGesture={true}
-							enableZoomPanGesture={true}
-							onIndexChange={onIndexChange}
-							maxZoomScale={3}
-							renderItem={renderItem}
-							ListComponent={FlatList}
-							initialIndex={validatedInitialScrollIndex}
-							listProps={listProps}
-							onDismiss={onDismiss}
-							onDismissStart={onDismissStart}
-						/>
-					</Animated.View>
-				</Fragment>
-			)}
-		</Modal>
+		<ParentComponent>
+			<Header />
+			<Animated.View
+				className="flex-1"
+				entering={FadeIn}
+				exiting={FadeOut}
+				style={animatedStyle}
+			>
+				<GestureViewer
+					data={items}
+					width={window.width}
+					enableLoop={false}
+					dismissThreshold={150}
+					enableDismissGesture={true}
+					enableDoubleTapGesture={true}
+					enableSwipeGesture={true}
+					enableZoomGesture={true}
+					enableZoomPanGesture={true}
+					onIndexChange={onIndexChange}
+					maxZoomScale={3}
+					renderItem={renderItem}
+					ListComponent={FlatList}
+					initialIndex={validatedInitialScrollIndex}
+					listProps={listProps}
+					onDismiss={onDismiss}
+					onDismissStart={onDismissStart}
+				/>
+			</Animated.View>
+		</ParentComponent>
 	)
 })
 

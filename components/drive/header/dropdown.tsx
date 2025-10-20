@@ -71,20 +71,33 @@ const DEFAULT_UI_SORT = UI_SORT_OPTIONS.sortByName as UISortOption
 function getUISortOption(orderBy?: OrderByType): UISortOption | undefined {
 	// Remove "Asc" or "Desc" from the end of OrderByType
 	const key = orderBy?.endsWith("Asc") ? orderBy.slice(0, -3) : orderBy?.endsWith("Desc") ? orderBy.slice(0, -4) : undefined
+
 	switch (key) {
-		case "name":
+		case "name": {
 			return UI_SORT_OPTIONS.sortByName
-		case "size":
+		}
+
+		case "size": {
 			return UI_SORT_OPTIONS.sortBySize
-		case "uploadDate":
+		}
+
+		case "uploadDate": {
 			return UI_SORT_OPTIONS.sortByUploadDate
-		case "lastModified":
+		}
+
+		case "lastModified": {
 			return UI_SORT_OPTIONS.sortByLastModified
-		case "type":
+		}
+
+		case "type": {
 			return UI_SORT_OPTIONS.sortByType
-		default:
+		}
+
+		default: {
 			console.warn(`Unknown order key: ${orderBy}`)
+
 			return undefined
+		}
 	}
 }
 
@@ -634,7 +647,9 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 					)
 				)
 			} else {
-				items.push(...dropdownSelectionItems)
+				for (const item of dropdownSelectionItems) {
+					items.push(item)
+				}
 			}
 		}
 

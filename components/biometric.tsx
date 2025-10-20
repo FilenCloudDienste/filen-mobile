@@ -111,14 +111,14 @@ Action.displayName = "Action"
 
 export const Biometric = memo(() => {
 	const [biometricAuth, setBiometricAuth] = useMMKVObject<BiometricAuth>(BIOMETRIC_AUTH_KEY, mmkvInstance)
-	const [show, setShow] = useState<boolean>(true)
 	const { colors } = useColorScheme()
 	const [isAuthed] = useIsAuthed()
-	const [appState, setAppState] = useState(AppState.currentState)
 
 	const enabled = useMemo(() => {
 		return isAuthed && (biometricAuth?.enabled ?? false)
 	}, [biometricAuth, isAuthed])
+
+	const [show, setShow] = useState<boolean>(enabled ?? false)
 
 	const authenticated = useCallback(() => {
 		setShow(false)
@@ -223,39 +223,6 @@ export const Biometric = memo(() => {
 		}
 	}, [authenticated])
 
-	useEffect(() => {
-		if (appState == "background") {
-			const now = Date.now()
-			console.log("saving exit time:", now)
-			setShow(true)
-			setBiometricAuth(prev =>
-				prev
-					? {
-							...prev,
-							lastLock: now
-					  }
-					: prev
-			)
-		}
-	}, [appState])
-
-	useEffect(() => {
-		if (appState == "active" && show) {
-			const now = Date.now()
-			const lockTimeout = (biometricAuth?.lastLock ?? now) + (biometricAuth?.lockAfter ?? 0) * 1000
-
-			if (now > lockTimeout) {
-				if (biometricAuth?.pinOnly) {
-					promptPinAuthentication()
-				} else {
-					promptLocalAuthentication()
-				}
-			} else {
-				setShow(false)
-			}
-		}
-	}, [appState, biometricAuth, show])
-
 	const onBackButtonPress = useCallback(() => {
 		if (show) {
 			return true
@@ -265,23 +232,59 @@ export const Biometric = memo(() => {
 	}, [show])
 
 	useEffect(() => {
-		useAppStateStore.getState().setBiometricVisible(show)
-	}, [show])
+		const appStateListener = AppState.addEventListener("change", nextAppState => {
+			switch (nextAppState) {
+				case "background": {
+					const now = Date.now()
 
-	useEffect(() => {
-		if (!enabled) {
-			setShow(false)
-			return
-		}
+					setShow(true)
+					setBiometricAuth(prev =>
+						prev
+							? {
+									...prev,
+									lastLock: now
+							  }
+							: prev
+					)
 
-		const appStateListener = AppState.addEventListener("change", setAppState)
+					break
+				}
+
+				case "active": {
+					if (!show) {
+						return
+					}
+
+					const now = Date.now()
+					const lockTimeout = (biometricAuth?.lastLock ?? now) + (biometricAuth?.lockAfter ?? 0) * 1000
+
+					if (now > lockTimeout) {
+						if (biometricAuth?.pinOnly) {
+							promptPinAuthentication()
+						} else {
+							promptLocalAuthentication()
+						}
+					} else {
+						setShow(false)
+					}
+
+					break
+				}
+			}
+		})
+
 		const backHandler = BackHandler.addEventListener("hardwareBackPress", onBackButtonPress)
 
 		return () => {
 			appStateListener.remove()
+
 			backHandler.remove()
 		}
-	}, [onBackButtonPress, enabled])
+	}, [setBiometricAuth, biometricAuth, promptLocalAuthentication, promptPinAuthentication, show, onBackButtonPress])
+
+	useEffect(() => {
+		useAppStateStore.getState().setBiometricVisible(show)
+	}, [show])
 
 	return (
 		<ParentComponent show={show}>

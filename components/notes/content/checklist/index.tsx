@@ -1,6 +1,6 @@
-import { memo, useCallback, useState, useEffect, useRef } from "react"
+import { memo, useCallback, useState, useEffect } from "react"
 import { ScrollView } from "react-native"
-import { parser, type ChecklistItem, type Checklist as ChecklistType } from "./parser"
+import { parser, type ChecklistItem } from "./parser"
 import Item from "./item"
 import events from "@/lib/events"
 import { randomUUID } from "expo-crypto"
@@ -17,8 +17,8 @@ export const Checklist = memo(
 		readOnly: boolean
 		onDidType: (value: string) => void
 	}) => {
-		const [parsed, setParsed] = useState<ChecklistType>(parser.parse(initialValue))
-		const initialIds = useRef<string[]>(parsed.map(i => i.id)).current
+		const [parsed, setParsed] = useState<ChecklistItem[]>(parser.parse(initialValue))
+		const [initialIds] = useState<string[]>(parsed.map(i => i.id))
 		const [didType, setDidType] = useState<boolean>(false)
 
 		const onContentChange = useCallback(({ item, content }: { item: ChecklistItem; content: string }) => {
@@ -159,19 +159,21 @@ export const Checklist = memo(
 				keyboardShouldPersistTaps="handled"
 				keyboardDismissMode="interactive"
 			>
-				{parsed.map(item => (
-					<Item
-						key={item.id}
-						item={item}
-						onContentChange={onContentChange}
-						onCheckedChange={onCheckedChange}
-						addNewLine={addNewLine}
-						removeItem={removeItem}
-						initialIds={initialIds}
-						readOnly={readOnly}
-						onDidType={onTyped}
-					/>
-				))}
+				{parsed.map(item => {
+					return (
+						<Item
+							key={item.id}
+							item={item}
+							onContentChange={onContentChange}
+							onCheckedChange={onCheckedChange}
+							addNewLine={addNewLine}
+							removeItem={removeItem}
+							initialIds={initialIds}
+							readOnly={readOnly}
+							onDidType={onTyped}
+						/>
+					)
+				})}
 			</ScrollView>
 		)
 	}

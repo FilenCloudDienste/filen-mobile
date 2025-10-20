@@ -152,7 +152,20 @@ export const Item = memo(
 			}
 
 			select()
-		}, [info.item.item.type, info.item.item.uuid, routerPush, select, toMove])
+		}, [
+			info.item.item.type,
+			info.item.item.uuid,
+			routerPush,
+			select,
+			toMove,
+			id,
+			max,
+			type,
+			dismissHref,
+			previewTypes,
+			extensions,
+			multiScreen
+		])
 
 		const disabled = useMemo(() => {
 			return type === "file" && info.item.item.type === "directory" ? false : !canSelect

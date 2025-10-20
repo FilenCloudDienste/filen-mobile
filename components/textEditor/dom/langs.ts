@@ -1,6 +1,6 @@
 import { langs, loadLanguage as uiwLoadLanguage, langNames } from "@uiw/codemirror-extensions-langs"
 
-for (let lang in langNames) {
+for (const lang in langNames) {
 	uiwLoadLanguage(lang)
 }
 

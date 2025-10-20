@@ -1,8 +1,7 @@
 import { useQuery, type UseQueryOptions, type UseQueryResult } from "@tanstack/react-query"
-import { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams } from "./client"
+import queryClient, { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams } from "./client"
 import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import fileProvider from "@/lib/fileProvider"
-import queryClient from "./client"
 
 export const BASE_QUERY_KEY = "useFileProviderEnabledQuery"
 

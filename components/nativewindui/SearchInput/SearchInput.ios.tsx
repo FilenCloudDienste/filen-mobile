@@ -1,6 +1,6 @@
 import { useAugmentedRef, useControllableState } from "@rn-primitives/hooks"
 import { Icon } from "@roninoss/icons"
-import { memo, forwardRef, useState, useCallback, useMemo } from "react"
+import { memo, forwardRef, useState, useMemo } from "react"
 import { Pressable, TextInput, View, ViewStyle } from "react-native"
 import Animated, { measure, useAnimatedRef, useAnimatedStyle, useDerivedValue, withTiming } from "react-native-reanimated"
 import type { SearchInputProps } from "./types"
@@ -108,14 +108,6 @@ export const SearchInput = memo(
 				}
 			})
 
-			const onPress = useCallback(() => {
-				onChangeText?.("")
-
-				inputRef.current?.blur()
-
-				setShowCancel(false)
-			}, [onChangeText, inputRef, setShowCancel])
-
 			return (
 				<Animated.View
 					className="flex-row items-center"
@@ -157,7 +149,13 @@ export const SearchInput = memo(
 						pointerEvents={!showCancel ? "none" : "auto"}
 					>
 						<Pressable
-							onPress={onPress}
+							onPress={() => {
+								onChangeText?.("")
+
+								inputRef.current?.blur()
+
+								setShowCancel(false)
+							}}
 							disabled={!showCancel}
 							pointerEvents={!showCancel ? "none" : "auto"}
 							className="flex-1 justify-center active:opacity-50"

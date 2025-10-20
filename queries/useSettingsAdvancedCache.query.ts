@@ -1,9 +1,8 @@
 import { useQuery, type UseQueryOptions, type UseQueryResult } from "@tanstack/react-query"
-import { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams } from "./client"
+import queryClient, { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams } from "./client"
 import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import * as FileSystem from "expo-file-system"
 import paths from "@/lib/paths"
-import queryClient from "./client"
 
 export const BASE_QUERY_KEY = "useSettingsAdvancedCacheQuery"
 

@@ -155,7 +155,7 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 				}
 			}
 		)
-	}, [bottomInsets, colors.card, colors.foreground, showActionSheetWithOptions, createOptions, queryParams])
+	}, [bottomInsets, colors.card, colors.foreground, showActionSheetWithOptions, createOptions, queryParams, doNotPromptBiometricAuth])
 
 	if (!hasInternet) {
 		return null

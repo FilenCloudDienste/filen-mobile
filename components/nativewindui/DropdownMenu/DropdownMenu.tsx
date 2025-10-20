@@ -29,7 +29,6 @@ export const DropdownMenu = memo(
 				title,
 				iOSItemSize: _iOSItemSize,
 				onItemPress: onItemPressProp,
-				enabled = true,
 				children,
 				materialPortalHost,
 				materialSideOffset = 2,
@@ -61,8 +60,7 @@ export const DropdownMenu = memo(
 						triggerRef.current?.open()
 					},
 					dismissMenu
-				},
-				deps: [triggerRef.current]
+				}
 			})
 
 			const closeSubMenus = useCallback(() => {

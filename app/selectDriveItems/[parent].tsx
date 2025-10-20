@@ -135,7 +135,17 @@ export default function SelectDriveItems() {
 				/>
 			)
 		},
-		[maxParsed, typeParsed, toMoveParsed, queryParams, previewTypesParsed, extensionsParsed, multiScreenParsed]
+		[
+			maxParsed,
+			typeParsed,
+			toMoveParsed,
+			queryParams,
+			previewTypesParsed,
+			extensionsParsed,
+			multiScreenParsed,
+			idParsed,
+			dismissHrefParsed
+		]
 	)
 
 	const headerTitle = useMemo(() => {
@@ -263,17 +273,18 @@ export default function SelectDriveItems() {
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true)
 
-		try {
-			await query.refetch()
-		} catch (e) {
-			console.error(e)
+		await query
+			.refetch()
+			.catch(e => {
+				console.error(e)
 
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
-		} finally {
-			setRefreshing(false)
-		}
+				if (e instanceof Error) {
+					alerts.error(e.message)
+				}
+			})
+			.finally(() => {
+				setRefreshing(false)
+			})
 	}, [query])
 
 	const refreshControl = useMemo(() => {

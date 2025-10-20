@@ -263,7 +263,6 @@ export function ListItemComponent<T extends ListDataItem>(
 		item,
 		isFirstInSection,
 		isLastInSection,
-		index,
 		variant,
 		className,
 		androidRootClassName,
@@ -389,17 +388,7 @@ export type ListSectionHeaderProps<T extends ListDataItem> = ViewProps &
 export type ListSectionHeaderRef = React.Ref<View>
 
 export function ListSectionHeaderComponent<T extends ListDataItem>(
-	{
-		item,
-		isFirstInSection,
-		isLastInSection,
-		index,
-		variant,
-		className,
-		textClassName,
-		sectionHeaderAsGap,
-		...props
-	}: ListSectionHeaderProps<T>,
+	{ item, variant, className, textClassName, sectionHeaderAsGap, ...props }: ListSectionHeaderProps<T>,
 	ref: ListSectionHeaderRef
 ) {
 	if (typeof item !== "string") {

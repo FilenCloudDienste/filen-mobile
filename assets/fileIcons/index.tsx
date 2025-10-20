@@ -1,22 +1,22 @@
 import pathModule from "path"
-import other from "./svg/other.svg"
+import Other from "./svg/other.svg"
 import Folder from "./svg/folder.svg"
-import txt from "./svg/txt.svg"
-import pdf from "./svg/pdf.svg"
-import image from "./svg/image.svg"
-import archive from "./svg/archive.svg"
-import audio from "./svg/audio.svg"
-import video from "./svg/video.svg"
-import code from "./svg/code.svg"
-import exe from "./svg/exe.svg"
-import doc from "./svg/doc.svg"
-import xls from "./svg/xls.svg"
-import ppt from "./svg/ppt.svg"
-import apple from "./svg/apple.svg"
-import android from "./svg/android.svg"
-import iso from "./svg/iso.svg"
-import psd from "./svg/psd.svg"
-import cad from "./svg/cad.svg"
+import Txt from "./svg/txt.svg"
+import Pdf from "./svg/pdf.svg"
+import Image from "./svg/image.svg"
+import Archive from "./svg/archive.svg"
+import Audio from "./svg/audio.svg"
+import Video from "./svg/video.svg"
+import Code from "./svg/code.svg"
+import Exe from "./svg/exe.svg"
+import Doc from "./svg/doc.svg"
+import Xls from "./svg/xls.svg"
+import Ppt from "./svg/ppt.svg"
+import Apple from "./svg/apple.svg"
+import Android from "./svg/android.svg"
+import Iso from "./svg/iso.svg"
+import Psd from "./svg/psd.svg"
+import Cad from "./svg/cad.svg"
 import { memo, useMemo } from "react"
 import type { DirColors } from "@filen/sdk/dist/types/api/v3/dir/color"
 import { isValidHexColor } from "@/lib/utils"
@@ -24,63 +24,39 @@ import Svg, { Path } from "react-native-svg"
 
 export const DEFAULT_DIRECTORY_COLOR: string = "#85BCFF"
 
-export const FileNameToSVGIcon = memo(({ name, width, height, fill }: { name: string; width?: number; height?: number; fill?: string }) => {
-	const Component = useMemo(() => {
-		return fileNameToSVGIcon(name)
+export const FileNameToSVGIconOuter = memo(({ name, ...props }: { name: string; width?: number; height?: number; fill?: string }) => {
+	const parsed = useMemo(() => {
+		return pathModule.posix.parse(name.toLowerCase())
 	}, [name])
-
-	return (
-		<Component
-			width={width}
-			height={height}
-			fill={fill}
-			style={{
-				flexShrink: 0
-			}}
-		/>
-	)
-})
-
-FileNameToSVGIcon.displayName = "FileNameToSVGIcon"
-
-/**
- * Convert file name to premade SVG icon.
- *
- * @export
- * @param {string} name
- * @returns {*}
- */
-export function fileNameToSVGIcon(name: string) {
-	const parsed = pathModule.posix.parse(name.toLowerCase())
 
 	switch (parsed.ext) {
 		case ".dmg":
 		case ".iso": {
-			return iso
+			return <Iso {...props} />
 		}
 
 		case ".cad": {
-			return cad
+			return <Cad {...props} />
 		}
 
 		case ".psd": {
-			return psd
+			return <Psd {...props} />
 		}
 
 		case ".apk": {
-			return android
+			return <Android {...props} />
 		}
 
 		case ".ipa": {
-			return apple
+			return <Apple {...props} />
 		}
 
 		case ".txt": {
-			return txt
+			return <Txt {...props} />
 		}
 
 		case ".pdf": {
-			return pdf
+			return <Pdf {...props} />
 		}
 
 		case ".gif":
@@ -90,7 +66,7 @@ export function fileNameToSVGIcon(name: string) {
 		case ".heic":
 		case ".webp":
 		case ".svg": {
-			return image
+			return <Image {...props} />
 		}
 
 		case ".pkg":
@@ -98,7 +74,7 @@ export function fileNameToSVGIcon(name: string) {
 		case ".tar":
 		case ".zip":
 		case ".7zip": {
-			return archive
+			return <Archive {...props} />
 		}
 
 		case ".wmv":
@@ -107,11 +83,11 @@ export function fileNameToSVGIcon(name: string) {
 		case ".mkv":
 		case ".webm":
 		case ".mp4": {
-			return video
+			return <Video {...props} />
 		}
 
 		case ".mp3": {
-			return audio
+			return <Audio {...props} />
 		}
 
 		case ".js":
@@ -162,35 +138,37 @@ export function fileNameToSVGIcon(name: string) {
 		case ".litcoffee":
 		case ".coffee":
 		case ".proto": {
-			return code
+			return <Code {...props} />
 		}
 
 		case ".jar":
 		case ".exe":
 		case ".bin": {
-			return exe
+			return <Exe {...props} />
 		}
 
 		case ".doc":
 		case ".docx": {
-			return doc
+			return <Doc {...props} />
 		}
 
 		case ".ppt":
 		case ".pptx": {
-			return ppt
+			return <Ppt {...props} />
 		}
 
 		case ".xls":
 		case ".xlsx": {
-			return xls
+			return <Xls {...props} />
 		}
 
 		default: {
-			return other
+			return <Other {...props} />
 		}
 	}
-}
+})
+
+FileNameToSVGIconOuter.displayName = "FileNameToSVGIconOuter"
 
 /**
  * Shade a base color (make it lighter/darker).
@@ -201,25 +179,24 @@ export function fileNameToSVGIcon(name: string) {
  * @returns {string}
  */
 export function shadeColor(color: string, decimal: number): string {
-	const base = color.startsWith("#") ? 1 : 0
+	const base = color.charCodeAt(0) === 35 ? 1 : 0 // 35 is '#'
 
-	let r = parseInt(color.substring(base, 3), 16)
-	let g = parseInt(color.substring(base + 2, 5), 16)
-	let b = parseInt(color.substring(base + 4, 7), 16)
+	// Parse hex values directly with correct indices
+	let r = parseInt(color.substring(base, base + 2), 16)
+	let g = parseInt(color.substring(base + 2, base + 4), 16)
+	let b = parseInt(color.substring(base + 4, base + 6), 16)
 
-	r = Math.round(r / decimal)
-	g = Math.round(g / decimal)
-	b = Math.round(b / decimal)
+	// Apply shading and clamp in one step
+	r = Math.min(255, (r / decimal + 0.5) | 0)
+	g = Math.min(255, (g / decimal + 0.5) | 0)
+	b = Math.min(255, (b / decimal + 0.5) | 0)
 
-	r = r < 255 ? r : 255
-	g = g < 255 ? g : 255
-	b = b < 255 ? b : 255
+	// Convert to hex with manual padding (faster than toString + conditional)
+	const rr = r < 16 ? "0" + r.toString(16) : r.toString(16)
+	const gg = g < 16 ? "0" + g.toString(16) : g.toString(16)
+	const bb = b < 16 ? "0" + b.toString(16) : b.toString(16)
 
-	const rr = r.toString(16).length === 1 ? `0${r.toString(16)}` : r.toString(16)
-	const gg = g.toString(16).length === 1 ? `0${g.toString(16)}` : g.toString(16)
-	const bb = b.toString(16).length === 1 ? `0${b.toString(16)}` : b.toString(16)
-
-	return `#${rr}${gg}${bb}`
+	return "#" + rr + gg + bb
 }
 
 export function directoryColorToHex(color: DirColors | null): string {

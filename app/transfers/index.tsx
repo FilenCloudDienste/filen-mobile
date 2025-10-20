@@ -170,7 +170,7 @@ export const Transfers = memo(() => {
 			return null
 		}
 
-		const remainingReadable = getTimeRemaining(Math.floor(Date.now() + remaining * 1000))
+		const remainingReadable = getTimeRemaining(Math.floor(new Date().getTime() + remaining * 1000))
 
 		return t("transfers.infoNoTime", {
 			ongoingTransfers: ongoingTransfers.length,

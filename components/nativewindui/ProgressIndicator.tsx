@@ -15,7 +15,7 @@ export const ProgressIndicator = memo(
 			progressClassName?: string
 			trackClassName?: string
 		}
-	>(({ value: valueProp, max: maxProp, getValueLabel = defaultGetValueLabel, className, children, ...props }, ref) => {
+	>(({ value: valueProp, max: maxProp, getValueLabel = defaultGetValueLabel, className, ...props }, ref) => {
 		const max = useMemo(() => maxProp ?? DEFAULT_MAX, [maxProp])
 		const value = useMemo(() => (isValidValueNumber(valueProp, max) ? valueProp : 0), [valueProp, max])
 		const progress = useDerivedValue(() => value ?? 0)

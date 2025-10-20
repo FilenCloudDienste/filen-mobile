@@ -13,7 +13,6 @@ export const TextField = memo(
 				onChangeText: onChangeTextProp,
 				editable,
 				className,
-				children,
 				leftView,
 				rightView,
 				label,

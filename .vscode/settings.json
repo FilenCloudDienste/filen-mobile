@@ -9,5 +9,21 @@
 		"source.fixAll.format": "never"
 	},
 	"typescript.tsdk": "node_modules\\typescript\\lib",
-	"eslint.validate": ["javascript", "javascriptreact", "html", "typescriptreact", "javascriptreact"]
+	"files.readonlyInclude": {
+		"**/routeTree.gen.ts": true
+	},
+	"files.watcherExclude": {
+		"**/routeTree.gen.ts": true
+	},
+	"search.exclude": {
+		"**/routeTree.gen.ts": true
+	},
+	"eslint.validate": ["javascript", "javascriptreact", "html", "typescriptreact", "javascriptreact", "typescript"],
+	"eslint.useFlatConfig": true,
+	"eslint.enable": true,
+	"eslint.format.enable": false,
+	"editor.quickSuggestions": {
+		"strings": "on"
+	},
+	"typescript.preferences.autoImportSpecifierExcludeRegexes": ["^(node:)?os$"]
 }

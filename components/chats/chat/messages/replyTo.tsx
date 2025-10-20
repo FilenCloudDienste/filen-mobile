@@ -40,7 +40,7 @@ export const ReplyTo = memo(({ message, chat }: { message: ChatMessage; chat: Ch
 			: {
 					uri: assets.uri.images.avatar_fallback()
 			  }
-	}, [participant?.avatar])
+	}, [participant])
 
 	const messageAdjusted = useMemo(() => {
 		return {

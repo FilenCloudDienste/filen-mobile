@@ -33,6 +33,7 @@ export const IOS = memo(({ headerTitle, queryParams }: { headerTitle: string; qu
 
 	const searchBar = useMemo(() => {
 		return {
+			// eslint-disable-next-line react-hooks/refs
 			ref: searchBarRef?.current ? (searchBarRef as React.RefObject<AdaptiveSearchBarRef>) : undefined,
 			iosHideWhenScrolling: false,
 			onChangeText: text => useDriveStore.getState().setSearchTerm(text),

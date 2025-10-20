@@ -161,7 +161,7 @@ export const Biometric = memo(() => {
 				setBiometricAuth(undefined)
 			}
 		},
-		[setBiometricAuth, localAuthentication.data, localAuthentication.status]
+		[setBiometricAuth, localAuthentication.status]
 	)
 
 	const togglePinOnly = useCallback(
