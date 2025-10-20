@@ -3,7 +3,7 @@ import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextSubMenu, createContextItem } from "@/components/nativewindui/ContextMenu/utils"
 import type { ContextItem, ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { useRouter, usePathname } from "expo-router"
 import useDimensions from "@/hooks/useDimensions"
 import alerts from "@/lib/alerts"
@@ -39,7 +39,6 @@ export const Menu = memo(
 		fromSearch?: boolean
 		fromHome?: boolean
 	}) => {
-		const { t } = useTranslation()
 		const router = useRouter()
 		const { isPortrait, isTablet, screen } = useDimensions()
 		const isProUser = useIsProUser()
@@ -75,7 +74,10 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "select",
-						title: isSelectedDrive || isSelectedPhotos ? t("drive.list.item.menu.deselect") : t("drive.list.item.menu.select"),
+						title:
+							isSelectedDrive || isSelectedPhotos
+								? translateMemoized("drive.list.item.menu.deselect")
+								: translateMemoized("drive.list.item.menu.select"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -94,7 +96,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "openDirectory",
-						title: t("drive.list.item.menu.open"),
+						title: translateMemoized("drive.list.item.menu.open"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -113,7 +115,7 @@ export const Menu = memo(
 				items.push(
 					createContextSubMenu(
 						{
-							title: t("drive.list.item.menu.download"),
+							title: translateMemoized("drive.list.item.menu.download"),
 							iOSItemSize: "large"
 						},
 						[
@@ -121,7 +123,7 @@ export const Menu = memo(
 								? [
 										createContextItem({
 											actionKey: "download",
-											title: t("drive.list.item.menu.download"),
+											title: translateMemoized("drive.list.item.menu.download"),
 											icon: {
 												namingScheme: "material",
 												name: "file-download-outline"
@@ -133,7 +135,7 @@ export const Menu = memo(
 								? [
 										createContextItem({
 											actionKey: "export",
-											title: t("drive.list.item.menu.export"),
+											title: translateMemoized("drive.list.item.menu.export"),
 											icon:
 												Platform.OS === "ios"
 													? {
@@ -153,7 +155,7 @@ export const Menu = memo(
 								? [
 										createContextItem({
 											actionKey: "saveToGallery",
-											title: t("drive.list.item.menu.saveToGallery"),
+											title: translateMemoized("drive.list.item.menu.saveToGallery"),
 											icon:
 												Platform.OS === "ios"
 													? {
@@ -171,7 +173,7 @@ export const Menu = memo(
 								? [
 										createContextItem({
 											actionKey: offlineStatus?.exists ? "removeOffline" : "makeOffline",
-											title: t("drive.list.item.menu.availableOffline"),
+											title: translateMemoized("drive.list.item.menu.availableOffline"),
 											state: {
 												checked: offlineStatus?.exists ?? false
 											},
@@ -204,13 +206,13 @@ export const Menu = memo(
 					items.push(
 						createContextSubMenu(
 							{
-								title: t("drive.list.item.menu.share"),
+								title: translateMemoized("drive.list.item.menu.share"),
 								iOSItemSize: "large"
 							},
 							[
 								createContextItem({
 									actionKey: "publicLink",
-									title: t("drive.list.item.menu.publicLink"),
+									title: translateMemoized("drive.list.item.menu.publicLink"),
 									icon:
 										Platform.OS === "ios"
 											? {
@@ -224,7 +226,7 @@ export const Menu = memo(
 								}),
 								createContextItem({
 									actionKey: "share",
-									title: t("drive.list.item.menu.share"),
+									title: translateMemoized("drive.list.item.menu.share"),
 									icon:
 										Platform.OS === "ios"
 											? {
@@ -243,7 +245,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "share",
-							title: t("drive.list.item.menu.share"),
+							title: translateMemoized("drive.list.item.menu.share"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -269,7 +271,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: item.favorited ? "unfavorite" : "favorite",
-						title: t("drive.list.item.menu.favorite"),
+						title: translateMemoized("drive.list.item.menu.favorite"),
 						state: {
 							checked: item.favorited
 						},
@@ -292,7 +294,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "info",
-							title: t("drive.list.item.menu.info"),
+							title: translateMemoized("drive.list.item.menu.info"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -310,7 +312,7 @@ export const Menu = memo(
 						items.push(
 							createContextItem({
 								actionKey: "info",
-								title: t("drive.list.item.menu.info"),
+								title: translateMemoized("drive.list.item.menu.info"),
 								icon:
 									Platform.OS === "ios"
 										? {
@@ -327,13 +329,13 @@ export const Menu = memo(
 						items.push(
 							createContextSubMenu(
 								{
-									title: t("drive.list.item.menu.info"),
+									title: translateMemoized("drive.list.item.menu.info"),
 									iOSItemSize: "large"
 								},
 								[
 									createContextItem({
 										actionKey: "info",
-										title: t("drive.list.item.menu.properties"),
+										title: translateMemoized("drive.list.item.menu.properties"),
 										icon:
 											Platform.OS === "ios"
 												? {
@@ -347,7 +349,7 @@ export const Menu = memo(
 									}),
 									createContextItem({
 										actionKey: "versionHistory",
-										title: t("drive.list.item.menu.versionHistory"),
+										title: translateMemoized("drive.list.item.menu.versionHistory"),
 										icon:
 											Platform.OS === "ios"
 												? {
@@ -377,7 +379,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "color",
-						title: t("drive.list.item.menu.color"),
+						title: translateMemoized("drive.list.item.menu.color"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -402,7 +404,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "rename",
-						title: t("drive.list.item.menu.rename"),
+						title: translateMemoized("drive.list.item.menu.rename"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -427,7 +429,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "move",
-						title: t("drive.list.item.menu.move"),
+						title: translateMemoized("drive.list.item.menu.move"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -446,7 +448,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "removeSharedOut",
-						title: t("drive.list.item.menu.removeSharedOut"),
+						title: translateMemoized("drive.list.item.menu.removeSharedOut"),
 						destructive: true,
 						icon:
 							Platform.OS === "ios"
@@ -468,7 +470,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "disablePublicLink",
-						title: t("drive.list.item.menu.disablePublicLink"),
+						title: translateMemoized("drive.list.item.menu.disablePublicLink"),
 						destructive: true,
 						icon:
 							Platform.OS === "ios"
@@ -491,7 +493,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "trash",
-							title: t("drive.list.item.menu.trash"),
+							title: translateMemoized("drive.list.item.menu.trash"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -511,7 +513,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "removeSharedIn",
-							title: t("drive.list.item.menu.removeSharedIn"),
+							title: translateMemoized("drive.list.item.menu.removeSharedIn"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -534,7 +536,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "removeOffline",
-						title: t("drive.list.item.menu.removeOffline"),
+						title: translateMemoized("drive.list.item.menu.removeOffline"),
 						destructive: true,
 						icon:
 							Platform.OS === "ios"
@@ -557,7 +559,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "restore",
-							title: t("drive.list.item.menu.restore"),
+							title: translateMemoized("drive.list.item.menu.restore"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -575,7 +577,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "deletePermanently",
-						title: t("drive.list.item.menu.deletePermanently"),
+						title: translateMemoized("drive.list.item.menu.deletePermanently"),
 						destructive: true,
 						icon:
 							Platform.OS === "ios"
@@ -598,7 +600,6 @@ export const Menu = memo(
 			offlineStatus,
 			item,
 			queryParams,
-			t,
 			isProUser,
 			fromPreview,
 			fromSearch,

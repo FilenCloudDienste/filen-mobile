@@ -5,7 +5,7 @@ import { useNotesStore } from "@/stores/notes.store"
 import { Button } from "../nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -23,7 +23,6 @@ import { createDropdownNativeIcon } from "../nativewindui/DropdownMenu/createDro
 export const Header = memo(() => {
 	const selectedNotesCount = useNotesStore(useShallow(state => state.selectedNotes.length))
 	const { colors } = useColorScheme()
-	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 	const [, setSearchTerm] = useMMKVString("notesSearchTerm", mmkvInstance)
 
@@ -61,47 +60,47 @@ export const Header = memo(() => {
 					</Text>
 			  )
 			: undefined
-	}, [selectedNotesCount, t])
+	}, [selectedNotesCount])
 
 	const createNoteDropdownItems = useMemo(() => {
 		return [
 			createDropdownItem({
 				actionKey: "createNote_text",
-				title: t("notes.header.dropdown.types.text"),
+				title: translateMemoized("notes.header.dropdown.types.text"),
 				icon: createDropdownNativeIcon({
 					name: "note-text-outline"
 				})
 			}),
 			createDropdownItem({
 				actionKey: "createNote_checklist",
-				title: t("notes.header.dropdown.types.checklist"),
+				title: translateMemoized("notes.header.dropdown.types.checklist"),
 				icon: createDropdownNativeIcon({
 					name: "format-list-checks"
 				})
 			}),
 			createDropdownItem({
 				actionKey: "createNote_markdown",
-				title: t("notes.header.dropdown.types.markdown"),
+				title: translateMemoized("notes.header.dropdown.types.markdown"),
 				icon: createDropdownNativeIcon({
 					name: "file-document-outline"
 				})
 			}),
 			createDropdownItem({
 				actionKey: "createNote_code",
-				title: t("notes.header.dropdown.types.code"),
+				title: translateMemoized("notes.header.dropdown.types.code"),
 				icon: createDropdownNativeIcon({
 					name: "code-parentheses"
 				})
 			}),
 			createDropdownItem({
 				actionKey: "createNote_rich",
-				title: t("notes.header.dropdown.types.rich"),
+				title: translateMemoized("notes.header.dropdown.types.rich"),
 				icon: createDropdownNativeIcon({
 					name: "image-text"
 				})
 			})
 		]
-	}, [t])
+	}, [])
 
 	const onCreateNoteDropdownPress = useCallback(
 		async (item: Omit<DropdownItem, "icon">) => {
@@ -179,7 +178,7 @@ export const Header = memo(() => {
 
 	return (
 		<LargeTitleHeader
-			title={t("notes.header.title")}
+			title={translateMemoized("notes.header.title")}
 			backVisible={false}
 			materialPreset="inline"
 			searchBar={headerSearchBar}

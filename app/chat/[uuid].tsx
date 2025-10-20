@@ -15,7 +15,7 @@ import Menu from "@/components/chats/item/menu"
 import Container from "@/components/Container"
 import * as ScreenOrientation from "expo-screen-orientation"
 import useNetInfo from "@/hooks/useNetInfo"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import useLockOrientation from "@/hooks/useLockOrientation"
 import { useChatsStore } from "@/stores/chats.store"
 import useDimensions from "@/hooks/useDimensions"
@@ -27,7 +27,6 @@ export const Chat = memo(() => {
 	const { colors } = useColorScheme()
 	const [{ userId }] = useSDKConfig()
 	const { hasInternet } = useNetInfo()
-	const { t } = useTranslation()
 	const { insets } = useDimensions()
 	const [inputHeight, setInputHeight] = useState<number>(0)
 
@@ -95,7 +94,7 @@ export const Chat = memo(() => {
 					options={{
 						headerShown: true,
 						headerTitle: name,
-						headerBackTitle: t("transfers.header.back"),
+						headerBackTitle: translateMemoized("transfers.header.back"),
 						headerRight: headerRightView,
 						headerTransparent: true,
 						headerBlurEffect: "systemChromeMaterial"
@@ -112,7 +111,7 @@ export const Chat = memo(() => {
 				/>
 			)
 		})
-	}, [name, headerRightView, colors.card, t])
+	}, [name, headerRightView, colors.card])
 
 	useFocusEffect(
 		useCallback(() => {

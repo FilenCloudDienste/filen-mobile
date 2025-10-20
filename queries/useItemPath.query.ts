@@ -26,8 +26,7 @@ export function useItemPathQuery(
 	params: UseItemPathQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
-	params = sortParams(params)
-
+	const sortedParams = sortParams(params)
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({
@@ -35,8 +34,8 @@ export function useItemPathQuery(
 		...defaultParams,
 		...options,
 		staleTime: 5000,
-		queryKey: [BASE_QUERY_KEY, params],
-		queryFn: () => fetchData(params)
+		queryKey: [BASE_QUERY_KEY, sortedParams],
+		queryFn: () => fetchData(sortedParams)
 	})
 
 	useRefreshOnFocus({

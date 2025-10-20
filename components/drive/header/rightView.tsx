@@ -7,7 +7,7 @@ import { useActionSheet } from "@expo/react-native-action-sheet"
 import { useDriveStore } from "@/stores/drive.store"
 import Dropdown from "./dropdown"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import Transfers from "./transfers"
 import useAllowed from "@/hooks/useAllowed"
@@ -23,23 +23,22 @@ export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsPa
 	const { showActionSheetWithOptions } = useActionSheet()
 	const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
 	const { bottom: bottomInsets } = useSafeAreaInsets()
-	const { t } = useTranslation()
 	const allowed = useAllowed()
 	const { hasInternet } = useNetInfo()
 	const [, setBiometricAuth] = useMMKVObject<BiometricAuth>(BIOMETRIC_AUTH_KEY, mmkvInstance)
 
 	const options = useMemo(() => {
 		return [
-			t("drive.header.rightView.actionSheet.upload.files"),
+			translateMemoized("drive.header.rightView.actionSheet.upload.files"),
 			// Disable directory upload on Android for now as it's not well supported. Need to figure out a better way to handle it.
-			// ...(Platform.OS === "android" ? [t("drive.header.rightView.actionSheet.upload.directory")] : []),
-			t("drive.header.rightView.actionSheet.upload.media"),
-			t("drive.header.rightView.actionSheet.create.textFile"),
-			t("drive.header.rightView.actionSheet.create.directory"),
-			t("drive.header.rightView.actionSheet.create.photo"),
-			t("drive.header.rightView.actionSheet.cancel")
+			// ...(Platform.OS === "android" ? [translateMemoized("drive.header.rightView.actionSheet.upload.directory")] : []),
+			translateMemoized("drive.header.rightView.actionSheet.upload.media"),
+			translateMemoized("drive.header.rightView.actionSheet.create.textFile"),
+			translateMemoized("drive.header.rightView.actionSheet.create.directory"),
+			translateMemoized("drive.header.rightView.actionSheet.create.photo"),
+			translateMemoized("drive.header.rightView.actionSheet.cancel")
 		]
-	}, [t])
+	}, [])
 
 	const createOptions = useMemo(() => {
 		return {

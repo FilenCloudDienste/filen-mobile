@@ -5,12 +5,11 @@ import { useMemo } from "react"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import List from "@/components/fileVersionHistory/list"
 
 export default function FileVersionHistory() {
 	const { item } = useLocalSearchParams()
-	const { t } = useTranslation()
 	const { colors } = useColorScheme()
 
 	const itemParsed = useMemo(() => {
@@ -28,7 +27,7 @@ export default function FileVersionHistory() {
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
 			<AdaptiveSearchHeader
-				iosTitle={t("fileVersionHistory.header.title")}
+				iosTitle={translateMemoized("fileVersionHistory.header.title")}
 				iosIsLargeTitle={false}
 				iosBackButtonMenuEnabled={true}
 				backgroundColor={colors.card}
@@ -40,13 +39,13 @@ export default function FileVersionHistory() {
 			/>
 		) : (
 			<LargeTitleHeader
-				title={t("fileVersionHistory.header.title")}
+				title={translateMemoized("fileVersionHistory.header.title")}
 				materialPreset="inline"
 				backVisible={true}
 				backgroundColor={colors.card}
 			/>
 		)
-	}, [colors.card, t])
+	}, [colors.card])
 
 	if (!itemParsed) {
 		return <Redirect href="/(app)/home" />

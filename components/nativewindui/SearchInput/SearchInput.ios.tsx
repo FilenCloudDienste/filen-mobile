@@ -7,7 +7,7 @@ import type { SearchInputProps } from "./types"
 import { Text } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 // Add as class when possible: https://github.com/marklawlor/nativewind/issues/522
 export const BORDER_CURVE: ViewStyle = {
@@ -32,7 +32,6 @@ export const SearchInput = memo(
 			ref
 		) => {
 			const { colors } = useColorScheme()
-			const { t } = useTranslation()
 
 			const inputRef = useAugmentedRef({
 				ref,
@@ -57,7 +56,7 @@ export const SearchInput = memo(
 				onChange: onChangeTextProp
 			})
 
-			const cancelString = useMemo(() => cancelText ?? t("nwui.search.cancel"), [cancelText, t])
+			const cancelString = useMemo(() => cancelText ?? translateMemoized("nwui.search.cancel"), [cancelText])
 
 			const rootStyle = useAnimatedStyle(() => {
 				if (_WORKLET) {
@@ -135,7 +134,7 @@ export const SearchInput = memo(
 						</View>
 						<TextInput
 							ref={inputRef}
-							placeholder={placeholder ?? t("nwui.search.placeholder")}
+							placeholder={placeholder ?? translateMemoized("nwui.search.placeholder")}
 							className={cn(
 								!showCancel && "active:bg-muted/5 dark:active:bg-muted/20",
 								"text-foreground flex-1 rounded-lg py-2 pl-8  pr-1 text-[17px]",

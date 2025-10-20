@@ -13,7 +13,7 @@ import {
 import { useColorScheme } from "~/lib/useColorScheme"
 import { useKeyboardState } from "react-native-keyboard-controller"
 import events from "@/lib/events"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 	const id = useId()
@@ -22,7 +22,6 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 	const [isFocused, setIsFocused] = useState<boolean>(false)
 	const keyboardState = useKeyboardState()
 	const ref = useRef<AdaptiveSearchBarRef | null>(props.searchBar?.ref?.current ?? null)
-	const { t } = useTranslation()
 
 	const options = useMemo(() => {
 		return {
@@ -76,14 +75,14 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 							props.searchBar?.onFocus?.()
 						},
 						onSearchButtonPress: props.searchBar?.onSearchButtonPress,
-						placeholder: props.searchBar?.placeholder ?? t("nwui.search.placeholder"),
+						placeholder: props.searchBar?.placeholder ?? translateMemoized("nwui.search.placeholder"),
 						ref: (ref as NativeStackNavigationSearchBarOptions["ref"]) ?? undefined,
 						textColor: props.searchBar?.textColor
 				  }
 				: undefined,
 			...props.screen
 		} satisfies NativeStackNavigationOptions
-	}, [props, isFocused, colors.background, t])
+	}, [props, isFocused, colors.background])
 
 	const viewStyle = useMemo(() => {
 		return {

@@ -33,7 +33,7 @@ import * as Haptics from "expo-haptics"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import useNetInfo from "@/hooks/useNetInfo"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import chatsService from "@/services/chats.service"
 import type { ListRenderItemInfo } from "@shopify/flash-list"
 import assets from "@/lib/assets"
@@ -80,7 +80,6 @@ export const Message = memo(
 		const editMessageUUID = useChatsStore(useShallow(state => state.editMessage[chat.uuid]?.uuid))
 		const [, setChatInputValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
 		const { hasInternet } = useNetInfo()
-		const { t } = useTranslation()
 
 		const { isMessageUndecryptable, isReplyToMessageUndecryptable } = useMemo(() => {
 			const messageNormalized = info.item.message.toLowerCase().trim()
@@ -98,14 +97,18 @@ export const Message = memo(
 			const options =
 				info.item.senderId === userId
 					? [
-							t("chats.messages.menu.reply"),
-							t("chats.messages.menu.copyText"),
-							t("chats.messages.menu.edit"),
-							t("chats.messages.menu.disableEmbeds"),
-							t("chats.messages.menu.delete"),
-							t("chats.messages.menu.cancel")
+							translateMemoized("chats.messages.menu.reply"),
+							translateMemoized("chats.messages.menu.copyText"),
+							translateMemoized("chats.messages.menu.edit"),
+							translateMemoized("chats.messages.menu.disableEmbeds"),
+							translateMemoized("chats.messages.menu.delete"),
+							translateMemoized("chats.messages.menu.cancel")
 					  ]
-					: [t("chats.messages.menu.reply"), t("chats.messages.menu.copyText"), t("chats.messages.menu.cancel")]
+					: [
+							translateMemoized("chats.messages.menu.reply"),
+							translateMemoized("chats.messages.menu.copyText"),
+							translateMemoized("chats.messages.menu.cancel")
+					  ]
 
 			return {
 				options,
@@ -124,7 +127,7 @@ export const Message = memo(
 							1: "copyText"
 					  }) as Record<number, "reply" | "copyText" | "edit" | "delete" | "disableEmbeds">
 			}
-		}, [info.item.senderId, userId, t])
+		}, [info.item.senderId, userId])
 
 		const reply = useCallback(() => {
 			useChatsStore.getState().setReplyToMessage(prev => ({
@@ -510,7 +513,7 @@ export const Message = memo(
 								variant="caption2"
 								className="text-foreground uppercase font-normal"
 							>
-								{t("chats.messages.new").toUpperCase()}
+								{translateMemoized("chats.messages.new").toUpperCase()}
 							</Text>
 						</View>
 					</View>
@@ -568,7 +571,7 @@ export const Message = memo(
 										<View className={replaceClassName}>
 											{isMessageUndecryptable ? (
 												<Text className="italic text-sm text-muted-foreground font-normal shrink flex-wrap text-wrap items-center break-all">
-													{t("chats.messages.undecryptable")}
+													{translateMemoized("chats.messages.undecryptable")}
 												</Text>
 											) : (
 												<ReplacedMessageContent

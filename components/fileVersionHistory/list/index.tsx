@@ -4,7 +4,7 @@ import useFileVersionsQuery from "@/queries/useFileVersions.query"
 import { simpleDate } from "@/lib/utils"
 import Item, { type ListItemInfo } from "./item"
 import Container from "@/components/Container"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import ListEmpty from "@/components/listEmpty"
 
 const contentContainerStyle = {
@@ -12,8 +12,6 @@ const contentContainerStyle = {
 }
 
 export const List = memo(({ item }: { item: DriveCloudItem }) => {
-	const { t } = useTranslation()
-
 	const query = useFileVersionsQuery({
 		uuid: item.uuid
 	})
@@ -48,9 +46,9 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 				queryStatus={query.status}
 				itemCount={versions.length}
 				texts={{
-					error: t("fileVersionHistory.list.error"),
-					empty: t("fileVersionHistory.list.empty"),
-					emptySearch: t("fileVersionHistory.list.emptySearch")
+					error: translateMemoized("fileVersionHistory.list.error"),
+					empty: translateMemoized("fileVersionHistory.list.empty"),
+					emptySearch: translateMemoized("fileVersionHistory.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -65,7 +63,7 @@ export const List = memo(({ item }: { item: DriveCloudItem }) => {
 				}}
 			/>
 		)
-	}, [query.status, versions.length, t])
+	}, [query.status, versions.length])
 
 	return (
 		<Container>

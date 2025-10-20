@@ -16,7 +16,7 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import contactsService from "@/services/contacts.service"
 import { CONTACTS_ONLINE_TIMEOUT } from "@/lib/constants"
 import alerts from "@/lib/alerts"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import useNetInfo from "@/hooks/useNetInfo"
 
 const contentContainerStyle = {
@@ -30,7 +30,6 @@ export const Contacts = memo(() => {
 	]
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { colors } = useColorScheme()
-	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
 	const allContactsQuery = useContactsQuery({
@@ -188,45 +187,45 @@ export const Contacts = memo(() => {
 				texts={{
 					error:
 						activeTab === "all"
-							? t("settings.contacts.listEmpty.all.error")
+							? translateMemoized("settings.contacts.listEmpty.all.error")
 							: activeTab === "blocked"
-							? t("settings.contacts.listEmpty.blocked.error")
+							? translateMemoized("settings.contacts.listEmpty.blocked.error")
 							: activeTab === "requests"
-							? t("settings.contacts.listEmpty.requests.error")
+							? translateMemoized("settings.contacts.listEmpty.requests.error")
 							: activeTab === "pending"
-							? t("settings.contacts.listEmpty.pending.error")
+							? translateMemoized("settings.contacts.listEmpty.pending.error")
 							: activeTab === "online"
-							? t("settings.contacts.listEmpty.online.error")
+							? translateMemoized("settings.contacts.listEmpty.online.error")
 							: activeTab === "offline"
-							? t("settings.contacts.listEmpty.offline.error")
+							? translateMemoized("settings.contacts.listEmpty.offline.error")
 							: undefined,
 					empty:
 						activeTab === "all"
-							? t("settings.contacts.listEmpty.all.empty")
+							? translateMemoized("settings.contacts.listEmpty.all.empty")
 							: activeTab === "blocked"
-							? t("settings.contacts.listEmpty.blocked.empty")
+							? translateMemoized("settings.contacts.listEmpty.blocked.empty")
 							: activeTab === "requests"
-							? t("settings.contacts.listEmpty.requests.empty")
+							? translateMemoized("settings.contacts.listEmpty.requests.empty")
 							: activeTab === "pending"
-							? t("settings.contacts.listEmpty.pending.empty")
+							? translateMemoized("settings.contacts.listEmpty.pending.empty")
 							: activeTab === "online"
-							? t("settings.contacts.listEmpty.online.empty")
+							? translateMemoized("settings.contacts.listEmpty.online.empty")
 							: activeTab === "offline"
-							? t("settings.contacts.listEmpty.offline.empty")
+							? translateMemoized("settings.contacts.listEmpty.offline.empty")
 							: undefined,
 					emptySearch:
 						activeTab === "all"
-							? t("settings.contacts.listEmpty.all.emptySearch")
+							? translateMemoized("settings.contacts.listEmpty.all.emptySearch")
 							: activeTab === "blocked"
-							? t("settings.contacts.listEmpty.blocked.emptySearch")
+							? translateMemoized("settings.contacts.listEmpty.blocked.emptySearch")
 							: activeTab === "requests"
-							? t("settings.contacts.listEmpty.requests.emptySearch")
+							? translateMemoized("settings.contacts.listEmpty.requests.emptySearch")
 							: activeTab === "pending"
-							? t("settings.contacts.listEmpty.pending.emptySearch")
+							? translateMemoized("settings.contacts.listEmpty.pending.emptySearch")
 							: activeTab === "online"
-							? t("settings.contacts.listEmpty.online.emptySearch")
+							? translateMemoized("settings.contacts.listEmpty.online.emptySearch")
 							: activeTab === "offline"
-							? t("settings.contacts.listEmpty.offline.emptySearch")
+							? translateMemoized("settings.contacts.listEmpty.offline.emptySearch")
 							: undefined
 				}}
 				icons={{
@@ -242,15 +241,7 @@ export const Contacts = memo(() => {
 				}}
 			/>
 		)
-	}, [
-		activeTab,
-		allContactsQuery.status,
-		blockedContactsQuery.status,
-		contactsRequestsQuery.status,
-		listData.length,
-		searchTerm.length,
-		t
-	])
+	}, [activeTab, allContactsQuery.status, blockedContactsQuery.status, contactsRequestsQuery.status, listData.length, searchTerm.length])
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true)
@@ -288,7 +279,7 @@ export const Contacts = memo(() => {
 	return (
 		<Fragment>
 			<LargeTitleHeader
-				title={t("settings.contacts.title")}
+				title={translateMemoized("settings.contacts.title")}
 				searchBar={headerSearchBar}
 				rightView={headerRightView}
 			/>

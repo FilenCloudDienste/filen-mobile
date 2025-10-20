@@ -6,8 +6,8 @@ import useEventsQuery from "@/queries/useEvents.query"
 import type { UserEvent } from "@filen/sdk/dist/types/api/v3/user/events"
 import { simpleDate } from "@/lib/utils"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
-import { useTranslation } from "react-i18next"
 import ListEmpty from "@/components/listEmpty"
+import { translateMemoized, t } from "@/lib/i18n"
 
 export type ListItemInfo = {
 	title: string
@@ -21,14 +21,12 @@ const contentContainerStyle = {
 }
 
 export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) => {
-	const { t } = useTranslation()
-
 	const onPress = useCallback(() => {
 		alertPrompt({
-			title: t("settings.events.event"),
+			title: translateMemoized("settings.events.event"),
 			message: `${info.item.title}`
 		}).catch(console.error)
-	}, [info.item.title, t])
+	}, [info.item.title])
 
 	return (
 		<ListItem
@@ -50,234 +48,229 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 Item.displayName = "Item"
 
 export const Events = memo(() => {
-	const { t } = useTranslation()
-
 	const events = useEventsQuery({
 		filter: "all"
 	})
 
-	const eventTypeToTitle = useCallback(
-		(event: UserEvent) => {
-			switch (event.type) {
-				case "2faDisabled": {
-					return t("settings.events.eventInfo.2faDisabled")
-				}
+	const eventTypeToTitle = useCallback((event: UserEvent) => {
+		switch (event.type) {
+			case "2faDisabled": {
+				return translateMemoized("settings.events.eventInfo.2faDisabled")
+			}
 
-				case "2faEnabled": {
-					return t("settings.events.eventInfo.2faEnabled")
-				}
+			case "2faEnabled": {
+				return translateMemoized("settings.events.eventInfo.2faEnabled")
+			}
 
-				case "deleteFilePermanently": {
-					return t("settings.events.eventInfo.deleteFilePermanently", {
-						name: event.info.metadataDecrypted.name
+			case "deleteFilePermanently": {
+				return t("settings.events.eventInfo.deleteFilePermanently", {
+					name: event.info.metadataDecrypted.name
+				})
+			}
+
+			case "deleteAll": {
+				return translateMemoized("settings.events.eventInfo.deleteAll")
+			}
+
+			case "codeRedeemed": {
+				return t("settings.events.eventInfo.codeRedeemed", {
+					code: event.info.code
+				})
+			}
+
+			case "baseFolderCreated": {
+				return translateMemoized("settings.events.eventInfo.baseFolderCreated")
+			}
+
+			case "deleteFolderPermanently": {
+				return t("settings.events.eventInfo.deleteFolderPermanently", {
+					name: event.info.nameDecrypted.name
+				})
+			}
+
+			case "deleteUnfinished": {
+				return translateMemoized("settings.events.eventInfo.deleteUnfinished")
+			}
+
+			case "login": {
+				return translateMemoized("settings.events.eventInfo.login")
+			}
+
+			case "deleteVersioned": {
+				return translateMemoized("settings.events.eventInfo.deleteVersioned")
+			}
+
+			case "emailChangeAttempt": {
+				return translateMemoized("settings.events.eventInfo.emailChangeAttempt")
+			}
+
+			case "emailChanged": {
+				return translateMemoized("settings.events.eventInfo.emailChanged")
+			}
+
+			case "passwordChanged": {
+				return translateMemoized("settings.events.eventInfo.passwordChanged")
+			}
+
+			case "failedLogin": {
+				return translateMemoized("settings.events.eventInfo.failedLogin")
+			}
+
+			case "fileLinkEdited": {
+				return t("settings.events.eventInfo.fileLinkEdited", {
+					name: event.info.metadataDecrypted.name
+				})
+			}
+
+			case "fileMetadataChanged": {
+				return t("settings.events.eventInfo.fileMetadataChanged", {
+					name: event.info.metadataDecrypted.name
+				})
+			}
+
+			case "fileMoved": {
+				return t("settings.events.eventInfo.fileMoved", {
+					name: event.info.metadataDecrypted.name
+				})
+			}
+
+			case "fileRenamed": {
+				return t("settings.events.eventInfo.fileRenamed", {
+					oldName: event.info.oldMetadataDecrypted.name,
+					newName: event.info.metadataDecrypted.name
+				})
+			}
+
+			case "fileShared": {
+				return t("settings.events.eventInfo.fileShared", {
+					name: event.info.metadataDecrypted.name,
+					email: event.info.receiverEmail
+				})
+			}
+
+			case "fileUploaded": {
+				return t("settings.events.eventInfo.fileUploaded", {
+					name: event.info.metadataDecrypted.name
+				})
+			}
+
+			case "fileRestored": {
+				return t("settings.events.eventInfo.fileRestored", {
+					name: event.info.metadataDecrypted.name
+				})
+			}
+
+			case "fileRm": {
+				return t("settings.events.eventInfo.fileRm", {
+					name: event.info.metadataDecrypted.name
+				})
+			}
+
+			case "fileTrash": {
+				return t("settings.events.eventInfo.fileTrash", {
+					name: event.info.metadataDecrypted.name
+				})
+			}
+
+			case "fileVersioned": {
+				return t("settings.events.eventInfo.fileVersioned", {
+					name: event.info.metadataDecrypted.name
+				})
+			}
+
+			case "folderColorChanged": {
+				return t("settings.events.eventInfo.folderColorChanged", {
+					name: event.info.nameDecrypted.name
+				})
+			}
+
+			case "folderLinkEdited": {
+				return translateMemoized("settings.events.eventInfo.folderLinkEdited")
+			}
+
+			case "folderMetadataChanged": {
+				return t("settings.events.eventInfo.folderMetadataChanged", {
+					name: event.info.nameDecrypted.name
+				})
+			}
+
+			case "folderMoved": {
+				return t("settings.events.eventInfo.folderMoved", {
+					name: event.info.nameDecrypted.name
+				})
+			}
+
+			case "folderRenamed": {
+				return t("settings.events.eventInfo.folderRenamed", {
+					oldName: event.info.oldNameDecrypted.name,
+					newName: event.info.nameDecrypted.name
+				})
+			}
+
+			case "folderShared": {
+				return t("settings.events.eventInfo.folderShared", {
+					name: event.info.nameDecrypted.name,
+					email: event.info.receiverEmail
+				})
+			}
+
+			case "folderRestored": {
+				return t("settings.events.eventInfo.folderRestored", {
+					name: event.info.nameDecrypted.name
+				})
+			}
+
+			case "folderTrash": {
+				return t("settings.events.eventInfo.folderTrash", {
+					name: event.info.nameDecrypted.name
+				})
+			}
+
+			case "itemFavorite": {
+				if (event.info.value === 1) {
+					return t("settings.events.eventInfo.itemFavorited", {
+						name: event.info.metadataDecrypted?.name
 					})
-				}
-
-				case "deleteAll": {
-					return t("settings.events.eventInfo.deleteAll")
-				}
-
-				case "codeRedeemed": {
-					return t("settings.events.eventInfo.codeRedeemed", {
-						code: event.info.code
-					})
-				}
-
-				case "baseFolderCreated": {
-					return t("settings.events.eventInfo.baseFolderCreated")
-				}
-
-				case "deleteFolderPermanently": {
-					return t("settings.events.eventInfo.deleteFolderPermanently", {
-						name: event.info.nameDecrypted.name
-					})
-				}
-
-				case "deleteUnfinished": {
-					return t("settings.events.eventInfo.deleteUnfinished")
-				}
-
-				case "login": {
-					return t("settings.events.eventInfo.login")
-				}
-
-				case "deleteVersioned": {
-					return t("settings.events.eventInfo.deleteVersioned")
-				}
-
-				case "emailChangeAttempt": {
-					return t("settings.events.eventInfo.emailChangeAttempt")
-				}
-
-				case "emailChanged": {
-					return t("settings.events.eventInfo.emailChanged")
-				}
-
-				case "passwordChanged": {
-					return t("settings.events.eventInfo.passwordChanged")
-				}
-
-				case "failedLogin": {
-					return t("settings.events.eventInfo.failedLogin")
-				}
-
-				case "fileLinkEdited": {
-					return t("settings.events.eventInfo.fileLinkEdited", {
-						name: event.info.metadataDecrypted.name
-					})
-				}
-
-				case "fileMetadataChanged": {
-					return t("settings.events.eventInfo.fileMetadataChanged", {
-						name: event.info.metadataDecrypted.name
-					})
-				}
-
-				case "fileMoved": {
-					return t("settings.events.eventInfo.fileMoved", {
-						name: event.info.metadataDecrypted.name
-					})
-				}
-
-				case "fileRenamed": {
-					return t("settings.events.eventInfo.fileRenamed", {
-						oldName: event.info.oldMetadataDecrypted.name,
-						newName: event.info.metadataDecrypted.name
-					})
-				}
-
-				case "fileShared": {
-					return t("settings.events.eventInfo.fileShared", {
-						name: event.info.metadataDecrypted.name,
-						email: event.info.receiverEmail
-					})
-				}
-
-				case "fileUploaded": {
-					return t("settings.events.eventInfo.fileUploaded", {
-						name: event.info.metadataDecrypted.name
-					})
-				}
-
-				case "fileRestored": {
-					return t("settings.events.eventInfo.fileRestored", {
-						name: event.info.metadataDecrypted.name
-					})
-				}
-
-				case "fileRm": {
-					return t("settings.events.eventInfo.fileRm", {
-						name: event.info.metadataDecrypted.name
-					})
-				}
-
-				case "fileTrash": {
-					return t("settings.events.eventInfo.fileTrash", {
-						name: event.info.metadataDecrypted.name
-					})
-				}
-
-				case "fileVersioned": {
-					return t("settings.events.eventInfo.fileVersioned", {
-						name: event.info.metadataDecrypted.name
-					})
-				}
-
-				case "folderColorChanged": {
-					return t("settings.events.eventInfo.folderColorChanged", {
-						name: event.info.nameDecrypted.name
-					})
-				}
-
-				case "folderLinkEdited": {
-					return t("settings.events.eventInfo.folderLinkEdited")
-				}
-
-				case "folderMetadataChanged": {
-					return t("settings.events.eventInfo.folderMetadataChanged", {
-						name: event.info.nameDecrypted.name
-					})
-				}
-
-				case "folderMoved": {
-					return t("settings.events.eventInfo.folderMoved", {
-						name: event.info.nameDecrypted.name
-					})
-				}
-
-				case "folderRenamed": {
-					return t("settings.events.eventInfo.folderRenamed", {
-						oldName: event.info.oldNameDecrypted.name,
-						newName: event.info.nameDecrypted.name
-					})
-				}
-
-				case "folderShared": {
-					return t("settings.events.eventInfo.folderShared", {
-						name: event.info.nameDecrypted.name,
-						email: event.info.receiverEmail
-					})
-				}
-
-				case "folderRestored": {
-					return t("settings.events.eventInfo.folderRestored", {
-						name: event.info.nameDecrypted.name
-					})
-				}
-
-				case "folderTrash": {
-					return t("settings.events.eventInfo.folderTrash", {
-						name: event.info.nameDecrypted.name
-					})
-				}
-
-				case "itemFavorite": {
-					if (event.info.value === 1) {
-						return t("settings.events.eventInfo.itemFavorited", {
-							name: event.info.metadataDecrypted?.name
-						})
-					} else {
-						return t("settings.events.eventInfo.itemUnfavorited", {
-							name: event.info.metadataDecrypted?.name
-						})
-					}
-				}
-
-				case "removedSharedInItems": {
-					return t("settings.events.eventInfo.removedSharedInItems", {
-						email: event.info.sharerEmail
-					})
-				}
-
-				case "removedSharedOutItems": {
-					return t("settings.events.eventInfo.removedSharedOutItems", {
-						email: event.info.receiverEmail
-					})
-				}
-
-				case "requestAccountDeletion": {
-					return t("settings.events.eventInfo.requestAccountDeletion")
-				}
-
-				case "subFolderCreated": {
-					return t("settings.events.eventInfo.subFolderCreated", {
-						name: event.info.nameDecrypted.name
-					})
-				}
-
-				case "trashEmptied": {
-					return t("settings.events.eventInfo.trashEmptied")
-				}
-
-				case "versionedFileRestored": {
-					return t("settings.events.eventInfo.versionedFileRestored", {
-						name: event.info.metadataDecrypted.name
+				} else {
+					return t("settings.events.eventInfo.itemUnfavorited", {
+						name: event.info.metadataDecrypted?.name
 					})
 				}
 			}
-		},
-		[t]
-	)
+
+			case "removedSharedInItems": {
+				return t("settings.events.eventInfo.removedSharedInItems", {
+					email: event.info.sharerEmail
+				})
+			}
+
+			case "removedSharedOutItems": {
+				return t("settings.events.eventInfo.removedSharedOutItems", {
+					email: event.info.receiverEmail
+				})
+			}
+
+			case "requestAccountDeletion": {
+				return translateMemoized("settings.events.eventInfo.requestAccountDeletion")
+			}
+
+			case "subFolderCreated": {
+				return t("settings.events.eventInfo.subFolderCreated", {
+					name: event.info.nameDecrypted.name
+				})
+			}
+
+			case "trashEmptied": {
+				return translateMemoized("settings.events.eventInfo.trashEmptied")
+			}
+
+			case "versionedFileRestored": {
+				return t("settings.events.eventInfo.versionedFileRestored", {
+					name: event.info.metadataDecrypted.name
+				})
+			}
+		}
+	}, [])
 
 	const eventsSorted = useMemo(() => {
 		if (events.status !== "success") {
@@ -308,9 +301,9 @@ export const Events = memo(() => {
 				queryStatus={events.status}
 				itemCount={eventsSorted.length}
 				texts={{
-					error: t("settings.events.listEmpty.error"),
-					empty: t("settings.events.listEmpty.empty"),
-					emptySearch: t("settings.events.listEmpty.emptySearch")
+					error: translateMemoized("settings.events.listEmpty.error"),
+					empty: translateMemoized("settings.events.listEmpty.empty"),
+					emptySearch: translateMemoized("settings.events.listEmpty.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -325,11 +318,11 @@ export const Events = memo(() => {
 				}}
 			/>
 		)
-	}, [events.status, eventsSorted.length, t])
+	}, [events.status, eventsSorted.length])
 
 	return (
 		<Fragment>
-			<LargeTitleHeader title={t("settings.events.title")} />
+			<LargeTitleHeader title={translateMemoized("settings.events.title")} />
 			<List
 				contentInsetAdjustmentBehavior="automatic"
 				variant="full-width"

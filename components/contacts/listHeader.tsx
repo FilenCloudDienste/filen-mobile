@@ -6,11 +6,10 @@ import { cn } from "@/lib/cn"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import useContactsRequestsQuery from "@/queries/useContactsRequests.query"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 export const ListHeader = memo(() => {
 	const [contactsActiveTab, setContactsActiveTab] = useMMKVString("contactsActiveTab", mmkvInstance)
-	const { t } = useTranslation()
 
 	const contactsRequestsQuery = useContactsRequestsQuery({
 		enabled: false
@@ -44,17 +43,17 @@ export const ListHeader = memo(() => {
 					>
 						<Text className={cn("text-sm", activeTab === tab ? "text-foreground" : "text-muted-foreground")}>
 							{tab === "all"
-								? t("settings.contacts.tabs.all")
+								? translateMemoized("settings.contacts.tabs.all")
 								: tab === "blocked"
-								? t("settings.contacts.tabs.blocked")
+								? translateMemoized("settings.contacts.tabs.blocked")
 								: tab === "offline"
-								? t("settings.contacts.tabs.offline")
+								? translateMemoized("settings.contacts.tabs.offline")
 								: tab === "online"
-								? t("settings.contacts.tabs.online")
+								? translateMemoized("settings.contacts.tabs.online")
 								: tab === "pending"
-								? t("settings.contacts.tabs.pending")
+								? translateMemoized("settings.contacts.tabs.pending")
 								: tab === "requests"
-								? t("settings.contacts.tabs.requests")
+								? translateMemoized("settings.contacts.tabs.requests")
 								: ""}
 						</Text>
 						{tab === "requests" &&

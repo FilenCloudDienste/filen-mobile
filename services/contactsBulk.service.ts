@@ -2,9 +2,8 @@ import contactsService from "./contacts.service"
 import type { Contact } from "@filen/sdk/dist/types/api/v3/contacts"
 import type { ContactRequest } from "@filen/sdk/dist/types/api/v3/contacts/requests/in"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
-import { t } from "@/lib/i18n"
+import { translateMemoized, t } from "@/lib/i18n"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
-import { promiseAllChunked } from "@/lib/utils"
 
 export class ContactsBulkService {
 	public async removeContacts({
@@ -35,7 +34,7 @@ export class ContactsBulkService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("settings.contacts.prompts.removeContacts.title"),
+				title: translateMemoized("settings.contacts.prompts.removeContacts.title"),
 				message: t("settings.contacts.prompts.removeContacts.message", {
 					count: contacts.length
 				})
@@ -51,7 +50,7 @@ export class ContactsBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				contacts.map(contact =>
 					contactsService.removeContact({
 						uuid: contact.uuid,
@@ -95,7 +94,7 @@ export class ContactsBulkService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("settings.contacts.prompts.blockContacts.title"),
+				title: translateMemoized("settings.contacts.prompts.blockContacts.title"),
 				message: t("settings.contacts.prompts.blockContacts.message", {
 					count: contacts.length
 				})
@@ -111,7 +110,7 @@ export class ContactsBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				contacts.map(contact =>
 					contactsService.blockContact({
 						email: contact.email,
@@ -155,7 +154,7 @@ export class ContactsBulkService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("settings.contacts.prompts.unblockContacts.title"),
+				title: translateMemoized("settings.contacts.prompts.unblockContacts.title"),
 				message: t("settings.contacts.prompts.unblockContacts.message", {
 					count: contacts.length
 				})
@@ -171,7 +170,7 @@ export class ContactsBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				contacts.map(contact =>
 					contactsService.unblockContact({
 						uuid: contact.uuid,
@@ -193,7 +192,7 @@ export class ContactsBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				requests.map(request =>
 					contactsService.acceptRequest({
 						uuid: request.uuid,
@@ -214,7 +213,7 @@ export class ContactsBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				requests.map(request =>
 					contactsService.denyRequest({
 						uuid: request.uuid,
@@ -235,7 +234,7 @@ export class ContactsBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				requests.map(request =>
 					contactsService.deleteRequest({
 						uuid: request.uuid,

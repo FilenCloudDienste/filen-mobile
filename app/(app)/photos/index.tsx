@@ -8,7 +8,8 @@ import Thumbnail from "@/components/thumbnail/item"
 import { cn } from "@/lib/cn"
 import { Container } from "@/components/Container"
 import useDriveItemsQuery from "@/queries/useDriveItems.query"
-import { getPreviewType, orderItemsByType } from "@/lib/utils"
+import { getPreviewType } from "@/lib/utils"
+import { orderItemsByType } from "@/lib/itemSorter"
 import { useGalleryStore } from "@/stores/gallery.store"
 import useNetInfo from "@/hooks/useNetInfo"
 import { Text } from "@/components/nativewindui/Text"
@@ -24,7 +25,7 @@ import { useShallow } from "zustand/shallow"
 import Menu from "@/components/drive/list/listItem/menu"
 import OfflineListHeader from "@/components/offlineListHeader"
 import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatus.query"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
 import { usePhotosStore } from "@/stores/photos.store"
@@ -192,7 +193,6 @@ export const Photos = memo(() => {
 	const router = useRouter()
 	const syncState = useCameraUploadStore(useShallow(state => state.syncState))
 	const running = useCameraUploadStore(useShallow(state => state.running))
-	const { t } = useTranslation()
 	const selectedItemsCount = usePhotosStore(useShallow(state => state.selectedItems.length))
 	const listRef = useRef<FlashListRef<DriveCloudItem>>(null)
 	const { screen } = useDimensions()
@@ -325,7 +325,7 @@ export const Photos = memo(() => {
 									color={colors.primary}
 									size={24}
 								/>
-								<Text>{t("photos.state.synced")}</Text>
+								<Text>{translateMemoized("photos.state.synced")}</Text>
 							</View>
 						)}
 					</Fragment>
@@ -352,7 +352,6 @@ export const Photos = memo(() => {
 	}, [
 		cameraUpload.enabled,
 		colors.primary,
-		t,
 		colors.foreground,
 		router,
 		syncState.count,
@@ -412,9 +411,9 @@ export const Photos = memo(() => {
 				queryStatus={cameraUploadRemoteSetup ? query.status : "success"}
 				itemCount={items.length}
 				texts={{
-					error: t("photos.list.error"),
-					empty: t("photos.list.empty"),
-					emptySearch: t("photos.list.emptySearch")
+					error: translateMemoized("photos.list.error"),
+					empty: translateMemoized("photos.list.empty"),
+					emptySearch: translateMemoized("photos.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -429,7 +428,7 @@ export const Photos = memo(() => {
 				}}
 			/>
 		)
-	}, [query.status, items.length, t, cameraUploadRemoteSetup])
+	}, [query.status, items.length, cameraUploadRemoteSetup])
 
 	const ListHeaderComponent = useCallback(() => {
 		return !hasInternet ? <OfflineListHeader /> : undefined
@@ -450,7 +449,7 @@ export const Photos = memo(() => {
 	return (
 		<Fragment>
 			<LargeTitleHeader
-				title={t("photos.title")}
+				title={translateMemoized("photos.title")}
 				backVisible={false}
 				materialPreset="stack"
 				leftView={headerLeftView}

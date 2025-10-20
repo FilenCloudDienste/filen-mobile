@@ -6,7 +6,7 @@ import alerts from "@/lib/alerts"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { View } from "react-native"
 import QRCode from "react-native-qrcode-svg"
 import useDimensions from "@/hooks/useDimensions"
@@ -22,7 +22,6 @@ import * as Sharing from "expo-sharing"
 import pathModule from "path"
 
 export const TwoFactor = memo(() => {
-	const { t } = useTranslation()
 	const { screen } = useDimensions()
 	const { colors } = useColorScheme()
 
@@ -87,7 +86,7 @@ export const TwoFactor = memo(() => {
 
 	const toggleTwoFactor = useCallback(async () => {
 		const twoFactorPrompt = await inputPrompt({
-			title: t("settings.twoFactorAuth.prompts.enable.title"),
+			title: translateMemoized("settings.twoFactorAuth.prompts.enable.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -95,7 +94,7 @@ export const TwoFactor = memo(() => {
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("settings.twoFactorAuth.prompts.enable.placeholder")
+				placeholder: translateMemoized("settings.twoFactorAuth.prompts.enable.placeholder")
 			}
 		})
 
@@ -134,7 +133,7 @@ export const TwoFactor = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [account, t, twoFactorEnabled, exportRecoveryKeys])
+	}, [account, twoFactorEnabled, exportRecoveryKeys])
 
 	const copyKeyToClipboard = useCallback(async () => {
 		if (!account.data?.settings.twoFactorKey) {
@@ -144,7 +143,7 @@ export const TwoFactor = memo(() => {
 		try {
 			await Clipboard.setStringAsync(account.data.settings.twoFactorKey)
 
-			alerts.normal(t("settings.twoFactorAuth.copied"))
+			alerts.normal(translateMemoized("settings.twoFactorAuth.copied"))
 		} catch (e) {
 			console.error(e)
 
@@ -152,13 +151,13 @@ export const TwoFactor = memo(() => {
 				alerts.error(e.message)
 			}
 		}
-	}, [account.data?.settings.twoFactorKey, t])
+	}, [account.data?.settings.twoFactorKey])
 
 	const items = useMemo(() => {
 		return [
 			{
 				id: "0",
-				title: t("settings.twoFactorAuth.items.2fa"),
+				title: translateMemoized("settings.twoFactorAuth.items.2fa"),
 				rightView: (
 					<Toggle
 						value={twoFactorEnabled}
@@ -167,7 +166,7 @@ export const TwoFactor = memo(() => {
 				)
 			}
 		]
-	}, [toggleTwoFactor, twoFactorEnabled, t])
+	}, [toggleTwoFactor, twoFactorEnabled])
 
 	const listFooter = useMemo(() => {
 		return (
@@ -207,7 +206,7 @@ export const TwoFactor = memo(() => {
 							size="sm"
 							onPress={copyKeyToClipboard}
 						>
-							<Text className="text-primary">{t("settings.twoFactorAuth.copyKey")}</Text>
+							<Text className="text-primary">{translateMemoized("settings.twoFactorAuth.copyKey")}</Text>
 							<Icon
 								name="clipboard-outline"
 								size={24}
@@ -218,11 +217,11 @@ export const TwoFactor = memo(() => {
 				</View>
 			)
 		)
-	}, [account.data?.settings.twoFactorKey, colors.primary, copyKeyToClipboard, qrCodeValue, screen.width, twoFactorEnabled, t])
+	}, [account.data?.settings.twoFactorKey, colors.primary, copyKeyToClipboard, qrCodeValue, screen.width, twoFactorEnabled])
 
 	return (
 		<SettingsComponent
-			title={t("settings.twoFactorAuth.title")}
+			title={translateMemoized("settings.twoFactorAuth.title")}
 			showSearchBar={false}
 			loading={account.status !== "success"}
 			items={items}

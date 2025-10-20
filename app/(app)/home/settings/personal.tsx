@@ -12,7 +12,7 @@ import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Icon } from "@roninoss/icons"
 import { Text } from "@/components/nativewindui/Text"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 export const countries: string[] = [
 	"Afghanistan",
@@ -223,7 +223,6 @@ export const countryDropdownItems = countries.map(country =>
 
 export const Personal = memo(() => {
 	const { colors } = useColorScheme()
-	const { t } = useTranslation()
 
 	const account = useAccountQuery({
 		enabled: false
@@ -232,7 +231,7 @@ export const Personal = memo(() => {
 	const onPress = useCallback(
 		async (type: "firstName" | "lastName" | "city" | "postalCode" | "street" | "streetNumber" | "companyName" | "vatId") => {
 			const inputPromptResponse = await inputPrompt({
-				title: t("settings.personal.prompts.edit.title"),
+				title: translateMemoized("settings.personal.prompts.edit.title"),
 				materialIcon: {
 					name: "pencil"
 				},
@@ -280,7 +279,7 @@ export const Personal = memo(() => {
 				fullScreenLoadingModal.hide()
 			}
 		},
-		[account, t]
+		[account]
 	)
 
 	const changeCountry = useCallback(
@@ -322,63 +321,63 @@ export const Personal = memo(() => {
 		return [
 			{
 				id: "0",
-				title: t("settings.personal.items.firstName"),
+				title: translateMemoized("settings.personal.items.firstName"),
 				rightText: account.data?.account.personal.firstName ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.firstName ?? "" : undefined,
 				onPress: () => onPress("firstName")
 			},
 			{
 				id: "1",
-				title: t("settings.personal.items.lastName"),
+				title: translateMemoized("settings.personal.items.lastName"),
 				rightText: account.data?.account.personal.lastName ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.lastName ?? "" : undefined,
 				onPress: () => onPress("lastName")
 			},
 			{
 				id: "2",
-				title: t("settings.personal.items.companyName"),
+				title: translateMemoized("settings.personal.items.companyName"),
 				rightText: account.data?.account.personal.companyName ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.companyName ?? "" : undefined,
 				onPress: () => onPress("companyName")
 			},
 			{
 				id: "3",
-				title: t("settings.personal.items.vatId"),
+				title: translateMemoized("settings.personal.items.vatId"),
 				rightText: account.data?.account.personal.vatId ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.vatId ?? "" : undefined,
 				onPress: () => onPress("vatId")
 			},
 			{
 				id: "4",
-				title: t("settings.personal.items.street"),
+				title: translateMemoized("settings.personal.items.street"),
 				rightText: account.data?.account.personal.street ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.street ?? "" : undefined,
 				onPress: () => onPress("street")
 			},
 			{
 				id: "5",
-				title: t("settings.personal.items.streetNumber"),
+				title: translateMemoized("settings.personal.items.streetNumber"),
 				rightText: account.data?.account.personal.streetNumber ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.streetNumber ?? "" : undefined,
 				onPress: () => onPress("streetNumber")
 			},
 			{
 				id: "6",
-				title: t("settings.personal.items.city"),
+				title: translateMemoized("settings.personal.items.city"),
 				rightText: account.data?.account.personal.city ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.city ?? "" : undefined,
 				onPress: () => onPress("city")
 			},
 			{
 				id: "7",
-				title: t("settings.personal.items.postalCode"),
+				title: translateMemoized("settings.personal.items.postalCode"),
 				rightText: account.data?.account.personal.postalCode ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.postalCode ?? "" : undefined,
 				onPress: () => onPress("postalCode")
 			},
 			{
 				id: "8",
-				title: t("settings.personal.items.country"),
+				title: translateMemoized("settings.personal.items.country"),
 				subTitle: Platform.OS === "android" ? account.data?.account.personal.country ?? "" : undefined,
 				rightView: (
 					<DropdownMenu
@@ -410,7 +409,6 @@ export const Personal = memo(() => {
 			}
 		]
 	}, [
-		t,
 		account.data?.account.personal.city,
 		account.data?.account.personal.companyName,
 		account.data?.account.personal.country,
@@ -427,7 +425,7 @@ export const Personal = memo(() => {
 
 	return (
 		<SettingsComponent
-			title={t("settings.personal.title")}
+			title={translateMemoized("settings.personal.title")}
 			showSearchBar={false}
 			loading={account.status !== "success"}
 			items={items}

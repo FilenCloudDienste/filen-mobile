@@ -79,16 +79,15 @@ export function useItemPublicLinkStatusQuery(
 	params: UseItemPublicLinkStatusQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
-	params = sortParams(params)
-
+	const sortedParams = sortParams(params)
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({
 		...DEFAULT_QUERY_OPTIONS,
 		...defaultParams,
 		...options,
-		queryKey: [BASE_QUERY_KEY, params],
-		queryFn: () => fetchData(params)
+		queryKey: [BASE_QUERY_KEY, sortedParams],
+		queryFn: () => fetchData(sortedParams)
 	})
 
 	useRefreshOnFocus({
@@ -100,10 +99,10 @@ export function useItemPublicLinkStatusQuery(
 }
 
 export async function itemPublicLinkStatusQueryRefetch(params: Parameters<typeof fetchData>[0]): Promise<void> {
-	params = sortParams(params)
+	const sortedParams = sortParams(params)
 
 	return await queryClient.refetchQueries({
-		queryKey: [BASE_QUERY_KEY, params]
+		queryKey: [BASE_QUERY_KEY, sortedParams]
 	})
 }
 

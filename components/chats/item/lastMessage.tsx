@@ -11,7 +11,7 @@ import { randomUUID } from "expo-crypto"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 
 export const LastMessage = memo(({ chat }: { chat: ChatConversation }) => {
 	const [usersTyping, setUsersTyping] = useState<SocketChatTyping[]>([])
@@ -19,7 +19,6 @@ export const LastMessage = memo(({ chat }: { chat: ChatConversation }) => {
 	const { events: socketEvents } = useSocket()
 	const [{ userId }] = useSDKConfig()
 	const [chatInputValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
-	const { t } = useTranslation()
 
 	const usersTypingSorted = useMemo(() => {
 		return usersTyping.sort((a, b) =>
@@ -136,7 +135,7 @@ export const LastMessage = memo(({ chat }: { chat: ChatConversation }) => {
 				numberOfLines={1}
 				ellipsizeMode="middle"
 			>
-				{t("chats.item.noMessages")}
+				{translateMemoized("chats.item.noMessages")}
 			</Text>
 		)
 	}
@@ -162,7 +161,7 @@ export const LastMessage = memo(({ chat }: { chat: ChatConversation }) => {
 								numberOfLines={1}
 								ellipsizeMode="middle"
 							>
-								{t("chats.item.draft")}:
+								{translateMemoized("chats.item.draft")}:
 							</Text>
 						}
 					/>
@@ -192,7 +191,7 @@ export const LastMessage = memo(({ chat }: { chat: ChatConversation }) => {
 				numberOfLines={1}
 				ellipsizeMode="middle"
 			>
-				{t("chats.item.noMessages")}
+				{translateMemoized("chats.item.noMessages")}
 			</Text>
 		)
 	}

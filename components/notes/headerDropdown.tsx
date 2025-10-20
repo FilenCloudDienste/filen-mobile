@@ -5,7 +5,7 @@ import type { DropdownItem, DropdownSubMenu } from "../nativewindui/DropdownMenu
 import { Button } from "../nativewindui/Button"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import useNotesQuery from "@/queries/useNotes.query"
 import { useMMKVString } from "react-native-mmkv"
@@ -20,7 +20,6 @@ import { sortAndFilterNotes } from "@/lib/utils"
 
 export const HeaderDropdown = memo(() => {
 	const { colors } = useColorScheme()
-	const { t } = useTranslation()
 	const [selectedTag] = useMMKVString("notesSelectedTag", mmkvInstance)
 	const [searchTerm] = useMMKVString("notesSearchTerm", mmkvInstance)
 	const selectedNotesCount = useNotesStore(useShallow(state => state.selectedNotes.length))
@@ -71,7 +70,7 @@ export const HeaderDropdown = memo(() => {
 			items.push(
 				createDropdownItem({
 					actionKey: "selectAll",
-					title: t("notes.header.dropdown.items.selectAll"),
+					title: translateMemoized("notes.header.dropdown.items.selectAll"),
 					icon: {
 						name: "check-circle-outline"
 					}
@@ -83,7 +82,7 @@ export const HeaderDropdown = memo(() => {
 			items.push(
 				createDropdownItem({
 					actionKey: "deselectAll",
-					title: t("notes.header.dropdown.items.deselectAll"),
+					title: translateMemoized("notes.header.dropdown.items.deselectAll"),
 					icon: {
 						name: "check-circle-outline"
 					}
@@ -95,13 +94,13 @@ export const HeaderDropdown = memo(() => {
 			items.push(
 				createDropdownSubMenu(
 					{
-						title: t("notes.menu.type"),
+						title: translateMemoized("notes.menu.type"),
 						iOSItemSize: "large"
 					},
 					[
 						createDropdownItem({
 							actionKey: "bulkTypeText",
-							title: t("notes.menu.types.text"),
+							title: translateMemoized("notes.menu.types.text"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -115,7 +114,7 @@ export const HeaderDropdown = memo(() => {
 						}),
 						createDropdownItem({
 							actionKey: "bulkTypeRich",
-							title: t("notes.menu.types.rich"),
+							title: translateMemoized("notes.menu.types.rich"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -129,7 +128,7 @@ export const HeaderDropdown = memo(() => {
 						}),
 						createDropdownItem({
 							actionKey: "bulkTypeChecklist",
-							title: t("notes.menu.types.checklist"),
+							title: translateMemoized("notes.menu.types.checklist"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -143,7 +142,7 @@ export const HeaderDropdown = memo(() => {
 						}),
 						createDropdownItem({
 							actionKey: "bulkTypeMd",
-							title: t("notes.menu.types.md"),
+							title: translateMemoized("notes.menu.types.md"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -157,7 +156,7 @@ export const HeaderDropdown = memo(() => {
 						}),
 						createDropdownItem({
 							actionKey: "bulkTypeCode",
-							title: t("notes.menu.types.code"),
+							title: translateMemoized("notes.menu.types.code"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -176,7 +175,7 @@ export const HeaderDropdown = memo(() => {
 			items.push(
 				createDropdownItem({
 					actionKey: selectedNotesIncludesPinnedNote ? "bulkUnpin" : "bulkPin",
-					title: selectedNotesIncludesPinnedNote ? t("notes.menu.unpin") : t("notes.menu.pin"),
+					title: selectedNotesIncludesPinnedNote ? translateMemoized("notes.menu.unpin") : translateMemoized("notes.menu.pin"),
 					icon:
 						Platform.OS === "ios"
 							? {
@@ -193,7 +192,9 @@ export const HeaderDropdown = memo(() => {
 			items.push(
 				createDropdownItem({
 					actionKey: selectedNotesIncludesFavoritedNote ? "bulkUnfavorite" : "bulkFavorite",
-					title: selectedNotesIncludesFavoritedNote ? t("notes.menu.unfavorite") : t("notes.menu.favorite"),
+					title: selectedNotesIncludesFavoritedNote
+						? translateMemoized("notes.menu.unfavorite")
+						: translateMemoized("notes.menu.favorite"),
 					icon:
 						Platform.OS === "ios"
 							? {
@@ -211,7 +212,7 @@ export const HeaderDropdown = memo(() => {
 				items.push(
 					createDropdownSubMenu(
 						{
-							title: t("notes.menu.tags"),
+							title: translateMemoized("notes.menu.tags"),
 							iOSItemSize: "large"
 						},
 						tags.map(tag =>
@@ -238,7 +239,7 @@ export const HeaderDropdown = memo(() => {
 				items.push(
 					createDropdownItem({
 						actionKey: "bulkDuplicate",
-						title: t("notes.menu.duplicate"),
+						title: translateMemoized("notes.menu.duplicate"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -258,7 +259,7 @@ export const HeaderDropdown = memo(() => {
 					items.push(
 						createDropdownItem({
 							actionKey: "bulkArchive",
-							title: t("notes.menu.archive"),
+							title: translateMemoized("notes.menu.archive"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -277,7 +278,7 @@ export const HeaderDropdown = memo(() => {
 					items.push(
 						createDropdownItem({
 							actionKey: "bulkRestore",
-							title: t("notes.menu.restore"),
+							title: translateMemoized("notes.menu.restore"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -296,7 +297,7 @@ export const HeaderDropdown = memo(() => {
 					items.push(
 						createDropdownItem({
 							actionKey: "bulkDelete",
-							title: t("notes.menu.delete"),
+							title: translateMemoized("notes.menu.delete"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -316,7 +317,7 @@ export const HeaderDropdown = memo(() => {
 					items.push(
 						createDropdownItem({
 							actionKey: "bulkTrash",
-							title: t("notes.menu.trash"),
+							title: translateMemoized("notes.menu.trash"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -337,7 +338,7 @@ export const HeaderDropdown = memo(() => {
 				items.push(
 					createDropdownItem({
 						actionKey: "bulkLeave",
-						title: t("notes.menu.leave"),
+						title: translateMemoized("notes.menu.leave"),
 						destructive: true,
 						icon:
 							Platform.OS === "ios"
@@ -358,7 +359,6 @@ export const HeaderDropdown = memo(() => {
 
 		return items
 	}, [
-		t,
 		notes.length,
 		everySelectedNoteIsOwnedByUser,
 		selectedNotesCount,

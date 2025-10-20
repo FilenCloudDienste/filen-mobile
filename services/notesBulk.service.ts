@@ -1,9 +1,8 @@
 import notesService from "./notes.service"
 import type { NoteType, Note, NoteTag } from "@filen/sdk/dist/types/api/v3/notes"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
-import { promiseAllChunked } from "@/lib/utils"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
-import { t } from "@/lib/i18n"
+import { translateMemoized, t } from "@/lib/i18n"
 
 export class NotesBulkService {
 	public async changeNoteTypes({
@@ -24,7 +23,7 @@ export class NotesBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				notes.map(note =>
 					notesService.changeNoteType({
 						note,
@@ -58,7 +57,7 @@ export class NotesBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				notes.map(note =>
 					notesService.toggleNotePinned({
 						note,
@@ -92,7 +91,7 @@ export class NotesBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				notes.map(note =>
 					notesService.toggleNoteFavorite({
 						note,
@@ -118,7 +117,7 @@ export class NotesBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				notes.map(note =>
 					notesService.duplicateNote({
 						note,
@@ -144,7 +143,7 @@ export class NotesBulkService {
 
 		try {
 			return (
-				await promiseAllChunked(
+				await Promise.all(
 					notes.map(note =>
 						notesService.exportNote({
 							note,
@@ -171,7 +170,7 @@ export class NotesBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				notes.map(note =>
 					notesService.archiveNote({
 						note,
@@ -201,7 +200,7 @@ export class NotesBulkService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("notes.prompts.trashNotes.title"),
+				title: translateMemoized("notes.prompts.trashNotes.title"),
 				message: t("notes.prompts.trashNotes.message", {
 					count: notes.length
 				})
@@ -217,7 +216,7 @@ export class NotesBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				notes.map(note =>
 					notesService.trashNote({
 						note,
@@ -243,7 +242,7 @@ export class NotesBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				notes.map(note =>
 					notesService.restoreNote({
 						note,
@@ -273,7 +272,7 @@ export class NotesBulkService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("notes.prompts.deleteNotes.title"),
+				title: translateMemoized("notes.prompts.deleteNotes.title"),
 				message: t("notes.prompts.deleteNotes.message", {
 					count: notes.length
 				})
@@ -289,7 +288,7 @@ export class NotesBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				notes.map(note =>
 					notesService.deleteNote({
 						note,
@@ -320,7 +319,7 @@ export class NotesBulkService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("notes.prompts.leaveNotes.title"),
+				title: translateMemoized("notes.prompts.leaveNotes.title"),
 				message: t("notes.prompts.leaveNotes.message", {
 					count: notes.length
 				})
@@ -336,7 +335,7 @@ export class NotesBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				notes.map(note =>
 					notesService.leaveNote({
 						note,
@@ -362,7 +361,7 @@ export class NotesBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				notes.map(note =>
 					notesService.tagNote({
 						note,
@@ -388,7 +387,7 @@ export class NotesBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				notes.map(note =>
 					notesService.untagNote({
 						note,

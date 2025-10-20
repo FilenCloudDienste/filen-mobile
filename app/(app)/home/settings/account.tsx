@@ -11,7 +11,6 @@ import * as Linking from "expo-linking"
 import { WEB_APP_ACCOUNT_SETTINGS_URL } from "@/lib/constants"
 import { Toggle } from "@/components/nativewindui/Toggle"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
-import { useTranslation } from "react-i18next"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import * as ImagePicker from "expo-image-picker"
@@ -22,10 +21,10 @@ import * as Sharing from "expo-sharing"
 import authService from "@/services/auth.service"
 import assets from "@/lib/assets"
 import pathModule from "path"
+import { translateMemoized } from "@/lib/i18n"
 
 export const Account = memo(() => {
 	const router = useRouter()
-	const { t } = useTranslation()
 
 	const account = useAccountQuery({
 		enabled: false
@@ -93,7 +92,7 @@ export const Account = memo(() => {
 				}
 
 				if (tmpFile.size > 2.99 * 1024 * 1024) {
-					throw new Error(t("settings.account.errors.avatarLimit"))
+					throw new Error(translateMemoized("settings.account.errors.avatarLimit"))
 				}
 
 				await nodeWorker.proxy("uploadAvatar", {
@@ -115,12 +114,12 @@ export const Account = memo(() => {
 				alerts.error(e.message)
 			}
 		}
-	}, [account, t])
+	}, [account])
 
 	const openWebApp = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: t("settings.account.prompts.more.title"),
-			message: t("settings.account.prompts.more.message")
+			title: translateMemoized("settings.account.prompts.more.title"),
+			message: translateMemoized("settings.account.prompts.more.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -129,7 +128,7 @@ export const Account = memo(() => {
 
 		try {
 			if (!(await Linking.canOpenURL(WEB_APP_ACCOUNT_SETTINGS_URL))) {
-				throw new Error(t("errors.cannotOpenURL"))
+				throw new Error(translateMemoized("errors.cannotOpenURL"))
 			}
 
 			await Linking.openURL(WEB_APP_ACCOUNT_SETTINGS_URL)
@@ -140,7 +139,7 @@ export const Account = memo(() => {
 				alerts.error(e.message)
 			}
 		}
-	}, [t])
+	}, [])
 
 	const toggleVersioning = useCallback(
 		async (value: boolean) => {
@@ -196,7 +195,7 @@ export const Account = memo(() => {
 
 	const changeNickname = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
-			title: t("settings.account.prompts.updateNickname.title"),
+			title: translateMemoized("settings.account.prompts.updateNickname.title"),
 			materialIcon: {
 				name: "pencil"
 			},
@@ -204,7 +203,7 @@ export const Account = memo(() => {
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: contactName(account.data?.account.email, account.data?.account.nickName),
-				placeholder: t("settings.account.prompts.updateNickname.placeholder")
+				placeholder: translateMemoized("settings.account.prompts.updateNickname.placeholder")
 			}
 		})
 
@@ -235,7 +234,7 @@ export const Account = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [account, t])
+	}, [account])
 
 	const changeEmail = useCallback(async () => {
 		const request = {
@@ -245,7 +244,7 @@ export const Account = memo(() => {
 		}
 
 		const emailPrompt = await inputPrompt({
-			title: t("settings.account.prompts.changeEmail.newEmail.title"),
+			title: translateMemoized("settings.account.prompts.changeEmail.newEmail.title"),
 			materialIcon: {
 				name: "email"
 			},
@@ -253,7 +252,7 @@ export const Account = memo(() => {
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("settings.account.prompts.changeEmail.newEmail.placeholder")
+				placeholder: translateMemoized("settings.account.prompts.changeEmail.newEmail.placeholder")
 			}
 		})
 
@@ -268,7 +267,7 @@ export const Account = memo(() => {
 		}
 
 		const confirmEmailPrompt = await inputPrompt({
-			title: t("settings.account.prompts.changeEmail.confirmEmail.title"),
+			title: translateMemoized("settings.account.prompts.changeEmail.confirmEmail.title"),
 			materialIcon: {
 				name: "email"
 			},
@@ -276,7 +275,7 @@ export const Account = memo(() => {
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("settings.account.prompts.changeEmail.confirmEmail.placeholder")
+				placeholder: translateMemoized("settings.account.prompts.changeEmail.confirmEmail.placeholder")
 			}
 		})
 
@@ -291,7 +290,7 @@ export const Account = memo(() => {
 		}
 
 		const passwordPrompt = await inputPrompt({
-			title: t("settings.account.prompts.changeEmail.password.title"),
+			title: translateMemoized("settings.account.prompts.changeEmail.password.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -299,7 +298,7 @@ export const Account = memo(() => {
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("settings.account.prompts.changeEmail.password.placeholder")
+				placeholder: translateMemoized("settings.account.prompts.changeEmail.password.placeholder")
 			}
 		})
 
@@ -314,7 +313,7 @@ export const Account = memo(() => {
 		}
 
 		if (request.email !== request.confirmEmail) {
-			alerts.error(t("settings.account.errors.emailsNotMatching"))
+			alerts.error(translateMemoized("settings.account.errors.emailsNotMatching"))
 
 			return
 		}
@@ -337,7 +336,7 @@ export const Account = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [account, t])
+	}, [account])
 
 	const gdpr = useCallback(async () => {
 		const fileName = `${sanitizeFileName(`GDPR_Information_${account.data?.account.email ?? ""}_${Date.now()}`)}.json`
@@ -381,8 +380,8 @@ export const Account = memo(() => {
 
 	const deleteVersionedFiles = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: t("settings.account.prompts.deleteVersionedFiles1.title"),
-			message: t("settings.account.prompts.deleteVersionedFiles1.message")
+			title: translateMemoized("settings.account.prompts.deleteVersionedFiles1.title"),
+			message: translateMemoized("settings.account.prompts.deleteVersionedFiles1.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -390,8 +389,8 @@ export const Account = memo(() => {
 		}
 
 		const confirmPrompt = await alertPrompt({
-			title: t("settings.account.prompts.deleteVersionedFiles2.title"),
-			message: t("settings.account.prompts.deleteVersionedFiles2.message")
+			title: translateMemoized("settings.account.prompts.deleteVersionedFiles2.title"),
+			message: translateMemoized("settings.account.prompts.deleteVersionedFiles2.message")
 		})
 
 		if (confirmPrompt.cancelled) {
@@ -413,12 +412,12 @@ export const Account = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [account, t])
+	}, [account])
 
 	const deleteAllFilesAndDirectories = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: t("settings.account.prompts.deleteAllFilesAndDirectories1.title"),
-			message: t("settings.account.prompts.deleteAllFilesAndDirectories1.message")
+			title: translateMemoized("settings.account.prompts.deleteAllFilesAndDirectories1.title"),
+			message: translateMemoized("settings.account.prompts.deleteAllFilesAndDirectories1.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -426,8 +425,8 @@ export const Account = memo(() => {
 		}
 
 		const confirmPrompt = await alertPrompt({
-			title: t("settings.account.prompts.deleteAllFilesAndDirectories2.title"),
-			message: t("settings.account.prompts.deleteAllFilesAndDirectories2.message")
+			title: translateMemoized("settings.account.prompts.deleteAllFilesAndDirectories2.title"),
+			message: translateMemoized("settings.account.prompts.deleteAllFilesAndDirectories2.message")
 		})
 
 		if (confirmPrompt.cancelled) {
@@ -449,12 +448,12 @@ export const Account = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [account, t])
+	}, [account])
 
 	const accountDeletion = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: t("settings.account.prompts.deleteAccount.title"),
-			message: t("settings.account.prompts.deleteAccount.message")
+			title: translateMemoized("settings.account.prompts.deleteAccount.title"),
+			message: translateMemoized("settings.account.prompts.deleteAccount.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -465,7 +464,7 @@ export const Account = memo(() => {
 
 		if (account.data?.settings.twoFactorEnabled) {
 			const twoFactorPrompt = await inputPrompt({
-				title: t("settings.account.prompts.2fa.title"),
+				title: translateMemoized("settings.account.prompts.2fa.title"),
 				materialIcon: {
 					name: "lock-outline"
 				},
@@ -473,7 +472,7 @@ export const Account = memo(() => {
 					type: "secure-text",
 					keyboardType: "default",
 					defaultValue: "",
-					placeholder: t("settings.account.prompts.2fa.placeholder")
+					placeholder: translateMemoized("settings.account.prompts.2fa.placeholder")
 				}
 			})
 
@@ -505,7 +504,7 @@ export const Account = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [account, t])
+	}, [account])
 
 	const logout = useCallback(async () => {
 		try {
@@ -528,7 +527,7 @@ export const Account = memo(() => {
 			{
 				id: "0",
 				title: contactName(account.data?.account.email, account.data?.account.nickName),
-				subTitle: t("settings.account.items.changeAvatar"),
+				subTitle: translateMemoized("settings.account.items.changeAvatar"),
 				onPress: changeAvatar,
 				leftView: (
 					<Avatar
@@ -543,38 +542,38 @@ export const Account = memo(() => {
 			"gap-0",
 			{
 				id: "1",
-				title: t("settings.account.items.emailAddress"),
+				title: translateMemoized("settings.account.items.emailAddress"),
 				rightText: account.data?.account.email ?? "",
 				subTitle: Platform.OS === "android" ? account.data?.account.email ?? "" : undefined,
 				onPress: changeEmail
 			},
 			{
 				id: "2",
-				title: t("settings.account.items.personalInformation"),
+				title: translateMemoized("settings.account.items.personalInformation"),
 				onPress: onPressPersonalInfo
 			},
 			{
 				id: "3",
-				title: t("settings.account.items.nickname"),
+				title: translateMemoized("settings.account.items.nickname"),
 				rightText: contactName(account.data?.account.email, account.data?.account.nickName),
 				subTitle: Platform.OS === "android" ? contactName(account.data?.account.email, account.data?.account.nickName) : undefined,
 				onPress: changeNickname
 			},
 			{
 				id: "4",
-				title: t("settings.account.items.gdpr"),
+				title: translateMemoized("settings.account.items.gdpr"),
 				onPress: gdpr
 			},
 			{
 				id: "5",
-				title: t("settings.account.items.more"),
+				title: translateMemoized("settings.account.items.more"),
 				onPress: openWebApp
 			},
 			"gap-1",
 			{
 				id: "6",
-				title: t("settings.account.items.fileVersioning"),
-				subTitle: t("settings.account.items.fileVersioningInfo"),
+				title: translateMemoized("settings.account.items.fileVersioning"),
+				subTitle: translateMemoized("settings.account.items.fileVersioningInfo"),
 				rightView: (
 					<Toggle
 						value={account.data?.settings.versioningEnabled ?? false}
@@ -584,8 +583,8 @@ export const Account = memo(() => {
 			},
 			{
 				id: "7",
-				title: t("settings.account.items.loginAlerts"),
-				subTitle: t("settings.account.items.loginAlertsInfo"),
+				title: translateMemoized("settings.account.items.loginAlerts"),
+				subTitle: translateMemoized("settings.account.items.loginAlertsInfo"),
 				rightView: (
 					<Toggle
 						value={account.data?.settings.loginAlertsEnabled ?? false}
@@ -596,7 +595,7 @@ export const Account = memo(() => {
 			"gap-2",
 			{
 				id: "8",
-				title: t("settings.account.items.deleteVersionedFiles"),
+				title: translateMemoized("settings.account.items.deleteVersionedFiles"),
 				rightText: formatBytes(account.data?.settings.versionedStorage ?? 0),
 				subTitle: Platform.OS === "android" ? formatBytes(account.data?.settings.versionedStorage ?? 0) : undefined,
 				destructive: true,
@@ -604,7 +603,7 @@ export const Account = memo(() => {
 			},
 			{
 				id: "9",
-				title: t("settings.account.items.deleteAllFilesAndDirectories"),
+				title: translateMemoized("settings.account.items.deleteAllFilesAndDirectories"),
 				rightText: formatBytes(account.data?.account.storage ?? 0),
 				subTitle: Platform.OS === "android" ? formatBytes(account.data?.account.storage ?? 0) : undefined,
 				destructive: true,
@@ -613,15 +612,15 @@ export const Account = memo(() => {
 			"gap-3",
 			{
 				id: "10",
-				title: t("settings.account.items.logout"),
+				title: translateMemoized("settings.account.items.logout"),
 				destructive: true,
 				onPress: logout
 			},
 			"gap-4",
 			{
 				id: "11",
-				title: t("settings.account.items.requestAccountDeletion"),
-				subTitle: t("settings.account.items.requestAccountDeletionInfo"),
+				title: translateMemoized("settings.account.items.requestAccountDeletion"),
+				subTitle: translateMemoized("settings.account.items.requestAccountDeletionInfo"),
 				destructive: true,
 				onPress: accountDeletion
 			}
@@ -640,13 +639,12 @@ export const Account = memo(() => {
 		onPressPersonalInfo,
 		deleteVersionedFiles,
 		deleteAllFilesAndDirectories,
-		accountDeletion,
-		t
+		accountDeletion
 	])
 
 	return (
 		<SettingsComponent
-			title={t("settings.account.title")}
+			title={translateMemoized("settings.account.title")}
 			showSearchBar={false}
 			loading={account.status !== "success"}
 			items={items}

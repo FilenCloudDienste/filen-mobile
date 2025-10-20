@@ -10,14 +10,13 @@ import { validate as validateUUID } from "uuid"
 import * as MediaLibrary from "expo-media-library"
 import useCameraUploadParentQuery from "@/queries/useCameraUploadParent.query"
 import RequireInternet from "@/components/requireInternet"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { View } from "react-native"
 
 export const Settings = memo(() => {
 	const [cameraUpload, setCameraUpload] = useCameraUpload()
 	const { push: routerPush } = useRouter()
-	const { t } = useTranslation()
 
 	const [permissions, requestPermissions] = MediaLibrary.usePermissions({
 		writeOnly: false,
@@ -163,8 +162,8 @@ export const Settings = memo(() => {
 			return [
 				{
 					id: "0",
-					title: t("photos.settings.index.items.permissionsError"),
-					subTitle: t("photos.settings.index.items.permissionsErrorInfo"),
+					title: translateMemoized("photos.settings.index.items.permissionsError"),
+					subTitle: translateMemoized("photos.settings.index.items.permissionsErrorInfo"),
 					leftView: (
 						<IconView
 							name="lock-alert-outline"
@@ -176,7 +175,7 @@ export const Settings = memo(() => {
 							const ask = await requestPermissions()
 
 							if (ask.status !== MediaLibrary.PermissionStatus.GRANTED) {
-								alerts.error(t("photos.settings.index.errors.noPermissions"))
+								alerts.error(translateMemoized("photos.settings.index.errors.noPermissions"))
 							}
 						} catch (e) {
 							console.error(e)
@@ -193,7 +192,7 @@ export const Settings = memo(() => {
 		return [
 			{
 				id: "0",
-				title: t("photos.settings.index.items.enabled"),
+				title: translateMemoized("photos.settings.index.items.enabled"),
 				rightView: (
 					<View testID="photos.settings.enabled">
 						<Toggle
@@ -206,8 +205,8 @@ export const Settings = memo(() => {
 			"gap-0",
 			{
 				id: "1",
-				title: t("photos.settings.index.items.albums"),
-				subTitle: t("photos.settings.index.items.albumsInfo"),
+				title: translateMemoized("photos.settings.index.items.albums"),
+				subTitle: translateMemoized("photos.settings.index.items.albumsInfo"),
 				rightText: cameraUpload.albums.length.toString(),
 				leftView: (
 					<IconView
@@ -223,11 +222,11 @@ export const Settings = memo(() => {
 			},
 			{
 				id: "2",
-				title: t("photos.settings.index.items.cloudDirectory"),
+				title: translateMemoized("photos.settings.index.items.cloudDirectory"),
 				subTitle:
 					cameraUpload.remote && validateUUID(cameraUpload.remote.uuid) && cameraUploadParentExists
 						? cameraUpload.remote.path
-						: t("photos.settings.index.items.cloudDirectoryNotSet"),
+						: translateMemoized("photos.settings.index.items.cloudDirectoryNotSet"),
 				leftView: (
 					<IconView
 						name="cloud-outline"
@@ -239,8 +238,8 @@ export const Settings = memo(() => {
 			"gap-1",
 			{
 				id: "3",
-				title: t("photos.settings.index.items.videos"),
-				subTitle: t("photos.settings.index.items.videosInfo"),
+				title: translateMemoized("photos.settings.index.items.videos"),
+				subTitle: translateMemoized("photos.settings.index.items.videosInfo"),
 				leftView: (
 					<IconView
 						name="video-outline"
@@ -256,8 +255,8 @@ export const Settings = memo(() => {
 			},
 			{
 				id: "4",
-				title: t("photos.settings.index.items.cellular"),
-				subTitle: t("photos.settings.index.items.cellularInfo"),
+				title: translateMemoized("photos.settings.index.items.cellular"),
+				subTitle: translateMemoized("photos.settings.index.items.cellularInfo"),
 				leftView: (
 					<IconView
 						name="signal-cellular-3"
@@ -273,8 +272,8 @@ export const Settings = memo(() => {
 			},
 			{
 				id: "5",
-				title: t("photos.settings.index.items.background"),
-				subTitle: t("photos.settings.index.items.backgroundInfo"),
+				title: translateMemoized("photos.settings.index.items.background"),
+				subTitle: translateMemoized("photos.settings.index.items.backgroundInfo"),
 				leftView: (
 					<IconView
 						name="backpack"
@@ -290,8 +289,8 @@ export const Settings = memo(() => {
 			},
 			{
 				id: "6",
-				title: t("photos.settings.index.items.lowBattery"),
-				subTitle: t("photos.settings.index.items.lowBatteryInfo"),
+				title: translateMemoized("photos.settings.index.items.lowBattery"),
+				subTitle: translateMemoized("photos.settings.index.items.lowBatteryInfo"),
 				leftView: (
 					<IconView
 						name="power-plug-outline"
@@ -307,8 +306,8 @@ export const Settings = memo(() => {
 			},
 			{
 				id: "7",
-				title: t("photos.settings.index.items.compress"),
-				subTitle: t("photos.settings.index.items.compressInfo"),
+				title: translateMemoized("photos.settings.index.items.compress"),
+				subTitle: translateMemoized("photos.settings.index.items.compressInfo"),
 				leftView: (
 					<IconView
 						name="file-document-outline"
@@ -333,7 +332,6 @@ export const Settings = memo(() => {
 		toggleVideos,
 		selectRemoteDirectory,
 		routerPush,
-		t,
 		permissions,
 		requestPermissions,
 		cameraUploadParentExists
@@ -350,7 +348,7 @@ export const Settings = memo(() => {
 	return (
 		<RequireInternet>
 			<SettingsComponent
-				title={t("photos.settings.index.title")}
+				title={translateMemoized("photos.settings.index.title")}
 				showSearchBar={false}
 				items={items}
 			/>

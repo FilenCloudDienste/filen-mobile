@@ -12,7 +12,7 @@ import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import useNoteHistoryQuery from "@/queries/useNoteHistory.query"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import ListEmpty from "@/components/listEmpty"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
@@ -28,8 +28,6 @@ export type ListItemInfo = {
 }
 
 export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInfo>; note: Note }) => {
-	const { t } = useTranslation()
-
 	const noteHistoryQuery = useNoteHistoryQuery(
 		{
 			uuid: note.uuid
@@ -41,8 +39,8 @@ export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInf
 
 	const restore = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: t("notes.history.prompts.restore.title"),
-			message: t("notes.history.prompts.restore.message")
+			title: translateMemoized("notes.history.prompts.restore.title"),
+			message: translateMemoized("notes.history.prompts.restore.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -94,7 +92,7 @@ export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInf
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [note.uuid, info.item.history, noteHistoryQuery, t])
+	}, [note.uuid, info.item.history, noteHistoryQuery])
 
 	const rightView = useMemo(() => {
 		return (
@@ -103,11 +101,11 @@ export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInf
 					size="sm"
 					onPress={restore}
 				>
-					<Text>{t("notes.history.restore")}</Text>
+					<Text>{translateMemoized("notes.history.restore")}</Text>
 				</Button>
 			</View>
 		)
-	}, [restore, t])
+	}, [restore])
 
 	return (
 		<ListItem
@@ -129,7 +127,6 @@ export const Item = memo(({ info, note }: { info: ListRenderItemInfo<ListItemInf
 Item.displayName = "Item"
 
 export const History = memo(({ note }: { note: Note }) => {
-	const { t } = useTranslation()
 	const { colors } = useColorScheme()
 
 	const noteHistoryQuery = useNoteHistoryQuery({
@@ -146,10 +143,10 @@ export const History = memo(({ note }: { note: Note }) => {
 			.map(history => ({
 				id: history.id.toString(),
 				title: simpleDate(history.editedTimestamp),
-				subTitle: history.preview.length > 0 ? history.preview : t("notes.history.noPreview"),
+				subTitle: history.preview.length > 0 ? history.preview : translateMemoized("notes.history.noPreview"),
 				history: history
 			}))
-	}, [noteHistoryQuery.data, noteHistoryQuery.status, t])
+	}, [noteHistoryQuery.data, noteHistoryQuery.status])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
 		return typeof item === "string" ? item : item.id
@@ -173,9 +170,9 @@ export const History = memo(({ note }: { note: Note }) => {
 				queryStatus={noteHistoryQuery.status}
 				itemCount={history.length}
 				texts={{
-					error: t("notes.history.list.error"),
-					empty: t("notes.history.list.empty"),
-					emptySearch: t("notes.history.list.emptySearch")
+					error: translateMemoized("notes.history.list.error"),
+					empty: translateMemoized("notes.history.list.empty"),
+					emptySearch: translateMemoized("notes.history.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -190,7 +187,7 @@ export const History = memo(({ note }: { note: Note }) => {
 				}}
 			/>
 		)
-	}, [noteHistoryQuery.status, history.length, t])
+	}, [noteHistoryQuery.status, history.length])
 
 	const ListFooterComponent = useCallback(() => {
 		return (
@@ -202,12 +199,12 @@ export const History = memo(({ note }: { note: Note }) => {
 				</Text>
 			</View>
 		)
-	}, [history.length, t])
+	}, [history.length])
 
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
 			<AdaptiveSearchHeader
-				iosTitle={t("notes.history.title")}
+				iosTitle={translateMemoized("notes.history.title")}
 				iosIsLargeTitle={false}
 				iosBackButtonMenuEnabled={true}
 				backgroundColor={colors.card}
@@ -218,13 +215,13 @@ export const History = memo(({ note }: { note: Note }) => {
 			/>
 		) : (
 			<LargeTitleHeader
-				title={t("notes.history.title")}
+				title={translateMemoized("notes.history.title")}
 				materialPreset="inline"
 				backVisible={true}
 				backgroundColor={colors.card}
 			/>
 		)
-	}, [colors.card, t])
+	}, [colors.card])
 
 	return (
 		<Fragment>

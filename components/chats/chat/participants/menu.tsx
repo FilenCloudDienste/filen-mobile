@@ -4,7 +4,7 @@ import { createContextItem } from "@/components/nativewindui/ContextMenu/utils"
 import type { ContextItem, ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { type ChatConversation, ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import chatsService from "@/services/chats.service"
 import useSDKConfig from "@/hooks/useSDKConfig"
@@ -23,7 +23,6 @@ export const Menu = memo(
 		children: React.ReactNode
 		participant: ChatConversationParticipant
 	}) => {
-		const { t } = useTranslation()
 		const [{ userId }] = useSDKConfig()
 		const { colors } = useColorScheme()
 
@@ -34,7 +33,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "remove",
-						title: t("chats.participants.menu.remove"),
+						title: translateMemoized("chats.participants.menu.remove"),
 						destructive: true,
 						icon:
 							Platform.OS === "ios"
@@ -53,7 +52,7 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [t, chat.ownerId, userId, participant.userId, colors.destructive])
+		}, [chat.ownerId, userId, participant.userId, colors.destructive])
 
 		const onItemPress = useCallback(
 			async (item: Omit<ContextItem, "icon">, _?: boolean) => {

@@ -1,7 +1,7 @@
 import nodeWorker from "@/lib/nodeWorker"
 import { router } from "expo-router"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
-import { t } from "@/lib/i18n"
+import { translateMemoized } from "@/lib/i18n"
 import type { ChatConversation, ChatConversationParticipant } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import authService from "./auth.service"
@@ -12,7 +12,6 @@ import { randomUUID } from "expo-crypto"
 import type { Contact } from "@filen/sdk/dist/types/api/v3/contacts"
 import * as ImagePicker from "expo-image-picker"
 import * as DocumentPicker from "expo-document-picker"
-import { promiseAllChunked } from "@/lib/utils"
 import { fetchData as fetchItemPublicLinkStatus } from "@/queries/useItemPublicLinkStatus.query"
 import { FILE_PUBLIC_LINK_BASE_URL, DIRECTORY_PUBLIC_LINK_BASE_URL } from "@/lib/constants"
 import driveService from "./drive.service"
@@ -40,8 +39,8 @@ export class ChatsService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("chats.prompts.leaveChat.title"),
-				message: t("chats.prompts.leaveChat.message")
+				title: translateMemoized("chats.prompts.leaveChat.title"),
+				message: translateMemoized("chats.prompts.leaveChat.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -85,8 +84,8 @@ export class ChatsService {
 	}): Promise<void> {
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("chats.participants.prompts.remove.title"),
-				message: t("chats.participants.prompts.remove.message")
+				title: translateMemoized("chats.participants.prompts.remove.title"),
+				message: translateMemoized("chats.participants.prompts.remove.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -186,8 +185,8 @@ export class ChatsService {
 	}): Promise<void> {
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("chats.prompts.deleteChat.title"),
-				message: t("chats.prompts.deleteChat.message")
+				title: translateMemoized("chats.prompts.deleteChat.title"),
+				message: translateMemoized("chats.prompts.deleteChat.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -229,7 +228,7 @@ export class ChatsService {
 	}): Promise<void> {
 		if (!newName) {
 			const inputPromptResponse = await inputPrompt({
-				title: t("chats.prompts.renameChat.title"),
+				title: translateMemoized("chats.prompts.renameChat.title"),
 				materialIcon: {
 					name: "pencil"
 				},
@@ -237,7 +236,7 @@ export class ChatsService {
 					type: "plain-text",
 					keyboardType: "default",
 					defaultValue: "",
-					placeholder: t("chats.prompts.renameChat.placeholder")
+					placeholder: translateMemoized("chats.prompts.renameChat.placeholder")
 				}
 			})
 
@@ -405,8 +404,8 @@ export class ChatsService {
 	}): Promise<void> {
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("chats.prompts.disableEmbeds.title"),
-				message: t("chats.prompts.disableEmbeds.message")
+				title: translateMemoized("chats.prompts.disableEmbeds.title"),
+				message: translateMemoized("chats.prompts.disableEmbeds.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -457,8 +456,8 @@ export class ChatsService {
 	}): Promise<void> {
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("chats.prompts.deleteMessage.title"),
-				message: t("chats.prompts.deleteMessage.message")
+				title: translateMemoized("chats.prompts.deleteMessage.title"),
+				message: translateMemoized("chats.prompts.deleteMessage.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -490,7 +489,7 @@ export class ChatsService {
 
 	private async enablePublicLinksForAttachments(items: DriveCloudItem[]): Promise<{ item: DriveCloudItem; link: string }[]> {
 		return (
-			await promiseAllChunked(
+			await Promise.all(
 				items.map(async item => {
 					const linkStatusBefore = await fetchItemPublicLinkStatus({
 						item

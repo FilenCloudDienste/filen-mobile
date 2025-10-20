@@ -14,7 +14,6 @@ import { Text } from "@/components/nativewindui/Text"
 import Tag from "../tag"
 import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
-import { useTranslation } from "react-i18next"
 import { useNotesStore } from "@/stores/notes.store"
 import { useShallow } from "zustand/shallow"
 import assets from "@/lib/assets"
@@ -22,6 +21,7 @@ import { useMappingHelper } from "@shopify/flash-list"
 import { NoteIcon } from "./NoteIcon"
 import { SelectableListItem } from "../../SelectableListItem"
 import { noteContentQueryGet } from "@/queries/useNoteContent.query"
+import { translateMemoized } from "@/lib/i18n"
 
 const ICON_SIZE = 24
 
@@ -30,7 +30,6 @@ export const Item = memo(({ note }: { note: Note }) => {
 	const [{ userId }] = useSDKConfig()
 	const { colors } = useColorScheme()
 	const { hasInternet } = useNetInfo()
-	const { t } = useTranslation()
 	const selectedNotesCount = useNotesStore(useShallow(state => state.selectedNotes.length))
 	const isSelected = useNotesStore(useShallow(state => state.selectedNotes.some(n => n.uuid === note.uuid)))
 	const { getMappingKey } = useMappingHelper()
@@ -69,7 +68,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 			})
 
 			if (!cachedContent) {
-				alerts.error(t("errors.youAreOffline"))
+				alerts.error(translateMemoized("errors.youAreOffline"))
 
 				return
 			}
@@ -81,7 +80,7 @@ export const Item = memo(({ note }: { note: Note }) => {
 				uuid: note.uuid
 			}
 		})
-	}, [routerPush, hasInternet, t, note])
+	}, [routerPush, hasInternet, note])
 
 	const noop = useCallback(() => {}, [])
 

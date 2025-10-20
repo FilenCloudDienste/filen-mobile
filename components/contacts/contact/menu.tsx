@@ -8,13 +8,12 @@ import alerts from "@/lib/alerts"
 import { useColorScheme } from "@/lib/useColorScheme"
 import type { ListItemInfo } from "."
 import contactsService from "@/services/contacts.service"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import type { ListRenderItemInfo } from "@shopify/flash-list"
 
 export const Menu = memo(
 	({ info, type, children }: { info: ListRenderItemInfo<ListItemInfo>; type: "context" | "dropdown"; children: React.ReactNode }) => {
 		const { colors } = useColorScheme()
-		const { t } = useTranslation()
 
 		const menuItems = useMemo(() => {
 			const items: (ContextItem | ContextSubMenu)[] = []
@@ -24,7 +23,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "remove",
-							title: t("contacts.menu.remove"),
+							title: translateMemoized("contacts.menu.remove"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -44,7 +43,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "block",
-							title: t("contacts.menu.block"),
+							title: translateMemoized("contacts.menu.block"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -68,7 +67,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "unblock",
-							title: t("contacts.menu.unblock"),
+							title: translateMemoized("contacts.menu.unblock"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -92,7 +91,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "deleteRequest",
-							title: t("contacts.menu.remove"),
+							title: translateMemoized("contacts.menu.remove"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -116,7 +115,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "acceptRequest",
-							title: t("contacts.menu.accept"),
+							title: translateMemoized("contacts.menu.accept"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -133,7 +132,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "denyRequest",
-							title: t("contacts.menu.decline"),
+							title: translateMemoized("contacts.menu.decline"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -155,7 +154,7 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [info.item.type, colors.destructive, t])
+		}, [info.item.type, colors.destructive])
 
 		const onItemPress = useCallback(
 			async (item: Omit<ContextItem, "icon">, _?: boolean) => {

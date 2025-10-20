@@ -16,7 +16,7 @@ import Container from "../Container"
 import mimeTypes from "mime-types"
 import useHTTPServer from "@/hooks/useHTTPServer"
 import type { DOMProps } from "expo/dom"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import upload from "@/lib/upload"
 import pathModule from "path"
 
@@ -65,7 +65,6 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 	const [value, setValue] = useState<string>("")
 	const queryDataUpdatedRef = useRef<number>(-1)
 	const httpServer = useHTTPServer()
-	const { t } = useTranslation()
 
 	const uri = useMemo(() => {
 		if (item.type === "cloud") {
@@ -134,7 +133,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 
 		try {
 			if (!(await Sharing.isAvailableAsync())) {
-				throw new Error(t("errors.sharingNotAvailable"))
+				throw new Error(translateMemoized("errors.sharingNotAvailable"))
 			}
 
 			const tmpFile = new FileSystem.File(pathModule.posix.join(paths.temporaryDownloads(), randomUUID(), itemName))
@@ -172,7 +171,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [value, itemMime, itemName, t])
+	}, [value, itemMime, itemName])
 
 	const save = useCallback(async () => {
 		if (item.type !== "cloud") {
@@ -220,7 +219,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 			setDidChange(false)
 			setValue(valueCopied)
 
-			alerts.normal(t("textEditor.savedSuccess"))
+			alerts.normal(translateMemoized("textEditor.savedSuccess"))
 		} catch (e) {
 			console.error(e)
 
@@ -234,7 +233,7 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 
 			fullScreenLoadingModal.hide()
 		}
-	}, [item, itemName, value, didChange, t])
+	}, [item, itemName, value, didChange])
 
 	const viewStyle = useMemo(() => {
 		return {
@@ -283,8 +282,12 @@ export const Editor = memo(({ item, markdownPreview }: { item: TextEditorItem; m
 	}, [item.type, didChange, query.status, save])
 
 	const iosHint = useMemo(() => {
-		return item.type !== "cloud" ? undefined : didChange ? t("textEditor.unsavedChanges") : t("textEditor.saved")
-	}, [item.type, didChange, t])
+		return item.type !== "cloud"
+			? undefined
+			: didChange
+			? translateMemoized("textEditor.unsavedChanges")
+			: translateMemoized("textEditor.saved")
+	}, [item.type, didChange])
 
 	useEffect(() => {
 		if (query.status === "success" && queryDataUpdatedRef.current !== query.dataUpdatedAt) {

@@ -5,7 +5,7 @@ import { Toggle } from "@/components/nativewindui/Toggle"
 import { useMMKVObject } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { type BiometricAuth, BIOMETRIC_AUTH_KEY } from "."
 import { Button } from "@/components/nativewindui/Button"
@@ -22,7 +22,6 @@ import { localAuthenticate } from "@/components/biometric"
 
 export const Biometric = memo(() => {
 	const [biometricAuth, setBiometricAuth] = useMMKVObject<BiometricAuth>(BIOMETRIC_AUTH_KEY, mmkvInstance)
-	const { t } = useTranslation()
 	const { colors } = useColorScheme()
 
 	const account = useAccountQuery({
@@ -36,16 +35,16 @@ export const Biometric = memo(() => {
 			createDropdownItem({
 				title:
 					seconds >= Number.MAX_SAFE_INTEGER
-						? t("settings.biometric.lockAppAfter.never")
+						? translateMemoized("settings.biometric.lockAppAfter.never")
 						: seconds === 0
-							? t("settings.biometric.lockAppAfter.immediately")
-							: t("settings.biometric.lockAppAfter.minutes", {
-									minutes: Math.floor(seconds / 60)
-								}),
+						? translateMemoized("settings.biometric.lockAppAfter.immediately")
+						: translateMemoized("settings.biometric.lockAppAfter.minutes", {
+								minutes: Math.floor(seconds / 60)
+						  }),
 				actionKey: seconds.toString()
 			})
 		)
-	}, [t])
+	}, [])
 
 	const toggleBiometric = useCallback(
 		async (value: boolean) => {
@@ -57,8 +56,8 @@ export const Biometric = memo(() => {
 
 			if (
 				!(await localAuthenticate({
-					cancelLabel: t("localAuthentication.cancelLabel"),
-					promptMessage: t("localAuthentication.promptMessage")
+					cancelLabel: translateMemoized("localAuthentication.cancelLabel"),
+					promptMessage: translateMemoized("localAuthentication.promptMessage")
 				}))
 			) {
 				return
@@ -68,12 +67,12 @@ export const Biometric = memo(() => {
 				if (await fileProvider.enabled()) {
 					const fileProviderPrompt = await alertPrompt({
 						title: Platform.select({
-							ios: t("settings.biometric.prompts.fileProvider.title"),
-							default: t("settings.biometric.prompts.fileProvider.title")
+							ios: translateMemoized("settings.biometric.prompts.fileProvider.title"),
+							default: translateMemoized("settings.biometric.prompts.fileProvider.title")
 						}),
 						message: Platform.select({
-							ios: t("settings.biometric.prompts.documentsProvider.message"),
-							default: t("settings.biometric.prompts.documentsProvider.message")
+							ios: translateMemoized("settings.biometric.prompts.documentsProvider.message"),
+							default: translateMemoized("settings.biometric.prompts.documentsProvider.message")
 						})
 					})
 
@@ -83,7 +82,7 @@ export const Biometric = memo(() => {
 				}
 
 				const codePrompt = await inputPrompt({
-					title: t("settings.biometric.prompts.enable.title"),
+					title: translateMemoized("settings.biometric.prompts.enable.title"),
 					materialIcon: {
 						name: "lock-outline"
 					},
@@ -91,7 +90,7 @@ export const Biometric = memo(() => {
 						type: "secure-text",
 						keyboardType: "default",
 						defaultValue: "",
-						placeholder: t("settings.biometric.prompts.enable.placeholder")
+						placeholder: translateMemoized("settings.biometric.prompts.enable.placeholder")
 					}
 				})
 
@@ -106,19 +105,19 @@ export const Biometric = memo(() => {
 				}
 
 				if (code.length < 4) {
-					alerts.error(t("settings.biometric.errors.pinTooShort"))
+					alerts.error(translateMemoized("settings.biometric.errors.pinTooShort"))
 
 					return
 				}
 
 				if (code.length > 128) {
-					alerts.error(t("settings.biometric.errors.pinTooLong"))
+					alerts.error(translateMemoized("settings.biometric.errors.pinTooLong"))
 
 					return
 				}
 
 				const confirmCodePrompt = await inputPrompt({
-					title: t("settings.biometric.prompts.enableConfirm.title"),
+					title: translateMemoized("settings.biometric.prompts.enableConfirm.title"),
 					materialIcon: {
 						name: "lock-outline"
 					},
@@ -126,7 +125,7 @@ export const Biometric = memo(() => {
 						type: "secure-text",
 						keyboardType: "default",
 						defaultValue: "",
-						placeholder: t("settings.biometric.prompts.enableConfirm.placeholder")
+						placeholder: translateMemoized("settings.biometric.prompts.enableConfirm.placeholder")
 					}
 				})
 
@@ -141,7 +140,7 @@ export const Biometric = memo(() => {
 				}
 
 				if (confirmCode !== code) {
-					alerts.error(t("settings.biometric.errors.pinNotMatching"))
+					alerts.error(translateMemoized("settings.biometric.errors.pinNotMatching"))
 
 					return
 				}
@@ -162,7 +161,7 @@ export const Biometric = memo(() => {
 				setBiometricAuth(undefined)
 			}
 		},
-		[t, setBiometricAuth, localAuthentication.data, localAuthentication.status]
+		[setBiometricAuth, localAuthentication.data, localAuthentication.status]
 	)
 
 	const togglePinOnly = useCallback(
@@ -172,7 +171,7 @@ export const Biometric = memo(() => {
 					? {
 							...prev,
 							pinOnly: value
-						}
+					  }
 					: prev
 			)
 		},
@@ -183,7 +182,7 @@ export const Biometric = memo(() => {
 		return [
 			{
 				id: "0",
-				title: t("settings.biometric.items.biometricAuth"),
+				title: translateMemoized("settings.biometric.items.biometricAuth"),
 				rightView: (
 					<Toggle
 						value={biometricAuth ? biometricAuth.enabled : false}
@@ -195,7 +194,7 @@ export const Biometric = memo(() => {
 				? [
 						{
 							id: "1",
-							title: t("settings.biometric.items.lockAppAfter"),
+							title: translateMemoized("settings.biometric.items.lockAppAfter"),
 							rightView: (
 								<DropdownMenu
 									items={lockAppAfterDropdownItems}
@@ -205,7 +204,7 @@ export const Biometric = memo(() => {
 												? {
 														...prev,
 														lockAfter: Number(item.actionKey)
-													}
+												  }
 												: prev
 										)
 									}}
@@ -217,12 +216,12 @@ export const Biometric = memo(() => {
 									>
 										<Text className="ios:px-0 text-primary px-2 font-normal">
 											{biometricAuth && biometricAuth.enabled && biometricAuth.lockAfter >= Number.MAX_SAFE_INTEGER
-												? t("settings.biometric.lockAppAfter.never")
+												? translateMemoized("settings.biometric.lockAppAfter.never")
 												: biometricAuth.lockAfter === 0
-													? t("settings.biometric.lockAppAfter.immediately")
-													: t("settings.biometric.lockAppAfter.minutes", {
-															minutes: Math.floor(biometricAuth.lockAfter / 60)
-														})}
+												? translateMemoized("settings.biometric.lockAppAfter.immediately")
+												: translateMemoized("settings.biometric.lockAppAfter.minutes", {
+														minutes: Math.floor(biometricAuth.lockAfter / 60)
+												  })}
 										</Text>
 										<Icon
 											name="pencil"
@@ -235,7 +234,7 @@ export const Biometric = memo(() => {
 						},
 						{
 							id: "2",
-							title: t("settings.biometric.items.pinOnly"),
+							title: translateMemoized("settings.biometric.items.pinOnly"),
 							rightView: (
 								<Toggle
 									value={biometricAuth ? biometricAuth.pinOnly : false}
@@ -243,14 +242,14 @@ export const Biometric = memo(() => {
 								/>
 							)
 						}
-					]
+				  ]
 				: [])
 		]
-	}, [biometricAuth, toggleBiometric, togglePinOnly, setBiometricAuth, colors.primary, t, lockAppAfterDropdownItems])
+	}, [biometricAuth, toggleBiometric, togglePinOnly, setBiometricAuth, colors.primary, lockAppAfterDropdownItems])
 
 	return (
 		<SettingsComponent
-			title={t("settings.biometric.title")}
+			title={translateMemoized("settings.biometric.title")}
 			showSearchBar={false}
 			loading={account.status !== "success"}
 			items={items}

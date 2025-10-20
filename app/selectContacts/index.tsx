@@ -4,7 +4,6 @@ import useContactsQuery from "@/queries/useContacts.query"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import { RefreshControl, View, Platform } from "react-native"
 import { Text } from "@/components/nativewindui/Text"
-import { useTranslation } from "react-i18next"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { useLocalSearchParams, useRouter } from "expo-router"
@@ -21,6 +20,7 @@ import RequireInternet from "@/components/requireInternet"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
 import useNetInfo from "@/hooks/useNetInfo"
+import { translateMemoized, t } from "@/lib/i18n"
 
 export default function SelectContacts() {
 	const { colors } = useColorScheme()
@@ -30,7 +30,6 @@ export default function SelectContacts() {
 	const { back, canGoBack } = useRouter()
 	const selectedContacts = useSelectContactsStore(useShallow(state => state.selectedContacts))
 	const setSelectedContacts = useSelectContactsStore(useShallow(state => state.setSelectedContacts))
-	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
 	const query = useContactsQuery({
@@ -150,12 +149,16 @@ export default function SelectContacts() {
 			: t("selectContacts.toolbar.selected", {
 					countOrName: selectedContacts.length
 			  })
-	}, [selectedContacts, t])
+	}, [selectedContacts])
 
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
 			<AdaptiveSearchHeader
-				iosTitle={maxParsed === 1 ? t("selectContacts.header.selectContact") : t("selectContacts.header.selectContacts")}
+				iosTitle={
+					maxParsed === 1
+						? translateMemoized("selectContacts.header.selectContact")
+						: translateMemoized("selectContacts.header.selectContacts")
+				}
 				iosIsLargeTitle={false}
 				iosBackButtonMenuEnabled={true}
 				backgroundColor={colors.card}
@@ -165,7 +168,7 @@ export default function SelectContacts() {
 							variant="plain"
 							onPress={cancel}
 						>
-							<Text className="text-blue-500">{t("selectContacts.header.cancel")}</Text>
+							<Text className="text-blue-500">{translateMemoized("selectContacts.header.cancel")}</Text>
 						</Button>
 					)
 				}}
@@ -178,7 +181,11 @@ export default function SelectContacts() {
 			/>
 		) : (
 			<LargeTitleHeader
-				title={maxParsed === 1 ? t("selectContacts.header.selectContact") : t("selectContacts.header.selectContacts")}
+				title={
+					maxParsed === 1
+						? translateMemoized("selectContacts.header.selectContact")
+						: translateMemoized("selectContacts.header.selectContacts")
+				}
 				materialPreset="inline"
 				backVisible={true}
 				backgroundColor={colors.card}
@@ -188,7 +195,7 @@ export default function SelectContacts() {
 							variant="plain"
 							onPress={cancel}
 						>
-							<Text className="text-blue-500">{t("selectContacts.header.cancel")}</Text>
+							<Text className="text-blue-500">{translateMemoized("selectContacts.header.cancel")}</Text>
 						</Button>
 					)
 				}}
@@ -199,7 +206,7 @@ export default function SelectContacts() {
 				}}
 			/>
 		)
-	}, [cancel, colors.card, maxParsed, t])
+	}, [cancel, colors.card, maxParsed])
 
 	const ListEmptyComponent = useCallback(() => {
 		return (
@@ -207,9 +214,9 @@ export default function SelectContacts() {
 				queryStatus={query.status}
 				itemCount={contacts.length}
 				texts={{
-					error: t("selectContacts.list.error"),
-					empty: t("selectContacts.list.empty"),
-					emptySearch: t("selectContacts.list.emptySearch")
+					error: translateMemoized("selectContacts.list.error"),
+					empty: translateMemoized("selectContacts.list.empty"),
+					emptySearch: translateMemoized("selectContacts.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -224,7 +231,7 @@ export default function SelectContacts() {
 				}}
 			/>
 		)
-	}, [query.status, contacts.length, t])
+	}, [query.status, contacts.length])
 
 	const ListFooterComponent = useCallback(() => {
 		if (contacts.length === 0) {
@@ -240,7 +247,7 @@ export default function SelectContacts() {
 				</Text>
 			</View>
 		)
-	}, [contacts.length, t])
+	}, [contacts.length])
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true)

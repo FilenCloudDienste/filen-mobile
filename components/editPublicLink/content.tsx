@@ -19,13 +19,12 @@ import useIsProUser from "@/hooks/useIsProUser"
 import { Settings, type SettingsItem } from "../settings"
 import { DropdownMenu } from "../nativewindui/DropdownMenu"
 import { createDropdownItem } from "../nativewindui/DropdownMenu/utils"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Icon } from "@roninoss/icons"
 import { ActivityIndicator } from "../nativewindui/ActivityIndicator"
 
 export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: UseItemPublicLinkStatusQuery }) => {
-	const { t } = useTranslation()
 	const [didChange, setDidChange] = useState<boolean>(false)
 	const [downloadEnabled, setDownloadEnabled] = useState<boolean>(status.enabled ? status.downloadButton : false)
 	const [expiration, setExpiration] = useState<PublicLinkExpiration>(
@@ -83,7 +82,7 @@ export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: Use
 		}
 
 		const inputPromptResponse = await inputPrompt({
-			title: t("editPublicLink.prompts.editPassword.title"),
+			title: translateMemoized("editPublicLink.prompts.editPassword.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -91,7 +90,7 @@ export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: Use
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("editPublicLink.prompts.editPassword.placeholder")
+				placeholder: translateMemoized("editPublicLink.prompts.editPassword.placeholder")
 			}
 		})
 
@@ -102,7 +101,7 @@ export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: Use
 		}
 
 		setDidChange(true)
-	}, [status.enabled, t])
+	}, [status.enabled])
 
 	const share = useCallback(async () => {
 		if (!status.enabled) {
@@ -126,7 +125,7 @@ export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: Use
 					message: link
 				},
 				{
-					dialogTitle: t("editPublicLink.shareDialogTile")
+					dialogTitle: translateMemoized("editPublicLink.shareDialogTile")
 				}
 			)
 		} catch (e) {
@@ -136,7 +135,7 @@ export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: Use
 				alerts.error(e.message)
 			}
 		}
-	}, [status, item, t])
+	}, [status, item])
 
 	const toggle = useCallback(async () => {
 		fullScreenLoadingModal.show()
@@ -189,48 +188,48 @@ export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: Use
 	const expirationText = useMemo(() => {
 		switch (expiration) {
 			case "never": {
-				return t("editPublicLink.items.expirationNever")
+				return translateMemoized("editPublicLink.items.expirationNever")
 			}
 
 			case "1h": {
-				return t("editPublicLink.items.expiration1h")
+				return translateMemoized("editPublicLink.items.expiration1h")
 			}
 
 			case "6h": {
-				return t("editPublicLink.items.expiration6h")
+				return translateMemoized("editPublicLink.items.expiration6h")
 			}
 
 			case "1d": {
-				return t("editPublicLink.items.expiration1d")
+				return translateMemoized("editPublicLink.items.expiration1d")
 			}
 
 			case "3d": {
-				return t("editPublicLink.items.expiration3d")
+				return translateMemoized("editPublicLink.items.expiration3d")
 			}
 
 			case "7d": {
-				return t("editPublicLink.items.expiration7d")
+				return translateMemoized("editPublicLink.items.expiration7d")
 			}
 
 			case "14d": {
-				return t("editPublicLink.items.expiration14d")
+				return translateMemoized("editPublicLink.items.expiration14d")
 			}
 
 			case "30d": {
-				return t("editPublicLink.items.expiration30d")
+				return translateMemoized("editPublicLink.items.expiration30d")
 			}
 
 			default: {
-				return t("editPublicLink.items.expirationNever")
+				return translateMemoized("editPublicLink.items.expirationNever")
 			}
 		}
-	}, [expiration, t])
+	}, [expiration])
 
 	const settingsItems = useMemo(() => {
 		return [
 			{
 				id: "0",
-				title: t("editPublicLink.items.enabled"),
+				title: translateMemoized("editPublicLink.items.enabled"),
 				rightView: (
 					<Toggle
 						onChange={toggle}
@@ -243,7 +242,7 @@ export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: Use
 						"gap-0",
 						{
 							id: "1",
-							title: t("editPublicLink.items.password"),
+							title: translateMemoized("editPublicLink.items.password"),
 							rightView: (
 								<Button
 									variant="plain"
@@ -251,47 +250,47 @@ export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: Use
 									onPress={editPassword}
 									hitSlop={15}
 								>
-									<Text className="text-blue-500">{t("editPublicLink.items.edit")}</Text>
+									<Text className="text-blue-500">{translateMemoized("editPublicLink.items.edit")}</Text>
 								</Button>
 							)
 						},
 						{
 							id: "2",
-							title: t("editPublicLink.items.expiration"),
+							title: translateMemoized("editPublicLink.items.expiration"),
 							rightView: (
 								<DropdownMenu
 									items={[
 										createDropdownItem({
 											actionKey: "never",
-											title: t("editPublicLink.items.expirationNever")
+											title: translateMemoized("editPublicLink.items.expirationNever")
 										}),
 										createDropdownItem({
 											actionKey: "1h",
-											title: t("editPublicLink.items.expiration1h")
+											title: translateMemoized("editPublicLink.items.expiration1h")
 										}),
 										createDropdownItem({
 											actionKey: "6h",
-											title: t("editPublicLink.items.expiration6h")
+											title: translateMemoized("editPublicLink.items.expiration6h")
 										}),
 										createDropdownItem({
 											actionKey: "1d",
-											title: t("editPublicLink.items.expiration1d")
+											title: translateMemoized("editPublicLink.items.expiration1d")
 										}),
 										createDropdownItem({
 											actionKey: "3d",
-											title: t("editPublicLink.items.expiration3d")
+											title: translateMemoized("editPublicLink.items.expiration3d")
 										}),
 										createDropdownItem({
 											actionKey: "7d",
-											title: t("editPublicLink.items.expiration7d")
+											title: translateMemoized("editPublicLink.items.expiration7d")
 										}),
 										createDropdownItem({
 											actionKey: "14d",
-											title: t("editPublicLink.items.expiration14d")
+											title: translateMemoized("editPublicLink.items.expiration14d")
 										}),
 										createDropdownItem({
 											actionKey: "30d",
-											title: t("editPublicLink.items.expiration30d")
+											title: translateMemoized("editPublicLink.items.expiration30d")
 										})
 									]}
 									onItemPress={({ actionKey }) => {
@@ -316,7 +315,7 @@ export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: Use
 						},
 						{
 							id: "3",
-							title: t("editPublicLink.items.downloadButton"),
+							title: translateMemoized("editPublicLink.items.downloadButton"),
 							rightView: (
 								<Toggle
 									onChange={toggleDownload}
@@ -329,7 +328,7 @@ export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: Use
 							? [
 									{
 										id: "4",
-										title: t("editPublicLink.items.shareLink"),
+										title: translateMemoized("editPublicLink.items.shareLink"),
 										rightView: (
 											<Button
 												variant="tonal"
@@ -351,7 +350,7 @@ export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: Use
 				  ]
 				: [])
 		] satisfies SettingsItem[]
-	}, [toggle, enabled, editPassword, downloadEnabled, toggleDownload, t, expirationText, share, colors.foreground, status.enabled])
+	}, [toggle, enabled, editPassword, downloadEnabled, toggleDownload, expirationText, share, colors.foreground, status.enabled])
 
 	return (
 		<Container>
@@ -364,7 +363,7 @@ export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: Use
 			/>
 			<Toolbar
 				iosBlurIntensity={100}
-				iosHint={didChange ? t("editPublicLink.unsavedChanges") : undefined}
+				iosHint={didChange ? translateMemoized("editPublicLink.unsavedChanges") : undefined}
 				leftView={Platform.select({
 					ios: (
 						<ToolbarIcon
@@ -401,7 +400,6 @@ Inner.displayName = "Inner"
 export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 	const isProUser = useIsProUser()
 	const { colors } = useColorScheme()
-	const { t } = useTranslation()
 
 	const query = useItemPublicLinkStatusQuery({
 		item
@@ -416,7 +414,7 @@ export const Content = memo(({ item }: { item: DriveCloudItem }) => {
 						size={64}
 						color={colors.grey}
 					/>
-					<Text className="font-normal text-sm text-center">{t("editPublicLink.onlyPro")}</Text>
+					<Text className="font-normal text-sm text-center">{translateMemoized("editPublicLink.onlyPro")}</Text>
 				</View>
 			</Container>
 		)

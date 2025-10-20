@@ -9,7 +9,7 @@ import striptags from "striptags"
 import { sanitizeFileName } from "@/lib/utils"
 import paths from "@/lib/paths"
 import * as FileSystemLegacy from "expo-file-system/legacy"
-import { t } from "@/lib/i18n"
+import { translateMemoized } from "@/lib/i18n"
 import * as Clipboard from "expo-clipboard"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
@@ -294,7 +294,7 @@ export class NotesService {
 			await Clipboard.setStringAsync(note.uuid)
 
 			if (!disableAlert) {
-				alerts.normal(t("copiedToClipboard"))
+				alerts.normal(translateMemoized("copiedToClipboard"))
 			}
 		} finally {
 			if (!disableLoader) {
@@ -343,8 +343,8 @@ export class NotesService {
 	}): Promise<void> {
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("notes.prompts.trashNote.title"),
-				message: t("notes.prompts.trashNote.message")
+				title: translateMemoized("notes.prompts.trashNote.title"),
+				message: translateMemoized("notes.prompts.trashNote.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -414,7 +414,7 @@ export class NotesService {
 	public async renameNote({ note, newTitle, disableLoader }: { note: Note; newTitle?: string; disableLoader?: boolean }): Promise<void> {
 		if (!newTitle) {
 			const inputPromptResponse = await inputPrompt({
-				title: t("notes.prompts.renameNote.title"),
+				title: translateMemoized("notes.prompts.renameNote.title"),
 				materialIcon: {
 					name: "pencil"
 				},
@@ -422,7 +422,7 @@ export class NotesService {
 					type: "plain-text",
 					keyboardType: "default",
 					defaultValue: note.title,
-					placeholder: t("notes.prompts.renameNote.placeholder")
+					placeholder: translateMemoized("notes.prompts.renameNote.placeholder")
 				}
 			})
 
@@ -485,8 +485,8 @@ export class NotesService {
 	}): Promise<void> {
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("notes.prompts.deleteNote.title"),
-				message: t("notes.prompts.deleteNote.message")
+				title: translateMemoized("notes.prompts.deleteNote.title"),
+				message: translateMemoized("notes.prompts.deleteNote.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -532,8 +532,8 @@ export class NotesService {
 	}): Promise<void> {
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("notes.prompts.leaveNote.title"),
-				message: t("notes.prompts.leaveNote.message")
+				title: translateMemoized("notes.prompts.leaveNote.title"),
+				message: translateMemoized("notes.prompts.leaveNote.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -648,7 +648,7 @@ export class NotesService {
 	}): Promise<Note | null> {
 		if (!title) {
 			const inputPromptResponse = await inputPrompt({
-				title: t("notes.prompts.createNote.title"),
+				title: translateMemoized("notes.prompts.createNote.title"),
 				materialIcon: {
 					name: "folder-plus-outline"
 				},
@@ -656,7 +656,7 @@ export class NotesService {
 					type: "plain-text",
 					keyboardType: "default",
 					defaultValue: "",
-					placeholder: t("notes.prompts.createNote.placeholder")
+					placeholder: translateMemoized("notes.prompts.createNote.placeholder")
 				}
 			})
 

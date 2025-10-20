@@ -5,17 +5,16 @@ import events from "@/lib/events"
 import alerts from "@/lib/alerts"
 import { useRouter, useGlobalSearchParams } from "expo-router"
 import { useShallow } from "zustand/shallow"
-import { useTranslation } from "react-i18next"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import driveService from "@/services/drive.service"
 import { Button } from "../nativewindui/Button"
 import { Text } from "../nativewindui/Text"
+import { translateMemoized, t } from "@/lib/i18n"
 
 export const Toolbar = memo(() => {
 	const { canGoBack, dismissTo, back } = useRouter()
 	const selectedItems = useSelectDriveItemsStore(useShallow(state => state.selectedItems))
 	const { id, max, type, dismissHref, parent } = useGlobalSearchParams()
-	const { t } = useTranslation()
 	const [{ baseFolderUUID }] = useSDKConfig()
 
 	const maxParsed = useMemo(() => {
@@ -61,7 +60,7 @@ export const Toolbar = memo(() => {
 			: t("selectDriveItems.toolbar.selected", {
 					countOrName: selectedItems.length
 			  })
-	}, [selectedItems, t])
+	}, [selectedItems])
 
 	const canSubmitRoot = useMemo(() => {
 		return (
@@ -160,12 +159,12 @@ export const Toolbar = memo(() => {
 						variant="plain"
 						onPress={selectRoot}
 					>
-						<Text className="text-blue-500">{t("selectDriveItems.header.selectRoot")}</Text>
+						<Text className="text-blue-500">{translateMemoized("selectDriveItems.header.selectRoot")}</Text>
 					</Button>
 				)}
 			</Fragment>
 		)
-	}, [createDirectory, selectRoot, t, canSubmitRoot])
+	}, [createDirectory, selectRoot, canSubmitRoot])
 
 	const rightView = useMemo(() => {
 		return (

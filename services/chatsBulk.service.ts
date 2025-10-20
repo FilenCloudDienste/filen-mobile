@@ -1,9 +1,8 @@
 import { alertPrompt } from "@/components/prompts/alertPrompt"
-import { t } from "@/lib/i18n"
+import { translateMemoized } from "@/lib/i18n"
 import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import chatsService from "./chats.service"
-import { promiseAllChunked } from "@/lib/utils"
 
 export class ChatsBulkService {
 	public async leaveChats({
@@ -21,8 +20,8 @@ export class ChatsBulkService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("chats.prompts.leaveChats.title"),
-				message: t("chats.prompts.leaveChats.message")
+				title: translateMemoized("chats.prompts.leaveChats.title"),
+				message: translateMemoized("chats.prompts.leaveChats.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -35,7 +34,7 @@ export class ChatsBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				chats.map(chat =>
 					chatsService.leaveChat({
 						chat,
@@ -66,8 +65,8 @@ export class ChatsBulkService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("chats.prompts.deleteChats.title"),
-				message: t("chats.prompts.deleteChats.message")
+				title: translateMemoized("chats.prompts.deleteChats.title"),
+				message: translateMemoized("chats.prompts.deleteChats.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -80,7 +79,7 @@ export class ChatsBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				chats.map(chat =>
 					chatsService.deleteChat({
 						chat,
@@ -114,7 +113,7 @@ export class ChatsBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				chats.map(chat =>
 					chatsService.markChatAsRead({
 						chat,
@@ -148,7 +147,7 @@ export class ChatsBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				chats.map(chat =>
 					chatsService.toggleChatMute({
 						chat,

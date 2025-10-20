@@ -1,7 +1,7 @@
 import { TURBO_IMAGE_SUPPORTED_EXTENSIONS, EXPO_VIDEO_SUPPORTED_EXTENSIONS, EXPO_AUDIO_SUPPORTED_EXTENSIONS } from "./constants"
 import type { PreviewType } from "@/stores/gallery.store"
 import pathModule from "path"
-import { t } from "@/lib/i18n"
+import { t, translateMemoized } from "@/lib/i18n"
 import { validate as validateUUID } from "uuid"
 import { Buffer } from "buffer"
 import { getRandomValues } from "expo-crypto"
@@ -40,13 +40,15 @@ export function deserializeError(serializedError: SerializedError): Error {
 }
 
 export function convertTimestampToMs(timestamp: number): number {
-	const now = Date.now()
-
-	if (Math.abs(now - timestamp) < Math.abs(now - timestamp * 1000)) {
-		return timestamp
+	// Optimized: avoid two Math.abs calls
+	// Timestamps in seconds are < 10^10, in ms are > 10^12
+	// Simple threshold check is much faster
+	if (timestamp < 10000000000) {
+		// Less than year 2286 in seconds
+		return timestamp * 1000
 	}
 
-	return Math.floor(timestamp * 1000)
+	return timestamp
 }
 
 export const simpleDateFormatter = new Intl.DateTimeFormat(intlLanguage, {
@@ -59,247 +61,180 @@ export const simpleDateFormatter = new Intl.DateTimeFormat(intlLanguage, {
 })
 
 export function simpleDate(timestamp: number | Date): string {
-	const date = timestamp instanceof Date ? timestamp : new Date(convertTimestampToMs(timestamp))
+	if (typeof timestamp === "number") {
+		return simpleDateFormatter.format(convertTimestampToMs(timestamp))
+	}
 
-	return simpleDateFormatter.format(date)
+	return simpleDateFormatter.format(timestamp)
 }
 
 export const simpleDateNoTimeFormatter = new Intl.DateTimeFormat(intlLanguage, {
 	year: "numeric",
 	month: "2-digit",
-	day: "2-digit",
-	hour: undefined,
-	minute: undefined,
-	second: undefined
+	day: "2-digit"
 })
 
 export function simpleDateNoTime(timestamp: number | Date): string {
-	const date = timestamp instanceof Date ? timestamp : new Date(convertTimestampToMs(timestamp))
+	if (typeof timestamp === "number") {
+		return simpleDateNoTimeFormatter.format(convertTimestampToMs(timestamp))
+	}
 
-	return simpleDateNoTimeFormatter.format(date)
+	return simpleDateNoTimeFormatter.format(timestamp)
 }
 
 export const simpleDateNoDateFormatter = new Intl.DateTimeFormat(intlLanguage, {
-	year: undefined,
-	month: undefined,
-	day: undefined,
 	hour: "2-digit",
 	minute: "2-digit",
 	second: "2-digit"
 })
 
 export function simpleDateNoDate(timestamp: number | Date): string {
-	const date = timestamp instanceof Date ? timestamp : new Date(convertTimestampToMs(timestamp))
+	if (typeof timestamp === "number") {
+		return simpleDateNoDateFormatter.format(convertTimestampToMs(timestamp))
+	}
 
-	return simpleDateNoDateFormatter.format(date)
+	return simpleDateNoDateFormatter.format(timestamp)
 }
 
 export const formatBytesSizes = [
-	t("formatBytes.b"),
-	t("formatBytes.kib"),
-	t("formatBytes.mib"),
-	t("formatBytes.gib"),
-	t("formatBytes.tib"),
-	t("formatBytes.pib"),
-	t("formatBytes.eib"),
-	t("formatBytes.zib"),
-	t("formatBytes.yib")
+	translateMemoized("formatBytes.b"),
+	translateMemoized("formatBytes.kib"),
+	translateMemoized("formatBytes.mib"),
+	translateMemoized("formatBytes.gib"),
+	translateMemoized("formatBytes.tib"),
+	translateMemoized("formatBytes.pib"),
+	translateMemoized("formatBytes.eib"),
+	translateMemoized("formatBytes.zib"),
+	translateMemoized("formatBytes.yib")
 ]
+
+export const POWERS_1024 = [1, 1024, 1048576, 1073741824, 1099511627776, 1125899906842624] as const
 
 export function formatBytes(bytes: number, decimals: number = 2): string {
 	if (bytes === 0) {
 		return "0 Bytes"
 	}
 
-	const k = 1024
 	const dm = decimals < 0 ? 0 : decimals
-	const i = Math.floor(Math.log(bytes) / Math.log(k))
+	let i = 0
 
-	return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + formatBytesSizes[i]
+	if (bytes >= POWERS_1024[5]) {
+		i = 5
+	} else if (bytes >= POWERS_1024[4]) {
+		i = 4
+	} else if (bytes >= POWERS_1024[3]) {
+		i = 3
+	} else if (bytes >= POWERS_1024[2]) {
+		i = 2
+	} else if (bytes >= POWERS_1024[1]) {
+		i = 1
+	}
+
+	const value = bytes / POWERS_1024[i]!
+	const multiplier = Math.pow(10, dm)
+	const rounded = Math.round(value * multiplier) / multiplier
+
+	return rounded + " " + formatBytesSizes[i]
 }
 
 export function parseNumbersFromString(string: string): number {
-	if (!string || !/\d/.test(string)) {
+	if (!string) {
 		return 0
 	}
 
-	if (string.length < 10) {
-		return parseInt(string.replace(/\D/g, "")) || 0
+	const len = string.length
+
+	if (len < 10) {
+		let result = 0
+		let hasDigit = false
+
+		for (let i = 0; i < len; i++) {
+			const code = string.charCodeAt(i)
+
+			if (code >= 48 && code <= 57) {
+				result = result * 10 + (code - 48)
+				hasDigit = true
+			}
+		}
+
+		return hasDigit ? result : 0
 	}
 
-	let result = ""
+	let result = 0
+	let digitCount = 0
 	const maxDigits = 16
 
-	for (let i = 0; i < string.length && result.length < maxDigits; i++) {
-		const char = string[i]
+	for (let i = 0; i < len && digitCount < maxDigits; i++) {
+		const code = string.charCodeAt(i)
 
-		if (char && char >= "0" && char <= "9") {
-			result += char
+		if (code >= 48 && code <= 57) {
+			result = result * 10 + (code - 48)
+
+			digitCount++
 		}
 	}
 
-	return parseInt(result) || 0
-}
-
-export type OrderByType =
-	| "nameAsc"
-	| "sizeAsc"
-	| "dateAsc"
-	| "typeAsc"
-	| "lastModifiedAsc"
-	| "nameDesc"
-	| "sizeDesc"
-	| "dateDesc"
-	| "typeDesc"
-	| "lastModifiedDesc"
-	| "uploadDateAsc"
-	| "uploadDateDesc"
-	| "creationAsc"
-	| "creationDesc"
-
-export const orderItemsByTypeCompareItemTypes = (a: DriveCloudItem, b: DriveCloudItem): number => {
-	if (a.type !== b.type) {
-		return a.type === "directory" ? -1 : 1
-	}
-
-	return 0
-}
-
-export const orderItemsByTypeCompareFunctions = {
-	name: (a: DriveCloudItem, b: DriveCloudItem, isAscending: boolean = true): number => {
-		const typeComparison = orderItemsByTypeCompareItemTypes(a, b)
-
-		if (typeComparison !== 0) {
-			return typeComparison
-		}
-
-		return isAscending
-			? a.name.toLowerCase().localeCompare(b.name.toLowerCase(), "en", {
-					numeric: true
-			  })
-			: b.name.toLowerCase().localeCompare(a.name.toLowerCase(), "en", {
-					numeric: true
-			  })
-	},
-	size: (a: DriveCloudItem, b: DriveCloudItem, isAscending: boolean = true): number => {
-		const typeComparison = orderItemsByTypeCompareItemTypes(a, b)
-
-		if (typeComparison !== 0) {
-			return typeComparison
-		}
-
-		return isAscending ? a.size - b.size : b.size - a.size
-	},
-	date: (a: DriveCloudItem, b: DriveCloudItem, isAscending: boolean = true): number => {
-		const typeComparison = orderItemsByTypeCompareItemTypes(a, b)
-
-		if (typeComparison !== 0) {
-			return typeComparison
-		}
-
-		if (a.timestamp === b.timestamp) {
-			const aUuid = parseNumbersFromString(a.uuid)
-			const bUuid = parseNumbersFromString(b.uuid)
-
-			return isAscending ? aUuid - bUuid : bUuid - aUuid
-		}
-
-		return isAscending ? a.timestamp - b.timestamp : b.timestamp - a.timestamp
-	},
-	lastModified: (a: DriveCloudItem, b: DriveCloudItem, isAscending: boolean = true): number => {
-		const typeComparison = orderItemsByTypeCompareItemTypes(a, b)
-
-		if (typeComparison !== 0) {
-			return typeComparison
-		}
-
-		if (a.lastModified === b.lastModified) {
-			const aUuid = parseNumbersFromString(a.uuid)
-			const bUuid = parseNumbersFromString(b.uuid)
-
-			return isAscending ? aUuid - bUuid : bUuid - aUuid
-		}
-
-		return isAscending ? a.lastModified - b.lastModified : b.lastModified - a.lastModified
-	},
-	creation: (a: DriveCloudItem, b: DriveCloudItem, isAscending: boolean = true): number => {
-		const typeComparison = orderItemsByTypeCompareItemTypes(a, b)
-
-		if (typeComparison !== 0) {
-			return typeComparison
-		}
-
-		const aTime = a.type === "file" ? a.creation ?? a.lastModified ?? a.timestamp : a.lastModified ?? a.timestamp
-		const bTime = b.type === "file" ? b.creation ?? b.lastModified ?? b.timestamp : b.lastModified ?? b.timestamp
-
-		if (aTime === bTime) {
-			const aUuid = parseNumbersFromString(a.uuid)
-			const bUuid = parseNumbersFromString(b.uuid)
-
-			return isAscending ? aUuid - bUuid : bUuid - aUuid
-		}
-
-		return isAscending ? aTime - bTime : bTime - aTime
-	}
-}
-
-export const orderItemsByTypeSortMap: Record<string, (a: DriveCloudItem, b: DriveCloudItem) => number> = {
-	nameAsc: (a, b) => orderItemsByTypeCompareFunctions.name(a, b, true),
-	nameDesc: (a, b) => orderItemsByTypeCompareFunctions.name(a, b, false),
-	sizeAsc: (a, b) => orderItemsByTypeCompareFunctions.size(a, b, true),
-	sizeDesc: (a, b) => orderItemsByTypeCompareFunctions.size(a, b, false),
-	dateAsc: (a, b) => orderItemsByTypeCompareFunctions.date(a, b, true),
-	dateDesc: (a, b) => orderItemsByTypeCompareFunctions.date(a, b, false),
-	typeAsc: (a, b) => orderItemsByTypeCompareFunctions.name(a, b, true),
-	typeDesc: (a, b) => orderItemsByTypeCompareFunctions.name(a, b, false),
-	lastModifiedAsc: (a, b) => orderItemsByTypeCompareFunctions.lastModified(a, b, true),
-	uploadDateAsc: (a, b) => orderItemsByTypeCompareFunctions.date(a, b, true),
-	uploadDateDesc: (a, b) => orderItemsByTypeCompareFunctions.date(a, b, false),
-	lastModifiedDesc: (a, b) => orderItemsByTypeCompareFunctions.lastModified(a, b, false),
-	creationAsc: (a, b) => orderItemsByTypeCompareFunctions.creation(a, b, true),
-	creationDesc: (a, b) => orderItemsByTypeCompareFunctions.creation(a, b, false)
-}
-
-export function orderItemsByType({ items, type }: { items: DriveCloudItem[]; type: OrderByType }): DriveCloudItem[] {
-	const compareFunction = orderItemsByTypeSortMap[type] ?? orderItemsByTypeSortMap["nameAsc"]
-
-	return [...items].sort(compareFunction)
+	return result
 }
 
 export function normalizeTransferProgress(size: number, bytes: number): number {
-	const result = parseInt(((bytes / size) * 100).toFixed(0))
-
-	if (isNaN(result)) {
+	if (size <= 0 || bytes <= 0) {
 		return 0
 	}
 
-	return result >= 100 ? 100 : result <= 0 ? 0 : result
+	if (bytes >= size) {
+		return 100
+	}
+
+	const result = ((bytes / size) * 100) | 0
+
+	return result
 }
 
 export const bpsToReadableUnits = [
-	t("bpsToReadable.kib"),
-	t("bpsToReadable.mib"),
-	t("bpsToReadable.gib"),
-	t("bpsToReadable.tib"),
-	t("bpsToReadable.pib"),
-	t("bpsToReadable.eib"),
-	t("bpsToReadable.zib"),
-	t("bpsToReadable.yib")
+	translateMemoized("bpsToReadable.kib"),
+	translateMemoized("bpsToReadable.mib"),
+	translateMemoized("bpsToReadable.gib"),
+	translateMemoized("bpsToReadable.tib"),
+	translateMemoized("bpsToReadable.pib"),
+	translateMemoized("bpsToReadable.eib"),
+	translateMemoized("bpsToReadable.zib"),
+	translateMemoized("bpsToReadable.yib")
 ]
 
 export function bpsToReadable(bps: number): string {
-	if (!(bps > 0 && bps < 1024 * 1024 * 1024 * 1024)) {
-		bps = 1
+	if (!(bps > 0 && bps < 1099511627776)) {
+		return "0.1 B/s"
 	}
 
-	let i = -1
+	let i = 0
+	let value = bps
 
-	do {
-		bps = bps / 1024
-		i++
-	} while (bps > 1024)
+	if (value >= 1024) {
+		value /= 1024
+		i = 1
 
-	return Math.max(bps, 0.1).toFixed(1) + " " + bpsToReadableUnits[i]
+		if (value >= 1024) {
+			value /= 1024
+			i = 2
+
+			if (value >= 1024) {
+				value /= 1024
+				i = 3
+
+				if (value >= 1024) {
+					value /= 1024
+					i = 4
+				}
+			}
+		}
+	}
+
+	if (value < 0.1) {
+		value = 0.1
+	}
+
+	return value.toFixed(1) + " " + bpsToReadableUnits[i]
 }
 
 export function getPreviewType(name: string): PreviewType {
@@ -406,9 +341,25 @@ export function getPreviewTypeFromMime(mimeType: string): PreviewType {
 }
 
 export function isValidHexColor(value: string, length: number = 6): boolean {
-	const hexColorPattern = length >= 6 ? /^#([0-9A-Fa-f]{6})$/ : /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/
+	if (value.length !== (length >= 6 ? 7 : 4) && value.length !== 7) {
+		return false
+	}
 
-	return hexColorPattern.test(value)
+	if (value.charCodeAt(0) !== 35) {
+		return false
+	}
+
+	const len = value.length
+
+	for (let i = 1; i < len; i++) {
+		const code = value.charCodeAt(i)
+
+		if (!((code >= 48 && code <= 57) || (code >= 65 && code <= 70) || (code >= 97 && code <= 102))) {
+			return false
+		}
+	}
+
+	return true
 }
 
 export function normalizeFilePath(filePath: string): string {
@@ -423,61 +374,6 @@ export function normalizeFilePathForNode(filePath: string): string {
 
 export function normalizeFilePathForExpo(filePath: string): string {
 	return `file://${normalizeFilePath(filePath)}`
-}
-
-/**
- * Chunk large Promise.all executions.
- * @date 2/14/2024 - 11:59:34 PM
- *
- * @export
- * @async
- * @template T
- * @param {Promise<T>[]} promises
- * @param {number} [chunkSize=10000]
- * @returns {Promise<T[]>}
- */
-export async function promiseAllChunked<T>(promises: Promise<T>[], chunkSize = 10000): Promise<T[]> {
-	const results: T[] = []
-
-	for (let i = 0; i < promises.length; i += chunkSize) {
-		const chunkResults = await Promise.all(promises.slice(i, i + chunkSize))
-
-		results.push(...chunkResults)
-	}
-
-	return results
-}
-
-/**
- * Chunk large Promise.allSettled executions.
- * @date 3/5/2024 - 12:41:08 PM
- *
- * @export
- * @async
- * @template T
- * @param {Promise<T>[]} promises
- * @param {number} [chunkSize=10000]
- * @returns {Promise<T[]>}
- */
-export async function promiseAllSettledChunked<T>(promises: Promise<T>[], chunkSize = 10000): Promise<T[]> {
-	const results: T[] = []
-
-	for (let i = 0; i < promises.length; i += chunkSize) {
-		const chunkPromisesSettled = await Promise.allSettled(promises.slice(i, i + chunkSize))
-		const chunkResults = chunkPromisesSettled.reduce((acc: T[], current) => {
-			if (current.status === "fulfilled") {
-				acc.push(current.value)
-			} else {
-				// Handle rejected promises or do something with the error (current.reason)
-			}
-
-			return acc
-		}, [])
-
-		results.push(...chunkResults)
-	}
-
-	return results
 }
 
 export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
@@ -562,6 +458,17 @@ export function contactName(email?: string, nickName?: string): string {
 }
 
 export function isTimestampSameDay(timestamp1: number, timestamp2: number): boolean {
+	const diff = timestamp1 - timestamp2
+
+	if (diff >= -86400000 && diff <= 86400000) {
+		const day1 = Math.floor(timestamp1 / 86400000)
+		const day2 = Math.floor(timestamp2 / 86400000)
+
+		if (day1 === day2) {
+			return true
+		}
+	}
+
 	const date1 = new Date(timestamp1)
 	const date2 = new Date(timestamp2)
 
@@ -569,48 +476,38 @@ export function isTimestampSameDay(timestamp1: number, timestamp2: number): bool
 }
 
 export function isTimestampSameMinute(timestamp1: number, timestamp2: number): boolean {
+	const diff = Math.abs(timestamp1 - timestamp2)
+
+	if (diff > 120000) {
+		return false
+	}
+
 	const date1 = new Date(timestamp1)
 	const date2 = new Date(timestamp2)
-	const date1Year = date1.getFullYear()
-	const date1Month = date1.getMonth()
-	const date1Date = date1.getDate()
-	const date1Minutes = date1.getMinutes()
-	const date2Year = date2.getFullYear()
-	const date2Month = date2.getMonth()
-	const date2Date = date2.getDate()
-	const date2Minutes = date2.getMinutes()
-	const date1Hours = date1.getHours()
-	const date2Hours = date2.getHours()
 
-	return (
-		date1Year === date2Year &&
-		date1Month === date2Month &&
-		date1Date === date2Date &&
-		date1Hours === date2Hours &&
-		(date1Minutes === date2Minutes ||
-			date1Minutes - 1 === date2Minutes ||
-			date1Minutes === date2Minutes - 1 ||
-			date1Minutes + 1 === date2Minutes ||
-			date1Minutes === date2Minutes + 1 ||
-			date1Minutes - 2 === date2Minutes ||
-			date1Minutes === date2Minutes - 2 ||
-			date1Minutes + 2 === date2Minutes ||
-			date1Minutes === date2Minutes + 2)
-	)
+	if (
+		date1.getFullYear() !== date2.getFullYear() ||
+		date1.getMonth() !== date2.getMonth() ||
+		date1.getDate() !== date2.getDate() ||
+		date1.getHours() !== date2.getHours()
+	) {
+		return false
+	}
+
+	const minuteDiff = Math.abs(date1.getMinutes() - date2.getMinutes())
+
+	return minuteDiff <= 2
 }
 
 export function formatMessageDate(timestamp: number): string {
 	const now = Date.now()
-	const nowDate = new Date()
-	const thenDate = new Date(timestamp)
 	const diff = now - timestamp
-	const seconds = Math.floor(diff / 1000)
-	const nowDay = nowDate.getDate()
-	const thenDay = thenDate.getDate()
 
-	if (seconds <= 0) {
-		return t("chats.messages.time.now")
+	if (diff <= 0) {
+		return translateMemoized("chats.messages.time.now")
 	}
+
+	const seconds = (diff / 1000) | 0
 
 	if (seconds < 60) {
 		return t(seconds <= 1 ? "chats.messages.time.secondAgo" : "chats.messages.time.secondsAgo", {
@@ -619,34 +516,33 @@ export function formatMessageDate(timestamp: number): string {
 	}
 
 	if (seconds < 3600) {
-		const minutes = Math.floor(seconds / 60)
-
+		const minutes = (seconds / 60) | 0
 		return t(minutes <= 1 ? "chats.messages.time.minuteAgo" : "chats.messages.time.minutesAgo", {
 			minutes
 		})
 	}
 
-	if (seconds < 3600 * 4) {
-		const hours = Math.floor(seconds / 3600)
-
+	if (seconds < 14400) {
+		const hours = (seconds / 3600) | 0
 		return t(hours <= 1 ? "chats.messages.time.hourAgo" : "chats.messages.time.hoursAgo", {
 			hours
 		})
 	}
 
-	if (nowDay === thenDay) {
-		const date = new Date(timestamp)
+	const nowDate = new Date(now)
+	const thenDate = new Date(timestamp)
+	const nowDay = nowDate.getDate()
+	const thenDay = thenDate.getDate()
 
+	if (nowDay === thenDay) {
 		return t("chats.messages.time.todayAt", {
-			date: simpleDateNoDate(date)
+			date: simpleDateNoDate(thenDate)
 		})
 	}
 
 	if (nowDay - 1 === thenDay) {
-		const date = new Date(timestamp)
-
 		return t("chats.messages.time.yesterdayAt", {
-			date: simpleDateNoDate(date)
+			date: simpleDateNoDate(thenDate)
 		})
 	}
 
@@ -782,59 +678,66 @@ export function parseXStatusId(url: string): string {
 }
 
 export function formatSecondsToHHMM(seconds: number): string {
-	if (isNaN(seconds) || seconds < 0) {
+	if (seconds < 0 || seconds !== seconds) {
 		return "00:00"
 	}
 
-	const hours: number = Math.floor(seconds / 3600)
-	const minutes: number = Math.floor((seconds % 3600) / 60)
-	const formattedHours: string = hours.toString().padStart(2, "0")
-	const formattedMinutes: string = minutes.toString().padStart(2, "0")
+	const hours = (seconds / 3600) | 0
+	const minutes = ((seconds % 3600) / 60) | 0
+	const h1 = (hours / 10) | 0
+	const h2 = hours % 10
+	const m1 = (minutes / 10) | 0
+	const m2 = minutes % 10
 
-	return `${formattedHours}:${formattedMinutes}`
+	return String(h1) + h2 + ":" + m1 + m2
 }
 
 export function formatSecondsToMMSS(seconds: number): string {
-	if (isNaN(seconds) || seconds < 0) {
+	if (seconds < 0 || seconds !== seconds) {
 		return "00:00"
 	}
 
-	const minutes: number = Math.floor(seconds / 60)
-	const remainingSeconds: number = Math.floor(seconds % 60)
-	const formattedMinutes: string = minutes.toString().padStart(2, "0")
-	const formattedSeconds: string = remainingSeconds.toString().padStart(2, "0")
+	const minutes = (seconds / 60) | 0
+	const remainingSeconds = seconds % 60 | 0
+	const m1 = (minutes / 10) | 0
+	const m2 = minutes % 10
+	const s1 = (remainingSeconds / 10) | 0
+	const s2 = remainingSeconds % 10
 
-	return `${formattedMinutes}:${formattedSeconds}`
+	return String(m1) + m2 + ":" + s1 + s2
 }
 
 export function shuffleArray<T>(array: T[]): T[] {
-	if (array.length <= 1) {
+	const len = array.length
+
+	if (len <= 1) {
 		return [...array]
 	}
 
 	const shuffled = [...array]
+	const randomCount = len - 1
+	const randomArray = new Uint32Array(randomCount)
 
-	const getRandomValue = (): number => {
-		const randomArray = new Uint32Array(1)
+	getRandomValues(randomArray)
 
-		getRandomValues(randomArray)
+	const MAX_UINT32_PLUS_ONE = 4294967296
 
-		if (!randomArray[0]) {
-			return 0
-		}
+	for (let i = len - 1; i > 0; i--) {
+		const randomValue = randomArray[len - 1 - i]
 
-		return randomArray[0] / (0xffffffff + 1)
-	}
-
-	for (let i = shuffled.length - 1; i > 0; i--) {
-		const randomIndex = Math.floor(getRandomValue() * (i + 1))
-		const temp = shuffled[i]
-
-		if (!shuffled[randomIndex] || !temp) {
+		if (!randomValue) {
 			continue
 		}
 
-		shuffled[i] = shuffled[randomIndex]
+		const randomIndex = ((randomValue / MAX_UINT32_PLUS_ONE) * (i + 1)) | 0
+		const temp = shuffled[i]
+		const rand = shuffled[randomIndex]
+
+		if (!temp || !rand) {
+			continue
+		}
+
+		shuffled[i] = rand
 		shuffled[randomIndex] = temp
 	}
 
@@ -924,56 +827,96 @@ export function ratePasswordStrength(password: string): {
 
 export function sortAndFilterNotes({ notes, searchTerm, selectedTag }: { notes: Note[]; searchTerm: string; selectedTag: string }): Note[] {
 	const lowercaseSearchTerm = (searchTerm ?? "").toLowerCase().trim()
-	const filteredBySearchTerm =
-		lowercaseSearchTerm.length > 0
-			? notes.filter(
-					note =>
-						note.title.toLowerCase().trim().includes(lowercaseSearchTerm) ||
-						note.preview.toLowerCase().trim().includes(lowercaseSearchTerm) ||
-						note.type.toLowerCase().trim().includes(lowercaseSearchTerm) ||
-						note.tags.some(tag => tag.name.toLowerCase().trim().includes(lowercaseSearchTerm))
-			  )
-			: notes
+	const hasSearchTerm = lowercaseSearchTerm.length > 0
+	const selectedTagIsUUID = selectedTag !== "all" && selectedTag !== undefined && selectedTag !== null ? validateUUID(selectedTag) : false
+	const hasTagFilter = selectedTag !== "all" && selectedTag !== undefined && selectedTag !== null
+	const filtered: Note[] = []
+	const notesLen = notes.length
 
-	const selectedTagIsUUID = validateUUID(selectedTag)
+	for (let i = 0; i < notesLen; i++) {
+		const note = notes[i]
 
-	const filteredByTag =
-		selectedTag !== "all" && selectedTag !== undefined && selectedTag !== null
-			? filteredBySearchTerm.filter(note => {
-					if (selectedTagIsUUID) {
-						return note.tags.some(tag => tag.uuid === selectedTag)
-					}
-
-					if (selectedTag === "favorited") {
-						return note.favorite
-					}
-
-					if (selectedTag === "pinned") {
-						return note.pinned
-					}
-
-					if (selectedTag === "trash") {
-						return note.trash
-					}
-
-					if (selectedTag === "archived") {
-						return note.archive
-					}
-
-					if (selectedTag === "shared") {
-						return note.isOwner && note.participants.length > 1
-					}
-
-					return true
-			  })
-			: filteredBySearchTerm
-
-	return filteredByTag.sort((a, b) => {
-		if (a.pinned !== b.pinned) {
-			return b.pinned ? 1 : -1
+		if (!note) {
+			continue
 		}
 
-		if (a.trash !== b.trash && a.archive === false) {
+		if (hasSearchTerm) {
+			let matchesSearch = false
+
+			if (note.title.toLowerCase().includes(lowercaseSearchTerm)) {
+				matchesSearch = true
+			} else if (note.preview.toLowerCase().includes(lowercaseSearchTerm)) {
+				matchesSearch = true
+			} else if (note.type.toLowerCase().includes(lowercaseSearchTerm)) {
+				matchesSearch = true
+			} else {
+				const tagsLen = note.tags.length
+
+				for (let j = 0; j < tagsLen; j++) {
+					const tag = note.tags[j]
+
+					if (!tag) {
+						continue
+					}
+
+					if (tag.name.toLowerCase().includes(lowercaseSearchTerm)) {
+						matchesSearch = true
+						break
+					}
+				}
+			}
+
+			if (!matchesSearch) {
+				continue
+			}
+		}
+
+		if (hasTagFilter) {
+			let matchesTag = false
+
+			if (selectedTagIsUUID) {
+				const tagsLen = note.tags.length
+
+				for (let j = 0; j < tagsLen; j++) {
+					const tag = note.tags[j]
+
+					if (!tag) {
+						continue
+					}
+
+					if (tag.uuid === selectedTag) {
+						matchesTag = true
+						break
+					}
+				}
+			} else if (selectedTag === "favorited") {
+				matchesTag = note.favorite
+			} else if (selectedTag === "pinned") {
+				matchesTag = note.pinned
+			} else if (selectedTag === "trash") {
+				matchesTag = note.trash
+			} else if (selectedTag === "archived") {
+				matchesTag = note.archive
+			} else if (selectedTag === "shared") {
+				matchesTag = note.isOwner && note.participants.length > 1
+			} else {
+				matchesTag = true
+			}
+
+			if (!matchesTag) {
+				continue
+			}
+		}
+
+		filtered.push(note)
+	}
+
+	return filtered.sort((a, b) => {
+		if (a.pinned !== b.pinned) {
+			return a.pinned ? -1 : 1
+		}
+
+		if (a.trash !== b.trash && !a.archive) {
 			return a.trash ? 1 : -1
 		}
 
@@ -997,10 +940,11 @@ export function getTimeRemaining(endTimestamp: number): {
 	seconds: number
 } {
 	const total = endTimestamp - Date.now()
-	const seconds = Math.floor((total / 1000) % 60)
-	const minutes = Math.floor((total / 1000 / 60) % 60)
-	const hours = Math.floor((total / (1000 * 60 * 60)) % 24)
-	const days = Math.floor(total / (1000 * 60 * 60 * 24))
+	const totalSeconds = (total / 1000) | 0
+	const days = (totalSeconds / 86400) | 0
+	const hours = ((totalSeconds % 86400) / 3600) | 0
+	const minutes = ((totalSeconds % 3600) / 60) | 0
+	const seconds = totalSeconds % 60
 
 	return {
 		total,
@@ -1012,17 +956,20 @@ export function getTimeRemaining(endTimestamp: number): {
 }
 
 export function sortParams<T extends Record<string, unknown>>(params: T): T {
-	return Object.keys(params)
-		.sort((a, b) =>
-			a.localeCompare(b, "en", {
-				numeric: true
-			})
-		)
-		.reduce((acc, key) => {
-			acc[key as keyof T] = params[key as keyof T]
+	const keys = Object.keys(params)
+	const len = keys.length
 
-			return acc
-		}, {} as T)
+	keys.sort()
+
+	const result = {} as T
+
+	for (let i = 0; i < len; i++) {
+		const key = keys[i] as keyof T
+
+		result[key] = params[key]
+	}
+
+	return result
 }
 
 export async function hideSearchBarWithDelay(clearText: boolean): Promise<void> {

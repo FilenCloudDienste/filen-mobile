@@ -8,7 +8,8 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router"
 import Container from "@/components/Container"
 import { useSelectDriveItemsStore } from "@/stores/selectDriveItems.store"
-import { simpleDate, formatBytes, orderItemsByType } from "@/lib/utils"
+import { simpleDate, formatBytes } from "@/lib/utils"
+import { orderItemsByType } from "@/lib/itemSorter"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
@@ -17,7 +18,7 @@ import Item from "@/components/selectDriveItems/item"
 import { Button } from "@/components/nativewindui/Button"
 import type { PreviewType } from "@/stores/gallery.store"
 import RequireInternet from "@/components/requireInternet"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import ListEmpty from "@/components/listEmpty"
 import alerts from "@/lib/alerts"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -37,7 +38,6 @@ export default function SelectDriveItems() {
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo, back: routerBack } = useRouter()
 	const [{ baseFolderUUID }] = useSDKConfig()
-	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 	const listRef = useRef<FlashListRef<ListItemInfo>>(null)
 
@@ -142,13 +142,13 @@ export default function SelectDriveItems() {
 		return typeof parent !== "string" || !cache.directoryUUIDToName.has(parent)
 			? typeParsed === "file"
 				? maxParsed === 1
-					? t("selectDriveItems.header.selectFile")
-					: t("selectDriveItems.header.selectFiles")
+					? translateMemoized("selectDriveItems.header.selectFile")
+					: translateMemoized("selectDriveItems.header.selectFiles")
 				: maxParsed === 1
-				? t("selectDriveItems.header.selectDirectory")
-				: t("selectDriveItems.header.selectDirectories")
-			: cache.directoryUUIDToName.get(parent) ?? t("selectDriveItems.header.drive")
-	}, [parent, typeParsed, maxParsed, t])
+				? translateMemoized("selectDriveItems.header.selectDirectory")
+				: translateMemoized("selectDriveItems.header.selectDirectories")
+			: cache.directoryUUIDToName.get(parent) ?? translateMemoized("selectDriveItems.header.drive")
+	}, [parent, typeParsed, maxParsed])
 
 	const cancel = useCallback(() => {
 		if (!routerCanGoBack()) {
@@ -183,7 +183,7 @@ export default function SelectDriveItems() {
 							variant="plain"
 							onPress={cancel}
 						>
-							<Text className="text-blue-500">{t("selectDriveItems.header.cancel")}</Text>
+							<Text className="text-blue-500">{translateMemoized("selectDriveItems.header.cancel")}</Text>
 						</Button>
 					)
 				}}
@@ -206,7 +206,7 @@ export default function SelectDriveItems() {
 							variant="plain"
 							onPress={cancel}
 						>
-							<Text className="text-blue-500">{t("selectDriveItems.header.cancel")}</Text>
+							<Text className="text-blue-500">{translateMemoized("selectDriveItems.header.cancel")}</Text>
 						</Button>
 					)
 				}}
@@ -217,7 +217,7 @@ export default function SelectDriveItems() {
 				}}
 			/>
 		)
-	}, [baseFolderUUID, colors.card, headerTitle, parent, cancel, t])
+	}, [baseFolderUUID, colors.card, headerTitle, parent, cancel])
 
 	const ListEmptyComponent = useCallback(() => {
 		return (
@@ -225,9 +225,9 @@ export default function SelectDriveItems() {
 				queryStatus={query.status}
 				itemCount={items.length}
 				texts={{
-					error: t("selectDriveItems.list.error"),
-					empty: t("selectDriveItems.list.empty"),
-					emptySearch: t("selectDriveItems.list.emptySearch")
+					error: translateMemoized("selectDriveItems.list.error"),
+					empty: translateMemoized("selectDriveItems.list.empty"),
+					emptySearch: translateMemoized("selectDriveItems.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -242,7 +242,7 @@ export default function SelectDriveItems() {
 				}}
 			/>
 		)
-	}, [query.status, items.length, t])
+	}, [query.status, items.length])
 
 	const ListFooterComponent = useCallback(() => {
 		if (items.length === 0) {
@@ -258,7 +258,7 @@ export default function SelectDriveItems() {
 				</Text>
 			</View>
 		)
-	}, [items.length, t])
+	}, [items.length])
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true)

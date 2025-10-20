@@ -16,7 +16,7 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import Item, { type ListItemInfo, LIST_ITEM_HEIGHT } from "@/components/trackPlayer/playlist/item"
 import type { ListDataItem } from "@/components/nativewindui/List"
 import useDimensions from "@/hooks/useDimensions"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import ListEmpty from "@/components/listEmpty"
 import useNetInfo from "@/hooks/useNetInfo"
 
@@ -31,7 +31,6 @@ export const Playlist = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const playlistSearchTerm = useTrackPlayerStore(useShallow(state => state.playlistSearchTerm))
 	const { screen } = useDimensions()
-	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
 	const playlistsQuery = usePlaylistsQuery({
@@ -183,9 +182,9 @@ export const Playlist = memo(() => {
 				queryStatus={playlistsQuery.status}
 				itemCount={files.length}
 				texts={{
-					error: t("trackPlayer.playlist.list.error"),
-					empty: t("trackPlayer.playlist.list.empty"),
-					emptySearch: t("trackPlayer.playlist.list.emptySearch")
+					error: translateMemoized("trackPlayer.playlist.list.error"),
+					empty: translateMemoized("trackPlayer.playlist.list.empty"),
+					emptySearch: translateMemoized("trackPlayer.playlist.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -200,7 +199,7 @@ export const Playlist = memo(() => {
 				}}
 			/>
 		)
-	}, [playlistsQuery.status, files.length, t])
+	}, [playlistsQuery.status, files.length])
 
 	return (
 		<RequireInternet>

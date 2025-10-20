@@ -2,7 +2,7 @@ import { memo, useMemo, useCallback } from "react"
 import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextItem } from "@/components/nativewindui/ContextMenu/utils"
 import type { ContextItem, ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
@@ -19,7 +19,6 @@ import chatsService from "@/services/chats.service"
 
 export const Menu = memo(({ chat, message, children }: { chat: ChatConversation; message: ChatMessage; children: React.ReactNode }) => {
 	const [{ userId }] = useSDKConfig()
-	const { t } = useTranslation()
 	const setReplyToMessage = useChatsStore(useShallow(state => state.setReplyToMessage))
 	const setEditMessage = useChatsStore(useShallow(state => state.setEditMessage))
 	const [, setChatInputValue] = useMMKVString(`chatInputValue:${chat.uuid}`, mmkvInstance)
@@ -36,7 +35,7 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 		items.push(
 			createContextItem({
 				actionKey: "reply",
-				title: t("chats.messages.menu.reply"),
+				title: translateMemoized("chats.messages.menu.reply"),
 				icon:
 					Platform.OS === "ios"
 						? {
@@ -53,7 +52,7 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 		items.push(
 			createContextItem({
 				actionKey: "copyText",
-				title: t("chats.messages.menu.copyText"),
+				title: translateMemoized("chats.messages.menu.copyText"),
 				icon:
 					Platform.OS === "ios"
 						? {
@@ -71,7 +70,7 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 			items.push(
 				createContextItem({
 					actionKey: "disableEmbeds",
-					title: t("chats.messages.menu.disableEmbeds"),
+					title: translateMemoized("chats.messages.menu.disableEmbeds"),
 					icon:
 						Platform.OS === "ios"
 							? {
@@ -88,7 +87,7 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 			items.push(
 				createContextItem({
 					actionKey: "edit",
-					title: t("chats.messages.menu.edit"),
+					title: translateMemoized("chats.messages.menu.edit"),
 					icon:
 						Platform.OS === "ios"
 							? {
@@ -105,7 +104,7 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 			items.push(
 				createContextItem({
 					actionKey: "delete",
-					title: t("chats.messages.menu.delete"),
+					title: translateMemoized("chats.messages.menu.delete"),
 					destructive: true,
 					icon:
 						Platform.OS === "ios"
@@ -124,7 +123,7 @@ export const Menu = memo(({ chat, message, children }: { chat: ChatConversation;
 		}
 
 		return items
-	}, [t, message.senderId, userId, colors.destructive, hasInternet])
+	}, [message.senderId, userId, colors.destructive, hasInternet])
 
 	const copyText = useCallback(async () => {
 		try {

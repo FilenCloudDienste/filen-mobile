@@ -17,7 +17,7 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import useNetInfo from "@/hooks/useNetInfo"
 import alerts from "@/lib/alerts"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import type { ListRenderItemInfo } from "@shopify/flash-list"
 import assets from "@/lib/assets"
 import { chatMessagesQueryGet } from "@/queries/useChatMessages.query"
@@ -27,7 +27,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 	const { push: routerPush } = useRouter()
 	const { colors } = useColorScheme()
 	const { hasInternet } = useNetInfo()
-	const { t } = useTranslation()
 
 	const avatarSource = useMemo(() => {
 		const participants = info.item.participants
@@ -66,7 +65,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 			})
 
 			if (!cachedChat) {
-				alerts.error(t("errors.youAreOffline"))
+				alerts.error(translateMemoized("errors.youAreOffline"))
 
 				return
 			}
@@ -78,7 +77,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 				uuid: info.item.uuid
 			}
 		})
-	}, [info.item.uuid, routerPush, hasInternet, t])
+	}, [info.item.uuid, routerPush, hasInternet])
 
 	return (
 		<Menu

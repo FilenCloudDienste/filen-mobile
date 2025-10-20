@@ -3,7 +3,7 @@ import { Text } from "@/components/nativewindui/Text"
 import { View, ActivityIndicator } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { cn } from "@/lib/cn"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { Icon, type IconProps as ROIconProps } from "@roninoss/icons"
 
 export type IconProps = ROIconProps<"material">
@@ -47,7 +47,6 @@ export const ListEmpty = memo(
 		}
 	}) => {
 		const { colors } = useColorScheme()
-		const { t } = useTranslation()
 
 		if (queryStatus === "pending") {
 			return (
@@ -75,7 +74,7 @@ export const ListEmpty = memo(
 						numberOfLines={textNumberOfLines ?? 6}
 						ellipsizeMode={textEllipsizeMode ?? "tail"}
 					>
-						{texts?.error ?? t("listEmpty.error")}
+						{texts?.error ?? translateMemoized("listEmpty.error")}
 					</Text>
 				</View>
 			)
@@ -97,7 +96,7 @@ export const ListEmpty = memo(
 							numberOfLines={textNumberOfLines ?? 6}
 							ellipsizeMode={textEllipsizeMode ?? "tail"}
 						>
-							{texts?.emptySearch ?? t("listEmpty.emptySearch")}
+							{texts?.emptySearch ?? translateMemoized("listEmpty.emptySearch")}
 						</Text>
 					</View>
 				)
@@ -117,7 +116,7 @@ export const ListEmpty = memo(
 						numberOfLines={textNumberOfLines ?? 6}
 						ellipsizeMode={textEllipsizeMode ?? "tail"}
 					>
-						{texts?.empty ?? t("listEmpty.empty")}
+						{texts?.empty ?? translateMemoized("listEmpty.empty")}
 					</Text>
 				</View>
 			)
@@ -137,7 +136,7 @@ export const ListEmpty = memo(
 					numberOfLines={textNumberOfLines ?? 6}
 					ellipsizeMode={textEllipsizeMode ?? "tail"}
 				>
-					{texts?.empty ?? t("listEmpty.empty")}
+					{texts?.empty ?? translateMemoized("listEmpty.empty")}
 				</Text>
 			</View>
 		)

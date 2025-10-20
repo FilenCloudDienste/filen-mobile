@@ -18,7 +18,7 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import Container from "@/components/Container"
 import paths from "@/lib/paths"
 import RequireInternet from "@/components/requireInternet"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import upload from "@/lib/upload"
 import pathModule from "path"
 
@@ -84,7 +84,6 @@ Item.displayName = "Item"
 
 export default function ShareIntent() {
 	const { shareIntent, resetShareIntent } = useShareIntentContext()
-	const { t } = useTranslation()
 
 	const items = useMemo(() => {
 		return (
@@ -188,10 +187,10 @@ export default function ShareIntent() {
 				variant="plain"
 				onPress={onPress}
 			>
-				<Text className="text-primary font-normal">{t("shareIntent.header.upload")}</Text>
+				<Text className="text-primary font-normal">{translateMemoized("shareIntent.header.upload")}</Text>
 			</Button>
 		)
-	}, [onPress, t, items.length])
+	}, [onPress, items.length])
 
 	const headerLeft = useCallback(() => {
 		return (
@@ -200,10 +199,10 @@ export default function ShareIntent() {
 				variant="plain"
 				onPress={cancel}
 			>
-				<Text className="text-primary font-normal">{t("shareIntent.header.cancel")}</Text>
+				<Text className="text-primary font-normal">{translateMemoized("shareIntent.header.cancel")}</Text>
 			</Button>
 		)
-	}, [cancel, t])
+	}, [cancel])
 
 	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
 		return <Item info={info} />
@@ -215,7 +214,7 @@ export default function ShareIntent() {
 				<Stack.Screen
 					options={{
 						headerShown: true,
-						headerTitle: t("shareIntent.header.title"),
+						headerTitle: translateMemoized("shareIntent.header.title"),
 						headerBackVisible: false,
 						headerRight,
 						headerLeft
@@ -224,7 +223,7 @@ export default function ShareIntent() {
 			),
 			default: (
 				<LargeTitleHeader
-					title={t("shareIntent.header.title")}
+					title={translateMemoized("shareIntent.header.title")}
 					materialPreset="inline"
 					backVisible={false}
 					rightView={headerRight}
@@ -232,7 +231,7 @@ export default function ShareIntent() {
 				/>
 			)
 		})
-	}, [headerRight, headerLeft, t])
+	}, [headerRight, headerLeft])
 
 	const keyExtractor = useCallback((item: ListItemInfo) => {
 		return item.id

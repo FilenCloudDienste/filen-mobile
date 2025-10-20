@@ -1,6 +1,7 @@
 import i18n from "i18next"
 import { initReactI18next } from "react-i18next"
 import * as ExpoLocalization from "expo-localization"
+import memoize from "lodash/memoize"
 import bn from "@/locales/bn.json"
 import cs from "@/locales/cs.json"
 import da from "@/locales/da.json"
@@ -28,8 +29,6 @@ import uk from "@/locales/uk.json"
 import ur from "@/locales/ur.json"
 import vi from "@/locales/vi.json"
 import zh from "@/locales/zh.json"
-
-//TODO: adapt views in the future to support textDirection for set locale (e.g. right-to-left/left-to-right), rename left/right views to leading/trailing as part of this
 
 export const resources = {
 	en: {
@@ -192,5 +191,9 @@ export async function waitForInitialization(): Promise<void> {
 }
 
 export const t = i18n.t
+
+export const translateMemoized = memoize((...params: Parameters<typeof i18n.t>) => {
+	return i18n.t(...params)
+})
 
 export default i18n

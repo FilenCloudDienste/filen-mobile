@@ -9,7 +9,7 @@ import { Text } from "@/components/nativewindui/Text"
 import { TextField } from "@/components/nativewindui/TextField"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import RequireInternet from "@/components/requireInternet"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import { Icon } from "@roninoss/icons"
 
@@ -23,7 +23,6 @@ export const Login = memo(() => {
 	const router = useRouter()
 	const [email, setEmail] = useState<string>("")
 	const [password, setPassword] = useState<string>("")
-	const { t } = useTranslation()
 	const [error, setError] = useState("")
 	const [hidePassword, setHidePassword] = useState(true)
 
@@ -33,11 +32,12 @@ export const Login = memo(() => {
 
 	const login = useCallback(async () => {
 		KeyboardController.dismiss()
+
 		setError("")
 
 		try {
 			if (disabled) {
-				throw new Error(t("auth.login.errors.emptyFields"))
+				throw new Error(translateMemoized("auth.login.errors.emptyFields"))
 			}
 
 			const didLogin = await authService.login({
@@ -47,6 +47,7 @@ export const Login = memo(() => {
 
 			if (!didLogin) {
 				setPassword("")
+
 				KeyboardController.setFocusTo("current")
 
 				return
@@ -62,7 +63,7 @@ export const Login = memo(() => {
 
 			setPassword("")
 		}
-	}, [email, password, router, disabled, t])
+	}, [email, password, router, disabled])
 
 	const forgotPassword = useCallback(async () => {
 		KeyboardController.dismiss()
@@ -92,7 +93,7 @@ export const Login = memo(() => {
 				options={{
 					headerShown: true,
 					headerBlurEffect: "systemChromeMaterial",
-					title: t("auth.login.title"),
+					title: translateMemoized("auth.login.title"),
 					headerShadowVisible: false,
 					headerBackVisible: false,
 					headerLeft() {
@@ -102,7 +103,7 @@ export const Login = memo(() => {
 								className="ios:px-0"
 								onPress={goBack}
 							>
-								<Text className="text-primary">{t("auth.login.header.cancel")}</Text>
+								<Text className="text-primary">{translateMemoized("auth.login.header.cancel")}</Text>
 							</Button>
 						)
 					}
@@ -115,7 +116,7 @@ export const Login = memo(() => {
 				title=""
 			/>
 		)
-	}, [goBack, t])
+	}, [goBack])
 
 	const signUp = useCallback(() => {
 		router.push({
@@ -130,6 +131,7 @@ export const Login = memo(() => {
 	const onSubmitPassword = useCallback(() => {
 		if (disabled) {
 			KeyboardController.dismiss()
+
 			return
 		}
 
@@ -150,14 +152,14 @@ export const Login = memo(() => {
 		return {
 			email: Platform.select({
 				ios: undefined,
-				default: t("auth.login.form.email.label")
+				default: translateMemoized("auth.login.form.email.label")
 			}),
 			password: Platform.select({
 				ios: undefined,
-				default: t("auth.login.form.password.label")
+				default: translateMemoized("auth.login.form.password.label")
 			})
 		}
-	}, [t])
+	}, [])
 
 	return (
 		<RequireInternet redirectHref="/(auth)">
@@ -176,15 +178,17 @@ export const Login = memo(() => {
 								variant="title1"
 								className="ios:font-bold pb-1 pt-4 text-center"
 							>
-								{t("auth.login.welcome")}
+								{translateMemoized("auth.login.welcome")}
 							</Text>
-							<Text className="ios:text-sm text-muted-foreground text-center">{t("auth.login.loginUsingCreds")}</Text>
+							<Text className="ios:text-sm text-muted-foreground text-center">
+								{translateMemoized("auth.login.loginUsingCreds")}
+							</Text>
 						</View>
 						<View className="ios:pt-4 pt-6 gap-2">
 							<View testID="email">
 								<TextField
 									containerClassName="ios:border border-gray-200 rounded"
-									placeholder={t("auth.login.form.email.placeholder")}
+									placeholder={translateMemoized("auth.login.form.email.placeholder")}
 									label={labels.email}
 									onSubmitEditing={onSubmitEmail}
 									submitBehavior="submit"
@@ -199,7 +203,7 @@ export const Login = memo(() => {
 							<View testID="password">
 								<TextField
 									containerClassName="ios:border border-gray-200 rounded"
-									placeholder={t("auth.login.form.password.placeholder")}
+									placeholder={translateMemoized("auth.login.form.password.placeholder")}
 									label={labels.password}
 									secureTextEntry={hidePassword}
 									onChangeText={setPassword}
@@ -231,7 +235,7 @@ export const Login = memo(() => {
 									className="px-0.5"
 									onPress={forgotPassword}
 								>
-									<Text className="text-primary text-sm">{t("auth.login.forgotPassword")}</Text>
+									<Text className="text-primary text-sm">{translateMemoized("auth.login.forgotPassword")}</Text>
 								</Button>
 							</View>
 						</View>
@@ -249,7 +253,7 @@ export const Login = memo(() => {
 								onPress={login}
 								disabled={disabled}
 							>
-								<Text>{t("auth.login.login")}</Text>
+								<Text>{translateMemoized("auth.login.login")}</Text>
 							</Button>
 						</View>
 					) : (
@@ -259,14 +263,14 @@ export const Login = memo(() => {
 								className="px-2"
 								onPress={signUp}
 							>
-								<Text className="text-primary px-0.5 text-sm">{t("auth.login.signUp")}</Text>
+								<Text className="text-primary px-0.5 text-sm">{translateMemoized("auth.login.signUp")}</Text>
 							</Button>
 							<Button
 								testID="login"
 								disabled={disabled}
 								onPress={login}
 							>
-								<Text className="text-sm">{t("auth.login.submit")}</Text>
+								<Text className="text-sm">{translateMemoized("auth.login.submit")}</Text>
 							</Button>
 						</View>
 					)}
@@ -276,7 +280,7 @@ export const Login = memo(() => {
 						variant="plain"
 						onPress={signUp}
 					>
-						<Text className="text-primary text-sm">{t("auth.login.signUp")}</Text>
+						<Text className="text-primary text-sm">{translateMemoized("auth.login.signUp")}</Text>
 					</Button>
 				)}
 			</SafeAreaView>

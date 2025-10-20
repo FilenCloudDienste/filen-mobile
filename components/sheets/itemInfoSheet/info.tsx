@@ -3,7 +3,7 @@ import { Text } from "@/components/nativewindui/Text"
 import { formatBytes, simpleDate } from "@/lib/utils"
 import { View } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { useDirectorySizeQuery } from "@/queries/useDirectorySize.query"
 import useItemPathQuery from "@/queries/useItemPath.query"
 import Thumbnail from "@/components/thumbnail/item"
@@ -13,7 +13,6 @@ const ICON_HEIGHT: number = 70
 
 export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 	const { colors } = useColorScheme()
-	const { t } = useTranslation()
 	const [{ userId }] = useSDKConfig()
 
 	const isOwner = useMemo(() => {
@@ -82,7 +81,7 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 							numberOfLines={1}
 							ellipsizeMode="middle"
 						>
-							{t("sheets.itemInfo.name")}
+							{translateMemoized("sheets.itemInfo.name")}
 						</Text>
 						<Text numberOfLines={1}>{item.name}</Text>
 						{item.type === "directory" && (
@@ -92,7 +91,7 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 									numberOfLines={1}
 									ellipsizeMode="middle"
 								>
-									{t("sheets.itemInfo.directories")}
+									{translateMemoized("sheets.itemInfo.directories")}
 								</Text>
 								{directorySize.status === "success" ? (
 									<Text numberOfLines={1}>{directorySize.data.folders}</Text>
@@ -106,15 +105,17 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 							numberOfLines={1}
 							ellipsizeMode="middle"
 						>
-							{t("sheets.itemInfo.type")}
+							{translateMemoized("sheets.itemInfo.type")}
 						</Text>
-						<Text numberOfLines={1}>{item.type === "directory" ? t("sheets.itemInfo.directory") : item.mime}</Text>
+						<Text numberOfLines={1}>
+							{item.type === "directory" ? translateMemoized("sheets.itemInfo.directory") : item.mime}
+						</Text>
 						<Text
 							className="text-muted-foreground pt-3 text-sm"
 							numberOfLines={1}
 							ellipsizeMode="middle"
 						>
-							{t("sheets.itemInfo.modified")}
+							{translateMemoized("sheets.itemInfo.modified")}
 						</Text>
 						<Text numberOfLines={1}>{simpleDate(item.lastModified)}</Text>
 						{item.type === "file" && item.creation && (
@@ -124,7 +125,7 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 									numberOfLines={1}
 									ellipsizeMode="middle"
 								>
-									{t("sheets.itemInfo.creation")}
+									{translateMemoized("sheets.itemInfo.creation")}
 								</Text>
 								<Text numberOfLines={1}>{simpleDate(item.creation)}</Text>
 							</Fragment>
@@ -136,7 +137,7 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 							numberOfLines={1}
 							ellipsizeMode="middle"
 						>
-							{t("sheets.itemInfo.size")}
+							{translateMemoized("sheets.itemInfo.size")}
 						</Text>
 						{item.type === "directory" ? (
 							<Fragment>
@@ -156,7 +157,7 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 									numberOfLines={1}
 									ellipsizeMode="middle"
 								>
-									{t("sheets.itemInfo.files")}
+									{translateMemoized("sheets.itemInfo.files")}
 								</Text>
 								{directorySize.status === "success" ? (
 									<Text numberOfLines={1}>{directorySize.data.files}</Text>
@@ -170,7 +171,7 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 							numberOfLines={1}
 							ellipsizeMode="middle"
 						>
-							{t("sheets.itemInfo.location")}
+							{translateMemoized("sheets.itemInfo.location")}
 						</Text>
 						{isOwner ? (
 							itemPath.status === "success" ? (
@@ -179,14 +180,14 @@ export const Info = memo(({ item }: { item: DriveCloudItem }) => {
 								<Text numberOfLines={1}>...</Text>
 							)
 						) : (
-							<Text numberOfLines={1}>{t("sheets.itemInfo.notAvailable")}</Text>
+							<Text numberOfLines={1}>{translateMemoized("sheets.itemInfo.notAvailable")}</Text>
 						)}
 						<Text
 							className="text-muted-foreground pt-3 text-sm"
 							numberOfLines={1}
 							ellipsizeMode="middle"
 						>
-							{t("sheets.itemInfo.uploaded")}
+							{translateMemoized("sheets.itemInfo.uploaded")}
 						</Text>
 						<Text numberOfLines={1}>{simpleDate(item.timestamp)}</Text>
 					</View>

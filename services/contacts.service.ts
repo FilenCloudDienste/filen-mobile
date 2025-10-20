@@ -3,7 +3,7 @@ import alerts from "@/lib/alerts"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
-import { t } from "@/lib/i18n"
+import { translateMemoized, t } from "@/lib/i18n"
 import { Contact } from "@filen/sdk/dist/types/api/v3/contacts"
 import { randomUUID } from "expo-crypto"
 import events from "@/lib/events"
@@ -90,8 +90,8 @@ export class ContactsService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("settings.contacts.prompts.removeContact.title"),
-				message: t("settings.contacts.prompts.removeContact.message")
+				title: translateMemoized("settings.contacts.prompts.removeContact.title"),
+				message: translateMemoized("settings.contacts.prompts.removeContact.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -151,8 +151,8 @@ export class ContactsService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("settings.contacts.prompts.blockContact.title"),
-				message: t("settings.contacts.prompts.blockContact.title")
+				title: translateMemoized("settings.contacts.prompts.blockContact.title"),
+				message: translateMemoized("settings.contacts.prompts.blockContact.title")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -216,8 +216,8 @@ export class ContactsService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("settings.contacts.prompts.unblockContact.title"),
-				message: t("settings.contacts.prompts.unblockContact.title")
+				title: translateMemoized("settings.contacts.prompts.unblockContact.title"),
+				message: translateMemoized("settings.contacts.prompts.unblockContact.title")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -327,7 +327,7 @@ export class ContactsService {
 	public async sendRequest({ email, disableLoader, disableAlert }: { email?: string; disableLoader?: boolean; disableAlert?: boolean }) {
 		if (!email) {
 			const inputPromptResponse = await inputPrompt({
-				title: t("settings.contacts.prompts.sendRequest.title"),
+				title: translateMemoized("settings.contacts.prompts.sendRequest.title"),
 				materialIcon: {
 					name: "email"
 				},
@@ -335,7 +335,7 @@ export class ContactsService {
 					type: "plain-text",
 					keyboardType: "default",
 					defaultValue: "",
-					placeholder: t("settings.contacts.prompts.sendRequest.placeholder")
+					placeholder: translateMemoized("settings.contacts.prompts.sendRequest.placeholder")
 				}
 			})
 

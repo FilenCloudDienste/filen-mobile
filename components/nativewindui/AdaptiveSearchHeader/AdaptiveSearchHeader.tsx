@@ -15,7 +15,7 @@ import useViewLayout from "@/hooks/useViewLayout"
 import { useShallow } from "zustand/shallow"
 import { useKeyboardState } from "react-native-keyboard-controller"
 import events from "@/lib/events"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 export const SCREEN_OPTIONS = {
 	headerShown: false
@@ -36,7 +36,6 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 		onLayout
 	} = useViewLayout(viewRef)
 	const keyboardState = useKeyboardState()
-	const { t } = useTranslation()
 
 	const augmentedRef = useAugmentedRef({
 		ref: props.searchBar?.ref ?? fallbackSearchBarRef,
@@ -195,7 +194,7 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 							variant="callout"
 							className="android:text-muted-foreground font-normal"
 						>
-							{props.searchBar?.placeholder ?? t("nwui.search.placeholder")}
+							{props.searchBar?.placeholder ?? translateMemoized("nwui.search.placeholder")}
 						</Text>
 					</View>
 					<View className="flex-row items-center gap-2">
@@ -246,7 +245,7 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 										{showSearchBar && (
 											<TextInput
 												autoFocus={true}
-												placeholder={props.searchBar?.placeholder ?? t("nwui.search.placeholder")}
+												placeholder={props.searchBar?.placeholder ?? translateMemoized("nwui.search.placeholder")}
 												className="flex-1 rounded-r-full p-2 text-[17px]"
 												style={{
 													color: props.searchBar?.textColor ?? colors.foreground

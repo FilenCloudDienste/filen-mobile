@@ -4,7 +4,7 @@ import useAccountQuery from "@/queries/useAccount.query"
 import { useRouter } from "expo-router"
 import nodeWorker from "@/lib/nodeWorker"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { ratePasswordStrength } from "@/lib/utils"
@@ -66,7 +66,6 @@ export function clearBiometricAuth(): void {
 
 export const Security = memo(() => {
 	const router = useRouter()
-	const { t } = useTranslation()
 
 	const account = useAccountQuery({
 		enabled: false
@@ -74,8 +73,8 @@ export const Security = memo(() => {
 
 	const changePassword = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: t("settings.security.prompts.changePassword1.title"),
-			message: t("settings.security.prompts.changePassword1.message")
+			title: translateMemoized("settings.security.prompts.changePassword1.title"),
+			message: translateMemoized("settings.security.prompts.changePassword1.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -89,7 +88,7 @@ export const Security = memo(() => {
 		}
 
 		const currentPasswordPrompt = await inputPrompt({
-			title: t("settings.security.prompts.currentPassword.title"),
+			title: translateMemoized("settings.security.prompts.currentPassword.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -97,7 +96,7 @@ export const Security = memo(() => {
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("settings.security.prompts.currentPassword.placeholder")
+				placeholder: translateMemoized("settings.security.prompts.currentPassword.placeholder")
 			}
 		})
 
@@ -112,7 +111,7 @@ export const Security = memo(() => {
 		}
 
 		const newPasswordPrompt = await inputPrompt({
-			title: t("settings.security.prompts.newPassword.title"),
+			title: translateMemoized("settings.security.prompts.newPassword.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -120,7 +119,7 @@ export const Security = memo(() => {
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("settings.security.prompts.newPassword.placeholder")
+				placeholder: translateMemoized("settings.security.prompts.newPassword.placeholder")
 			}
 		})
 
@@ -135,7 +134,7 @@ export const Security = memo(() => {
 		}
 
 		const confirmNewPasswordPrompt = await inputPrompt({
-			title: t("settings.security.prompts.confirmNewPassword.title"),
+			title: translateMemoized("settings.security.prompts.confirmNewPassword.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -143,7 +142,7 @@ export const Security = memo(() => {
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("settings.security.prompts.confirmNewPassword.placeholder")
+				placeholder: translateMemoized("settings.security.prompts.confirmNewPassword.placeholder")
 			}
 		})
 
@@ -158,7 +157,7 @@ export const Security = memo(() => {
 		}
 
 		if (request.newPassword !== request.confirmNewPassword) {
-			alerts.error(t("settings.security.errors.passwordsDoNotMatch"))
+			alerts.error(translateMemoized("settings.security.errors.passwordsDoNotMatch"))
 
 			return
 		}
@@ -166,7 +165,7 @@ export const Security = memo(() => {
 		const passwordStrength = ratePasswordStrength(request.newPassword)
 
 		if (passwordStrength.strength === "weak") {
-			alerts.error(t("settings.security.errors.weak"))
+			alerts.error(translateMemoized("settings.security.errors.weak"))
 
 			return
 		}
@@ -196,7 +195,7 @@ export const Security = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [t, router])
+	}, [router])
 
 	const openTwoFactorAuthentication = useCallback(() => {
 		router.push({
@@ -214,7 +213,7 @@ export const Security = memo(() => {
 		return [
 			{
 				id: "0",
-				title: t("settings.security.items.changePassword"),
+				title: translateMemoized("settings.security.items.changePassword"),
 				onPress: changePassword,
 				leftView: (
 					<IconView
@@ -225,7 +224,7 @@ export const Security = memo(() => {
 			},
 			{
 				id: "1",
-				title: t("settings.security.items.2fa"),
+				title: translateMemoized("settings.security.items.2fa"),
 				onPress: openTwoFactorAuthentication,
 				leftView: (
 					<IconView
@@ -236,7 +235,7 @@ export const Security = memo(() => {
 			},
 			{
 				id: "2",
-				title: t("settings.security.items.biometricAuth"),
+				title: translateMemoized("settings.security.items.biometricAuth"),
 				onPress: openBiometric,
 				leftView: (
 					<IconView
@@ -246,11 +245,11 @@ export const Security = memo(() => {
 				)
 			}
 		]
-	}, [changePassword, openBiometric, openTwoFactorAuthentication, t])
+	}, [changePassword, openBiometric, openTwoFactorAuthentication])
 
 	return (
 		<SettingsComponent
-			title={t("settings.security.title")}
+			title={translateMemoized("settings.security.title")}
 			showSearchBar={false}
 			loading={account.status !== "success"}
 			items={items}

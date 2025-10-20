@@ -9,7 +9,7 @@ import Video from "./previews/video"
 import Audio from "./previews/audio"
 import useDimensions from "@/hooks/useDimensions"
 import Header from "./header"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { Text } from "../nativewindui/Text"
 import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-reanimated"
 import { ActivityIndicator } from "../nativewindui/ActivityIndicator"
@@ -17,7 +17,6 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { cn } from "@/lib/cn"
 
 export const Item = memo(({ item, index, layout }: { item: GalleryItem; index: number; layout: { width: number; height: number } }) => {
-	const { t } = useTranslation()
 	const { colors, isDarkColorScheme } = useColorScheme()
 	const currentVisibleIndex = useGalleryStore(useShallow(state => state.currentVisibleIndex))
 
@@ -92,14 +91,14 @@ export const Item = memo(({ item, index, layout }: { item: GalleryItem; index: n
 						className="flex-1 flex-row items-center justify-center"
 						style={layout}
 					>
-						<Text className="text-white">{t("gallery.noPreviewAvailable")}</Text>
+						<Text className="text-white">{translateMemoized("gallery.noPreviewAvailable")}</Text>
 					</View>
 				) : (
 					<View
 						className="flex-1 flex-row items-center justify-center"
 						style={layout}
 					>
-						<Text className="text-white">{t("gallery.noPreviewAvailable")}</Text>
+						<Text className="text-white">{translateMemoized("gallery.noPreviewAvailable")}</Text>
 					</View>
 				)}
 			</Pressable>

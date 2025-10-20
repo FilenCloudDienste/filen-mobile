@@ -23,7 +23,7 @@ import type { DOCXPreviewItem } from "@/app/docxPreview"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import nodeWorker from "@/lib/nodeWorker"
 import cache from "@/lib/cache"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import type { ListRenderItemInfo } from "@shopify/flash-list"
 import { driveItemsQueryGet } from "@/queries/useDriveItems.query"
 
@@ -61,7 +61,6 @@ export const ListItem = memo(
 		const { hasInternet } = useNetInfo()
 		const pathname = usePathname()
 		const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
-		const { t } = useTranslation()
 
 		const directorySize = useDirectorySizeQuery(
 			{
@@ -228,7 +227,7 @@ export const ListItem = memo(
 					)
 
 					if (!cachedContent) {
-						alerts.error(t("errors.youAreOffline"))
+						alerts.error(translateMemoized("errors.youAreOffline"))
 
 						return
 					}
@@ -269,7 +268,7 @@ export const ListItem = memo(
 
 			if (!hasInternet || offlineStatus?.exists) {
 				if (!offlineStatus || !offlineStatus.exists) {
-					alerts.error(t("errors.youAreOffline"))
+					alerts.error(translateMemoized("errors.youAreOffline"))
 
 					return
 				}
@@ -366,8 +365,7 @@ export const ListItem = memo(
 			items,
 			queryParams,
 			fromSearch,
-			onPressFromSearch,
-			t
+			onPressFromSearch
 		])
 
 		if (gridModeEnabled && !fromSearch) {

@@ -5,7 +5,7 @@ import useAccountQuery from "@/queries/useAccount.query"
 import { formatBytes } from "@/lib/utils"
 import { useRouter } from "expo-router"
 import { Toggle } from "@/components/nativewindui/Toggle"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import { Platform, View } from "react-native"
 import useFileProviderEnabledQuery, { fileProviderEnabledQueryRefetch } from "@/queries/useFileProviderEnabled.query"
 import fileProvider from "@/lib/fileProvider"
@@ -18,7 +18,6 @@ import assets from "@/lib/assets"
 
 export const Settings = memo(() => {
 	const router = useRouter()
-	const { t } = useTranslation()
 	const account = useAccountQuery()
 	const fileProviderEnabledQuery = useFileProviderEnabledQuery()
 
@@ -76,51 +75,48 @@ export const Settings = memo(() => {
 		}, 1)
 	}, [router])
 
-	const onChangeFileProvider = useCallback(
-		async (value: boolean) => {
-			fullScreenLoadingModal.show()
+	const onChangeFileProvider = useCallback(async (value: boolean) => {
+		fullScreenLoadingModal.show()
 
-			try {
-				if (value) {
-					if (getBiometricAuth()?.enabled) {
-						fullScreenLoadingModal.hide()
+		try {
+			if (value) {
+				if (getBiometricAuth()?.enabled) {
+					fullScreenLoadingModal.hide()
 
-						const fileProviderPrompt = await alertPrompt({
-							title: Platform.select({
-								ios: t("settings.index.prompts.fileProvider.title"),
-								default: t("settings.index.prompts.fileProvider.title")
-							}),
-							message: Platform.select({
-								ios: t("settings.index.prompts.documentsProvider.message"),
-								default: t("settings.index.prompts.documentsProvider.message")
-							})
+					const fileProviderPrompt = await alertPrompt({
+						title: Platform.select({
+							ios: translateMemoized("settings.index.prompts.fileProvider.title"),
+							default: translateMemoized("settings.index.prompts.fileProvider.title")
+						}),
+						message: Platform.select({
+							ios: translateMemoized("settings.index.prompts.documentsProvider.message"),
+							default: translateMemoized("settings.index.prompts.documentsProvider.message")
 						})
+					})
 
-						if (fileProviderPrompt.cancelled) {
-							return
-						}
+					if (fileProviderPrompt.cancelled) {
+						return
 					}
-
-					clearBiometricAuth()
-
-					await fileProvider.enable(authService.getSDKConfig())
-				} else {
-					await fileProvider.disable()
 				}
 
-				await fileProviderEnabledQueryRefetch()
-			} catch (e) {
-				console.error(e)
+				clearBiometricAuth()
 
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				fullScreenLoadingModal.hide()
+				await fileProvider.enable(authService.getSDKConfig())
+			} else {
+				await fileProvider.disable()
 			}
-		},
-		[t]
-	)
+
+			await fileProviderEnabledQueryRefetch()
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		} finally {
+			fullScreenLoadingModal.hide()
+		}
+	}, [])
 
 	const items = useMemo(() => {
 		return [
@@ -148,7 +144,7 @@ export const Settings = memo(() => {
 			{
 				id: "1",
 				testID: "settings.security",
-				title: t("settings.index.items.security"),
+				title: translateMemoized("settings.index.items.security"),
 				onPress: onPressSecurity,
 				leftView: (
 					<IconView
@@ -160,7 +156,7 @@ export const Settings = memo(() => {
 			{
 				id: "2",
 				testID: "settings.events",
-				title: t("settings.index.items.events"),
+				title: translateMemoized("settings.index.items.events"),
 				onPress: onPressEvents,
 				leftView: (
 					<IconView
@@ -173,7 +169,7 @@ export const Settings = memo(() => {
 			{
 				id: "3",
 				testID: "settings.cameraUpload",
-				title: t("settings.index.items.cameraUpload"),
+				title: translateMemoized("settings.index.items.cameraUpload"),
 				onPress: onPressCameraUpload,
 				leftView: (
 					<IconView
@@ -186,12 +182,12 @@ export const Settings = memo(() => {
 				id: "4",
 				testID: "settings.fileProvider",
 				title: Platform.select({
-					ios: t("settings.index.items.fileProvider"),
-					default: t("settings.index.items.documentsProvider")
+					ios: translateMemoized("settings.index.items.fileProvider"),
+					default: translateMemoized("settings.index.items.documentsProvider")
 				}),
 				subTitle: Platform.select({
-					ios: t("settings.index.items.fileProviderInfo"),
-					default: t("settings.index.items.documentsProviderInfo")
+					ios: translateMemoized("settings.index.items.fileProviderInfo"),
+					default: translateMemoized("settings.index.items.documentsProviderInfo")
 				}),
 				leftView: (
 					<IconView
@@ -212,7 +208,7 @@ export const Settings = memo(() => {
 			{
 				id: "5",
 				testID: "settings.contacts",
-				title: t("settings.index.items.contacts"),
+				title: translateMemoized("settings.index.items.contacts"),
 				onPress: onPressContacts,
 				leftView: (
 					<IconView
@@ -225,7 +221,7 @@ export const Settings = memo(() => {
 			{
 				id: "6",
 				testID: "settings.advanced",
-				title: t("settings.index.items.advanced"),
+				title: translateMemoized("settings.index.items.advanced"),
 				onPress: onPressAdvanced,
 				leftView: (
 					<IconView
@@ -236,7 +232,6 @@ export const Settings = memo(() => {
 			}
 		]
 	}, [
-		t,
 		account.data?.account.email,
 		account.data?.account.maxStorage,
 		account.data?.account.storage,
@@ -253,7 +248,7 @@ export const Settings = memo(() => {
 
 	return (
 		<SettingsComponent
-			title={t("settings.index.title")}
+			title={translateMemoized("settings.index.title")}
 			showSearchBar={false}
 			loading={account.status !== "success"}
 			items={items}

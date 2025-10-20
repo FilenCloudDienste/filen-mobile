@@ -1,5 +1,5 @@
 import { memo, useMemo, useCallback } from "react"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextItem } from "@/components/nativewindui/ContextMenu/utils"
 import type { ContextItem } from "../../nativewindui/ContextMenu/types"
@@ -15,7 +15,6 @@ import useNetInfo from "@/hooks/useNetInfo"
 import { notesTagsQueryUpdate } from "@/queries/useNotesTags.query"
 
 export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.ReactNode }) => {
-	const { t } = useTranslation()
 	const { colors } = useColorScheme()
 	const { hasInternet } = useNetInfo()
 
@@ -36,7 +35,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 			items.push(
 				createContextItem({
 					actionKey: tag.favorite ? "unfavorite" : "favorite",
-					title: t("notes.tags.menu.favorited"),
+					title: translateMemoized("notes.tags.menu.favorited"),
 					state: {
 						checked: tag.favorite
 					},
@@ -56,7 +55,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 			items.push(
 				createContextItem({
 					actionKey: "rename",
-					title: t("notes.tags.menu.rename"),
+					title: translateMemoized("notes.tags.menu.rename"),
 					icon:
 						Platform.OS === "ios"
 							? {
@@ -74,7 +73,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 		items.push(
 			createContextItem({
 				actionKey: "delete",
-				title: t("notes.tags.menu.delete"),
+				title: translateMemoized("notes.tags.menu.delete"),
 				destructive: true,
 				icon:
 					Platform.OS === "ios"
@@ -92,12 +91,12 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 		)
 
 		return items
-	}, [t, tag.favorite, colors.destructive, hasInternet, isUndecryptable])
+	}, [tag.favorite, colors.destructive, hasInternet, isUndecryptable])
 
 	const deleteTag = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: t("notes.prompts.deleteTag.title"),
-			message: t("notes.prompts.deleteTag.message")
+			title: translateMemoized("notes.prompts.deleteTag.title"),
+			message: translateMemoized("notes.prompts.deleteTag.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -123,7 +122,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [tag.uuid, t])
+	}, [tag.uuid])
 
 	const favorite = useCallback(
 		async (favorite: boolean) => {
@@ -161,7 +160,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 
 	const rename = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
-			title: t("notes.prompts.renameTag.title"),
+			title: translateMemoized("notes.prompts.renameTag.title"),
 			materialIcon: {
 				name: "pencil"
 			},
@@ -169,7 +168,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: tag.name,
-				placeholder: t("notes.prompts.renameTag.placeholder")
+				placeholder: translateMemoized("notes.prompts.renameTag.placeholder")
 			}
 		})
 
@@ -211,7 +210,7 @@ export const Menu = memo(({ tag, children }: { tag: NoteTag; children: React.Rea
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [tag.uuid, t, tag.name])
+	}, [tag.uuid, tag.name])
 
 	const onItemPress = useCallback(
 		async (item: Omit<ContextItem, "icon">, _?: boolean) => {

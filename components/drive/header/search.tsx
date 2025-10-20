@@ -6,11 +6,12 @@ import alerts from "@/lib/alerts"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import ListItem, { type ListItemInfo } from "@/components/drive/list/listItem"
-import { orderItemsByType, simpleDate, formatBytes } from "@/lib/utils"
+import { simpleDate, formatBytes } from "@/lib/utils"
+import { orderItemsByType } from "@/lib/itemSorter"
 import { useDebouncedCallback } from "use-debounce"
 import cache from "@/lib/cache"
 import type { SearchFindItemDecrypted } from "@filen/sdk/dist/types/api/v3/search/find"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import ListEmpty from "@/components/listEmpty"
 import { useDriveStore } from "@/stores/drive.store"
 import { useShallow } from "zustand/shallow"
@@ -19,7 +20,6 @@ import { usePathname } from "expo-router"
 export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 	const [result, setResults] = useState<SearchFindItemDecrypted[]>([])
-	const { t } = useTranslation()
 	const searchTerm = useDriveStore(useShallow(state => state.searchTerm))
 	const pathname = usePathname()
 
@@ -181,7 +181,7 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 				</Text>
 			</View>
 		)
-	}, [items.length, t, isLoading])
+	}, [items.length, isLoading])
 
 	const ListEmptyComponent = useCallback(() => {
 		return (
@@ -189,9 +189,9 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 				queryStatus={isLoading ? "pending" : "success"}
 				itemCount={items.length}
 				texts={{
-					error: t("drive.search.list.error"),
-					empty: t("drive.search.list.empty"),
-					emptySearch: t("drive.search.list.emptySearch")
+					error: translateMemoized("drive.search.list.error"),
+					empty: translateMemoized("drive.search.list.empty"),
+					emptySearch: translateMemoized("drive.search.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -206,7 +206,7 @@ export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 				}}
 			/>
 		)
-	}, [t, items.length, isLoading])
+	}, [items.length, isLoading])
 
 	useEffect(() => {
 		if (searchTerm.length < 3 || queryParams.of !== "drive" || !pathname.startsWith("/drive")) {

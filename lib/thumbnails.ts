@@ -20,7 +20,7 @@ export const THUMBNAILS_COMPRESSION: number = 0.8
 export const THUMBNAILS_SUPPORTED_FORMATS = [...EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS, ...EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS]
 
 export class Thumbnails {
-	private readonly semaphore: Semaphore = new Semaphore(1)
+	private readonly semaphore: Semaphore = new Semaphore(2)
 	private readonly uuidMutex: Record<string, Semaphore> = {}
 	private readonly errorCount: Record<string, number> = {}
 

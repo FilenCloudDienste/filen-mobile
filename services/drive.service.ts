@@ -2,7 +2,7 @@ import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import * as Clipboard from "expo-clipboard"
 import alerts from "@/lib/alerts"
-import { t } from "@/lib/i18n"
+import { translateMemoized, t } from "@/lib/i18n"
 import * as FileSystem from "expo-file-system"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
 import type { FileMetadata, FolderMetadata } from "@filen/sdk"
@@ -12,7 +12,7 @@ import { colorPicker } from "@/components/sheets/colorPickerSheet"
 import { DEFAULT_DIRECTORY_COLOR } from "@/assets/fileIcons"
 import { itemInfo } from "@/components/sheets/itemInfoSheet"
 import contactsService from "./contacts.service"
-import { promiseAllChunked, sanitizeFileName, normalizeFilePathForExpo, simpleDate } from "@/lib/utils"
+import { sanitizeFileName, normalizeFilePathForExpo, simpleDate } from "@/lib/utils"
 import * as FileSystemLegacy from "expo-file-system/legacy"
 import * as Sharing from "expo-sharing"
 import paths from "@/lib/paths"
@@ -121,7 +121,7 @@ export class DriveService {
 			await Clipboard.setStringAsync(path)
 
 			if (!disableAlert) {
-				alerts.normal(t("copiedToClipboard"))
+				alerts.normal(translateMemoized("copiedToClipboard"))
 			}
 		} finally {
 			if (!disableLoader) {
@@ -147,7 +147,7 @@ export class DriveService {
 			await Clipboard.setStringAsync(item.uuid)
 
 			if (!disableAlert) {
-				alerts.normal(t("copiedToClipboard"))
+				alerts.normal(translateMemoized("copiedToClipboard"))
 			}
 		} finally {
 			if (!disableLoader) {
@@ -173,7 +173,7 @@ export class DriveService {
 			const itemExt = item.type === "file" && item.name.includes(".") ? itemNameParsed?.ext ?? "" : ""
 
 			const inputPromptResponse = await inputPrompt({
-				title: t("drive.prompts.renameItem.title"),
+				title: translateMemoized("drive.prompts.renameItem.title"),
 				materialIcon: {
 					name: "pencil"
 				},
@@ -181,7 +181,7 @@ export class DriveService {
 					type: "plain-text",
 					keyboardType: "default",
 					defaultValue: itemName,
-					placeholder: t("drive.prompts.renameItem.placeholder")
+					placeholder: translateMemoized("drive.prompts.renameItem.placeholder")
 				}
 			})
 
@@ -590,7 +590,7 @@ export class DriveService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				contacts.map(contact =>
 					nodeWorker.proxy("shareItems", {
 						files:
@@ -763,8 +763,8 @@ export class DriveService {
 	}): Promise<void> {
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("drive.prompts.trashItem.title"),
-				message: t("drive.prompts.trashItem.message")
+				title: translateMemoized("drive.prompts.trashItem.title"),
+				message: translateMemoized("drive.prompts.trashItem.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -998,7 +998,7 @@ export class DriveService {
 
 					const entries = dir.listAsRecords()
 
-					await promiseAllChunked(
+					await Promise.all(
 						entries.map(async entry => {
 							if (entry.isDirectory) {
 								await readDir(entry.uri)
@@ -1027,7 +1027,7 @@ export class DriveService {
 					return
 				}
 
-				await promiseAllChunked(
+				await Promise.all(
 					files
 						.sort((a, b) => a.path.split("/").length - b.path.split("/").length)
 						.map(async file => {
@@ -1172,7 +1172,7 @@ export class DriveService {
 				const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
 
 				if (freeDiskSpace <= item.size + 1024 * 1024) {
-					throw new Error(t("errors.notEnoughDiskSpace"))
+					throw new Error(translateMemoized("errors.notEnoughDiskSpace"))
 				}
 
 				await download.file.foreground({
@@ -1239,7 +1239,7 @@ export class DriveService {
 			const freeDiskSpace = await FileSystemLegacy.getFreeDiskStorageAsync()
 
 			if (freeDiskSpace <= item.size + 1024 * 1024) {
-				throw new Error(t("errors.notEnoughDiskSpace"))
+				throw new Error(translateMemoized("errors.notEnoughDiskSpace"))
 			}
 
 			const permissions = await ImagePicker.getMediaLibraryPermissionsAsync(false)
@@ -1320,8 +1320,8 @@ export class DriveService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("drive.prompts.removeSharedInItem.title"),
-				message: t("drive.prompts.removeSharedInItem.message")
+				title: translateMemoized("drive.prompts.removeSharedInItem.title"),
+				message: translateMemoized("drive.prompts.removeSharedInItem.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -1378,8 +1378,8 @@ export class DriveService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("drive.prompts.removeSharedOutItem.title"),
-				message: t("drive.prompts.removeSharedOutItem.message")
+				title: translateMemoized("drive.prompts.removeSharedOutItem.title"),
+				message: translateMemoized("drive.prompts.removeSharedOutItem.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -1433,8 +1433,8 @@ export class DriveService {
 	}): Promise<void> {
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("drive.prompts.deletePermanently.title"),
-				message: t("drive.prompts.deletePermanently.message")
+				title: translateMemoized("drive.prompts.deletePermanently.title"),
+				message: translateMemoized("drive.prompts.deletePermanently.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -1625,7 +1625,7 @@ export class DriveService {
 
 		try {
 			const uploadedItems = (
-				await promiseAllChunked(
+				await Promise.all(
 					documentPickerAssets.map(async asset => {
 						try {
 							return await upload.file.foreground({
@@ -1689,7 +1689,7 @@ export class DriveService {
 	}): Promise<string | null> {
 		if (!name) {
 			const inputPromptResponse = await inputPrompt({
-				title: t("drive.header.rightView.actionSheet.create.directory"),
+				title: translateMemoized("drive.header.rightView.actionSheet.create.directory"),
 				materialIcon: {
 					name: "folder-plus-outline"
 				},
@@ -1697,7 +1697,7 @@ export class DriveService {
 					type: "plain-text",
 					keyboardType: "default",
 					defaultValue: "",
-					placeholder: t("drive.header.rightView.actionSheet.directoryNamePlaceholder")
+					placeholder: translateMemoized("drive.header.rightView.actionSheet.directoryNamePlaceholder")
 				}
 			})
 
@@ -1818,7 +1818,7 @@ export class DriveService {
 
 		try {
 			const uploadedItems = (
-				await promiseAllChunked(
+				await Promise.all(
 					imagePickerAssets.map(async asset => {
 						if (!asset.fileName) {
 							return null
@@ -1946,7 +1946,7 @@ export class DriveService {
 
 		try {
 			const uploadedItems = (
-				await promiseAllChunked(
+				await Promise.all(
 					imagePickerAssets.map(async asset => {
 						if (!asset.fileName) {
 							asset.fileName = sanitizeFileName(`Photo-${simpleDate(Date.now())}.jpg`)
@@ -2038,7 +2038,7 @@ export class DriveService {
 	}): Promise<DriveCloudItem | null> {
 		if (!name) {
 			const inputPromptResponse = await inputPrompt({
-				title: t("drive.header.rightView.actionSheet.create.textFile"),
+				title: translateMemoized("drive.header.rightView.actionSheet.create.textFile"),
 				materialIcon: {
 					name: "file-plus-outline"
 				},
@@ -2046,7 +2046,7 @@ export class DriveService {
 					type: "plain-text",
 					keyboardType: "default",
 					defaultValue: "",
-					placeholder: t("drive.header.rightView.actionSheet.textFileNamePlaceholder")
+					placeholder: translateMemoized("drive.header.rightView.actionSheet.textFileNamePlaceholder")
 				}
 			})
 

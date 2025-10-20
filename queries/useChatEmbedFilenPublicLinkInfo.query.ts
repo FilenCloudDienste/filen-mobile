@@ -73,8 +73,7 @@ export function useChatEmbedFilenPublicLinkInfoQuery(
 	params: UseChatEmbedFilenPublicLinkInfoQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
-	params = sortParams(params)
-
+	const sortedParams = sortParams(params)
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({
@@ -86,8 +85,8 @@ export function useChatEmbedFilenPublicLinkInfoQuery(
 			return false
 		},
 		...options,
-		queryKey: [BASE_QUERY_KEY, params],
-		queryFn: () => fetchData(params)
+		queryKey: [BASE_QUERY_KEY, sortedParams],
+		queryFn: () => fetchData(sortedParams)
 	})
 
 	useRefreshOnFocus({

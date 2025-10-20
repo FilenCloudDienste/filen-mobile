@@ -6,13 +6,12 @@ import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 export const TextEditor = memo(() => {
 	const { item } = useLocalSearchParams()
 	const [markdownPreview, setMarkdownPreview] = useState<boolean>(false)
 	const { colors } = useColorScheme()
-	const { t } = useTranslation()
 
 	const itemParsed = useMemo(() => {
 		if (typeof item !== "string") {
@@ -71,7 +70,7 @@ export const TextEditor = memo(() => {
 					options={{
 						headerShown: true,
 						headerTitle: itemName,
-						headerBackTitle: t("textEditor.header.back"),
+						headerBackTitle: translateMemoized("textEditor.header.back"),
 						headerRight: headerRightView
 					}}
 				/>
@@ -93,7 +92,7 @@ export const TextEditor = memo(() => {
 				</Fragment>
 			)
 		})
-	}, [itemName, headerRightView, colors.card, t])
+	}, [itemName, headerRightView, colors.card])
 
 	if (!itemParsed) {
 		return <Redirect href="/(app)/home" />

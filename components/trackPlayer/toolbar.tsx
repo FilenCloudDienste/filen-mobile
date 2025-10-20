@@ -16,7 +16,7 @@ import { cn } from "@/lib/cn"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import Container from "../Container"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 export const Toolbar = memo(() => {
 	const { colors } = useColorScheme()
@@ -26,7 +26,6 @@ export const Toolbar = memo(() => {
 	const { onLayout, layout } = useViewLayout(viewRef)
 	const [, setTrackPlayerToolbarHeight] = useMMKVNumber("trackPlayerToolbarHeight", mmkvInstance)
 	const trackPlayerControls = useTrackPlayerControls()
-	const { t } = useTranslation()
 
 	const active = useMemo(() => {
 		if (trackPlayerState.playingTrack && trackPlayerState.queue.length > 0) {
@@ -166,12 +165,12 @@ export const Toolbar = memo(() => {
 								ellipsizeMode="middle"
 							>
 								{!active
-									? t("trackPlayer.bottom.noTrackQueued")
+									? translateMemoized("trackPlayer.bottom.noTrackQueued")
 									: trackPlayerState.playingTrack?.title
 									? `${trackPlayerState.playingTrack.title}${
 											trackPlayerState.playingTrack.album ? ` - ${trackPlayerState.playingTrack.album}` : ""
 									  }`
-									: t("trackPlayer.bottom.unknownTitle")}
+									: translateMemoized("trackPlayer.bottom.unknownTitle")}
 							</Text>
 							<Text
 								className="text-xs text-muted-foreground"

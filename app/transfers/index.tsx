@@ -8,13 +8,13 @@ import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/n
 import Container from "@/components/Container"
 import { Text } from "@/components/nativewindui/Text"
 import Transfer, { type ListItemInfo } from "@/components/transfers/transfer"
-import { formatBytes, promiseAllChunked, normalizeTransferProgress, bpsToReadable, getTimeRemaining } from "@/lib/utils"
+import { formatBytes, normalizeTransferProgress, bpsToReadable, getTimeRemaining } from "@/lib/utils"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import ListEmpty from "@/components/listEmpty"
 
 export const Transfers = memo(() => {
@@ -24,7 +24,6 @@ export const Transfers = memo(() => {
 	const remaining = useTransfersStore(useShallow(state => state.remaining))
 	const hiddenTransfers = useTransfersStore(useShallow(state => state.hiddenTransfers))
 	const { colors } = useColorScheme()
-	const { t } = useTranslation()
 
 	const data = useMemo(() => {
 		return transfers
@@ -74,7 +73,7 @@ export const Transfers = memo(() => {
 		try {
 			const transfers = useTransfersStore.getState().transfers
 
-			await promiseAllChunked(
+			await Promise.all(
 				transfers.map(async transfer => {
 					if (
 						!(transfer.state === "queued" || transfer.state === "started") ||
@@ -102,7 +101,7 @@ export const Transfers = memo(() => {
 		try {
 			const transfers = useTransfersStore.getState().transfers
 
-			await promiseAllChunked(
+			await Promise.all(
 				transfers.map(async transfer => {
 					if (
 						!(transfer.state === "queued" || transfer.state === "paused") ||
@@ -130,7 +129,7 @@ export const Transfers = memo(() => {
 		try {
 			const transfers = useTransfersStore.getState().transfers
 
-			await promiseAllChunked(
+			await Promise.all(
 				transfers.map(async transfer => {
 					if (
 						!(transfer.state === "queued" || transfer.state === "started") ||
@@ -184,29 +183,29 @@ export const Transfers = memo(() => {
 					  (remainingReadable.minutes > 0 ? remainingReadable.minutes + "m " : "") +
 					  (remainingReadable.seconds > 0 ? remainingReadable.seconds + "s " : "")
 		})
-	}, [ongoingTransfers.length, speed, remaining, t])
+	}, [ongoingTransfers.length, speed, remaining])
 
 	const header = useMemo(() => {
 		return Platform.OS === "android" ? (
 			<LargeTitleHeader
-				title={t("transfers.header.title")}
+				title={translateMemoized("transfers.header.title")}
 				backVisible={true}
 				materialPreset="stack"
-				iosBackButtonTitle={t("transfers.header.back")}
+				iosBackButtonTitle={translateMemoized("transfers.header.back")}
 				iosBackButtonMenuEnabled={false}
 				iosBackButtonTitleVisible={true}
 			/>
 		) : (
 			<AdaptiveSearchHeader
-				iosTitle={t("transfers.header.title")}
+				iosTitle={translateMemoized("transfers.header.title")}
 				backVisible={true}
-				iosBackButtonTitle={t("transfers.header.back")}
+				iosBackButtonTitle={translateMemoized("transfers.header.back")}
 				iosBackButtonMenuEnabled={false}
 				iosBackButtonTitleVisible={true}
 				backgroundColor={colors.card}
 			/>
 		)
-	}, [colors.card, t])
+	}, [colors.card])
 
 	const ListHeaderComponent = useCallback(() => {
 		if (Platform.OS !== "android") {
@@ -220,11 +219,11 @@ export const Transfers = memo(() => {
 					ellipsizeMode="middle"
 					className="text-sm text-muted-foreground flex-1"
 				>
-					{info ? info : t("transfers.noOngoingTransfers")}
+					{info ? info : translateMemoized("transfers.noOngoingTransfers")}
 				</Text>
 			</View>
 		)
-	}, [info, t])
+	}, [info])
 
 	const ListEmptyComponent = useCallback(() => {
 		return (
@@ -232,9 +231,9 @@ export const Transfers = memo(() => {
 				queryStatus="success"
 				itemCount={transfers.length}
 				texts={{
-					error: t("transfers.list.error"),
-					empty: t("transfers.list.empty"),
-					emptySearch: t("transfers.list.emptySearch")
+					error: translateMemoized("transfers.list.error"),
+					empty: translateMemoized("transfers.list.empty"),
+					emptySearch: translateMemoized("transfers.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -249,7 +248,7 @@ export const Transfers = memo(() => {
 				}}
 			/>
 		)
-	}, [transfers.length, t])
+	}, [transfers.length])
 
 	const toolbarLeftView = useMemo(() => {
 		return (

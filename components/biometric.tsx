@@ -11,7 +11,7 @@ import { Text } from "./nativewindui/Text"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { inputPrompt } from "./prompts/inputPrompt"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import { Portal } from "@rn-primitives/portal"
 import { useAppStateStore } from "@/stores/appState.store"
 import { FullWindowOverlay } from "react-native-screens"
@@ -21,11 +21,13 @@ export const localAuthenticate = async ({ cancelLabel, promptMessage }: { cancel
 	try {
 		if (!(await LocalAuthentication.hasHardwareAsync())) {
 			alert("Biometric authentication is not available on this device.")
+
 			return false
 		}
 
 		if (!(await LocalAuthentication.isEnrolledAsync())) {
 			alert("No biometric data is saved on this device.")
+
 			return false
 		}
 
@@ -39,9 +41,11 @@ export const localAuthenticate = async ({ cancelLabel, promptMessage }: { cancel
 		return result.success
 	} catch (error) {
 		console.error(error)
+
 		if (error instanceof Error) {
 			alert(error.message)
 		}
+
 		return false
 	}
 }
@@ -62,7 +66,6 @@ ParentComponent.displayName = "ParentComponent"
 
 export const Action = memo(({ lockedSeconds, pinAuth }: { lockedSeconds: number; pinAuth: () => Promise<void> }) => {
 	const [seconds, setSeconds] = useState<number>(lockedSeconds)
-	const { t } = useTranslation()
 
 	useEffect(() => {
 		if (lockedSeconds <= 0) {
@@ -99,7 +102,7 @@ export const Action = memo(({ lockedSeconds, pinAuth }: { lockedSeconds: number;
 			onPress={pinAuth}
 			className={Platform.OS === "ios" ? "px-2.5 py-1.5 rounded-lg" : undefined}
 		>
-			<Text className="text-primary">{t("biometric.authenticateUsingPin")}</Text>
+			<Text className="text-primary">{translateMemoized("biometric.authenticateUsingPin")}</Text>
 		</Button>
 	)
 })
@@ -110,7 +113,6 @@ export const Biometric = memo(() => {
 	const [biometricAuth, setBiometricAuth] = useMMKVObject<BiometricAuth>(BIOMETRIC_AUTH_KEY, mmkvInstance)
 	const [show, setShow] = useState<boolean>(true)
 	const { colors } = useColorScheme()
-	const { t } = useTranslation()
 	const [isAuthed] = useIsAuthed()
 	const [appState, setAppState] = useState(AppState.currentState)
 
@@ -128,7 +130,7 @@ export const Biometric = memo(() => {
 						tries: 0,
 						triesLockedUntil: 0,
 						triesLockedUntilMultiplier: 1
-					}
+				  }
 				: prev
 		)
 	}, [setBiometricAuth])
@@ -149,7 +151,7 @@ export const Biometric = memo(() => {
 		}
 
 		const codePrompt = await inputPrompt({
-			title: t("biometric.prompts.pin.title"),
+			title: translateMemoized("biometric.prompts.pin.title"),
 			materialIcon: {
 				name: "lock-outline"
 			},
@@ -157,7 +159,7 @@ export const Biometric = memo(() => {
 				type: "secure-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("biometric.prompts.pin.placeholder")
+				placeholder: translateMemoized("biometric.prompts.pin.placeholder")
 			}
 		})
 
@@ -184,11 +186,11 @@ export const Biometric = memo(() => {
 								tries: 0,
 								triesLockedUntil: Date.now() + lockedUntil,
 								triesLockedUntilMultiplier: prev.triesLockedUntilMultiplier * 2
-							}
+						  }
 						: prev
 				)
 
-				alerts.error(t("biometric.errors.tooManyIncorrectAttempts"))
+				alerts.error(translateMemoized("biometric.errors.tooManyIncorrectAttempts"))
 
 				return
 			}
@@ -198,28 +200,28 @@ export const Biometric = memo(() => {
 					? {
 							...prev,
 							tries: prev.tries + 1
-						}
+					  }
 					: prev
 			)
 
-			alerts.error(t("biometric.errors.incorrectPin"))
+			alerts.error(translateMemoized("biometric.errors.incorrectPin"))
 
 			return
 		}
 
 		authenticated()
-	}, [biometricAuth, setBiometricAuth, t, biometricsLockedForSeconds, authenticated])
+	}, [biometricAuth, setBiometricAuth, biometricsLockedForSeconds, authenticated])
 
 	const promptLocalAuthentication = useCallback(async () => {
 		if (
 			await localAuthenticate({
-				cancelLabel: t("localAuthentication.cancelLabel"),
-				promptMessage: t("localAuthentication.promptMessage")
+				cancelLabel: translateMemoized("localAuthentication.cancelLabel"),
+				promptMessage: translateMemoized("localAuthentication.promptMessage")
 			})
 		) {
 			authenticated()
 		}
-	}, [authenticated, t])
+	}, [authenticated])
 
 	useEffect(() => {
 		if (appState == "background") {
@@ -231,7 +233,7 @@ export const Biometric = memo(() => {
 					? {
 							...prev,
 							lastLock: now
-						}
+					  }
 					: prev
 			)
 		}
@@ -304,7 +306,7 @@ export const Biometric = memo(() => {
 							onPress={promptLocalAuthentication}
 							className={Platform.OS === "ios" ? "px-2.5 py-1.5 rounded-lg" : undefined}
 						>
-							<Text className="text-primary">{t("biometric.authenticateUsingBiometrics")}</Text>
+							<Text className="text-primary">{translateMemoized("biometric.authenticateUsingBiometrics")}</Text>
 						</Button>
 					)}
 				</View>

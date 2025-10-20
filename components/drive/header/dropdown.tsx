@@ -6,18 +6,18 @@ import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { createDropdownItem, createDropdownSubMenu } from "@/components/nativewindui/DropdownMenu/utils"
 import { useDriveStore } from "@/stores/drive.store"
 import type { DropdownItem, DropdownSubMenu } from "@/components/nativewindui/DropdownMenu/types"
-import { useTranslation } from "react-i18next"
 import { useRouter, usePathname } from "expo-router"
 import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { type OrderByType, getPreviewType } from "@/lib/utils"
+import { getPreviewType } from "@/lib/utils"
+import type { OrderByType } from "@/lib/itemSorter"
 import { useShallow } from "zustand/shallow"
 import { Platform } from "react-native"
 import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import useNetInfo from "@/hooks/useNetInfo"
 import driveBulkService from "@/services/driveBulk.service"
 import alerts from "@/lib/alerts"
-import { t } from "@/lib/i18n"
+import { translateMemoized, t } from "@/lib/i18n"
 
 type UISortOption = {
 	title: string
@@ -30,37 +30,37 @@ type UISortOption = {
 
 const UI_SORT_OPTIONS: Record<string, UISortOption> = {
 	sortByName: {
-		title: t("drive.header.rightView.dropdown.sortBy.name.title"),
-		ascTitle: t("drive.header.rightView.dropdown.sortBy.name.ascendingTitle"),
-		descTitle: t("drive.header.rightView.dropdown.sortBy.name.descendingTitle"),
+		title: translateMemoized("drive.header.rightView.dropdown.sortBy.name.title"),
+		ascTitle: translateMemoized("drive.header.rightView.dropdown.sortBy.name.ascendingTitle"),
+		descTitle: translateMemoized("drive.header.rightView.dropdown.sortBy.name.descendingTitle"),
 		asc: "nameAsc",
 		desc: "nameDesc"
 	},
 	sortBySize: {
-		title: t("drive.header.rightView.dropdown.sortBy.size.title"),
-		ascTitle: t("drive.header.rightView.dropdown.sortBy.size.ascendingTitle"),
-		descTitle: t("drive.header.rightView.dropdown.sortBy.size.descendingTitle"),
+		title: translateMemoized("drive.header.rightView.dropdown.sortBy.size.title"),
+		ascTitle: translateMemoized("drive.header.rightView.dropdown.sortBy.size.ascendingTitle"),
+		descTitle: translateMemoized("drive.header.rightView.dropdown.sortBy.size.descendingTitle"),
 		asc: "sizeAsc",
 		desc: "sizeDesc"
 	},
 	sortByUploadDate: {
-		title: t("drive.header.rightView.dropdown.sortBy.uploadDate.title"),
-		ascTitle: t("drive.header.rightView.dropdown.sortBy.uploadDate.ascendingTitle"),
-		descTitle: t("drive.header.rightView.dropdown.sortBy.uploadDate.descendingTitle"),
+		title: translateMemoized("drive.header.rightView.dropdown.sortBy.uploadDate.title"),
+		ascTitle: translateMemoized("drive.header.rightView.dropdown.sortBy.uploadDate.ascendingTitle"),
+		descTitle: translateMemoized("drive.header.rightView.dropdown.sortBy.uploadDate.descendingTitle"),
 		asc: "uploadDateAsc",
 		desc: "uploadDateDesc"
 	},
 	sortByLastModified: {
-		title: t("drive.header.rightView.dropdown.sortBy.lastModified.title"),
-		ascTitle: t("drive.header.rightView.dropdown.sortBy.lastModified.ascendingTitle"),
-		descTitle: t("drive.header.rightView.dropdown.sortBy.lastModified.descendingTitle"),
+		title: translateMemoized("drive.header.rightView.dropdown.sortBy.lastModified.title"),
+		ascTitle: translateMemoized("drive.header.rightView.dropdown.sortBy.lastModified.ascendingTitle"),
+		descTitle: translateMemoized("drive.header.rightView.dropdown.sortBy.lastModified.descendingTitle"),
 		asc: "lastModifiedAsc",
 		desc: "lastModifiedDesc"
 	},
 	sortByType: {
-		title: t("drive.header.rightView.dropdown.sortBy.type.title"),
-		ascTitle: t("drive.header.rightView.dropdown.sortBy.type.ascendingTitle"),
-		descTitle: t("drive.header.rightView.dropdown.sortBy.type.descendingTitle"),
+		title: translateMemoized("drive.header.rightView.dropdown.sortBy.type.title"),
+		ascTitle: translateMemoized("drive.header.rightView.dropdown.sortBy.type.ascendingTitle"),
+		descTitle: translateMemoized("drive.header.rightView.dropdown.sortBy.type.descendingTitle"),
 		asc: "typeAsc",
 		desc: "typeDesc"
 	}
@@ -91,7 +91,6 @@ function getUISortOption(orderBy?: OrderByType): UISortOption | undefined {
 export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const { colors } = useColorScheme()
 	const [orderBy, setOrderBy] = useMMKVString("orderBy", mmkvInstance) as [OrderByType | undefined, (value: OrderByType) => void]
-	const { t } = useTranslation()
 	const { push: routerPush } = useRouter()
 	const [gridModeEnabled, setGridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
 	const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
@@ -130,7 +129,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 		if (gridModeEnabled) {
 			return createDropdownItem({
 				actionKey: "listMode",
-				title: t("drive.header.rightView.dropdown.listMode"),
+				title: translateMemoized("drive.header.rightView.dropdown.listMode"),
 				icon:
 					Platform.OS === "ios"
 						? {
@@ -145,7 +144,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 		} else {
 			return createDropdownItem({
 				actionKey: "gridMode",
-				title: t("drive.header.rightView.dropdown.gridMode"),
+				title: translateMemoized("drive.header.rightView.dropdown.gridMode"),
 				icon:
 					Platform.OS === "ios"
 						? {
@@ -158,13 +157,13 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 						  }
 			})
 		}
-	}, [gridModeEnabled, t])
+	}, [gridModeEnabled])
 
 	const dropdownSortSubMenu = useMemo(
 		() =>
 			createDropdownSubMenu(
 				{
-					title: t("drive.header.rightView.dropdown.sortBy.sortBy"),
+					title: translateMemoized("drive.header.rightView.dropdown.sortBy.sortBy"),
 					subTitle: currentUISortOption?.title,
 					iOSItemSize: "large",
 					iOSType: "dropdown"
@@ -206,7 +205,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 					)
 				]
 			),
-		[currentUISortOption, orderBy, t]
+		[currentUISortOption, orderBy]
 	)
 
 	const dropdownSelectAllAndNoneItems = useMemo(() => {
@@ -216,7 +215,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			items.push(
 				createDropdownItem({
 					actionKey: "selectAll",
-					title: t("drive.list.item.menu.selectAll"),
+					title: translateMemoized("drive.list.item.menu.selectAll"),
 					icon: {
 						name: "check-circle-outline"
 					}
@@ -228,7 +227,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			items.push(
 				createDropdownItem({
 					actionKey: "deselectAll",
-					title: t("drive.list.item.menu.deselectAll"),
+					title: translateMemoized("drive.list.item.menu.deselectAll"),
 					icon: {
 						name: "check-circle-outline"
 					}
@@ -248,7 +247,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			]
 		}
 		return items
-	}, [driveItems.length, selectedItemsCount, t])
+	}, [driveItems.length, selectedItemsCount])
 
 	const dropdownSelectionItems = useMemo(() => {
 		const items: (DropdownItem | DropdownSubMenu)[] = []
@@ -260,7 +259,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 				subMenuItems.push(
 					createDropdownItem({
 						actionKey: "bulkDownload",
-						title: t("drive.list.item.menu.download"),
+						title: translateMemoized("drive.list.item.menu.download"),
 						icon: {
 							namingScheme: "material",
 							name: "file-download-outline"
@@ -273,7 +272,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 				subMenuItems.push(
 					createDropdownItem({
 						actionKey: "bulkSaveToGallery",
-						title: t("drive.list.item.menu.saveToGallery"),
+						title: translateMemoized("drive.list.item.menu.saveToGallery"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -292,7 +291,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 				subMenuItems.push(
 					createDropdownItem({
 						actionKey: "bulkMakeAvailableOffline",
-						title: t("drive.list.item.menu.makeAvailableOffline"),
+						title: translateMemoized("drive.list.item.menu.makeAvailableOffline"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -311,7 +310,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 				items.push(
 					createDropdownSubMenu(
 						{
-							title: t("drive.list.item.menu.download"),
+							title: translateMemoized("drive.list.item.menu.download"),
 							iOSItemSize: "large"
 						},
 						subMenuItems
@@ -324,7 +323,9 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			items.push(
 				createDropdownItem({
 					actionKey: "bulkShare",
-					title: t("drive.list.item.menu.share", { count: selectedItemsCount }),
+					title: t("drive.list.item.menu.share", {
+						count: selectedItemsCount
+					}),
 					icon:
 						Platform.OS === "ios"
 							? {
@@ -344,7 +345,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 				items.push(
 					createDropdownItem({
 						actionKey: "bulkUnfavorite",
-						title: t("drive.list.item.menu.unfavorite"),
+						title: translateMemoized("drive.list.item.menu.unfavorite"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -361,7 +362,9 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 				items.push(
 					createDropdownItem({
 						actionKey: "bulkFavorite",
-						title: t("drive.list.item.menu.favorite", { count: selectedItemsCount }),
+						title: t("drive.list.item.menu.favorite", {
+							count: selectedItemsCount
+						}),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -387,7 +390,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			items.push(
 				createDropdownItem({
 					actionKey: "bulkColor",
-					title: t("drive.list.item.menu.color"),
+					title: translateMemoized("drive.list.item.menu.color"),
 					icon:
 						Platform.OS === "ios"
 							? {
@@ -406,7 +409,9 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			items.push(
 				createDropdownItem({
 					actionKey: "bulkMove",
-					title: t("drive.list.item.menu.move", { count: selectedItemsCount }),
+					title: t("drive.list.item.menu.move", {
+						count: selectedItemsCount
+					}),
 					icon:
 						Platform.OS === "ios"
 							? {
@@ -425,7 +430,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			items.push(
 				createDropdownItem({
 					actionKey: "bulkRemoveSharedOut",
-					title: t("drive.list.item.menu.removeSharedOut"),
+					title: translateMemoized("drive.list.item.menu.removeSharedOut"),
 					destructive: true,
 					icon:
 						Platform.OS === "ios"
@@ -447,7 +452,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			items.push(
 				createDropdownItem({
 					actionKey: "bulkDisablePublicLink",
-					title: t("drive.list.item.menu.disablePublicLink"),
+					title: translateMemoized("drive.list.item.menu.disablePublicLink"),
 					destructive: true,
 					icon:
 						Platform.OS === "ios"
@@ -470,7 +475,9 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 				items.push(
 					createDropdownItem({
 						actionKey: "bulkTrash",
-						title: t("drive.list.item.menu.trash", { count: selectedItemsCount }),
+						title: t("drive.list.item.menu.trash", {
+							count: selectedItemsCount
+						}),
 						destructive: true,
 						icon:
 							Platform.OS === "ios"
@@ -490,7 +497,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 				items.push(
 					createDropdownItem({
 						actionKey: "bulkRemoveSharedIn",
-						title: t("drive.list.item.menu.removeSharedIn"),
+						title: translateMemoized("drive.list.item.menu.removeSharedIn"),
 						destructive: true,
 						icon:
 							Platform.OS === "ios"
@@ -513,7 +520,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			items.push(
 				createDropdownItem({
 					actionKey: "bulkRemoveOffline",
-					title: t("drive.list.item.menu.removeOffline"),
+					title: translateMemoized("drive.list.item.menu.removeOffline"),
 					destructive: true,
 					icon:
 						Platform.OS === "ios"
@@ -535,7 +542,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			items.push(
 				createDropdownItem({
 					actionKey: "bulkRestore",
-					title: t("drive.list.item.menu.restore"),
+					title: translateMemoized("drive.list.item.menu.restore"),
 					icon:
 						Platform.OS === "ios"
 							? {
@@ -552,7 +559,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			items.push(
 				createDropdownItem({
 					actionKey: "bulkDeletePermanently",
-					title: t("drive.list.item.menu.deletePermanently"),
+					title: translateMemoized("drive.list.item.menu.deletePermanently"),
 					destructive: true,
 					icon:
 						Platform.OS === "ios"
@@ -580,8 +587,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 		queryParams.of,
 		selectedItemsCount,
 		selectedItemsIncludesDirectory,
-		selectedItemsIncludesFavoritedItem,
-		t
+		selectedItemsIncludesFavoritedItem
 	])
 
 	const dropdownItems = useMemo(() => {
@@ -591,7 +597,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			items.push(
 				createDropdownItem({
 					actionKey: "transfers",
-					title: t("drive.header.rightView.dropdown.transfers"),
+					title: translateMemoized("drive.header.rightView.dropdown.transfers"),
 					icon:
 						Platform.OS === "ios"
 							? {
@@ -606,7 +612,9 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 			)
 		}
 
-		items.push(...dropdownSelectAllAndNoneItems)
+		for (const item of dropdownSelectAllAndNoneItems) {
+			items.push(item)
+		}
 
 		items.push(dropdownViewModeItem)
 
@@ -631,7 +639,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 		}
 
 		return items
-	}, [selectedItemsCount, dropdownSelectAllAndNoneItems, dropdownViewModeItem, t, dropdownSortSubMenu, dropdownSelectionItems])
+	}, [selectedItemsCount, dropdownSelectAllAndNoneItems, dropdownViewModeItem, dropdownSortSubMenu, dropdownSelectionItems])
 
 	const handleSortAction = useCallback(
 		(actionKey: string) => {

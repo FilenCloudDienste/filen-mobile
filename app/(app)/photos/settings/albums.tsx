@@ -9,7 +9,7 @@ import { Toggle } from "@/components/nativewindui/Toggle"
 import { cn } from "@/lib/cn"
 import useCameraUpload from "@/hooks/useCameraUpload"
 import RequireInternet from "@/components/requireInternet"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import ListEmpty from "@/components/listEmpty"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { foregroundCameraUpload } from "@/lib/cameraUpload"
@@ -76,7 +76,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 				default: !isDarkColorScheme
 					? {
 							backgroundColor: colors.grey5
-						}
+					  }
 					: undefined
 			})}
 			titleClassName="text-lg"
@@ -92,8 +92,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 Item.displayName = "Item"
 
 export const Albums = memo(() => {
-	const { t } = useTranslation()
-
 	const localAlbumsQuery = useLocalAlbumsQuery()
 
 	const items = useMemo((): ListItemInfo[] => {
@@ -111,7 +109,7 @@ export const Albums = memo(() => {
 				}),
 				album
 			}))
-	}, [localAlbumsQuery.data, localAlbumsQuery.status, t])
+	}, [localAlbumsQuery.data, localAlbumsQuery.status])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
 		return typeof item === "string" ? item : item.id
@@ -127,9 +125,9 @@ export const Albums = memo(() => {
 				queryStatus={localAlbumsQuery.status}
 				itemCount={items.length}
 				texts={{
-					error: t("photos.settings.albums.list.error"),
-					empty: t("photos.settings.albums.list.empty"),
-					emptySearch: t("photos.settings.albums.list.emptySearch")
+					error: translateMemoized("photos.settings.albums.list.error"),
+					empty: translateMemoized("photos.settings.albums.list.empty"),
+					emptySearch: translateMemoized("photos.settings.albums.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -144,7 +142,7 @@ export const Albums = memo(() => {
 				}}
 			/>
 		)
-	}, [localAlbumsQuery.status, items.length, t])
+	}, [localAlbumsQuery.status, items.length])
 
 	useFocusEffect(
 		useCallback(() => {
@@ -156,7 +154,7 @@ export const Albums = memo(() => {
 
 	return (
 		<RequireInternet>
-			<LargeTitleHeader title={t("photos.settings.albums.title")} />
+			<LargeTitleHeader title={translateMemoized("photos.settings.albums.title")} />
 			<Container>
 				<List
 					contentContainerClassName="pt-4 pb-20"

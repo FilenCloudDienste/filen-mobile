@@ -14,7 +14,7 @@ import { cn } from "@/lib/cn"
 import { Icon } from "@roninoss/icons"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import RequireInternet from "@/components/requireInternet"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import { useColorScheme } from "@/lib/useColorScheme"
 
@@ -34,7 +34,6 @@ export const Register = memo(() => {
 	const [password, setPassword] = useState<string>("")
 	const [confirmPassword, setConfirmPassword] = useState<string>("")
 	const router = useRouter()
-	const { t } = useTranslation()
 	const { colors } = useColorScheme()
 
 	const passwordStrength = useMemo(() => {
@@ -62,19 +61,19 @@ export const Register = memo(() => {
 
 		try {
 			if (disabled) {
-				throw new Error(t("auth.register.errors.emptyFields"))
+				throw new Error(translateMemoized("auth.register.errors.emptyFields"))
 			}
 
 			if (email !== confirmEmail) {
-				throw new Error(t("auth.register.errors.emailAddressesDoNotMatch"))
+				throw new Error(translateMemoized("auth.register.errors.emailAddressesDoNotMatch"))
 			}
 
 			if (password !== confirmPassword) {
-				throw new Error(t("auth.register.errors.passwordsDoNotMatch"))
+				throw new Error(translateMemoized("auth.register.errors.passwordsDoNotMatch"))
 			}
 
 			if (passwordStrength.strength === "weak") {
-				throw new Error(t("auth.register.errors.weakPassword"))
+				throw new Error(translateMemoized("auth.register.errors.weakPassword"))
 			}
 
 			await authService.register({
@@ -95,7 +94,7 @@ export const Register = memo(() => {
 			setConfirmPassword("")
 			setPassword("")
 		}
-	}, [email, password, router, disabled, confirmEmail, confirmPassword, t, passwordStrength.strength])
+	}, [email, password, router, disabled, confirmEmail, confirmPassword, passwordStrength.strength])
 
 	const resend = useCallback(async () => {
 		KeyboardController.dismiss()
@@ -125,7 +124,7 @@ export const Register = memo(() => {
 				options={{
 					headerShown: true,
 					headerBlurEffect: "systemChromeMaterial",
-					title: t("auth.register.header.title"),
+					title: translateMemoized("auth.register.header.title"),
 					headerShadowVisible: false,
 					headerBackVisible: false,
 					headerLeft() {
@@ -135,7 +134,7 @@ export const Register = memo(() => {
 								className="ios:px-0"
 								onPress={goBack}
 							>
-								<Text className="text-primary">{t("auth.register.header.cancel")}</Text>
+								<Text className="text-primary">{translateMemoized("auth.register.header.cancel")}</Text>
 							</Button>
 						)
 					}
@@ -148,7 +147,7 @@ export const Register = memo(() => {
 				title=""
 			/>
 		)
-	}, [goBack, t])
+	}, [goBack])
 
 	const emailOnFocus = useCallback(() => {
 		setFocusedTextField("email")
@@ -216,22 +215,22 @@ export const Register = memo(() => {
 		return {
 			email: Platform.select({
 				ios: undefined,
-				default: t("auth.register.form.email.label")
+				default: translateMemoized("auth.register.form.email.label")
 			}),
 			password: Platform.select({
 				ios: undefined,
-				default: t("auth.register.form.password.label")
+				default: translateMemoized("auth.register.form.password.label")
 			}),
 			confirmEmail: Platform.select({
 				ios: undefined,
-				default: t("auth.register.form.confirmEmail.label")
+				default: translateMemoized("auth.register.form.confirmEmail.label")
 			}),
 			confirmPassword: Platform.select({
 				ios: undefined,
-				default: t("auth.register.form.confirmPassword.label")
+				default: translateMemoized("auth.register.form.confirmPassword.label")
 			})
 		}
-	}, [t])
+	}, [])
 
 	return (
 		<RequireInternet redirectHref="/(auth)">
@@ -250,16 +249,18 @@ export const Register = memo(() => {
 								variant="title1"
 								className="ios:font-bold pb-1 pt-4 text-center"
 							>
-								{t("auth.register.hero.create")}
+								{translateMemoized("auth.register.hero.create")}
 							</Text>
-							<Text className="ios:text-sm text-muted-foreground text-center">{t("auth.register.hero.description")}</Text>
+							<Text className="ios:text-sm text-muted-foreground text-center">
+								{translateMemoized("auth.register.hero.description")}
+							</Text>
 						</View>
 						<View className="ios:pt-4 pt-6">
 							<Form className="gap-2">
 								<FormSection className="ios:bg-background">
 									<FormItem>
 										<TextField
-											placeholder={t("auth.register.form.email.placeholder")}
+											placeholder={translateMemoized("auth.register.form.email.placeholder")}
 											label={labels.email}
 											onSubmitEditing={onSubmitEditing}
 											submitBehavior="submit"
@@ -275,7 +276,7 @@ export const Register = memo(() => {
 									</FormItem>
 									<FormItem>
 										<TextField
-											placeholder={t("auth.register.form.confirmEmail.placeholder")}
+											placeholder={translateMemoized("auth.register.form.confirmEmail.placeholder")}
 											label={labels.confirmEmail}
 											onSubmitEditing={onSubmitEditing}
 											submitBehavior="submit"
@@ -290,7 +291,7 @@ export const Register = memo(() => {
 									</FormItem>
 									<FormItem>
 										<TextField
-											placeholder={t("auth.register.form.password.placeholder")}
+											placeholder={translateMemoized("auth.register.form.password.placeholder")}
 											label={labels.password}
 											onSubmitEditing={onSubmitEditing}
 											onFocus={passwordOnFocus}
@@ -305,7 +306,7 @@ export const Register = memo(() => {
 									</FormItem>
 									<FormItem>
 										<TextField
-											placeholder={t("auth.register.form.confirmPassword.placeholder")}
+											placeholder={translateMemoized("auth.register.form.confirmPassword.placeholder")}
 											label={labels.confirmPassword}
 											onFocus={confirmPasswordOnFocus}
 											onBlur={onBlur}
@@ -337,7 +338,9 @@ export const Register = memo(() => {
 													color={colors.destructive}
 												/>
 											)}
-											<Text className="font-normal text-sm">{t("auth.register.passwordStrength.length")}</Text>
+											<Text className="font-normal text-sm">
+												{translateMemoized("auth.register.passwordStrength.length")}
+											</Text>
 										</View>
 										<View className="flex-1 flex-row items-center gap-2">
 											{passwordStrength.uppercase ? (
@@ -353,7 +356,9 @@ export const Register = memo(() => {
 													color={colors.destructive}
 												/>
 											)}
-											<Text className="font-normal text-sm">{t("auth.register.passwordStrength.uppercase")}</Text>
+											<Text className="font-normal text-sm">
+												{translateMemoized("auth.register.passwordStrength.uppercase")}
+											</Text>
 										</View>
 										<View className="flex-1 flex-row items-center gap-2">
 											{passwordStrength.lowercase ? (
@@ -369,7 +374,9 @@ export const Register = memo(() => {
 													color={colors.destructive}
 												/>
 											)}
-											<Text className="font-normal text-sm">{t("auth.register.passwordStrength.lowercase")}</Text>
+											<Text className="font-normal text-sm">
+												{translateMemoized("auth.register.passwordStrength.lowercase")}
+											</Text>
 										</View>
 										<View className="flex-1 flex-row items-center gap-2">
 											{passwordStrength.specialChars ? (
@@ -386,7 +393,7 @@ export const Register = memo(() => {
 												/>
 											)}
 											<Text className="font-normal text-sm">
-												{t("auth.register.passwordStrength.specialCharacters")}
+												{translateMemoized("auth.register.passwordStrength.specialCharacters")}
 											</Text>
 										</View>
 									</View>
@@ -406,7 +413,7 @@ export const Register = memo(() => {
 								disabled={disabled}
 								onPress={register}
 							>
-								<Text>{t("auth.register.createAccount")}</Text>
+								<Text>{translateMemoized("auth.register.createAccount")}</Text>
 							</Button>
 						</View>
 					) : (
@@ -416,14 +423,18 @@ export const Register = memo(() => {
 								className="px-2"
 								onPress={resend}
 							>
-								<Text className="text-primary px-0.5 text-sm">{t("auth.register.resendConfirmationEmail")}</Text>
+								<Text className="text-primary px-0.5 text-sm">
+									{translateMemoized("auth.register.resendConfirmationEmail")}
+								</Text>
 							</Button>
 							<Button
 								disabled={disabled}
 								onPress={submit}
 							>
 								<Text className="text-sm">
-									{focusedTextField !== "confirmPassword" ? t("auth.register.next") : t("auth.register.createAccount")}
+									{focusedTextField !== "confirmPassword"
+										? translateMemoized("auth.register.next")
+										: translateMemoized("auth.register.createAccount")}
 								</Text>
 							</Button>
 						</View>
@@ -434,7 +445,7 @@ export const Register = memo(() => {
 						variant="plain"
 						onPress={resend}
 					>
-						<Text className="text-primary text-sm">{t("auth.register.resendConfirmationEmail")}</Text>
+						<Text className="text-primary text-sm">{translateMemoized("auth.register.resendConfirmationEmail")}</Text>
 					</Button>
 				)}
 			</Container>

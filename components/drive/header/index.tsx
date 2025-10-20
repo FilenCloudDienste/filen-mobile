@@ -3,7 +3,7 @@ import { useLocalSearchParams } from "expo-router"
 import { memo, useMemo } from "react"
 import cache from "@/lib/cache"
 import { useDriveStore } from "@/stores/drive.store"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import Android from "./android"
 import IOS from "./ios"
 import { validate as validateUUID } from "uuid"
@@ -13,52 +13,51 @@ import useSDKConfig from "@/hooks/useSDKConfig"
 export const Header = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const { uuid } = useLocalSearchParams()
 	const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
-	const { t } = useTranslation()
 	const [{ baseFolderUUID }] = useSDKConfig()
 
 	const headerTitle = useMemo(() => {
 		if (selectedItemsCount > 0) {
-			return t("drive.header.title.selected", {
+			return translateMemoized("drive.header.title.selected", {
 				count: selectedItemsCount
 			})
 		}
 
 		if (queryParams.of === "drive" && uuid === baseFolderUUID) {
-			return t("drive.header.title.drive")
+			return translateMemoized("drive.header.title.drive")
 		}
 
 		if (queryParams.of === "recents" || queryParams.parent === "recents") {
-			return t("drive.header.title.recents")
+			return translateMemoized("drive.header.title.recents")
 		}
 
 		if (queryParams.of === "trash" || queryParams.parent === "trash") {
-			return t("drive.header.title.trash")
+			return translateMemoized("drive.header.title.trash")
 		}
 
 		if (queryParams.of === "offline" || queryParams.parent === "offline") {
-			return t("drive.header.title.offline")
+			return translateMemoized("drive.header.title.offline")
 		}
 
 		if ((queryParams.of === "links" || queryParams.parent === "links") && !validateUUID(uuid)) {
-			return t("drive.header.title.links")
+			return translateMemoized("drive.header.title.links")
 		}
 
 		if ((queryParams.of === "favorites" || queryParams.parent === "favorites") && !validateUUID(uuid)) {
-			return t("drive.header.title.favorites")
+			return translateMemoized("drive.header.title.favorites")
 		}
 
 		if ((queryParams.of === "sharedIn" || queryParams.parent === "shared-in") && !validateUUID(uuid)) {
-			return t("drive.header.title.sharedIn")
+			return translateMemoized("drive.header.title.sharedIn")
 		}
 
 		if ((queryParams.of === "sharedOut" || queryParams.parent === "shared-out") && !validateUUID(uuid)) {
-			return t("drive.header.title.sharedOut")
+			return translateMemoized("drive.header.title.sharedOut")
 		}
 
 		return typeof uuid !== "string" || !cache.directoryUUIDToName.has(uuid)
-			? t("drive.header.title.drive")
-			: cache.directoryUUIDToName.get(uuid) ?? t("drive.header.title.drive")
-	}, [uuid, selectedItemsCount, t, queryParams.of, queryParams.parent, baseFolderUUID])
+			? translateMemoized("drive.header.title.drive")
+			: cache.directoryUUIDToName.get(uuid) ?? translateMemoized("drive.header.title.drive")
+	}, [uuid, selectedItemsCount, queryParams.of, queryParams.parent, baseFolderUUID])
 
 	if (Platform.OS === "android") {
 		return (

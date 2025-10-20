@@ -5,7 +5,7 @@ import { memo, useCallback, useMemo } from "react"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils"
 import type { DropdownItem, DropdownSubMenu } from "@/components/nativewindui/DropdownMenu/types"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { useRouter } from "expo-router"
 import { Platform } from "react-native"
 import alerts from "@/lib/alerts"
@@ -14,7 +14,6 @@ import * as BackgroundTask from "expo-background-task"
 
 export const Dropdown = memo(() => {
 	const { colors } = useColorScheme()
-	const { t } = useTranslation()
 	const { push: routerPush } = useRouter()
 	const { hasInternet } = useNetInfo()
 
@@ -25,7 +24,7 @@ export const Dropdown = memo(() => {
 			items.push(
 				createDropdownItem({
 					actionKey: "transfers",
-					title: t("drive.header.rightView.dropdown.transfers"),
+					title: translateMemoized("drive.header.rightView.dropdown.transfers"),
 					icon:
 						Platform.OS === "ios"
 							? {
@@ -43,7 +42,7 @@ export const Dropdown = memo(() => {
 		items.push(
 			createDropdownItem({
 				actionKey: "settings",
-				title: t("photos.menu.settings"),
+				title: translateMemoized("photos.menu.settings"),
 				icon:
 					Platform.OS === "ios"
 						? {
@@ -67,7 +66,7 @@ export const Dropdown = memo(() => {
 		}
 
 		return items
-	}, [t, hasInternet])
+	}, [hasInternet])
 
 	const onItemPress = useCallback(
 		async (item: Omit<DropdownItem, "icon">, _?: boolean) => {

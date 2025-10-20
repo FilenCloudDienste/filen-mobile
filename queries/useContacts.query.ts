@@ -19,16 +19,15 @@ export function useContactsQuery(
 	params: UseContactsQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
-	params = sortParams(params)
-
+	const sortedParams = sortParams(params)
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({
 		...DEFAULT_QUERY_OPTIONS,
 		...defaultParams,
 		...options,
-		queryKey: [BASE_QUERY_KEY, params],
-		queryFn: () => fetchData(params)
+		queryKey: [BASE_QUERY_KEY, sortedParams],
+		queryFn: () => fetchData(sortedParams)
 	})
 
 	useRefreshOnFocus({
@@ -49,25 +48,25 @@ export function contactsQueryUpdate({
 		| Awaited<ReturnType<typeof fetchData>>
 		| ((prev: Awaited<ReturnType<typeof fetchData>>) => Awaited<ReturnType<typeof fetchData>>)
 }) {
-	params = sortParams(params)
+	const sortedParams = sortParams(params)
 
-	queryUpdater.set<Awaited<ReturnType<typeof fetchData>>>([BASE_QUERY_KEY, params], prev => {
+	queryUpdater.set<Awaited<ReturnType<typeof fetchData>>>([BASE_QUERY_KEY, sortedParams], prev => {
 		return typeof updater === "function" ? updater(prev ?? []) : updater
 	})
 }
 
 export async function contactsQueryRefetch(params: Parameters<typeof fetchData>[0]): Promise<void> {
-	params = sortParams(params)
+	const sortedParams = sortParams(params)
 
 	return await queryClient.refetchQueries({
-		queryKey: [BASE_QUERY_KEY, params]
+		queryKey: [BASE_QUERY_KEY, sortedParams]
 	})
 }
 
 export function contactsQueryGet(params: Parameters<typeof fetchData>[0]) {
-	params = sortParams(params)
+	const sortedParams = sortParams(params)
 
-	return queryUpdater.get<Awaited<ReturnType<typeof fetchData>>>([BASE_QUERY_KEY, params])
+	return queryUpdater.get<Awaited<ReturnType<typeof fetchData>>>([BASE_QUERY_KEY, sortedParams])
 }
 
 export default useContactsQuery

@@ -1,5 +1,5 @@
 import { useQuery, type UseQueryOptions, type UseQueryResult } from "@tanstack/react-query"
-import { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams } from "./client"
+import { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams, QUERY_CLIENT_CACHE_TIME } from "./client"
 import sqlite from "@/lib/sqlite"
 import pathModule from "path"
 import paths from "@/lib/paths"
@@ -41,8 +41,7 @@ export function useFileOfflineStatusQuery(
 	params: UseFileOfflineStatusQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
-	params = sortParams(params)
-
+	const sortedParams = sortParams(params)
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({
@@ -50,9 +49,9 @@ export function useFileOfflineStatusQuery(
 		...defaultParams,
 		...options,
 		enabled: options?.enabled ?? true,
-		staleTime: 5000,
-		queryKey: [BASE_QUERY_KEY, params],
-		queryFn: () => fetchData(params)
+		staleTime: QUERY_CLIENT_CACHE_TIME,
+		queryKey: [BASE_QUERY_KEY, sortedParams],
+		queryFn: () => fetchData(sortedParams)
 	})
 
 	useRefreshOnFocus({
@@ -73,9 +72,9 @@ export function fileOfflineStatusQueryUpdate({
 		| Awaited<ReturnType<typeof fetchData>>
 		| ((prev: Awaited<ReturnType<typeof fetchData>>) => Awaited<ReturnType<typeof fetchData>>)
 }) {
-	params = sortParams(params)
+	const sortedParams = sortParams(params)
 
-	queryUpdater.set<Awaited<ReturnType<typeof fetchData>>>([BASE_QUERY_KEY, params], prev => {
+	queryUpdater.set<Awaited<ReturnType<typeof fetchData>>>([BASE_QUERY_KEY, sortedParams], prev => {
 		return typeof updater === "function"
 			? updater(
 					prev ?? {

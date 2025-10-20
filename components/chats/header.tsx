@@ -6,12 +6,11 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import alerts from "@/lib/alerts"
 import chatsService from "@/services/chats.service"
 import useNetInfo from "@/hooks/useNetInfo"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<React.SetStateAction<string>> }) => {
 	const { colors } = useColorScheme()
 	const { hasInternet } = useNetInfo()
-	const { t } = useTranslation()
 
 	const createChat = useCallback(async () => {
 		try {
@@ -28,13 +27,13 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 	const headerSearchBar = useMemo(() => {
 		return {
 			contentTransparent: true,
-			placeholder: t("chats.header.search"),
+			placeholder: translateMemoized("chats.header.search"),
 			iosHideWhenScrolling: false,
 			onChangeText: setSearchTerm,
 			persistBlur: true,
 			materialBlurOnSubmit: false
 		}
-	}, [setSearchTerm, t])
+	}, [setSearchTerm])
 
 	const headerRightView = useCallback(() => {
 		if (!hasInternet) {
@@ -58,7 +57,7 @@ export const Header = memo(({ setSearchTerm }: { setSearchTerm: React.Dispatch<R
 
 	return (
 		<LargeTitleHeader
-			title={t("chats.header.title")}
+			title={translateMemoized("chats.header.title")}
 			backVisible={false}
 			materialPreset="inline"
 			searchBar={headerSearchBar}

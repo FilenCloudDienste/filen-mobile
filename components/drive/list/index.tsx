@@ -3,7 +3,9 @@ import { Text } from "@/components/nativewindui/Text"
 import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react"
 import { List, ListDataItem } from "@/components/nativewindui/List"
 import useDriveItemsQuery from "@/queries/useDriveItems.query"
-import { simpleDate, formatBytes, orderItemsByType, type OrderByType } from "@/lib/utils"
+import { simpleDate, formatBytes } from "@/lib/utils"
+import type { OrderByType } from "@/lib/itemSorter"
+import { orderItemsByType } from "@/lib/itemSorter"
 import { Container } from "@/components/Container"
 import ListItem, { type ListItemInfo } from "./listItem"
 import { useFocusEffect } from "expo-router"
@@ -17,7 +19,7 @@ import { useShallow } from "zustand/shallow"
 import OfflineListHeader from "@/components/offlineListHeader"
 import { useKeyboardState } from "react-native-keyboard-controller"
 import ListEmpty from "@/components/listEmpty"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 
@@ -36,7 +38,6 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 	const { isTablet, isPortrait, screen } = useDimensions()
 	const keyboardState = useKeyboardState()
-	const { t } = useTranslation()
 
 	const cloudItemsQuery = useDriveItemsQuery(queryParams)
 
@@ -154,9 +155,9 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 				itemCount={items.length}
 				searchTermLength={searchTerm.length}
 				texts={{
-					error: t("drive.list.error"),
-					empty: t("drive.list.empty"),
-					emptySearch: t("drive.list.emptySearch")
+					error: translateMemoized("drive.list.error"),
+					empty: translateMemoized("drive.list.empty"),
+					emptySearch: translateMemoized("drive.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -171,7 +172,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 				}}
 			/>
 		)
-	}, [cloudItemsQuery.status, searchTerm.length, items.length, t])
+	}, [cloudItemsQuery.status, searchTerm.length, items.length])
 
 	const ListFooterComponent = useCallback(() => {
 		return items.length > 0 ? (
@@ -183,7 +184,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 				</Text>
 			</View>
 		) : undefined
-	}, [items.length, t])
+	}, [items.length])
 
 	const viewStyle = useMemo(() => {
 		return {

@@ -7,7 +7,7 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Platform } from "react-native"
 import { useRouter } from "expo-router"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { usePhotosStore } from "@/stores/photos.store"
 import alerts from "@/lib/alerts"
 import { useShallow } from "zustand/shallow"
@@ -18,7 +18,6 @@ import { getPreviewType } from "@/lib/utils"
 export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[]; queryParams: FetchCloudItemsParams }) => {
 	const { colors } = useColorScheme()
 	const router = useRouter()
-	const { t } = useTranslation()
 	const selectedItemsCount = usePhotosStore(useShallow(state => state.selectedItems.length))
 	const { hasInternet } = useNetInfo()
 	const everySelectedItemIsFileAndImageOrVideo = usePhotosStore(
@@ -35,7 +34,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 		items.push(
 			createDropdownItem({
 				actionKey: "transfers",
-				title: t("drive.header.rightView.dropdown.transfers"),
+				title: translateMemoized("drive.header.rightView.dropdown.transfers"),
 				icon:
 					Platform.OS === "ios"
 						? {
@@ -52,7 +51,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 		items.push(
 			createDropdownItem({
 				actionKey: "settings",
-				title: t("photos.menu.settings"),
+				title: translateMemoized("photos.menu.settings"),
 				icon:
 					Platform.OS === "ios"
 						? {
@@ -70,7 +69,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 			items.push(
 				createDropdownItem({
 					actionKey: "selectAll",
-					title: t("drive.list.item.menu.selectAll"),
+					title: translateMemoized("drive.list.item.menu.selectAll"),
 					icon: {
 						name: "check-circle-outline"
 					}
@@ -82,7 +81,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 			items.push(
 				createDropdownItem({
 					actionKey: "deselectAll",
-					title: t("drive.list.item.menu.deselectAll"),
+					title: translateMemoized("drive.list.item.menu.deselectAll"),
 					icon: {
 						name: "check-circle-outline"
 					}
@@ -95,7 +94,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 				subMenuItems.push(
 					createDropdownItem({
 						actionKey: "bulkDownload",
-						title: t("drive.list.item.menu.download"),
+						title: translateMemoized("drive.list.item.menu.download"),
 						icon: {
 							namingScheme: "material",
 							name: "file-download-outline"
@@ -108,7 +107,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 				subMenuItems.push(
 					createDropdownItem({
 						actionKey: "bulkSaveToGallery",
-						title: t("drive.list.item.menu.saveToGallery"),
+						title: translateMemoized("drive.list.item.menu.saveToGallery"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -127,7 +126,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 				subMenuItems.push(
 					createDropdownItem({
 						actionKey: "bulkMakeAvailableOffline",
-						title: t("drive.list.item.menu.makeAvailableOffline"),
+						title: translateMemoized("drive.list.item.menu.makeAvailableOffline"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -146,7 +145,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 				items.push(
 					createDropdownSubMenu(
 						{
-							title: t("drive.list.item.menu.download"),
+							title: translateMemoized("drive.list.item.menu.download"),
 							iOSItemSize: "large"
 						},
 						subMenuItems
@@ -157,7 +156,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 			items.push(
 				createDropdownItem({
 					actionKey: "bulkShare",
-					title: t("drive.list.item.menu.share"),
+					title: translateMemoized("drive.list.item.menu.share"),
 					icon:
 						Platform.OS === "ios"
 							? {
@@ -175,7 +174,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 				items.push(
 					createDropdownItem({
 						actionKey: "bulkUnfavorite",
-						title: t("drive.list.item.menu.unfavorite"),
+						title: translateMemoized("drive.list.item.menu.unfavorite"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -192,7 +191,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 				items.push(
 					createDropdownItem({
 						actionKey: "bulkFavorite",
-						title: t("drive.list.item.menu.favorite"),
+						title: translateMemoized("drive.list.item.menu.favorite"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -210,7 +209,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 			items.push(
 				createDropdownItem({
 					actionKey: "bulkTrash",
-					title: t("drive.list.item.menu.trash"),
+					title: translateMemoized("drive.list.item.menu.trash"),
 					destructive: true,
 					icon:
 						Platform.OS === "ios"
@@ -230,7 +229,6 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 
 		return items
 	}, [
-		t,
 		photos,
 		selectedItemsCount,
 		hasInternet,

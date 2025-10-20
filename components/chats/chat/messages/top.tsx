@@ -6,7 +6,7 @@ import { Button } from "@/components/nativewindui/Button"
 import { Text } from "@/components/nativewindui/Text"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import Container from "@/components/Container"
-import { useTranslation } from "react-i18next"
+import { t } from "@/lib/i18n"
 import chatsService from "@/services/chats.service"
 import alerts from "@/lib/alerts"
 import { View, Platform } from "react-native"
@@ -14,7 +14,6 @@ import { View, Platform } from "react-native"
 export const Top = memo(({ chat, messages, lastFocus }: { chat: ChatConversation; messages: ChatMessage[]; lastFocus: number | null }) => {
 	const headerHeight = useHeaderHeight()
 	const [{ userId }] = useSDKConfig()
-	const { t } = useTranslation()
 
 	const lastMessagesSince = useMemo(() => {
 		if (messages.length === 0) {

@@ -15,7 +15,7 @@ import { formatBytes } from "@/lib/utils"
 import { useTrackPlayerState } from "@/hooks/useTrackPlayerState"
 import { cn } from "@/lib/cn"
 import Container from "../Container"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 export const Bottom = memo(() => {
 	const trackPlayerState = useTrackPlayerState()
@@ -24,7 +24,6 @@ export const Bottom = memo(() => {
 	const { colors } = useColorScheme()
 	const trackPlayerControls = useTrackPlayerControls()
 	const pathname = usePathname()
-	const { t } = useTranslation()
 
 	const show = useMemo(() => {
 		if (
@@ -141,7 +140,7 @@ export const Bottom = memo(() => {
 											? `${trackPlayerState.playingTrack.title}${
 													trackPlayerState.playingTrack.album ? ` - ${trackPlayerState.playingTrack.album}` : ""
 											  }`
-											: t("trackPlayer.bottom.unknownTitle")}
+											: translateMemoized("trackPlayer.bottom.unknownTitle")}
 									</Text>
 									<Text
 										className="text-xs text-muted-foreground"

@@ -8,7 +8,7 @@ import alerts from "@/lib/alerts"
 import authService from "@/services/auth.service"
 import useIsAuthed from "@/hooks/useIsAuthed"
 import nodeWorker from "@/lib/nodeWorker"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import useNetInfo from "@/hooks/useNetInfo"
 import Semaphore from "@/lib/semaphore"
 import * as Linking from "expo-linking"
@@ -23,7 +23,6 @@ export const Reminders = memo(() => {
 	const setupDone = useAppStateStore(useShallow(state => state.setupDone))
 	const pathname = usePathname()
 	const [isAuthed] = useIsAuthed()
-	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
 	const accountQuery = useAccountQuery({
@@ -35,10 +34,10 @@ export const Reminders = memo(() => {
 
 		try {
 			const response = await alertPrompt({
-				title: t("alertPrompt.exportMasterKeys.title"),
-				message: t("alertPrompt.exportMasterKeys.message"),
-				okText: t("alertPrompt.exportMasterKeys.okText"),
-				cancelText: t("alertPrompt.exportMasterKeys.cancelText")
+				title: translateMemoized("alertPrompt.exportMasterKeys.title"),
+				message: translateMemoized("alertPrompt.exportMasterKeys.message"),
+				okText: translateMemoized("alertPrompt.exportMasterKeys.okText"),
+				cancelText: translateMemoized("alertPrompt.exportMasterKeys.cancelText")
 			})
 
 			if (response.cancelled) {
@@ -58,17 +57,17 @@ export const Reminders = memo(() => {
 		} finally {
 			mutex.release()
 		}
-	}, [t])
+	}, [])
 
 	const promptStorageUsageOverLimit = useCallback(async () => {
 		await mutex.acquire()
 
 		try {
 			const response = await alertPrompt({
-				title: t("alertPrompt.storageUsageOverLimit.title"),
-				message: t("alertPrompt.storageUsageOverLimit.message"),
-				okText: t("alertPrompt.storageUsageOverLimit.okText"),
-				cancelText: t("alertPrompt.storageUsageOverLimit.cancelText")
+				title: translateMemoized("alertPrompt.storageUsageOverLimit.title"),
+				message: translateMemoized("alertPrompt.storageUsageOverLimit.message"),
+				okText: translateMemoized("alertPrompt.storageUsageOverLimit.okText"),
+				cancelText: translateMemoized("alertPrompt.storageUsageOverLimit.cancelText")
 			})
 
 			if (response.cancelled) {
@@ -89,7 +88,7 @@ export const Reminders = memo(() => {
 		} finally {
 			mutex.release()
 		}
-	}, [t])
+	}, [])
 
 	const canPrompt = useMemo(() => {
 		if (

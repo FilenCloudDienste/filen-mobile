@@ -13,7 +13,7 @@ import Item from "@/components/notes/item"
 import Header from "@/components/notes/header"
 import { useShallow } from "zustand/shallow"
 import alerts from "@/lib/alerts"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import ListEmpty from "@/components/listEmpty"
 import { sortAndFilterNotes } from "@/lib/utils"
 import { useFocusEffect } from "expo-router"
@@ -31,7 +31,6 @@ export const Notes = memo(() => {
 	const [selectedTag] = useMMKVString("notesSelectedTag", mmkvInstance)
 	const setNotes = useNotesStore(useShallow(state => state.setNotes))
 	const listRef = useRef<FlashListRef<Note>>(null)
-	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 	const { screen } = useDimensions()
 
@@ -105,7 +104,7 @@ export const Notes = memo(() => {
 				</Text>
 			</View>
 		)
-	}, [notes.length, t])
+	}, [notes.length])
 
 	const ListEmptyComponent = useCallback(() => {
 		return (
@@ -114,9 +113,9 @@ export const Notes = memo(() => {
 				itemCount={notes.length}
 				searchTermLength={(searchTerm ?? "").length}
 				texts={{
-					error: t("notes.list.error"),
-					empty: t("notes.list.empty"),
-					emptySearch: t("notes.list.emptySearch")
+					error: translateMemoized("notes.list.error"),
+					empty: translateMemoized("notes.list.empty"),
+					emptySearch: translateMemoized("notes.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -131,7 +130,7 @@ export const Notes = memo(() => {
 				}}
 			/>
 		)
-	}, [notesQuery.status, notes.length, t, searchTerm])
+	}, [notesQuery.status, notes.length, searchTerm])
 
 	useEffect(() => {
 		setNotes(notes)

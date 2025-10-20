@@ -10,7 +10,7 @@ import { useChatsStore } from "@/stores/chats.store"
 import Emoji from "./emoji"
 import { useKeyboardState } from "react-native-keyboard-controller"
 import { useShallow } from "zustand/shallow"
-import { useTranslation } from "react-i18next"
+import { t } from "@/lib/i18n"
 
 export const Emojis = memo(({ chat }: { chat: ChatConversation }) => {
 	const { colors } = useColorScheme()
@@ -18,7 +18,6 @@ export const Emojis = memo(({ chat }: { chat: ChatConversation }) => {
 	const emojiSuggestions = useChatsStore(useShallow(state => state.emojisSuggestions[chat.uuid] ?? []))
 	const emojisText = useChatsStore(useShallow(state => state.emojisText[chat.uuid] ?? ""))
 	const { isVisible: isKeyboardVisible } = useKeyboardState()
-	const { t } = useTranslation()
 
 	const resetSuggestions = useCallback(() => {
 		useChatsStore.getState().resetSuggestions(chat.uuid)

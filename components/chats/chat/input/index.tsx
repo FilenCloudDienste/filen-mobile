@@ -32,7 +32,7 @@ import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 import { useShallow } from "zustand/shallow"
 import useIsProUser from "@/hooks/useIsProUser"
 import useNetInfo from "@/hooks/useNetInfo"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { useActionSheet } from "@expo/react-native-action-sheet"
 import chatsService from "@/services/chats.service"
 import useViewLayout from "@/hooks/useViewLayout"
@@ -63,7 +63,6 @@ export const Input = memo(
 		const isProUser = useIsProUser()
 		const editMessage = useChatsStore(useShallow(state => state.editMessage[chat.uuid] ?? null))
 		const { hasInternet } = useNetInfo()
-		const { t } = useTranslation()
 		const { showActionSheetWithOptions } = useActionSheet()
 		const viewRef = useRef<View>(null)
 		const { layout, onLayout } = useViewLayout(viewRef)
@@ -202,11 +201,11 @@ export const Input = memo(
 
 		const actionSheetOptions = useMemo(() => {
 			const options = [
-				t("chats.input.attachment.options.addPhotos"),
-				t("chats.input.attachment.options.addMedia"),
-				t("chats.input.attachment.options.addFiles"),
-				t("chats.input.attachment.options.addDriveItems"),
-				t("chats.input.attachment.options.cancel")
+				translateMemoized("chats.input.attachment.options.addPhotos"),
+				translateMemoized("chats.input.attachment.options.addMedia"),
+				translateMemoized("chats.input.attachment.options.addFiles"),
+				translateMemoized("chats.input.attachment.options.addDriveItems"),
+				translateMemoized("chats.input.attachment.options.cancel")
 			]
 
 			return {
@@ -220,7 +219,7 @@ export const Input = memo(
 					3: "addDriveItems"
 				} as Record<number, "addPhotos" | "addMedia" | "addFiles" | "addDriveItems">
 			}
-		}, [t])
+		}, [])
 
 		const onPlus = useCallback(() => {
 			if (!isProUser || !hasInternet) {
@@ -661,7 +660,7 @@ export const Input = memo(
 						value={textValue}
 						onChangeText={onChangeText}
 						onPress={onTextInputPress}
-						placeholder={t("chats.input.placeholder")}
+						placeholder={translateMemoized("chats.input.placeholder")}
 						multiline={true}
 						scrollEnabled={true}
 						autoFocus={false}

@@ -21,7 +21,7 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import RequireInternet from "@/components/requireInternet"
 import ListEmpty from "@/components/listEmpty"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHeader"
 import useNetInfo from "@/hooks/useNetInfo"
 import assets from "@/lib/assets"
@@ -112,7 +112,6 @@ export default function Participants() {
 	const { colors } = useColorScheme()
 	const [{ userId }] = useSDKConfig()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
-	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
 	const noteUUIDParsed = useMemo((): string | null => {
@@ -286,7 +285,7 @@ export default function Participants() {
 				</Text>
 			</View>
 		)
-	}, [participants.length, t])
+	}, [participants.length])
 
 	const ListEmptyComponent = useCallback(() => {
 		return (
@@ -294,9 +293,9 @@ export default function Participants() {
 				queryStatus={notesQuery.status}
 				itemCount={participants.length}
 				texts={{
-					error: t("notes.participants.list.error"),
-					empty: t("notes.participants.list.empty"),
-					emptySearch: t("notes.participants.list.emptySearch")
+					error: translateMemoized("notes.participants.list.error"),
+					empty: translateMemoized("notes.participants.list.empty"),
+					emptySearch: translateMemoized("notes.participants.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -311,7 +310,7 @@ export default function Participants() {
 				}}
 			/>
 		)
-	}, [notesQuery.status, participants.length, t])
+	}, [notesQuery.status, participants.length])
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true)
@@ -345,7 +344,7 @@ export default function Participants() {
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
 			<AdaptiveSearchHeader
-				iosTitle={t("notes.participants.title")}
+				iosTitle={translateMemoized("notes.participants.title")}
 				iosIsLargeTitle={false}
 				iosBackButtonMenuEnabled={true}
 				backgroundColor={colors.card}
@@ -357,14 +356,14 @@ export default function Participants() {
 			/>
 		) : (
 			<LargeTitleHeader
-				title={t("notes.participants.title")}
+				title={translateMemoized("notes.participants.title")}
 				materialPreset="inline"
 				backVisible={true}
 				backgroundColor={colors.card}
 				rightView={headerRightView}
 			/>
 		)
-	}, [colors.card, t, headerRightView])
+	}, [colors.card, headerRightView])
 
 	if (!note) {
 		return <Redirect href="/notes" />

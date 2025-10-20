@@ -1,7 +1,7 @@
 import { memo, useRef, useMemo, useCallback } from "react"
 import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 import useNotesTagsQuery from "@/queries/useNotesTags.query"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import Tag from "./tag"
 import useNetInfo from "@/hooks/useNetInfo"
 import { View } from "react-native"
@@ -9,8 +9,6 @@ import OfflineListHeader from "../offlineListHeader"
 import useDimensions from "@/hooks/useDimensions"
 
 export const Item = memo((info: ListRenderItemInfo<string>) => {
-	const { t } = useTranslation()
-
 	const notesTagsQuery = useNotesTagsQuery({
 		enabled: false
 	})
@@ -22,34 +20,34 @@ export const Item = memo((info: ListRenderItemInfo<string>) => {
 	const tagTranslation = useMemo(() => {
 		switch (info.item) {
 			case "all": {
-				return t("notes.tags.names.all")
+				return translateMemoized("notes.tags.names.all")
 			}
 
 			case "favorited": {
-				return t("notes.tags.names.favorited")
+				return translateMemoized("notes.tags.names.favorited")
 			}
 
 			case "pinned": {
-				return t("notes.tags.names.pinned")
+				return translateMemoized("notes.tags.names.pinned")
 			}
 
 			case "archived": {
-				return t("notes.tags.names.archived")
+				return translateMemoized("notes.tags.names.archived")
 			}
 
 			case "trash": {
-				return t("notes.tags.names.trash")
+				return translateMemoized("notes.tags.names.trash")
 			}
 
 			case "shared": {
-				return t("notes.tags.names.shared")
+				return translateMemoized("notes.tags.names.shared")
 			}
 
 			default: {
 				return "_TAG_"
 			}
 		}
-	}, [info.item, t])
+	}, [info.item])
 
 	return (
 		<Tag

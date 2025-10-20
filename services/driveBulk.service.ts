@@ -3,10 +3,9 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import { colorPicker } from "@/components/sheets/colorPickerSheet"
 import { DEFAULT_DIRECTORY_COLOR } from "@/assets/fileIcons"
 import contactsService from "./contacts.service"
-import { promiseAllChunked } from "@/lib/utils"
 import type { Contact } from "@filen/sdk/dist/types/api/v3/contacts"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
-import { t } from "@/lib/i18n"
+import { translateMemoized, t } from "@/lib/i18n"
 
 export class DriveBulkService {
 	public async shareItems({
@@ -44,7 +43,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items.map(item =>
 					driveService.shareItem({
 						item,
@@ -81,7 +80,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items.map(item =>
 					driveService.toggleItemFavorite({
 						item,
@@ -136,7 +135,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items.map(item =>
 					driveService.changeDirectoryColor({
 						item,
@@ -196,7 +195,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items.map(item =>
 					driveService.moveItem({
 						item,
@@ -231,7 +230,7 @@ export class DriveBulkService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("drive.prompts.removeSharedOutItems.title"),
+				title: translateMemoized("drive.prompts.removeSharedOutItems.title"),
 				message: t("drive.prompts.removeSharedOutItems.message", {
 					count: items.length
 				})
@@ -247,7 +246,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items.map(item =>
 					driveService.removeItemSharedOut({
 						item,
@@ -281,7 +280,7 @@ export class DriveBulkService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("drive.prompts.removeSharedInItems.title"),
+				title: translateMemoized("drive.prompts.removeSharedInItems.title"),
 				message: t("drive.prompts.removeSharedInItems.message", {
 					count: items.length
 				})
@@ -297,7 +296,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items.map(item =>
 					driveService.removeItemSharedIn({
 						item,
@@ -331,7 +330,7 @@ export class DriveBulkService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("drive.prompts.disablePublicLinks.title"),
+				title: translateMemoized("drive.prompts.disablePublicLinks.title"),
 				message: t("drive.prompts.disablePublicLinks.message", {
 					count: items.length
 				})
@@ -347,7 +346,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items.map(item =>
 					driveService.disableItemPublicLink({
 						item,
@@ -380,7 +379,7 @@ export class DriveBulkService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("drive.prompts.trashItems.title"),
+				title: translateMemoized("drive.prompts.trashItems.title"),
 				message: t("drive.prompts.trashItems.message", {
 					count: items.length
 				})
@@ -396,7 +395,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items.map(item =>
 					driveService.trashItem({
 						item,
@@ -431,7 +430,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items.map(item =>
 					driveService.restoreItem({
 						item,
@@ -464,7 +463,7 @@ export class DriveBulkService {
 
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("drive.prompts.deleteItemsPermanently.title"),
+				title: translateMemoized("drive.prompts.deleteItemsPermanently.title"),
 				message: t("drive.prompts.deleteItemsPermanently.message", {
 					count: items.length
 				})
@@ -480,7 +479,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items.map(item =>
 					driveService.deleteItemPermanently({
 						item,
@@ -514,7 +513,7 @@ export class DriveBulkService {
 
 		if (!offline && !disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
-				title: t("drive.prompts.removeOfflineFiles.title"),
+				title: translateMemoized("drive.prompts.removeOfflineFiles.title"),
 				message: t("drive.prompts.removeOfflineFiles.message", {
 					count: items.length
 				})
@@ -530,7 +529,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items
 					.filter(item => item.size > 0)
 					.map(item =>
@@ -558,7 +557,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items
 					.filter(item => item.size > 0)
 					.map(item =>
@@ -585,7 +584,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items
 					.filter(item => item.size > 0)
 					.map(item =>
@@ -612,7 +611,7 @@ export class DriveBulkService {
 		}
 
 		try {
-			await promiseAllChunked(
+			await Promise.all(
 				items
 					.filter(item => item.size > 0)
 					.map(item =>

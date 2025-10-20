@@ -6,12 +6,11 @@ import Tabs from "@/components/tabs"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { Platform, View } from "react-native"
 import { type NativeBottomTabNavigationOptions } from "@bottom-tabs/react-navigation"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 export default function TabsLayout() {
 	const [isAuthed] = useIsAuthed()
 	const { colors } = useColorScheme()
-	const { t } = useTranslation()
 
 	const chatUnreadQuery = useChatUnreadQuery({
 		refetchInterval: 15000
@@ -33,79 +32,79 @@ export default function TabsLayout() {
 
 	const homeOptions = useMemo(() => {
 		return {
-			tabBarLabel: t("tabBar.home"),
-			title: t("tabBar.home"),
+			tabBarLabel: translateMemoized("tabBar.home"),
+			title: translateMemoized("tabBar.home"),
 			tabBarIcon: ({ focused }) =>
 				Platform.OS === "ios"
 					? {
 							sfSymbol: focused ? "house.fill" : "house"
-						}
+					  }
 					: focused
-						? require("../../assets/android_tabs/home_fill.png")
-						: require("../../assets/android_tabs/home.png")
+					? require("../../assets/android_tabs/home_fill.png")
+					: require("../../assets/android_tabs/home.png")
 		} satisfies NativeBottomTabNavigationOptions
-	}, [t])
+	}, [])
 
 	const driveOptions = useMemo(() => {
 		return {
-			tabBarLabel: t("tabBar.drive"),
-			title: t("tabBar.drive"),
+			tabBarLabel: translateMemoized("tabBar.drive"),
+			title: translateMemoized("tabBar.drive"),
 			tabBarIcon: ({ focused }) =>
 				Platform.OS === "ios"
 					? {
 							sfSymbol: focused ? "folder.fill" : "folder"
-						}
+					  }
 					: focused
-						? require("../../assets/android_tabs/folder_fill.png")
-						: require("../../assets/android_tabs/folder.png")
+					? require("../../assets/android_tabs/folder_fill.png")
+					: require("../../assets/android_tabs/folder.png")
 		} satisfies NativeBottomTabNavigationOptions
-	}, [t])
+	}, [])
 
 	const photosOptions = useMemo(() => {
 		return {
-			tabBarLabel: t("tabBar.photos"),
-			title: t("tabBar.photos"),
+			tabBarLabel: translateMemoized("tabBar.photos"),
+			title: translateMemoized("tabBar.photos"),
 			tabBarIcon: ({ focused }) =>
 				Platform.OS === "ios"
 					? {
 							sfSymbol: focused ? "photo.fill" : "photo"
-						}
+					  }
 					: focused
-						? require("../../assets/android_tabs/image_fill.png")
-						: require("../../assets/android_tabs/image.png")
+					? require("../../assets/android_tabs/image_fill.png")
+					: require("../../assets/android_tabs/image.png")
 		} satisfies NativeBottomTabNavigationOptions
-	}, [t])
+	}, [])
 
 	const notesOptions = useMemo(() => {
 		return {
-			tabBarLabel: t("tabBar.notes"),
-			title: t("tabBar.notes"),
+			tabBarLabel: translateMemoized("tabBar.notes"),
+			title: translateMemoized("tabBar.notes"),
 			tabBarIcon: ({ focused }) =>
 				Platform.OS === "ios"
 					? {
 							sfSymbol: focused ? "book.fill" : "book"
-						}
+					  }
 					: focused
-						? require("../../assets/android_tabs/notes_fill.png")
-						: require("../../assets/android_tabs/notes.png")
+					? require("../../assets/android_tabs/notes_fill.png")
+					: require("../../assets/android_tabs/notes.png")
 		} satisfies NativeBottomTabNavigationOptions
-	}, [t])
+	}, [])
 
 	const chatsOptions = useMemo(() => {
 		return {
-			tabBarLabel: t("tabBar.chats"),
-			title: t("tabBar.chats"),
+			tabBarLabel: translateMemoized("tabBar.chats"),
+			title: translateMemoized("tabBar.chats"),
 			tabBarBadge: chatUnread > 0 ? chatUnread.toString() : undefined,
 			tabBarIcon: ({ focused }) =>
 				Platform.OS === "ios"
 					? {
 							sfSymbol: focused ? "message.fill" : "message"
-						}
+					  }
 					: focused
-						? require("../../assets/android_tabs/chat_fill.png")
-						: require("../../assets/android_tabs/chat.png")
+					? require("../../assets/android_tabs/chat_fill.png")
+					: require("../../assets/android_tabs/chat.png")
 		} satisfies NativeBottomTabNavigationOptions
-	}, [chatUnread, t])
+	}, [chatUnread])
 
 	if (!isAuthed) {
 		return <Redirect href="/(auth)" />

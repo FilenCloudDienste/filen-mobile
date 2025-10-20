@@ -26,7 +26,7 @@ import { ListItem, type ListRenderItemInfo } from "../nativewindui/List"
 import pathModule from "path"
 import { normalizeFilePathForExpo, hideSearchBarWithDelay } from "@/lib/utils"
 import paths from "@/lib/paths"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 export type ListItemInfo = {
 	title: string
@@ -58,7 +58,6 @@ export const Item = memo(
 		)
 		const setSelectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.setSelectedPlaylists))
 		const selectedPlaylistsCount = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.selectedPlaylists.length))
-		const { t } = useTranslation()
 
 		const playing = useMemo(() => {
 			if (!playingTrack || fromSelect) {
@@ -97,10 +96,10 @@ export const Item = memo(
 
 		const actionSheetOptions = useMemo(() => {
 			const options = [
-				t("trackPlayer.item.menu.play"),
-				t("trackPlayer.item.menu.addToQueue"),
-				t("trackPlayer.item.menu.delete"),
-				t("trackPlayer.item.menu.cancel")
+				translateMemoized("trackPlayer.item.menu.play"),
+				translateMemoized("trackPlayer.item.menu.addToQueue"),
+				translateMemoized("trackPlayer.item.menu.delete"),
+				translateMemoized("trackPlayer.item.menu.cancel")
 			]
 
 			return {
@@ -113,7 +112,7 @@ export const Item = memo(
 					2: "delete"
 				} as Record<number, "play" | "addToQueue" | "delete">
 			}
-		}, [t])
+		}, [])
 
 		const play = useCallback(async () => {
 			if (fromSelect) {
@@ -200,8 +199,8 @@ export const Item = memo(
 			}
 
 			const alertPromptResponse = await alertPrompt({
-				title: t("trackPlayer.prompts.deletePlaylist.title"),
-				message: t("trackPlayer.prompts.deletePlaylist.message")
+				title: translateMemoized("trackPlayer.prompts.deletePlaylist.title"),
+				message: translateMemoized("trackPlayer.prompts.deletePlaylist.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -230,7 +229,7 @@ export const Item = memo(
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
-		}, [info.item.playlist, fromSelect, t])
+		}, [info.item.playlist, fromSelect])
 
 		const onDotsPress = useCallback(() => {
 			if (fromSelect) {

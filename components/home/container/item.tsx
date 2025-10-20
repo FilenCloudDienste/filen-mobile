@@ -17,7 +17,7 @@ import { ListItem } from "@/components/nativewindui/List"
 import type { TextEditorItem } from "@/components/textEditor/editor"
 import type { PDFPreviewItem } from "@/app/pdfPreview"
 import type { DOCXPreviewItem } from "@/app/docxPreview"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { driveItemsQueryGet } from "@/queries/useDriveItems.query"
 
 export const ICON_HEIGHT: number = 44
@@ -37,7 +37,6 @@ export const Item = memo(
 		const { colors } = useColorScheme()
 		const { push: routerPush } = useRouter()
 		const { hasInternet } = useNetInfo()
-		const { t } = useTranslation()
 
 		const queryParams = useMemo(() => {
 			return {
@@ -108,7 +107,7 @@ export const Item = memo(
 					)
 
 					if (!cachedContent) {
-						alerts.error(t("errors.youAreOffline"))
+						alerts.error(translateMemoized("errors.youAreOffline"))
 
 						return
 					}
@@ -177,7 +176,7 @@ export const Item = memo(
 
 			if (!hasInternet || offlineStatus?.exists) {
 				if (!offlineStatus || !offlineStatus.exists) {
-					alerts.error(t("errors.youAreOffline"))
+					alerts.error(translateMemoized("errors.youAreOffline"))
 
 					return
 				}
@@ -264,7 +263,7 @@ export const Item = memo(
 
 				return
 			}
-		}, [routerPush, item, hasInternet, offlineStatus, items, type, queryParams, t])
+		}, [routerPush, item, hasInternet, offlineStatus, items, type, queryParams])
 
 		const itemInfo = useMemo(() => {
 			return {

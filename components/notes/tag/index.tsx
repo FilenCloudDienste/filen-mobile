@@ -8,17 +8,16 @@ import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { validate as validateUUID } from "uuid"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
-import { useTranslation } from "react-i18next"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import { cn } from "@/lib/cn"
 import { notesTagsQueryUpdate } from "@/queries/useNotesTags.query"
+import { translateMemoized } from "@/lib/i18n"
 
 export const Tag = memo(
 	({ tag, name, id, withRightMargin }: { tag: NoteTag | null; name: string; id: string; withRightMargin?: boolean }) => {
 		const [selectedTag, setSelectedTag] = useMMKVString("notesSelectedTag", mmkvInstance)
-		const { t } = useTranslation()
 
 		const isValidUUID = useMemo(() => {
 			return validateUUID(id)
@@ -48,7 +47,7 @@ export const Tag = memo(
 
 		const createTag = useCallback(async () => {
 			const inputPromptResponse = await inputPrompt({
-				title: t("notes.prompts.createTag.title"),
+				title: translateMemoized("notes.prompts.createTag.title"),
 				materialIcon: {
 					name: "tag-outline"
 				},
@@ -56,7 +55,7 @@ export const Tag = memo(
 					type: "plain-text",
 					keyboardType: "default",
 					defaultValue: "",
-					placeholder: t("notes.prompts.createTag.placeholder")
+					placeholder: translateMemoized("notes.prompts.createTag.placeholder")
 				}
 			})
 
@@ -98,7 +97,7 @@ export const Tag = memo(
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
-		}, [t])
+		}, [])
 
 		if (!isValidUUID) {
 			if (id === "plus") {

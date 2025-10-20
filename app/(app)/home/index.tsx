@@ -8,7 +8,7 @@ import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import Avatar from "@/components/avatar"
 import { Container } from "@/components/Container"
 import { useRouter, useFocusEffect } from "expo-router"
-import { orderItemsByType } from "@/lib/utils"
+import { orderItemsByType } from "@/lib/itemSorter"
 import useAccountQuery from "@/queries/useAccount.query"
 import { Icon } from "@roninoss/icons"
 import Transfers from "@/components/drive/header/transfers"
@@ -16,7 +16,7 @@ import alerts from "@/lib/alerts"
 import useNetInfo from "@/hooks/useNetInfo"
 import OfflineListHeader from "@/components/offlineListHeader"
 import ContainerComponent from "@/components/home/container"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import Dropdown from "@/components/home/header/dropdown"
 import useIsProUser from "@/hooks/useIsProUser"
 import assets from "@/lib/assets"
@@ -120,7 +120,6 @@ export const Home = memo(() => {
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const router = useRouter()
 	const { hasInternet } = useNetInfo()
-	const { t } = useTranslation()
 	const isProUser = useIsProUser()
 
 	const recentsQuery = useDriveItemsQuery({
@@ -423,7 +422,7 @@ export const Home = memo(() => {
 	return (
 		<Fragment>
 			<LargeTitleHeader
-				title={t("home.title")}
+				title={translateMemoized("home.title")}
 				backVisible={false}
 				materialPreset="stack"
 				leftView={headerLeftView}

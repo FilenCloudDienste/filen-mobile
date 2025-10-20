@@ -5,13 +5,12 @@ import type { SocketChatTyping } from "@filen/sdk/dist/types/socket"
 import { contactName } from "@/lib/utils"
 import useSocket from "@/hooks/useSocket"
 import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated"
-import { useTranslation } from "react-i18next"
+import { t } from "@/lib/i18n"
 
 export const Typing = memo(({ chat }: { chat: ChatConversation }) => {
 	const [usersTyping, setUsersTyping] = useState<SocketChatTyping[]>([])
 	const timeoutUserEventRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({})
 	const { events: socketEvents } = useSocket()
-	const { t } = useTranslation()
 
 	const usersTypingSorted = useMemo(() => {
 		return usersTyping.sort((a, b) =>

@@ -15,7 +15,7 @@ import { useFocusEffect } from "expo-router"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import { KeyboardAvoidingView } from "react-native-keyboard-controller"
 import useNetInfo from "@/hooks/useNetInfo"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 export const Content = memo(
 	({
@@ -50,7 +50,6 @@ export const Content = memo(
 		})
 		const [{ userId }] = useSDKConfig()
 		const { hasInternet } = useNetInfo()
-		const { t } = useTranslation()
 
 		const initialValue = useMemo(() => {
 			if (noteContentQuery.status !== "success") {
@@ -210,8 +209,8 @@ export const Content = memo(
 										readOnly={isPreview ? false : !hasWriteAccess || !hasInternet}
 										placeholder={
 											note.type === "text"
-												? t("notes.content.placeholders.text")
-												: t("notes.content.placeholders.code")
+												? translateMemoized("notes.content.placeholders.text")
+												: translateMemoized("notes.content.placeholders.code")
 										}
 										onDidType={onDidType}
 										dom={{
@@ -234,7 +233,7 @@ export const Content = memo(
 										type={note.type}
 										readOnly={isPreview ? false : !hasWriteAccess || !hasInternet}
 										onDidType={onDidType}
-										placeholder={t("notes.content.placeholders.text")}
+										placeholder={translateMemoized("notes.content.placeholders.text")}
 										darkMode={isDarkColorScheme}
 										platformOS={Platform.OS}
 										isPreview={isPreview}

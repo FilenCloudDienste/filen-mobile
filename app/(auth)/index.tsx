@@ -5,7 +5,7 @@ import { View, Platform, Image } from "react-native"
 import { Link } from "expo-router"
 import Container from "@/components/Container"
 import { useColorScheme } from "@/lib/useColorScheme"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 const buttonSize = Platform.select({
 	ios: "lg",
@@ -14,7 +14,6 @@ const buttonSize = Platform.select({
 
 export const Index = memo(() => {
 	const { isDarkColorScheme } = useColorScheme()
-	const { t } = useTranslation()
 
 	const logoSource = useMemo(() => {
 		return isDarkColorScheme ? require("../../assets/images/logo_light.png") : require("../../assets/images/logo_dark.png")
@@ -31,8 +30,12 @@ export const Index = memo(() => {
 					/>
 				</View>
 				<View className="pb-5 pt-2">
-					<Text className="ios:font-extrabold text-center text-3xl font-medium">{t("auth.index.hero.first")}</Text>
-					<Text className="ios:font-extrabold text-center text-3xl font-medium">{t("auth.index.hero.second")}</Text>
+					<Text className="ios:font-extrabold text-center text-3xl font-medium">
+						{translateMemoized("auth.index.hero.first")}
+					</Text>
+					<Text className="ios:font-extrabold text-center text-3xl font-medium">
+						{translateMemoized("auth.index.hero.second")}
+					</Text>
 				</View>
 				<Link
 					href="/(auth)/register"
@@ -43,7 +46,7 @@ export const Index = memo(() => {
 						variant="primary"
 						size={buttonSize}
 					>
-						<Text>{t("auth.index.signUp")}</Text>
+						<Text>{translateMemoized("auth.index.signUp")}</Text>
 					</Button>
 				</Link>
 				<Link
@@ -55,7 +58,7 @@ export const Index = memo(() => {
 						variant="plain"
 						size={buttonSize}
 					>
-						<Text className="text-primary">{t("auth.index.login")}</Text>
+						<Text className="text-primary">{translateMemoized("auth.index.login")}</Text>
 					</Button>
 				</Link>
 			</View>

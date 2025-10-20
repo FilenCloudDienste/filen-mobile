@@ -4,7 +4,7 @@ import { createContextSubMenu, createContextItem } from "@/components/nativewind
 import type { ContextItem, ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { useRouter } from "expo-router"
 import { View, Platform } from "react-native"
 import Content from "../content"
@@ -34,7 +34,6 @@ export const Menu = memo(
 		markdownPreview: boolean
 		setMarkdownPreview: React.Dispatch<React.SetStateAction<boolean>>
 	}) => {
-		const { t } = useTranslation()
 		const router = useRouter()
 		const { screen, isPortrait, isTablet } = useDimensions()
 		const { colors } = useColorScheme()
@@ -70,7 +69,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "select",
-						title: isSelected ? t("notes.menu.deselect") : t("notes.menu.select"),
+						title: isSelected ? translateMemoized("notes.menu.deselect") : translateMemoized("notes.menu.select"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -89,7 +88,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "preview",
-						title: t("notes.menu.preview"),
+						title: translateMemoized("notes.menu.preview"),
 						state: {
 							checked: markdownPreview
 						},
@@ -111,7 +110,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "history",
-						title: t("notes.menu.history"),
+						title: translateMemoized("notes.menu.history"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -128,7 +127,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "participants",
-						title: t("notes.menu.participants"),
+						title: translateMemoized("notes.menu.participants"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -145,13 +144,13 @@ export const Menu = memo(
 				items.push(
 					createContextSubMenu(
 						{
-							title: t("notes.menu.type"),
+							title: translateMemoized("notes.menu.type"),
 							iOSItemSize: "large"
 						},
 						[
 							createContextItem({
 								actionKey: "typeText",
-								title: t("notes.menu.types.text"),
+								title: translateMemoized("notes.menu.types.text"),
 								state: {
 									checked: note.type === "text"
 								},
@@ -168,7 +167,7 @@ export const Menu = memo(
 							}),
 							createContextItem({
 								actionKey: "typeRich",
-								title: t("notes.menu.types.rich"),
+								title: translateMemoized("notes.menu.types.rich"),
 								state: {
 									checked: note.type === "rich"
 								},
@@ -185,7 +184,7 @@ export const Menu = memo(
 							}),
 							createContextItem({
 								actionKey: "typeChecklist",
-								title: t("notes.menu.types.checklist"),
+								title: translateMemoized("notes.menu.types.checklist"),
 								state: {
 									checked: note.type === "checklist"
 								},
@@ -202,7 +201,7 @@ export const Menu = memo(
 							}),
 							createContextItem({
 								actionKey: "typeMd",
-								title: t("notes.menu.types.md"),
+								title: translateMemoized("notes.menu.types.md"),
 								state: {
 									checked: note.type === "md"
 								},
@@ -219,7 +218,7 @@ export const Menu = memo(
 							}),
 							createContextItem({
 								actionKey: "typeCode",
-								title: t("notes.menu.types.code"),
+								title: translateMemoized("notes.menu.types.code"),
 								state: {
 									checked: note.type === "code"
 								},
@@ -243,7 +242,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: note.pinned ? "unpin" : "pin",
-						title: t("notes.menu.pinned"),
+						title: translateMemoized("notes.menu.pinned"),
 						state: {
 							checked: note.pinned
 						},
@@ -263,7 +262,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: note.favorite ? "unfavorite" : "favorite",
-						title: t("notes.menu.favorited"),
+						title: translateMemoized("notes.menu.favorited"),
 						state: {
 							checked: note.favorite
 						},
@@ -285,7 +284,7 @@ export const Menu = memo(
 				items.push(
 					createContextSubMenu(
 						{
-							title: t("notes.menu.tags"),
+							title: translateMemoized("notes.menu.tags"),
 							iOSItemSize: "large"
 						},
 						tags.map(tag =>
@@ -315,7 +314,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "rename",
-						title: t("notes.menu.rename"),
+						title: translateMemoized("notes.menu.rename"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -332,7 +331,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "duplicate",
-						title: t("notes.menu.duplicate"),
+						title: translateMemoized("notes.menu.duplicate"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -352,7 +351,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "export",
-							title: t("notes.menu.export"),
+							title: translateMemoized("notes.menu.export"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -372,7 +371,7 @@ export const Menu = memo(
 						items.push(
 							createContextItem({
 								actionKey: "archive",
-								title: t("notes.menu.archive"),
+								title: translateMemoized("notes.menu.archive"),
 								icon:
 									Platform.OS === "ios"
 										? {
@@ -391,7 +390,7 @@ export const Menu = memo(
 						items.push(
 							createContextItem({
 								actionKey: "restore",
-								title: t("notes.menu.restore"),
+								title: translateMemoized("notes.menu.restore"),
 								icon:
 									Platform.OS === "ios"
 										? {
@@ -410,7 +409,7 @@ export const Menu = memo(
 						items.push(
 							createContextItem({
 								actionKey: "delete",
-								title: t("notes.menu.delete"),
+								title: translateMemoized("notes.menu.delete"),
 								destructive: true,
 								icon:
 									Platform.OS === "ios"
@@ -430,7 +429,7 @@ export const Menu = memo(
 						items.push(
 							createContextItem({
 								actionKey: "trash",
-								title: t("notes.menu.trash"),
+								title: translateMemoized("notes.menu.trash"),
 								destructive: true,
 								icon:
 									Platform.OS === "ios"
@@ -451,7 +450,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "leave",
-							title: t("notes.menu.leave"),
+							title: translateMemoized("notes.menu.leave"),
 							destructive: true,
 							icon:
 								Platform.OS === "ios"
@@ -471,7 +470,7 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [note, t, tags, markdownPreview, insideNote, colors.destructive, hasInternet, isSelected, isUndecryptable])
+		}, [note, tags, markdownPreview, insideNote, colors.destructive, hasInternet, isSelected, isUndecryptable])
 
 		const select = useCallback(() => {
 			const isSelected = useNotesStore.getState().selectedNotes.some(i => i.uuid === note.uuid)

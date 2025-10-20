@@ -20,7 +20,7 @@ import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import RequireInternet from "@/components/requireInternet"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import useNetInfo from "@/hooks/useNetInfo"
 import assets from "@/lib/assets"
 
@@ -110,7 +110,6 @@ export default function Participants() {
 	const { colors } = useColorScheme()
 	const [{ userId }] = useSDKConfig()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
-	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
 	const chatUUIDParsed = useMemo((): string | null => {
@@ -268,11 +267,13 @@ export default function Participants() {
 			<View className="h-16 flex-row items-center justify-center">
 				<Text className="text-sm">
 					{participants.length}{" "}
-					{participants.length === 1 ? t("chats.participants.participant") : t("chats.participants.participants")}
+					{participants.length === 1
+						? translateMemoized("chats.participants.participant")
+						: translateMemoized("chats.participants.participants")}
 				</Text>
 			</View>
 		)
-	}, [participants.length, t])
+	}, [participants.length])
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true)
@@ -310,7 +311,7 @@ export default function Participants() {
 	return (
 		<RequireInternet>
 			<LargeTitleHeader
-				title={t("chats.participants.participants")}
+				title={translateMemoized("chats.participants.participants")}
 				iosBlurEffect="systemChromeMaterial"
 				rightView={headerRightView}
 			/>

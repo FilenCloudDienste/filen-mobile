@@ -21,17 +21,16 @@ export function useDirectorySizeQuery(
 	params: UseDirectorySizeQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
-	params = sortParams(params)
-
+	const sortedParams = sortParams(params)
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({
 		...DEFAULT_QUERY_OPTIONS,
 		...defaultParams,
 		...options,
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		queryKey: [BASE_QUERY_KEY, params],
-		queryFn: () => fetchData(params)
+		staleTime: 5 * 60 * 1000,
+		queryKey: [BASE_QUERY_KEY, sortedParams],
+		queryFn: () => fetchData(sortedParams)
 	})
 
 	useRefreshOnFocus({

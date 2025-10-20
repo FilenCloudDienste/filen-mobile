@@ -23,7 +23,7 @@ import { ListItem } from "../../nativewindui/List"
 import pathModule from "path"
 import { normalizeFilePathForExpo } from "@/lib/utils"
 import paths from "@/lib/paths"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 export type ListItemInfo = {
 	title: string
@@ -52,7 +52,6 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 	const updatePlaylistRemoteMutex = useRef<Semaphore>(new Semaphore(1))
 	const { playingTrack } = useTrackPlayerState()
 	const trackPlayerControls = useTrackPlayerControls()
-	const { t } = useTranslation()
 
 	const onPress = useCallback(async () => {
 		try {
@@ -92,11 +91,11 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 
 	const actionSheetOptions = useMemo(() => {
 		const options = [
-			t("trackPlayer.playlist.item.menu.play"),
-			t("trackPlayer.playlist.item.menu.addToPlaylist"),
-			t("trackPlayer.playlist.item.menu.addToQueue"),
-			t("trackPlayer.playlist.item.menu.removeFromPlaylist"),
-			t("trackPlayer.playlist.item.menu.cancel")
+			translateMemoized("trackPlayer.playlist.item.menu.play"),
+			translateMemoized("trackPlayer.playlist.item.menu.addToPlaylist"),
+			translateMemoized("trackPlayer.playlist.item.menu.addToQueue"),
+			translateMemoized("trackPlayer.playlist.item.menu.removeFromPlaylist"),
+			translateMemoized("trackPlayer.playlist.item.menu.cancel")
 		]
 
 		return {
@@ -110,7 +109,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo> }) 
 				3: "remove"
 			} as Record<number, "play" | "addToPlaylist" | "addToQueue" | "remove">
 		}
-	}, [t])
+	}, [])
 
 	const play = useCallback(() => {
 		onPress()

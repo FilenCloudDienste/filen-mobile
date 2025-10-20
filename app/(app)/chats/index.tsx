@@ -10,7 +10,7 @@ import alerts from "@/lib/alerts"
 import Item from "@/components/chats/item"
 import useNetInfo from "@/hooks/useNetInfo"
 import OfflineListHeader from "@/components/offlineListHeader"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import ListEmpty from "@/components/listEmpty"
 import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 import useDimensions from "@/hooks/useDimensions"
@@ -24,7 +24,6 @@ export const Chats = memo(() => {
 	const listRef = useRef<FlashListRef<ChatConversation>>(null)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const { hasInternet } = useNetInfo()
-	const { t } = useTranslation()
 	const { screen } = useDimensions()
 
 	const chatsQuery = useChatsQuery()
@@ -87,11 +86,11 @@ export const Chats = memo(() => {
 		return chats.length > 0 ? (
 			<View className="flex-row items-center justify-center h-16">
 				<Text className="text-sm">
-					{chats.length} {chats.length === 1 ? t("chats.chat") : t("chats.chats")}
+					{chats.length} {chats.length === 1 ? translateMemoized("chats.chat") : translateMemoized("chats.chats")}
 				</Text>
 			</View>
 		) : undefined
-	}, [chats.length, t])
+	}, [chats.length])
 
 	const ListEmptyComponent = useCallback(() => {
 		return (
@@ -100,9 +99,9 @@ export const Chats = memo(() => {
 				itemCount={chats.length}
 				searchTermLength={searchTerm.length}
 				texts={{
-					error: t("chats.list.error"),
-					empty: t("chats.list.empty"),
-					emptySearch: t("chats.list.emptySearch")
+					error: translateMemoized("chats.list.error"),
+					empty: translateMemoized("chats.list.empty"),
+					emptySearch: translateMemoized("chats.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -117,7 +116,7 @@ export const Chats = memo(() => {
 				}}
 			/>
 		)
-	}, [chatsQuery.status, chats.length, searchTerm, t])
+	}, [chatsQuery.status, chats.length, searchTerm])
 
 	const renderItem = useCallback((info: ListRenderItemInfo<ChatConversation>) => {
 		return <Item info={info} />

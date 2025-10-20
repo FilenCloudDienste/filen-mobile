@@ -4,7 +4,7 @@ import { Text } from "@/components/nativewindui/Text"
 import Item from "./item"
 import { chunkArray } from "@/lib/utils"
 import { Icon } from "@roninoss/icons"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { useRouter } from "expo-router"
 import useViewLayout from "@/hooks/useViewLayout"
@@ -17,7 +17,6 @@ export const Container = memo(
 		items: DriveCloudItem[]
 		type: "recents" | "favorites" | "links" | "sharedIn" | "sharedOut" | "offline" | "trash"
 	}) => {
-		const { t } = useTranslation()
 		const { colors } = useColorScheme()
 		const viewRef = useRef<View>(null)
 		const { push } = useRouter()
@@ -100,34 +99,34 @@ export const Container = memo(
 		const title = useMemo(() => {
 			switch (type) {
 				case "recents": {
-					return t("home.container.recents.title")
+					return translateMemoized("home.container.recents.title")
 				}
 
 				case "favorites": {
-					return t("home.container.favorites.title")
+					return translateMemoized("home.container.favorites.title")
 				}
 
 				case "links": {
-					return t("home.container.links.title")
+					return translateMemoized("home.container.links.title")
 				}
 
 				case "sharedIn": {
-					return t("home.container.sharedIn.title")
+					return translateMemoized("home.container.sharedIn.title")
 				}
 
 				case "sharedOut": {
-					return t("home.container.sharedOut.title")
+					return translateMemoized("home.container.sharedOut.title")
 				}
 
 				case "offline": {
-					return t("home.container.offline.title")
+					return translateMemoized("home.container.offline.title")
 				}
 
 				case "trash": {
-					return t("home.container.trash.title")
+					return translateMemoized("home.container.trash.title")
 				}
 			}
-		}, [t, type])
+		}, [type])
 
 		const snapToOffsets = useMemo(() => {
 			return [0, layout.width - 32, (layout.width - 32) * 2, (layout.width - 32) * 3]
@@ -166,21 +165,21 @@ export const Container = memo(
 
 		const emptyText = useMemo(() => {
 			return type === "recents"
-				? t("home.listEmpty.recents")
+				? translateMemoized("home.listEmpty.recents")
 				: type === "favorites"
-				? t("home.listEmpty.favorites")
+				? translateMemoized("home.listEmpty.favorites")
 				: type === "links"
-				? t("home.listEmpty.links")
+				? translateMemoized("home.listEmpty.links")
 				: type === "sharedIn"
-				? t("home.listEmpty.sharedIn")
+				? translateMemoized("home.listEmpty.sharedIn")
 				: type === "sharedOut"
-				? t("home.listEmpty.sharedOut")
+				? translateMemoized("home.listEmpty.sharedOut")
 				: type === "offline"
-				? t("home.listEmpty.offline")
+				? translateMemoized("home.listEmpty.offline")
 				: type === "trash"
-				? t("home.listEmpty.trash")
+				? translateMemoized("home.listEmpty.trash")
 				: ""
-		}, [t, type])
+		}, [type])
 
 		return (
 			<View

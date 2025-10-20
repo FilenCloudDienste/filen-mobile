@@ -135,61 +135,6 @@ export async function findFreePort(ports: number[]): Promise<number | null> {
 	return null
 }
 
-/**
- * Chunk large Promise.all executions.
- * @date 2/14/2024 - 11:59:34 PM
- *
- * @export
- * @async
- * @template T
- * @param {Promise<T>[]} promises
- * @param {number} [chunkSize=10000]
- * @returns {Promise<T[]>}
- */
-export async function promiseAllChunked<T>(promises: Promise<T>[], chunkSize = 10000): Promise<T[]> {
-	const results: T[] = []
-
-	for (let i = 0; i < promises.length; i += chunkSize) {
-		const chunkResults = await Promise.all(promises.slice(i, i + chunkSize))
-
-		results.push(...chunkResults)
-	}
-
-	return results
-}
-
-/**
- * Chunk large Promise.allSettled executions.
- * @date 3/5/2024 - 12:41:08 PM
- *
- * @export
- * @async
- * @template T
- * @param {Promise<T>[]} promises
- * @param {number} [chunkSize=10000]
- * @returns {Promise<T[]>}
- */
-export async function promiseAllSettledChunked<T>(promises: Promise<T>[], chunkSize = 10000): Promise<T[]> {
-	const results: T[] = []
-
-	for (let i = 0; i < promises.length; i += chunkSize) {
-		const chunkPromisesSettled = await Promise.allSettled(promises.slice(i, i + chunkSize))
-		const chunkResults = chunkPromisesSettled.reduce((acc: T[], current) => {
-			if (current.status === "fulfilled") {
-				acc.push(current.value)
-			} else {
-				// Handle rejected promises or do something with the error (current.reason)
-			}
-
-			return acc
-		}, [])
-
-		results.push(...chunkResults)
-	}
-
-	return results
-}
-
 export function normalizeFilePath(filePath: string): string {
 	const normalizedPath = filePath.trim().replace(/^file:\/+/, "/")
 

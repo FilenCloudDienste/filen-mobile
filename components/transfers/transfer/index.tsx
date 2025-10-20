@@ -10,7 +10,7 @@ import { useActionSheet } from "@expo/react-native-action-sheet"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import useDimensions from "@/hooks/useDimensions"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 
 export type ListItemInfo = {
 	title: string
@@ -27,7 +27,6 @@ export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo>
 	const {
 		insets: { bottom: bottomInsets }
 	} = useDimensions()
-	const { t } = useTranslation()
 
 	const onPress = useCallback(() => {
 		if (info.item.transfer.state === "finished" || info.item.transfer.state === "error" || info.item.transfer.state === "stopped") {
@@ -35,9 +34,11 @@ export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo>
 		}
 
 		const options = [
-			info.item.transfer.state === "paused" ? t("transfers.transfer.resume") : t("transfers.transfer.pause"),
-			t("transfers.transfer.stop"),
-			t("transfers.transfer.cancel")
+			info.item.transfer.state === "paused"
+				? translateMemoized("transfers.transfer.resume")
+				: translateMemoized("transfers.transfer.pause"),
+			translateMemoized("transfers.transfer.stop"),
+			translateMemoized("transfers.transfer.cancel")
 		]
 
 		showActionSheetWithOptions(
@@ -89,8 +90,7 @@ export const Transfer = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo>
 		info.item.transfer.state,
 		bottomInsets,
 		colors.foreground,
-		colors.card,
-		t
+		colors.card
 	])
 
 	const leftView = useMemo(() => {

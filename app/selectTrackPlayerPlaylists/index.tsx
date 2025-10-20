@@ -16,7 +16,7 @@ import { Button } from "@/components/nativewindui/Button"
 import { useShallow } from "zustand/shallow"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import alerts from "@/lib/alerts"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import ListEmpty from "@/components/listEmpty"
 import useNetInfo from "@/hooks/useNetInfo"
 
@@ -31,7 +31,6 @@ export default function SelectTrackPlayerPlaylists() {
 	const [searchTerm, setSearchTerm] = useState<string>("")
 	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo, back: routerBack } = useRouter()
 	const setSelectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.setSelectedPlaylists))
-	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
 	const playlistsQuery = usePlaylistsQuery()
@@ -62,7 +61,7 @@ export default function SelectTrackPlayerPlaylists() {
 				}),
 				playlist
 			})) satisfies ListItemInfo[]
-	}, [playlistsQuery.data, playlistsQuery.status, searchTerm, t])
+	}, [playlistsQuery.data, playlistsQuery.status, searchTerm])
 
 	const renderItem = useCallback(
 		(info: ListRenderItemInfo<ListItemInfo>) => {
@@ -108,9 +107,9 @@ export default function SelectTrackPlayerPlaylists() {
 				queryStatus={playlistsQuery.status}
 				itemCount={playlists.length}
 				texts={{
-					error: t("selectTrackPlayerPlaylists.list.error"),
-					empty: t("selectTrackPlayerPlaylists.list.empty"),
-					emptySearch: t("selectTrackPlayerPlaylists.list.emptySearch")
+					error: translateMemoized("selectTrackPlayerPlaylists.list.error"),
+					empty: translateMemoized("selectTrackPlayerPlaylists.list.empty"),
+					emptySearch: translateMemoized("selectTrackPlayerPlaylists.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -125,7 +124,7 @@ export default function SelectTrackPlayerPlaylists() {
 				}}
 			/>
 		)
-	}, [playlistsQuery.status, playlists.length, t])
+	}, [playlistsQuery.status, playlists.length])
 
 	const ListFooterComponent = useCallback(() => {
 		if (playlists.length === 0) {
@@ -141,7 +140,7 @@ export default function SelectTrackPlayerPlaylists() {
 				</Text>
 			</View>
 		)
-	}, [playlists.length, t])
+	}, [playlists.length])
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true)
@@ -177,8 +176,8 @@ export default function SelectTrackPlayerPlaylists() {
 			<AdaptiveSearchHeader
 				iosTitle={
 					maxParsed === 1
-						? t("selectTrackPlayerPlaylists.header.selectPlaylist")
-						: t("selectTrackPlayerPlaylists.header.selectPlaylists")
+						? translateMemoized("selectTrackPlayerPlaylists.header.selectPlaylist")
+						: translateMemoized("selectTrackPlayerPlaylists.header.selectPlaylists")
 				}
 				iosIsLargeTitle={false}
 				iosBackButtonMenuEnabled={true}
@@ -189,7 +188,7 @@ export default function SelectTrackPlayerPlaylists() {
 							variant="plain"
 							onPress={cancel}
 						>
-							<Text className="text-blue-500">{t("selectTrackPlayerPlaylists.header.cancel")}</Text>
+							<Text className="text-blue-500">{translateMemoized("selectTrackPlayerPlaylists.header.cancel")}</Text>
 						</Button>
 					)
 				}}
@@ -204,8 +203,8 @@ export default function SelectTrackPlayerPlaylists() {
 			<LargeTitleHeader
 				title={
 					maxParsed === 1
-						? t("selectTrackPlayerPlaylists.header.selectPlaylist")
-						: t("selectTrackPlayerPlaylists.header.selectPlaylists")
+						? translateMemoized("selectTrackPlayerPlaylists.header.selectPlaylist")
+						: translateMemoized("selectTrackPlayerPlaylists.header.selectPlaylists")
 				}
 				materialPreset="inline"
 				backVisible={false}
@@ -216,7 +215,7 @@ export default function SelectTrackPlayerPlaylists() {
 							variant="plain"
 							onPress={cancel}
 						>
-							<Text className="text-blue-500">{t("selectTrackPlayerPlaylists.header.cancel")}</Text>
+							<Text className="text-blue-500">{translateMemoized("selectTrackPlayerPlaylists.header.cancel")}</Text>
 						</Button>
 					)
 				}}
@@ -227,7 +226,7 @@ export default function SelectTrackPlayerPlaylists() {
 				}}
 			/>
 		)
-	}, [cancel, colors.card, maxParsed, t])
+	}, [cancel, colors.card, maxParsed])
 
 	useEffect(() => {
 		setSelectedPlaylists([])

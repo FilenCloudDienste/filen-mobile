@@ -4,7 +4,7 @@ import { createContextItem } from "@/components/nativewindui/ContextMenu/utils"
 import type { ContextItem, ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import type { Note, NoteParticipant } from "@filen/sdk/dist/types/api/v3/notes"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import nodeWorker from "@/lib/nodeWorker"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
@@ -26,7 +26,6 @@ export const Menu = memo(
 		children: React.ReactNode
 		participant: NoteParticipant
 	}) => {
-		const { t } = useTranslation()
 		const [{ userId }] = useSDKConfig()
 		const { colors } = useColorScheme()
 
@@ -37,7 +36,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: participant.permissionsWrite ? "revokeWriteAccess" : "allowWriteAccess",
-						title: t("notes.participants.menu.permissionsWrite"),
+						title: translateMemoized("notes.participants.menu.permissionsWrite"),
 						state: {
 							checked: participant.permissionsWrite
 						},
@@ -57,7 +56,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "remove",
-						title: t("notes.participants.menu.remove"),
+						title: translateMemoized("notes.participants.menu.remove"),
 						destructive: true,
 						icon:
 							Platform.OS === "ios"
@@ -76,12 +75,12 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [t, participant.permissionsWrite, participant.userId, note.isOwner, userId, colors.destructive])
+		}, [participant.permissionsWrite, participant.userId, note.isOwner, userId, colors.destructive])
 
 		const remove = useCallback(async () => {
 			const alertPromptResponse = await alertPrompt({
-				title: t("notes.prompts.removeParticipant.title"),
-				message: t("notes.prompts.removeParticipant.message")
+				title: translateMemoized("notes.prompts.removeParticipant.title"),
+				message: translateMemoized("notes.prompts.removeParticipant.message")
 			})
 
 			if (alertPromptResponse.cancelled) {
@@ -116,7 +115,7 @@ export const Menu = memo(
 			} finally {
 				fullScreenLoadingModal.hide()
 			}
-		}, [note.uuid, participant.userId, t])
+		}, [note.uuid, participant.userId])
 
 		const changePermissionsWrite = useCallback(
 			async (permissionsWrite: boolean) => {

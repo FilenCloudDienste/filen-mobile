@@ -3,7 +3,7 @@ import { getCameraUploadState } from "@/hooks/useCameraUpload"
 import { validate as validateUUID } from "uuid"
 import Semaphore from "./semaphore"
 import nodeWorker from "./nodeWorker"
-import { convertTimestampToMs, normalizeFilePathForExpo, promiseAllChunked } from "./utils"
+import { convertTimestampToMs, normalizeFilePathForExpo } from "./utils"
 import { useAppStateStore } from "@/stores/appState.store"
 import { randomUUID } from "expo-crypto"
 import * as FileSystem from "expo-file-system"
@@ -233,7 +233,9 @@ export class CameraUpload {
 						after
 					})
 
-					assets.push(...result.assets)
+					for (const asset of result.assets) {
+						assets.push(asset)
+					}
 
 					if (result.hasNextPage) {
 						await fetch(result.endCursor)
@@ -554,13 +556,11 @@ export class CameraUpload {
 									of: "photos",
 									receiverId: 0
 								},
-								updater: prev => [
-									...prev.filter(i => i.uuid !== item.uuid),
-									{
+								updater: prev =>
+									prev.concat({
 										...item,
 										...newFileMetadata
-									} satisfies DriveCloudItem
-								]
+									} satisfies DriveCloudItem)
 							})
 						}
 
@@ -706,7 +706,7 @@ export class CameraUpload {
 				let added = 0
 				let done = 0
 
-				await promiseAllChunked(
+				await Promise.all(
 					deltas.map(async delta => {
 						if (added >= this.maxUploads) {
 							return

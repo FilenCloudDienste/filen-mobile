@@ -7,12 +7,11 @@ import { alertPrompt } from "@/components/prompts/alertPrompt"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import useFileVersionsQuery from "@/queries/useFileVersions.query"
 import { useRouter } from "expo-router"
 
 export const RightView = memo(({ item, version }: { item: DriveCloudItem; version: FileVersion }) => {
-	const { t } = useTranslation()
 	const { canGoBack, back } = useRouter()
 
 	const query = useFileVersionsQuery(
@@ -30,8 +29,8 @@ export const RightView = memo(({ item, version }: { item: DriveCloudItem; versio
 		}
 
 		const alertPromptResponse = await alertPrompt({
-			title: t("fileVersionHistory.alerts.restore.title"),
-			message: t("fileVersionHistory.alerts.restore.message")
+			title: translateMemoized("fileVersionHistory.alerts.restore.title"),
+			message: translateMemoized("fileVersionHistory.alerts.restore.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -58,7 +57,7 @@ export const RightView = memo(({ item, version }: { item: DriveCloudItem; versio
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [t, item.uuid, version.uuid, canGoBack, back])
+	}, [item.uuid, version.uuid, canGoBack, back])
 
 	const deleteItem = useCallback(async () => {
 		if (item.uuid === version.uuid) {
@@ -66,8 +65,8 @@ export const RightView = memo(({ item, version }: { item: DriveCloudItem; versio
 		}
 
 		const alertPromptResponse = await alertPrompt({
-			title: t("fileVersionHistory.alerts.delete.title"),
-			message: t("fileVersionHistory.alerts.delete.message")
+			title: translateMemoized("fileVersionHistory.alerts.delete.title"),
+			message: translateMemoized("fileVersionHistory.alerts.delete.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -91,7 +90,7 @@ export const RightView = memo(({ item, version }: { item: DriveCloudItem; versio
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [t, item, version, query])
+	}, [item, version, query])
 
 	return (
 		<Fragment>
@@ -101,7 +100,7 @@ export const RightView = memo(({ item, version }: { item: DriveCloudItem; versio
 						variant="tonal"
 						size="sm"
 					>
-						<Text>{t("fileVersionHistory.list.item.current")}</Text>
+						<Text>{translateMemoized("fileVersionHistory.list.item.current")}</Text>
 					</Button>
 				</View>
 			) : (
@@ -111,14 +110,14 @@ export const RightView = memo(({ item, version }: { item: DriveCloudItem; versio
 						variant="secondary"
 						onPress={deleteItem}
 					>
-						<Text>{t("fileVersionHistory.list.item.delete")}</Text>
+						<Text>{translateMemoized("fileVersionHistory.list.item.delete")}</Text>
 					</Button>
 					<Button
 						size="sm"
 						onPress={restoreFileVersion}
 						variant="primary"
 					>
-						<Text>{t("fileVersionHistory.list.item.restore")}</Text>
+						<Text>{translateMemoized("fileVersionHistory.list.item.restore")}</Text>
 					</Button>
 				</View>
 			)}

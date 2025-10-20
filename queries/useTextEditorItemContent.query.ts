@@ -38,8 +38,7 @@ export function useTextEditorItemContentQuery(
 	params: UseTextEditorItemContentQueryParams,
 	options?: Omit<UseQueryOptions, "queryKey" | "queryFn">
 ): UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error> {
-	params = sortParams(params)
-
+	const sortedParams = sortParams(params)
 	const defaultParams = useDefaultQueryParams(options)
 
 	const query = useQuery({
@@ -47,8 +46,8 @@ export function useTextEditorItemContentQuery(
 		...defaultParams,
 		...DEFAULT_QUERY_OPTIONS_ETERNAL,
 		...options,
-		queryKey: [BASE_QUERY_KEY, params],
-		queryFn: () => fetchData(params)
+		queryKey: [BASE_QUERY_KEY, sortedParams],
+		queryFn: () => fetchData(sortedParams)
 	})
 
 	return query as UseQueryResult<Awaited<ReturnType<typeof fetchData>>, Error>

@@ -17,7 +17,7 @@ import useViewLayout from "@/hooks/useViewLayout"
 import { useChatsStore } from "@/stores/chats.store"
 import useChatEmbedContainerStyle from "@/hooks/useChatEmbedContainerStyle"
 import useNetInfo from "@/hooks/useNetInfo"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { useMappingHelper } from "@shopify/flash-list"
 
 export const MENTION_REGEX = /(@[\w.-]+@[\w.-]+\.\w+|@everyone)/g
@@ -67,7 +67,6 @@ Mention.displayName = "Mention"
 
 export const CodeBlock = memo(({ match }: { match: string }) => {
 	const chatEmbedContainerStyle = useChatEmbedContainerStyle()
-	const { t } = useTranslation()
 
 	const code = useMemo(() => {
 		let code = match.split("```").join("").trim()
@@ -91,7 +90,7 @@ export const CodeBlock = memo(({ match }: { match: string }) => {
 
 				await Clipboard.setStringAsync(code)
 
-				alerts.normal(t("copiedToClipboard"))
+				alerts.normal(translateMemoized("copiedToClipboard"))
 			} catch (e) {
 				console.error(e)
 
@@ -100,7 +99,7 @@ export const CodeBlock = memo(({ match }: { match: string }) => {
 				}
 			}
 		},
-		[code, t]
+		[code]
 	)
 
 	return (
@@ -191,7 +190,6 @@ export const ReplacedMessageContent = memo(
 		embedsDisabled: boolean
 		edited: boolean
 	}) => {
-		const { t } = useTranslation()
 		const { getMappingKey } = useMappingHelper()
 
 		const replaced = useMemo(() => {
@@ -214,17 +212,17 @@ export const ReplacedMessageContent = memo(
 						const email = match.slice(1).trim()
 
 						if (email === "everyone") {
-							return <Mention name={t("chats.messages.everyone")} />
+							return <Mention name={translateMemoized("chats.messages.everyone")} />
 						}
 
 						if (!email.includes("@")) {
-							return <Mention name={t("chats.messages.unknown")} />
+							return <Mention name={translateMemoized("chats.messages.unknown")} />
 						}
 
 						const foundParticipant = chat.participants.find(p => p.email === email)
 
 						if (!foundParticipant) {
-							return <Mention name={t("chats.messages.unknown")} />
+							return <Mention name={translateMemoized("chats.messages.unknown")} />
 						}
 
 						return (
@@ -287,7 +285,7 @@ export const ReplacedMessageContent = memo(
 			}
 
 			return regexed
-		}, [message.message, chat.participants, emojiSize, embedsDisabled, edited, t])
+		}, [message.message, chat.participants, emojiSize, embedsDisabled, edited])
 
 		return (
 			<View className="flex-1 flex-row flex-wrap text-wrap justify-start break-all items-center">
@@ -332,8 +330,6 @@ export const ReplacedMessageContentInline = memo(
 		emojiSize?: number
 		linkClassName?: string
 	}) => {
-		const { t } = useTranslation()
-
 		const replaced = useMemo(() => {
 			const regexed = regexifyString({
 				pattern: messageContentRegex,
@@ -342,17 +338,27 @@ export const ReplacedMessageContentInline = memo(
 						const email = match.slice(1).trim()
 
 						if (email === "everyone") {
-							return <Text className={cn(textClassName, "text-foreground")}>@{t("chats.messages.everyone")}</Text>
+							return (
+								<Text className={cn(textClassName, "text-foreground")}>
+									@{translateMemoized("chats.messages.everyone")}
+								</Text>
+							)
 						}
 
 						if (!email.includes("@")) {
-							return <Text className={cn(textClassName, "text-foreground")}>@{t("chats.messages.unknown")}</Text>
+							return (
+								<Text className={cn(textClassName, "text-foreground")}>@{translateMemoized("chats.messages.unknown")}</Text>
+							)
 						}
 
 						const foundParticipant = chat.participants.find(p => p.email === email)
 
 						if (!foundParticipant) {
-							return <Text className={cn(textClassName, "text-foreground")}>@{t("chats.messages.everyone")}</Text>
+							return (
+								<Text className={cn(textClassName, "text-foreground")}>
+									@{translateMemoized("chats.messages.everyone")}
+								</Text>
+							)
 						}
 
 						return (
@@ -405,7 +411,7 @@ export const ReplacedMessageContentInline = memo(
 			})
 
 			return regexed
-		}, [message.message, chat.participants, textClassName, emojiSize, linkClassName, t])
+		}, [message.message, chat.participants, textClassName, emojiSize, linkClassName])
 
 		return (
 			<View className="flex-1 flex-row flex-wrap text-wrap justify-start items-center">

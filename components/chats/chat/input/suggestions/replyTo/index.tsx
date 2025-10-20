@@ -10,7 +10,7 @@ import { Icon } from "@roninoss/icons"
 import { View, type StyleProp, type ViewStyle } from "react-native"
 import { useKeyboardState } from "react-native-keyboard-controller"
 import { useShallow } from "zustand/shallow"
-import { useTranslation } from "react-i18next"
+import { t } from "@/lib/i18n"
 
 export const ReplyTo = memo(({ chat }: { chat: ChatConversation }) => {
 	const { colors } = useColorScheme()
@@ -23,7 +23,6 @@ export const ReplyTo = memo(({ chat }: { chat: ChatConversation }) => {
 	const mentionSuggestions = useChatsStore(useShallow(state => state.mentionSuggestions[chat.uuid] ?? []))
 	const mentionText = useChatsStore(useShallow(state => state.mentionText[chat.uuid] ?? ""))
 	const { isVisible: isKeyboardVisible } = useKeyboardState()
-	const { t } = useTranslation()
 
 	const suggestionsVisible = useMemo(() => {
 		return (

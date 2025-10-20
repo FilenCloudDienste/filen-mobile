@@ -3,7 +3,7 @@ import { ContextMenu } from "@/components/nativewindui/ContextMenu"
 import { createContextItem } from "@/components/nativewindui/ContextMenu/utils"
 import type { ContextItem, ContextSubMenu } from "@/components/nativewindui/ContextMenu/types"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import { View, Platform } from "react-native"
 import useDimensions from "@/hooks/useDimensions"
 import alerts from "@/lib/alerts"
@@ -28,7 +28,6 @@ export const Menu = memo(
 		children: React.ReactNode
 		insideChat: boolean
 	}) => {
-		const { t } = useTranslation()
 		const { screen, isPortrait, isTablet } = useDimensions()
 		const [{ userId }] = useSDKConfig()
 		const router = useRouter()
@@ -73,7 +72,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "markAsRead",
-						title: t("chats.menu.markAsRead"),
+						title: translateMemoized("chats.menu.markAsRead"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -92,7 +91,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "participants",
-						title: t("chats.menu.participants"),
+						title: translateMemoized("chats.menu.participants"),
 						icon:
 							Platform.OS === "ios"
 								? {
@@ -111,7 +110,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "mute",
-						title: t("chats.menu.muted"),
+						title: translateMemoized("chats.menu.muted"),
 						state: {
 							checked: chat.muted
 						},
@@ -134,7 +133,7 @@ export const Menu = memo(
 					items.push(
 						createContextItem({
 							actionKey: "rename",
-							title: t("chats.menu.rename"),
+							title: translateMemoized("chats.menu.rename"),
 							icon:
 								Platform.OS === "ios"
 									? {
@@ -152,7 +151,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "delete",
-						title: t("chats.menu.delete"),
+						title: translateMemoized("chats.menu.delete"),
 						destructive: true,
 						icon:
 							Platform.OS === "ios"
@@ -172,7 +171,7 @@ export const Menu = memo(
 				items.push(
 					createContextItem({
 						actionKey: "leave",
-						title: t("chats.menu.leave"),
+						title: translateMemoized("chats.menu.leave"),
 						destructive: true,
 						icon:
 							Platform.OS === "ios"
@@ -191,7 +190,7 @@ export const Menu = memo(
 			}
 
 			return items
-		}, [t, chat.ownerId, userId, unreadCount, insideChat, colors.destructive, chat.muted, hasInternet, isUndecryptable])
+		}, [chat.ownerId, userId, unreadCount, insideChat, colors.destructive, chat.muted, hasInternet, isUndecryptable])
 
 		const onItemPress = useCallback(
 			async (item: Omit<ContextItem, "icon">, _?: boolean) => {

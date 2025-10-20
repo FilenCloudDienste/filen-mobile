@@ -7,7 +7,7 @@ import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import { randomUUID } from "expo-crypto"
@@ -22,7 +22,6 @@ import { useTrackPlayerControls } from "@/hooks/useTrackPlayerControls"
 import { REACT_NATIVE_AUDIO_PRO_SUPPORTED_EXTENSIONS } from "@/lib/constants"
 
 export const Header = memo(() => {
-	const { t } = useTranslation()
 	const { colors } = useColorScheme()
 	const { playlist: passedPlaylist } = useLocalSearchParams()
 	const setPlaylistsSearchTerm = useTrackPlayerStore(useShallow(state => state.setPlaylistsSearchTerm))
@@ -59,7 +58,7 @@ export const Header = memo(() => {
 
 	const createPlaylist = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
-			title: t("trackPlayer.prompts.createPlaylist.title"),
+			title: translateMemoized("trackPlayer.prompts.createPlaylist.title"),
 			materialIcon: {
 				name: "folder-plus-outline"
 			},
@@ -67,7 +66,7 @@ export const Header = memo(() => {
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("trackPlayer.prompts.createPlaylist.placeholder")
+				placeholder: translateMemoized("trackPlayer.prompts.createPlaylist.placeholder")
 			}
 		})
 
@@ -118,7 +117,7 @@ export const Header = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [t, playlists])
+	}, [playlists])
 
 	const addTrackToPlaylist = useCallback(async () => {
 		const playlist = playlists.find(playlist => playlist.uuid === passedPlaylist)
@@ -268,7 +267,7 @@ export const Header = memo(() => {
 	const header = useMemo(() => {
 		return Platform.OS === "ios" ? (
 			<AdaptiveSearchHeader
-				iosTitle={playlist ? playlist.name : t("trackPlayer.header.title")}
+				iosTitle={playlist ? playlist.name : translateMemoized("trackPlayer.header.title")}
 				iosIsLargeTitle={false}
 				iosBackButtonMenuEnabled={false}
 				backVisible={playlist !== null}
@@ -291,7 +290,7 @@ export const Header = memo(() => {
 			/>
 		) : (
 			<LargeTitleHeader
-				title={playlist ? playlist.name : t("trackPlayer.header.title")}
+				title={playlist ? playlist.name : translateMemoized("trackPlayer.header.title")}
 				materialPreset="inline"
 				backVisible={true}
 				backgroundColor={colors.card}
@@ -310,7 +309,7 @@ export const Header = memo(() => {
 				}}
 			/>
 		)
-	}, [playlist, colors.card, rightView, setPlaylistSearchTerm, setPlaylistsSearchTerm, t])
+	}, [playlist, colors.card, rightView, setPlaylistSearchTerm, setPlaylistsSearchTerm])
 
 	return header
 })

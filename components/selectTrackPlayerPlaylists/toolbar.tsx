@@ -7,7 +7,7 @@ import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
 import { useRouter, useLocalSearchParams } from "expo-router"
 import { useShallow } from "zustand/shallow"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import usePlaylistsQuery, { type Playlist, updatePlaylist, playlistsQueryUpdate } from "@/queries/usePlaylists.query"
 import { randomUUID } from "expo-crypto"
 
@@ -15,7 +15,6 @@ export const Toolbar = memo(() => {
 	const { canGoBack, dismissTo, back } = useRouter()
 	const selectedPlaylists = useSelectTrackPlayerPlaylistsStore(useShallow(state => state.selectedPlaylists))
 	const { id, max, dismissHref } = useLocalSearchParams()
-	const { t } = useTranslation()
 
 	const playlistsQuery = usePlaylistsQuery({
 		enabled: false
@@ -51,7 +50,7 @@ export const Toolbar = memo(() => {
 			: t("selectTrackPlayerPlaylists.selected", {
 					countOrName: selectedPlaylists.length
 			  })
-	}, [selectedPlaylists, t])
+	}, [selectedPlaylists])
 
 	const submit = useCallback(() => {
 		if (!canSubmit) {
@@ -76,7 +75,7 @@ export const Toolbar = memo(() => {
 
 	const createPlaylist = useCallback(async () => {
 		const inputPromptResponse = await inputPrompt({
-			title: t("selectTrackPlayerPlaylists.prompts.createPlaylist.title"),
+			title: translateMemoized("selectTrackPlayerPlaylists.prompts.createPlaylist.title"),
 			materialIcon: {
 				name: "folder-plus-outline"
 			},
@@ -84,7 +83,7 @@ export const Toolbar = memo(() => {
 				type: "plain-text",
 				keyboardType: "default",
 				defaultValue: "",
-				placeholder: t("selectTrackPlayerPlaylists.prompts.createPlaylist.placeholder")
+				placeholder: translateMemoized("selectTrackPlayerPlaylists.prompts.createPlaylist.placeholder")
 			}
 		})
 
@@ -135,7 +134,7 @@ export const Toolbar = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [t, playlists])
+	}, [playlists])
 
 	const leftView = useMemo(() => {
 		return (

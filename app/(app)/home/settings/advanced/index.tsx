@@ -8,13 +8,11 @@ import { Platform } from "react-native"
 import paths from "@/lib/paths"
 import sqlite from "@/lib/sqlite"
 import trackPlayer from "@/lib/trackPlayer"
-import { useTranslation } from "react-i18next"
+import { translateMemoized } from "@/lib/i18n"
 import TurboImage from "react-native-turbo-image"
 import useSettingsAdvancedCacheQuery, { settingsAdvancedCacheQueryRefetch } from "@/queries/useSettingsAdvancedCache.query"
 
 export const Advanced = memo(() => {
-	const { t } = useTranslation()
-
 	const settingsAdvancedCacheQuery = useSettingsAdvancedCacheQuery()
 
 	const cacheSize = useMemo(() => {
@@ -39,8 +37,8 @@ export const Advanced = memo(() => {
 
 	const clearCache = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: t("settings.advanced.prompts.clearCache.title"),
-			message: t("settings.advanced.prompts.clearCache.message")
+			title: translateMemoized("settings.advanced.prompts.clearCache.title"),
+			message: translateMemoized("settings.advanced.prompts.clearCache.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -64,12 +62,12 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [t])
+	}, [])
 
 	const clearThumbnails = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: t("settings.advanced.prompts.clearThumbnails.title"),
-			message: t("settings.advanced.prompts.clearThumbnails.message")
+			title: translateMemoized("settings.advanced.prompts.clearThumbnails.title"),
+			message: translateMemoized("settings.advanced.prompts.clearThumbnails.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -91,12 +89,12 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [t])
+	}, [])
 
 	const clearTrackPlayer = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: t("settings.advanced.prompts.clearTrackPlayer.title"),
-			message: t("settings.advanced.prompts.clearTrackPlayer.message")
+			title: translateMemoized("settings.advanced.prompts.clearTrackPlayer.title"),
+			message: translateMemoized("settings.advanced.prompts.clearTrackPlayer.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -119,12 +117,12 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [t])
+	}, [])
 
 	const clearOfflineFiles = useCallback(async () => {
 		const alertPromptResponse = await alertPrompt({
-			title: t("settings.advanced.prompts.clearOfflineFiles.title"),
-			message: t("settings.advanced.prompts.clearOfflineFiles.message")
+			title: translateMemoized("settings.advanced.prompts.clearOfflineFiles.title"),
+			message: translateMemoized("settings.advanced.prompts.clearOfflineFiles.message")
 		})
 
 		if (alertPromptResponse.cancelled) {
@@ -148,13 +146,13 @@ export const Advanced = memo(() => {
 		} finally {
 			fullScreenLoadingModal.hide()
 		}
-	}, [t])
+	}, [])
 
 	const items = useMemo(() => {
 		return [
 			{
 				id: "0",
-				title: t("settings.advanced.items.clearCache"),
+				title: translateMemoized("settings.advanced.items.clearCache"),
 				rightText: formatBytes(cacheSize),
 				subTitle: Platform.OS === "android" ? formatBytes(cacheSize) : undefined,
 				onPress: clearCache,
@@ -167,7 +165,7 @@ export const Advanced = memo(() => {
 			},
 			{
 				id: "1",
-				title: t("settings.advanced.items.clearThumbnails"),
+				title: translateMemoized("settings.advanced.items.clearThumbnails"),
 				rightText: formatBytes(thumbnailsSize),
 				subTitle: Platform.OS === "android" ? formatBytes(thumbnailsSize) : undefined,
 				onPress: clearThumbnails,
@@ -180,7 +178,7 @@ export const Advanced = memo(() => {
 			},
 			{
 				id: "2",
-				title: t("settings.advanced.items.clearTrackPlayer"),
+				title: translateMemoized("settings.advanced.items.clearTrackPlayer"),
 				rightText: formatBytes(trackPlayerSize),
 				subTitle: Platform.OS === "android" ? formatBytes(trackPlayerSize) : undefined,
 				onPress: clearTrackPlayer,
@@ -193,7 +191,7 @@ export const Advanced = memo(() => {
 			},
 			{
 				id: "3",
-				title: t("settings.advanced.items.clearOfflineFiles"),
+				title: translateMemoized("settings.advanced.items.clearOfflineFiles"),
 				rightText: formatBytes(offlineFilesSize),
 				subTitle: Platform.OS === "android" ? formatBytes(offlineFilesSize) : undefined,
 				onPress: clearOfflineFiles,
@@ -205,11 +203,11 @@ export const Advanced = memo(() => {
 				)
 			}
 		]
-	}, [cacheSize, t, thumbnailsSize, trackPlayerSize, offlineFilesSize, clearCache, clearThumbnails, clearTrackPlayer, clearOfflineFiles])
+	}, [cacheSize, thumbnailsSize, trackPlayerSize, offlineFilesSize, clearCache, clearThumbnails, clearTrackPlayer, clearOfflineFiles])
 
 	return (
 		<SettingsComponent
-			title={t("settings.advanced.title")}
+			title={translateMemoized("settings.advanced.title")}
 			showSearchBar={false}
 			loading={settingsAdvancedCacheQuery.status !== "success"}
 			items={items}

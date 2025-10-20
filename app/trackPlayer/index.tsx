@@ -12,7 +12,7 @@ import Container from "@/components/Container"
 import Item, { type ListItemInfo } from "@/components/trackPlayer/item"
 import { formatMessageDate } from "@/lib/utils"
 import ListEmpty from "@/components/listEmpty"
-import { useTranslation } from "react-i18next"
+import { translateMemoized, t } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import useNetInfo from "@/hooks/useNetInfo"
 
@@ -24,7 +24,6 @@ export const TrackPlayer = memo(() => {
 	const [trackPlayerToolbarHeight] = useMMKVNumber("trackPlayerToolbarHeight", mmkvInstance)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const playlistsSearchTerm = useTrackPlayerStore(useShallow(state => state.playlistsSearchTerm))
-	const { t } = useTranslation()
 	const { hasInternet } = useNetInfo()
 
 	const playlistsQuery = usePlaylistsQuery()
@@ -51,7 +50,7 @@ export const TrackPlayer = memo(() => {
 				}),
 				playlist
 			})) satisfies ListItemInfo[]
-	}, [playlistsQuery.data, playlistsQuery.status, playlistsSearchTerm, t])
+	}, [playlistsQuery.data, playlistsQuery.status, playlistsSearchTerm])
 
 	const renderItem = useCallback((info: ListRenderItemInfo<ListItemInfo>) => {
 		return <Item info={info} />
@@ -87,9 +86,9 @@ export const TrackPlayer = memo(() => {
 				queryStatus={playlistsQuery.status}
 				itemCount={playlists.length}
 				texts={{
-					error: t("trackPlayer.list.error"),
-					empty: t("trackPlayer.list.empty"),
-					emptySearch: t("trackPlayer.list.emptySearch")
+					error: translateMemoized("trackPlayer.list.error"),
+					empty: translateMemoized("trackPlayer.list.empty"),
+					emptySearch: translateMemoized("trackPlayer.list.emptySearch")
 				}}
 				icons={{
 					error: {
@@ -104,7 +103,7 @@ export const TrackPlayer = memo(() => {
 				}}
 			/>
 		)
-	}, [playlistsQuery.status, playlists.length, t])
+	}, [playlistsQuery.status, playlists.length])
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true)
