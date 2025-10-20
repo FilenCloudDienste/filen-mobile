@@ -24,7 +24,7 @@ import Svg, { Path } from "react-native-svg"
 
 export const DEFAULT_DIRECTORY_COLOR: string = "#85BCFF"
 
-export const FileNameToSVGIconOuter = memo(({ name, ...props }: { name: string; width?: number; height?: number; fill?: string }) => {
+export const FileNameToSVGIcon = memo(({ name, ...props }: { name: string; width?: number; height?: number; fill?: string }) => {
 	const parsed = useMemo(() => {
 		return pathModule.posix.parse(name.toLowerCase())
 	}, [name])
@@ -168,7 +168,7 @@ export const FileNameToSVGIconOuter = memo(({ name, ...props }: { name: string; 
 	}
 })
 
-FileNameToSVGIconOuter.displayName = "FileNameToSVGIconOuter"
+FileNameToSVGIcon.displayName = "FileNameToSVGIcon"
 
 /**
  * Shade a base color (make it lighter/darker).

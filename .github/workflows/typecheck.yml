@@ -1,0 +1,31 @@
+name: Typecheck
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+concurrency:
+  group: 'typecheck'
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install --force --include=dev
+
+      - name: Typecheck
+        run: npm run typecheck
