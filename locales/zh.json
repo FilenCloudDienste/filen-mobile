@@ -132,7 +132,8 @@
                 "placeholder": "PIN码",
                 "title": "输入您的PIN码"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "使用生物识别进行验证"
     },
     "bpsToReadable": {
         "b": "B/s",

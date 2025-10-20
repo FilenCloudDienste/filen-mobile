@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "Indtast din PIN-kode"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "Godkend med Biometri"
     },
     "bpsToReadable": {
         "b": "B/s",

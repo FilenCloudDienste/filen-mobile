@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "Nhập mã PIN của bạn"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "Xác thực bằng sinh trắc học"
     },
     "bpsToReadable": {
         "b": "B/s",

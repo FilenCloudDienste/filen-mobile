@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "PINを入力してください"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "生体認証を使用して認証する"
     },
     "bpsToReadable": {
         "b": "B/s",

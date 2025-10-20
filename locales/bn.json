@@ -132,7 +132,8 @@
                 "placeholder": "পিন",
                 "title": "আপনার পিন লিখুন"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "জীবনীয় মেট্রিক্স ব্যবহার করে প্রমাণীকরণ করুন"
     },
     "bpsToReadable": {
         "b": "বি/এস",
