@@ -1365,6 +1365,7 @@
 	"biometric": {
 		"appLockedFor": "App locked for {{seconds}} seconds",
 		"authenticateUsingPin": "Authenticate using your PIN",
+		"authenticateUsingBiometrics": "Authenticate using Biometrics",
 		"prompts": {
 			"pin": {
 				"title": "Enter your PIN",

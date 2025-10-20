@@ -13,12 +13,12 @@ import { Text } from "@/components/nativewindui/Text"
 import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
 import { createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils"
 import { Platform } from "react-native"
-import * as LocalAuthentication from "expo-local-authentication"
 import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import fileProvider from "@/lib/fileProvider"
 import alerts from "@/lib/alerts"
 import useLocalAuthenticationQuery from "@/queries/useLocalAuthentication.query"
+import { localAuthenticate } from "@/components/biometric"
 
 export const Biometric = memo(() => {
 	const [biometricAuth, setBiometricAuth] = useMMKVObject<BiometricAuth>(BIOMETRIC_AUTH_KEY, mmkvInstance)
@@ -32,16 +32,16 @@ export const Biometric = memo(() => {
 	const localAuthentication = useLocalAuthenticationQuery()
 
 	const lockAppAfterDropdownItems = useMemo(() => {
-		return [0, 60, 300, 600, 900, 1800, 3600, Number.MAX_SAFE_INTEGER].map(seconds =>
+		return [0, 60, 300, 600, 900, 1800, 3600].map(seconds =>
 			createDropdownItem({
 				title:
 					seconds >= Number.MAX_SAFE_INTEGER
 						? t("settings.biometric.lockAppAfter.never")
 						: seconds === 0
-						? t("settings.biometric.lockAppAfter.immediately")
-						: t("settings.biometric.lockAppAfter.minutes", {
-								minutes: Math.floor(seconds / 60)
-						  }),
+							? t("settings.biometric.lockAppAfter.immediately")
+							: t("settings.biometric.lockAppAfter.minutes", {
+									minutes: Math.floor(seconds / 60)
+								}),
 				actionKey: seconds.toString()
 			})
 		)
@@ -52,6 +52,15 @@ export const Biometric = memo(() => {
 			if (localAuthentication.status !== "success") {
 				setBiometricAuth(undefined)
 
+				return
+			}
+
+			if (
+				!(await localAuthenticate({
+					cancelLabel: t("localAuthentication.cancelLabel"),
+					promptMessage: t("localAuthentication.promptMessage")
+				}))
+			) {
 				return
 			}
 
@@ -137,23 +146,6 @@ export const Biometric = memo(() => {
 					return
 				}
 
-				if (
-					localAuthentication.data.hasHardware &&
-					localAuthentication.data.isEnrolled &&
-					localAuthentication.data.supportedTypes.length > 0
-				) {
-					const result = await LocalAuthentication.authenticateAsync({
-						cancelLabel: t("localAuthentication.cancelLabel"),
-						promptMessage: t("localAuthentication.promptMessage"),
-						disableDeviceFallback: true,
-						fallbackLabel: ""
-					})
-
-					if (!result.success) {
-						return
-					}
-				}
-
 				await fileProvider.disable()
 
 				setBiometricAuth({
@@ -167,15 +159,6 @@ export const Biometric = memo(() => {
 					triesLockedUntilMultiplier: 1
 				})
 			} else {
-				const alertPromptResponse = await alertPrompt({
-					title: t("settings.biometric.prompts.disable.title"),
-					message: t("settings.biometric.prompts.disable.message")
-				})
-
-				if (alertPromptResponse.cancelled) {
-					return
-				}
-
 				setBiometricAuth(undefined)
 			}
 		},
@@ -189,7 +172,7 @@ export const Biometric = memo(() => {
 					? {
 							...prev,
 							pinOnly: value
-					  }
+						}
 					: prev
 			)
 		},
@@ -222,7 +205,7 @@ export const Biometric = memo(() => {
 												? {
 														...prev,
 														lockAfter: Number(item.actionKey)
-												  }
+													}
 												: prev
 										)
 									}}
@@ -236,10 +219,10 @@ export const Biometric = memo(() => {
 											{biometricAuth && biometricAuth.enabled && biometricAuth.lockAfter >= Number.MAX_SAFE_INTEGER
 												? t("settings.biometric.lockAppAfter.never")
 												: biometricAuth.lockAfter === 0
-												? t("settings.biometric.lockAppAfter.immediately")
-												: t("settings.biometric.lockAppAfter.minutes", {
-														minutes: Math.floor(biometricAuth.lockAfter / 60)
-												  })}
+													? t("settings.biometric.lockAppAfter.immediately")
+													: t("settings.biometric.lockAppAfter.minutes", {
+															minutes: Math.floor(biometricAuth.lockAfter / 60)
+														})}
 										</Text>
 										<Icon
 											name="pencil"
@@ -260,7 +243,7 @@ export const Biometric = memo(() => {
 								/>
 							)
 						}
-				  ]
+					]
 				: [])
 		]
 	}, [biometricAuth, toggleBiometric, togglePinOnly, setBiometricAuth, colors.primary, t, lockAppAfterDropdownItems])

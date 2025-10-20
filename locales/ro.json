@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "Introdu PIN-ul"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "Autentificare folosind date biometrice"
     },
     "bpsToReadable": {
         "b": "B/s",

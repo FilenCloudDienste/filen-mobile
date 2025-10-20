@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "Voer uw PIN in"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "Authenticatie met biometrische gegevens"
     },
     "bpsToReadable": {
         "b": "B/s",

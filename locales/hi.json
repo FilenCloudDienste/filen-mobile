@@ -132,7 +132,8 @@
                 "placeholder": "पिन",
                 "title": "अपना PIN दर्ज करें"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "बायोमेट्रिक्स का उपयोग करके प्रमाणीकरण करें"
     },
     "bpsToReadable": {
         "b": "B/s",
