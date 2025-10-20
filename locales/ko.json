@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "PIN을 입력하세요"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "생체 인식을 사용하여 인증"
     },
     "bpsToReadable": {
         "b": "B/s",

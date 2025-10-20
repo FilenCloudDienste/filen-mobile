@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "Adja meg a PIN kódját"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "Hitelesítés biometrikus azonosítással"
     },
     "bpsToReadable": {
         "b": "B/s",

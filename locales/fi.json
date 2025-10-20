@@ -132,7 +132,8 @@
                 "placeholder": "PIN-koodi",
                 "title": "Syötä PIN-koodisi"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "Todenna biometrisellä tunnistautumisella"
     },
     "bpsToReadable": {
         "b": "B/s",

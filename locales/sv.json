@@ -132,7 +132,8 @@
                 "placeholder": "PIN",
                 "title": "Ange din PIN-kod"
             }
-        }
+        },
+        "authenticateUsingBiometrics": "Autentisera med biometrisk identifiering"
     },
     "bpsToReadable": {
         "b": "B/s",
