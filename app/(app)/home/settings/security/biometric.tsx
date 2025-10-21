@@ -5,7 +5,7 @@ import { Toggle } from "@/components/nativewindui/Toggle"
 import { useMMKVObject } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { inputPrompt } from "@/components/prompts/inputPrompt"
-import { translateMemoized } from "@/lib/i18n"
+import { translateMemoized, t } from "@/lib/i18n"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import { type BiometricAuth, BIOMETRIC_AUTH_KEY } from "."
 import { Button } from "@/components/nativewindui/Button"
@@ -18,7 +18,6 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import fileProvider from "@/lib/fileProvider"
 import alerts from "@/lib/alerts"
 import useLocalAuthenticationQuery from "@/queries/useLocalAuthentication.query"
-import { localAuthenticate } from "@/components/biometric"
 
 export const Biometric = memo(() => {
 	const [biometricAuth, setBiometricAuth] = useMMKVObject<BiometricAuth>(BIOMETRIC_AUTH_KEY, mmkvInstance)
@@ -38,7 +37,7 @@ export const Biometric = memo(() => {
 						? translateMemoized("settings.biometric.lockAppAfter.never")
 						: seconds === 0
 						? translateMemoized("settings.biometric.lockAppAfter.immediately")
-						: translateMemoized("settings.biometric.lockAppAfter.minutes", {
+						: t("settings.biometric.lockAppAfter.minutes", {
 								minutes: Math.floor(seconds / 60)
 						  }),
 				actionKey: seconds.toString()
@@ -51,15 +50,6 @@ export const Biometric = memo(() => {
 			if (localAuthentication.status !== "success") {
 				setBiometricAuth(undefined)
 
-				return
-			}
-
-			if (
-				!(await localAuthenticate({
-					cancelLabel: translateMemoized("localAuthentication.cancelLabel"),
-					promptMessage: translateMemoized("localAuthentication.promptMessage")
-				}))
-			) {
 				return
 			}
 
@@ -219,7 +209,7 @@ export const Biometric = memo(() => {
 												? translateMemoized("settings.biometric.lockAppAfter.never")
 												: biometricAuth.lockAfter === 0
 												? translateMemoized("settings.biometric.lockAppAfter.immediately")
-												: translateMemoized("settings.biometric.lockAppAfter.minutes", {
+												: t("settings.biometric.lockAppAfter.minutes", {
 														minutes: Math.floor(biometricAuth.lockAfter / 60)
 												  })}
 										</Text>

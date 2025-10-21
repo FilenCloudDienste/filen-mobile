@@ -3,7 +3,7 @@ import { useLocalSearchParams } from "expo-router"
 import { memo, useMemo } from "react"
 import cache from "@/lib/cache"
 import { useDriveStore } from "@/stores/drive.store"
-import { translateMemoized } from "@/lib/i18n"
+import { translateMemoized, t } from "@/lib/i18n"
 import Android from "./android"
 import IOS from "./ios"
 import { validate as validateUUID } from "uuid"
@@ -17,7 +17,7 @@ export const Header = memo(({ queryParams }: { queryParams: FetchCloudItemsParam
 
 	const headerTitle = useMemo(() => {
 		if (selectedItemsCount > 0) {
-			return translateMemoized("drive.header.title.selected", {
+			return t("drive.header.title.selected", {
 				count: selectedItemsCount
 			})
 		}

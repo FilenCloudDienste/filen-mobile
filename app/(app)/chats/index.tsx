@@ -52,17 +52,18 @@ export const Chats = memo(() => {
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true)
 
-		try {
-			await chatsQuery.refetch()
-		} catch (e) {
-			console.error(e)
+		await chatsQuery
+			.refetch()
+			.catch(e => {
+				console.error(e)
 
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
-		} finally {
-			setRefreshing(false)
-		}
+				if (e instanceof Error) {
+					alerts.error(e.message)
+				}
+			})
+			.finally(() => {
+				setRefreshing(false)
+			})
 	}, [chatsQuery])
 
 	const keyExtractor = useCallback((item: ChatConversation) => {
