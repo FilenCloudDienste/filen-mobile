@@ -156,7 +156,7 @@ export default function RootLayout() {
 													/>
 													<Stack.Screen
 														name="shareIntent"
-														options={SCREEN_OPTIONS.modal}
+														options={SCREEN_OPTIONS.base}
 													/>
 													<Stack.Screen
 														name="chat/[uuid]"

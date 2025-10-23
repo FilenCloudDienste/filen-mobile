@@ -16,14 +16,13 @@ import { useAppStateStore } from "@/stores/appState.store"
 import useIsAuthed from "@/hooks/useIsAuthed"
 import useLocalAuthenticationQuery from "@/queries/useLocalAuthentication.query"
 import { FullWindowOverlay } from "react-native-screens"
-import { Portal } from "@rn-primitives/portal"
 
 export const ParentComponent = memo(({ children }: { children: React.ReactNode }) => {
 	if (Platform.OS === "ios") {
 		return <FullWindowOverlay>{children}</FullWindowOverlay>
 	}
 
-	return <Portal name="biometric-modal">{children}</Portal>
+	return <View className="absolute top-0 left-0 right-0 bottom-0 z-[900] w-full h-full">{children}</View>
 })
 
 ParentComponent.displayName = "ParentComponent"

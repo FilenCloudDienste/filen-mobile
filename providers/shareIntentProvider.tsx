@@ -46,8 +46,8 @@ export const ShareIntentProvider = memo(({ children }: { children: React.ReactNo
 	return (
 		<OriginalShareIntentProvider
 			options={{
-				debug: true,
-				resetOnBackground: true,
+				debug: false,
+				resetOnBackground: false,
 				onResetShareIntent
 			}}
 		>
