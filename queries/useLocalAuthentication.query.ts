@@ -28,7 +28,6 @@ export function useLocalAuthenticationQuery(
 		...DEFAULT_QUERY_OPTIONS,
 		...defaultParams,
 		...options,
-		staleTime: 5000,
 		enabled: options?.enabled ?? true,
 		queryKey: [BASE_QUERY_KEY],
 		queryFn: () => fetchData()

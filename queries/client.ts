@@ -18,11 +18,7 @@ export const UNCACHED_QUERY_KEYS: string[] = [
 	"useTextEditorItemContentQuery",
 	"useFileBase64Query",
 	"useDownloadFileTemporaryLocalQuery",
-	"useFileProviderEnabledQuery",
-	"useLocalAlbumsQuery",
-	"useLocalAuthenticationQuery",
-	"useSettingsAdvancedCacheQuery",
-	"useFileOfflineStatusQuery"
+	"useSettingsAdvancedCacheQuery"
 ]
 
 export const shouldPersistQuery = (query: PersistedQuery): boolean => {

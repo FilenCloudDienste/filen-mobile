@@ -105,16 +105,14 @@ export const Biometric = memo(() => {
 		return false
 	}, [show])
 
-	const promptAuth = useCallback(
-		async (delay: number) => {
-			console.log({
-				biometricAuth,
-				currentlyPrompting: currentlyPromptingRef.current,
-				show,
-				enabled,
-				appState
-			})
+	const waitForQueryToFinish = useCallback(async () => {
+		while (localAuthentication.status === "pending") {
+			await new Promise<void>(resolve => setTimeout(resolve, 100))
+		}
+	}, [localAuthentication.status])
 
+	const promptAuth = useCallback(
+		async (delay: number, type: "biometric" | "pin" | "any") => {
 			if (!biometricAuth || currentlyPromptingRef.current || !show || !enabled || appState !== "active") {
 				return
 			}
@@ -123,13 +121,14 @@ export const Biometric = memo(() => {
 
 			try {
 				// We have to add a small delay otherwise rendering fucks up
-				await new Promise<void>(resolve => setTimeout(resolve, delay))
+				await Promise.all([new Promise<void>(resolve => setTimeout(resolve, delay)), waitForQueryToFinish()])
 
 				if (
 					localAuthentication.status === "success" &&
 					localAuthentication.data.hasHardware &&
 					localAuthentication.data.isEnrolled &&
-					!biometricAuth.pinOnly
+					!biometricAuth.pinOnly &&
+					(type === "biometric" || type === "any")
 				) {
 					const result = await LocalAuthentication.authenticateAsync({
 						cancelLabel: translateMemoized("localAuthentication.cancelLabel"),
@@ -224,7 +223,7 @@ export const Biometric = memo(() => {
 				currentlyPromptingRef.current = false
 			}
 		},
-		[localAuthentication, biometricAuth, setBiometricAuth, show, appState, enabled]
+		[localAuthentication, biometricAuth, setBiometricAuth, show, appState, enabled, waitForQueryToFinish]
 	)
 
 	useEffect(() => {
@@ -262,7 +261,7 @@ export const Biometric = memo(() => {
 		useAppStateStore.getState().setBiometricVisible(show)
 
 		if (show) {
-			promptAuth(1000)
+			promptAuth(1000, "any")
 		}
 	}, [show, promptAuth])
 
@@ -284,7 +283,7 @@ export const Biometric = memo(() => {
 					/>
 					<Action
 						lockedSeconds={biometricsLockedForSeconds()}
-						pinAuth={() => promptAuth(0)}
+						pinAuth={() => promptAuth(0, "pin")}
 					/>
 				</View>
 			</Animated.View>
