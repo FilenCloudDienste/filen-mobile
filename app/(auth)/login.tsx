@@ -12,6 +12,7 @@ import RequireInternet from "@/components/requireInternet"
 import { translateMemoized } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import { Icon } from "@roninoss/icons"
+import { Form, FormItem, FormSection } from "@/components/nativewindui/Form"
 
 const keyboardAwareScrollViewBottomOffset = Platform.select({
 	ios: 175,
@@ -23,8 +24,7 @@ export const Login = memo(() => {
 	const router = useRouter()
 	const [email, setEmail] = useState<string>("")
 	const [password, setPassword] = useState<string>("")
-	const [error, setError] = useState("")
-	const [hidePassword, setHidePassword] = useState(true)
+	const [hidePassword, setHidePassword] = useState<boolean>(true)
 
 	const disabled = useMemo(() => {
 		return !email || !password
@@ -32,8 +32,6 @@ export const Login = memo(() => {
 
 	const login = useCallback(async () => {
 		KeyboardController.dismiss()
-
-		setError("")
 
 		try {
 			if (disabled) {
@@ -58,7 +56,7 @@ export const Login = memo(() => {
 			console.error(e)
 
 			if (e instanceof Error) {
-				setError(e.message)
+				alerts.error(e.message)
 			}
 
 			setPassword("")
@@ -184,49 +182,50 @@ export const Login = memo(() => {
 								{translateMemoized("auth.login.loginUsingCreds")}
 							</Text>
 						</View>
-						<View className="ios:pt-4 pt-6 gap-2">
-							<View testID="email">
-								<TextField
-									containerClassName="ios:border border-gray-200 rounded"
-									placeholder={translateMemoized("auth.login.form.email.placeholder")}
-									label={labels.email}
-									onSubmitEditing={onSubmitEmail}
-									submitBehavior="submit"
-									autoFocus={true}
-									onChangeText={setEmail}
-									value={email}
-									keyboardType="email-address"
-									textContentType="emailAddress"
-									returnKeyType="next"
-								/>
-							</View>
-							<View testID="password">
-								<TextField
-									containerClassName="ios:border border-gray-200 rounded"
-									placeholder={translateMemoized("auth.login.form.password.placeholder")}
-									label={labels.password}
-									secureTextEntry={hidePassword}
-									onChangeText={setPassword}
-									value={password}
-									returnKeyType="done"
-									textContentType="password"
-									onSubmitEditing={onSubmitPassword}
-									rightView={
-										<TouchableOpacity
-											testID="toggleHidePassword"
-											className="justify-center pr-3"
-											onPress={() => setHidePassword(prev => !prev)}
-										>
-											<Icon
-												name={hidePassword ? "eye-outline" : "eye-off-outline"}
-												color="#ccc"
-												size={20}
-											/>
-										</TouchableOpacity>
-									}
-								/>
-							</View>
-							{error && <Text className="bg-red-100 rounded text-red-600 px-4 py-2 text-sm">{error}</Text>}
+						<View className="ios:pt-4 pt-6">
+							<Form className="gap-2">
+								<FormSection className="ios:bg-background">
+									<FormItem testID="email">
+										<TextField
+											placeholder={translateMemoized("auth.login.form.email.placeholder")}
+											label={labels.email}
+											onSubmitEditing={onSubmitEmail}
+											submitBehavior="submit"
+											autoFocus={true}
+											onChangeText={setEmail}
+											value={email}
+											keyboardType="email-address"
+											textContentType="emailAddress"
+											returnKeyType="next"
+										/>
+									</FormItem>
+									<FormItem testID="password">
+										<TextField
+											placeholder={translateMemoized("auth.login.form.password.placeholder")}
+											label={labels.password}
+											secureTextEntry={hidePassword}
+											onChangeText={setPassword}
+											value={password}
+											returnKeyType="done"
+											textContentType="password"
+											onSubmitEditing={onSubmitPassword}
+											rightView={
+												<TouchableOpacity
+													testID="toggleHidePassword"
+													className="justify-center pr-3"
+													onPress={() => setHidePassword(prev => !prev)}
+												>
+													<Icon
+														name={hidePassword ? "eye-outline" : "eye-off-outline"}
+														color="#ccc"
+														size={20}
+													/>
+												</TouchableOpacity>
+											}
+										/>
+									</FormItem>
+								</FormSection>
+							</Form>
 							<View className="flex-row">
 								<Button
 									testID="forgotPassword"

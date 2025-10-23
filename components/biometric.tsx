@@ -2,7 +2,7 @@ import { memo, useEffect, useState, useMemo, useCallback, useRef } from "react"
 import { useMMKVObject } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import { type BiometricAuth, BIOMETRIC_AUTH_KEY, BIOMETRIC_MAX_TRIES } from "@/app/(app)/home/settings/security"
-import { AppState, BackHandler, View, Platform } from "react-native"
+import { AppState, BackHandler, View, Platform, type AppStateStatus } from "react-native"
 import Animated, { FadeOut } from "react-native-reanimated"
 import * as LocalAuthentication from "expo-local-authentication"
 import alerts from "@/lib/alerts"
@@ -12,22 +12,18 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { inputPrompt } from "./prompts/inputPrompt"
 import { translateMemoized, t } from "@/lib/i18n"
-import { Portal } from "@rn-primitives/portal"
 import { useAppStateStore } from "@/stores/appState.store"
-import { FullWindowOverlay } from "react-native-screens"
 import useIsAuthed from "@/hooks/useIsAuthed"
 import useLocalAuthenticationQuery from "@/queries/useLocalAuthentication.query"
+import { FullWindowOverlay } from "react-native-screens"
+import { Portal } from "@rn-primitives/portal"
 
-export const ParentComponent = memo(({ children, show }: { children: React.ReactNode; show: boolean }) => {
-	if (!show) {
-		return null
+export const ParentComponent = memo(({ children }: { children: React.ReactNode }) => {
+	if (Platform.OS === "ios") {
+		return <FullWindowOverlay>{children}</FullWindowOverlay>
 	}
 
-	if (Platform.OS === "android") {
-		return <Portal name="biometric-modal">{children}</Portal>
-	}
-
-	return <FullWindowOverlay>{children}</FullWindowOverlay>
+	return <Portal name="biometric-modal">{children}</Portal>
 })
 
 ParentComponent.displayName = "ParentComponent"
@@ -82,13 +78,15 @@ export const Biometric = memo(() => {
 	const { colors } = useColorScheme()
 	const [isAuthed] = useIsAuthed()
 	const localAuthentication = useLocalAuthenticationQuery()
-	const promptingAuthRef = useRef<boolean>(false)
+	const currentlyPromptingRef = useRef<boolean>(false)
+	const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState)
+	const lastAppStateRef = useRef<AppStateStatus>(AppState.currentState)
 
 	const enabled = useMemo(() => {
-		return isAuthed && (biometricAuth?.enabled ?? false)
+		return isAuthed && (biometricAuth?.enabled ?? false) ? true : false
 	}, [biometricAuth, isAuthed])
 
-	const [show, setShow] = useState<boolean>(enabled ?? false)
+	const [show, setShow] = useState<boolean>(enabled)
 
 	const biometricsLockedForSeconds = useCallback(() => {
 		if (!enabled || !biometricAuth) {
@@ -108,158 +106,173 @@ export const Biometric = memo(() => {
 		return false
 	}, [show])
 
-	const promptAuth = useCallback(async () => {
-		if (!show || promptingAuthRef.current || !biometricAuth) {
-			return
-		}
+	const promptAuth = useCallback(
+		async (delay: number) => {
+			console.log({
+				biometricAuth,
+				currentlyPrompting: currentlyPromptingRef.current,
+				show,
+				enabled,
+				appState
+			})
 
-		promptingAuthRef.current = true
+			if (!biometricAuth || currentlyPromptingRef.current || !show || !enabled || appState !== "active") {
+				return
+			}
 
-		try {
-			if (localAuthentication.status === "success" && localAuthentication.data.hasHardware && localAuthentication.data.isEnrolled) {
-				if (!(await LocalAuthentication.hasHardwareAsync())) {
-					alerts.error("Biometric authentication is not available on this device.")
+			currentlyPromptingRef.current = true
 
-					return
-				}
+			try {
+				// We have to add a small delay otherwise rendering fucks up
+				await new Promise<void>(resolve => setTimeout(resolve, delay))
 
-				if (!(await LocalAuthentication.isEnrolledAsync())) {
-					alerts.error("No biometric data is saved on this device.")
+				if (
+					localAuthentication.status === "success" &&
+					localAuthentication.data.hasHardware &&
+					localAuthentication.data.isEnrolled &&
+					!biometricAuth.pinOnly
+				) {
+					const result = await LocalAuthentication.authenticateAsync({
+						cancelLabel: translateMemoized("localAuthentication.cancelLabel"),
+						promptMessage: translateMemoized("localAuthentication.promptMessage"),
+						disableDeviceFallback: true,
+						fallbackLabel: ""
+					})
 
-					return
-				}
-
-				const result = await LocalAuthentication.authenticateAsync({
-					cancelLabel: translateMemoized("localAuthentication.cancelLabel"),
-					promptMessage: translateMemoized("localAuthentication.promptMessage"),
-					disableDeviceFallback: true,
-					fallbackLabel: ""
-				})
-
-				if (!result.success) {
-					return
-				}
-			} else {
-				const codePrompt = await inputPrompt({
-					title: translateMemoized("biometric.prompts.pin.title"),
-					materialIcon: {
-						name: "lock-outline"
-					},
-					prompt: {
-						type: "secure-text",
-						keyboardType: "default",
-						defaultValue: "",
-						placeholder: translateMemoized("biometric.prompts.pin.placeholder")
+					if (!result.success) {
+						return
 					}
-				})
+				} else {
+					const codePrompt = await inputPrompt({
+						title: translateMemoized("biometric.prompts.pin.title"),
+						materialIcon: {
+							name: "lock-outline"
+						},
+						prompt: {
+							type: "secure-text",
+							keyboardType: "default",
+							defaultValue: "",
+							placeholder: translateMemoized("biometric.prompts.pin.placeholder")
+						}
+					})
 
-				if (codePrompt.cancelled || codePrompt.type !== "text") {
-					return
-				}
-
-				const code = codePrompt.text.trim()
-
-				if (code.length === 0) {
-					return
-				}
-
-				if (code !== biometricAuth.code) {
-					const currentTries = biometricAuth.tries
-
-					if (currentTries >= BIOMETRIC_MAX_TRIES) {
-						const lockedUntil = Math.round(60 * 1000 * biometricAuth.triesLockedUntilMultiplier)
-
-						setBiometricAuth(prev =>
-							prev
-								? {
-										...prev,
-										tries: 0,
-										triesLockedUntil: Date.now() + lockedUntil,
-										triesLockedUntilMultiplier: prev.triesLockedUntilMultiplier * 2
-								  }
-								: prev
-						)
-
-						alerts.error(translateMemoized("biometric.errors.tooManyIncorrectAttempts"))
-
+					if (codePrompt.cancelled || codePrompt.type !== "text") {
 						return
 					}
 
-					setBiometricAuth(prev =>
-						prev
-							? {
-									...prev,
-									tries: prev.tries + 1
-							  }
-							: prev
-					)
+					const code = codePrompt.text.trim()
 
-					alerts.error(translateMemoized("biometric.errors.incorrectPin"))
+					if (code.length === 0) {
+						return
+					}
 
-					return
-				}
-			}
+					if (code !== biometricAuth.code) {
+						const currentTries = biometricAuth.tries
 
-			setShow(false)
-			setBiometricAuth(prev =>
-				prev
-					? {
-							...prev,
-							lastLock: Date.now(),
-							tries: 0,
-							triesLockedUntil: 0,
-							triesLockedUntilMultiplier: 1
-					  }
-					: prev
-			)
-		} finally {
-			promptingAuthRef.current = false
-		}
-	}, [show, localAuthentication, biometricAuth, setBiometricAuth])
+						if (currentTries >= BIOMETRIC_MAX_TRIES) {
+							const lockedUntil = Math.round(60 * 1000 * biometricAuth.triesLockedUntilMultiplier)
 
-	useEffect(() => {
-		const appStateListener = AppState.addEventListener("change", nextAppState => {
-			switch (nextAppState) {
-				case "background":
-				case "active": {
-					const now = Date.now()
-					const lockTimeout = (biometricAuth?.lastLock ?? now) + (biometricAuth?.lockAfter ?? 0) * 1000
-					const show = now > lockTimeout
+							setBiometricAuth(prev =>
+								prev
+									? {
+											...prev,
+											tries: 0,
+											triesLockedUntil: Date.now() + lockedUntil,
+											triesLockedUntilMultiplier: prev.triesLockedUntilMultiplier * 2
+									  }
+									: prev
+							)
 
-					if (show) {
-						setShow(show)
+							alerts.error(translateMemoized("biometric.errors.tooManyIncorrectAttempts"))
+
+							return
+						}
+
 						setBiometricAuth(prev =>
 							prev
 								? {
 										...prev,
-										lastLock: now
+										tries: prev.tries + 1
 								  }
 								: prev
 						)
+
+						alerts.error(translateMemoized("biometric.errors.incorrectPin"))
+
+						return
 					}
+				}
+
+				setShow(false)
+				setBiometricAuth(prev =>
+					prev
+						? {
+								...prev,
+								lastLock: Date.now() + 3000,
+								tries: 0,
+								triesLockedUntil: 0,
+								triesLockedUntilMultiplier: 1
+						  }
+						: prev
+				)
+			} catch (e) {
+				console.error(e)
+
+				if (e instanceof Error) {
+					alerts.error(e.message)
+				}
+			} finally {
+				currentlyPromptingRef.current = false
+			}
+		},
+		[localAuthentication, biometricAuth, setBiometricAuth, show, appState, enabled]
+	)
+
+	useEffect(() => {
+		const appStateListener = AppState.addEventListener("change", (nextAppState: AppStateStatus) => {
+			setAppState(nextAppState)
+
+			switch (nextAppState) {
+				case "background":
+				case "active": {
+					if (!biometricAuth || !["active", "background"].includes(lastAppStateRef.current)) {
+						break
+					}
+
+					const now = Date.now()
+					const lockTimeout = Math.floor(biometricAuth.lastLock + Math.floor(biometricAuth.lockAfter * 1000))
+
+					setShow(now > lockTimeout)
 
 					break
 				}
 			}
+
+			lastAppStateRef.current = nextAppState
 		})
 
 		const backHandler = BackHandler.addEventListener("hardwareBackPress", onBackButtonPress)
 
 		return () => {
 			appStateListener.remove()
-
 			backHandler.remove()
 		}
-	}, [setBiometricAuth, biometricAuth, show, onBackButtonPress, localAuthentication.status, localAuthentication.data])
+	}, [onBackButtonPress, biometricAuth])
 
 	useEffect(() => {
 		useAppStateStore.getState().setBiometricVisible(show)
 
-		promptAuth()
+		if (show) {
+			promptAuth(1000)
+		}
 	}, [show, promptAuth])
 
+	if (!show) {
+		return null
+	}
+
 	return (
-		<ParentComponent show={show}>
+		<ParentComponent>
 			<Animated.View
 				exiting={FadeOut}
 				className="flex-1 items-center justify-center bg-background absolute top-0 left-0 right-0 bottom-0 z-[900] w-full h-full"
@@ -272,7 +285,7 @@ export const Biometric = memo(() => {
 					/>
 					<Action
 						lockedSeconds={biometricsLockedForSeconds()}
-						pinAuth={promptAuth}
+						pinAuth={() => promptAuth(0)}
 					/>
 				</View>
 			</Animated.View>

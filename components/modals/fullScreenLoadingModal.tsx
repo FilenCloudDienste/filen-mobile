@@ -84,6 +84,7 @@ export const FullScreenLoadingModal = memo(() => {
 					onRequestClose={onRequestClose}
 					statusBarTranslucent={true}
 					navigationBarTranslucent={true}
+					allowSwipeDismissal={false}
 					supportedOrientations={["portrait", "landscape"]}
 				>
 					<View

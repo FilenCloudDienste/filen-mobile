@@ -153,6 +153,9 @@ export class AuthService {
 		}
 
 		try {
+			// We need to wait a bit to let the modal render, otherwise the screen transition will be janky and potentially crash on android
+			await new Promise<void>(resolve => setTimeout(resolve, 1000))
+
 			cache.availableThumbnails.clear()
 			cache.directoryUUIDToName.clear()
 
@@ -183,7 +186,8 @@ export class AuthService {
 		twoFactorCode?: string
 		disableLoader?: boolean
 	}): Promise<boolean> {
-		if (!disableLoader) { //TODO this should be in the display logic
+		if (!disableLoader) {
+			//TODO this should be in the display logic
 			fullScreenLoadingModal.show()
 		}
 

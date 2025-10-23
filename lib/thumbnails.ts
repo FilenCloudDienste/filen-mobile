@@ -20,7 +20,7 @@ export const THUMBNAILS_COMPRESSION: number = 0.8
 export const THUMBNAILS_SUPPORTED_FORMATS = [...EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS, ...EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS]
 
 export class Thumbnails {
-	private readonly semaphore: Semaphore = new Semaphore(2)
+	private readonly semaphore: Semaphore = new Semaphore(3)
 	private readonly uuidMutex: Record<string, Semaphore> = {}
 	private readonly errorCount: Record<string, number> = {}
 
@@ -61,34 +61,20 @@ export class Thumbnails {
 	}
 
 	public async delete(item: DriveCloudItem): Promise<void> {
-		const uuidMutex = this.uuidMutex[item.uuid]
-
-		if (!uuidMutex) {
-			throw new Error("Uuid Mutex not found.")
+		if (cache.availableThumbnails.has(item.uuid)) {
+			cache.availableThumbnails.delete(item.uuid)
 		}
 
-		await Promise.all([this.semaphore.acquire(), uuidMutex.acquire()])
+		const thumbnailPath = paths.thumbnails()
+		const thumbnailFile = new FileSystem.File(normalizeFilePathForExpo(pathModule.posix.join(thumbnailPath, `${item.uuid}.png`)))
 
-		try {
-			if (cache.availableThumbnails.has(item.uuid)) {
-				cache.availableThumbnails.delete(item.uuid)
-			}
+		if (thumbnailFile.exists) {
+			thumbnailFile.delete()
 
-			const thumbnailPath = paths.thumbnails()
-			const thumbnailFile = new FileSystem.File(normalizeFilePathForExpo(pathModule.posix.join(thumbnailPath, `${item.uuid}.png`)))
-
-			if (thumbnailFile.exists) {
-				thumbnailFile.delete()
-
-				this.errorCount[item.uuid] = 0
-			}
-
-			await sqlite.db.executeAsync("DELETE FROM thumbnails WHERE uuid = ?", [item.uuid])
-		} finally {
-			this.semaphore.release()
-
-			uuidMutex.release()
+			this.errorCount[item.uuid] = 0
 		}
+
+		await sqlite.db.executeAsync("DELETE FROM thumbnails WHERE uuid = ?", [item.uuid])
 	}
 
 	public async generate({
@@ -130,7 +116,7 @@ export class Thumbnails {
 			throw new Error("Uuid Mutex not found.")
 		}
 
-		await Promise.all([this.semaphore.acquire(), uuidMutex.acquire()])
+		await Promise.all([!originalFilePath ? this.semaphore.acquire() : Promise.resolve(), uuidMutex.acquire()])
 
 		try {
 			const temporaryDownloadsPath = paths.temporaryDownloads()
@@ -346,7 +332,10 @@ export class Thumbnails {
 
 			throw e
 		} finally {
-			this.semaphore.release()
+			if (!originalFilePath) {
+				this.semaphore.release()
+			}
+
 			uuidMutex.release()
 		}
 	}

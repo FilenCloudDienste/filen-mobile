@@ -17,7 +17,6 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import fileProvider from "@/lib/fileProvider"
 import alerts from "@/lib/alerts"
-import useLocalAuthenticationQuery from "@/queries/useLocalAuthentication.query"
 
 export const Biometric = memo(() => {
 	const [biometricAuth, setBiometricAuth] = useMMKVObject<BiometricAuth>(BIOMETRIC_AUTH_KEY, mmkvInstance)
@@ -26,8 +25,6 @@ export const Biometric = memo(() => {
 	const account = useAccountQuery({
 		enabled: false
 	})
-
-	const localAuthentication = useLocalAuthenticationQuery()
 
 	const lockAppAfterDropdownItems = useMemo(() => {
 		return [0, 60, 300, 600, 900, 1800, 3600].map(seconds =>
@@ -47,12 +44,6 @@ export const Biometric = memo(() => {
 
 	const toggleBiometric = useCallback(
 		async (value: boolean) => {
-			if (localAuthentication.status !== "success") {
-				setBiometricAuth(undefined)
-
-				return
-			}
-
 			if (value) {
 				if (await fileProvider.enabled()) {
 					const fileProviderPrompt = await alertPrompt({
@@ -151,7 +142,7 @@ export const Biometric = memo(() => {
 				setBiometricAuth(undefined)
 			}
 		},
-		[setBiometricAuth, localAuthentication.status]
+		[setBiometricAuth]
 	)
 
 	const togglePinOnly = useCallback(
