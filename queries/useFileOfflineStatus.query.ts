@@ -6,6 +6,7 @@ import paths from "@/lib/paths"
 import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import queryUpdater from "./updater"
 import { sortParams } from "@/lib/utils"
+import Semaphore from "@/lib/semaphore"
 
 export const BASE_QUERY_KEY = "useFileOfflineStatusQuery"
 
@@ -22,18 +23,26 @@ export type UseFileOfflineStatusQuery =
 			path: string
 	  }
 
+const mutex = new Semaphore(1)
+
 export async function fetchData(params: UseFileOfflineStatusQueryParams): Promise<UseFileOfflineStatusQuery> {
-	const item = await sqlite.offlineFiles.get(params.uuid)
+	await mutex.acquire()
 
-	if (!item) {
-		return {
-			exists: false
+	try {
+		const item = await sqlite.offlineFiles.get(params.uuid)
+
+		if (!item) {
+			return {
+				exists: false
+			}
 		}
-	}
 
-	return {
-		exists: true,
-		path: pathModule.posix.join(paths.offlineFiles(), `${params.uuid}${pathModule.posix.extname(item.name)}`)
+		return {
+			exists: true,
+			path: pathModule.posix.join(paths.offlineFiles(), `${params.uuid}${pathModule.posix.extname(item.name)}`)
+		}
+	} finally {
+		mutex.release()
 	}
 }
 

@@ -3,6 +3,7 @@ import { DEFAULT_QUERY_OPTIONS, useDefaultQueryParams } from "./client"
 import nodeWorker from "@/lib/nodeWorker"
 import useRefreshOnFocus from "@/hooks/useRefreshOnFocus"
 import { sortParams } from "@/lib/utils"
+import Semaphore from "@/lib/semaphore"
 
 export const BASE_QUERY_KEY = "useDirectorySizeQuery"
 
@@ -13,8 +14,16 @@ export type UseDirectorySizeQueryParams = {
 	trash?: boolean
 }
 
+const mutex = new Semaphore(1)
+
 export async function fetchData(params: UseDirectorySizeQueryParams) {
-	return await nodeWorker.proxy("fetchDirectorySize", params)
+	await mutex.acquire()
+
+	try {
+		return await nodeWorker.proxy("fetchDirectorySize", params)
+	} finally {
+		mutex.release()
+	}
 }
 
 export function useDirectorySizeQuery(
