@@ -1032,10 +1032,10 @@ export class DriveService {
 						.map(async file => {
 							await ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
 								{
-									name: file.name,
+									name: sanitizeFileName(file.name),
 									parentFolder: pathModule.posix.join(
 										"Filen",
-										item.name,
+										sanitizeFileName(item.name),
 										pathModule.posix.dirname(file.path.replace(tmpDir.uri.replace("file://", ""), ""))
 									),
 									mimeType: file.mime
@@ -1089,7 +1089,7 @@ export class DriveService {
 
 				await ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
 					{
-						name: item.name,
+						name: sanitizeFileName(item.name),
 						parentFolder: "Filen",
 						mimeType: item.mime
 					},
@@ -1228,7 +1228,9 @@ export class DriveService {
 			return
 		}
 
-		const tmpFile = new FileSystem.File(pathModule.posix.join(paths.temporaryDownloads(), randomUUID(), item.name))
+		const tmpFile = new FileSystem.File(
+			pathModule.posix.join(paths.temporaryDownloads(), `${randomUUID()}_${sanitizeFileName(item.name)}`)
+		)
 
 		if (!disableLoader) {
 			fullScreenLoadingModal.show()
