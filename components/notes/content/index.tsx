@@ -1,6 +1,6 @@
-import { memo, useMemo, useCallback, useRef, useEffect, useState } from "react"
-import type { Note, NoteType } from "@filen/sdk/dist/types/api/v3/notes"
-import { useNoteContentQuery, noteContentQueryUpdate } from "@/queries/useNoteContent.query"
+import { memo, useMemo, useCallback, useRef, useEffect } from "react"
+import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
+import { useNoteContentQuery } from "@/queries/useNoteContent.query"
 import { Platform, View, ActivityIndicator } from "react-native"
 import Container from "@/components/Container"
 import TextEditorDOM from "./text/dom"
@@ -9,13 +9,16 @@ import { bgColors } from "@/components/textEditor/editor"
 import RichTextEditorDOM from "./richtext/dom"
 import Checklist from "./checklist"
 import nodeWorker from "@/lib/nodeWorker"
-import { useDebouncedCallback } from "use-debounce"
 import alerts from "@/lib/alerts"
 import { useFocusEffect } from "expo-router"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import { KeyboardAvoidingView } from "react-native-keyboard-controller"
 import useNetInfo from "@/hooks/useNetInfo"
 import { translateMemoized } from "@/lib/i18n"
+import { createExecutableTimeout } from "@/lib/utils"
+import Semaphore from "@/lib/semaphore"
+
+const editMutex = new Semaphore(1)
 
 export const Content = memo(
 	({
@@ -30,33 +33,40 @@ export const Content = memo(
 		markdownPreview: boolean
 	}) => {
 		const { isDarkColorScheme, colors } = useColorScheme()
-		const lastValueRef = useRef<string | null>(null)
+		const lastNoteContentRef = useRef<string | null>(null)
 		const noteContentQuery = useNoteContentQuery({
 			uuid: note.uuid
 		})
-		const [noteContentQueryDataUpdatedAt, setNoteContentQueryDataUpdatedAt] = useState<number>(noteContentQuery.dataUpdatedAt)
-		const didChangeRef = useRef<{
-			changed: boolean
-			content: string
-			uuid: string
-			type: NoteType
-			timestamp: number
-		}>({
-			changed: false,
-			content: "",
-			uuid: "",
-			type: "text",
-			timestamp: 0
-		})
 		const [{ userId }] = useSDKConfig()
 		const { hasInternet } = useNetInfo()
+		const onValueChangeTimeoutRef = useRef<ReturnType<typeof createExecutableTimeout> | null>(null)
+
+		const isFetching = useMemo(() => {
+			return (
+				noteContentQuery.isRefetching ||
+				noteContentQuery.isLoading ||
+				noteContentQuery.isFetching ||
+				noteContentQuery.isPending ||
+				noteContentQuery.isError ||
+				noteContentQuery.isRefetchError ||
+				noteContentQuery.isLoadingError
+			)
+		}, [
+			noteContentQuery.isError,
+			noteContentQuery.isFetching,
+			noteContentQuery.isLoading,
+			noteContentQuery.isLoadingError,
+			noteContentQuery.isPending,
+			noteContentQuery.isRefetchError,
+			noteContentQuery.isRefetching
+		])
 
 		const initialValue = useMemo(() => {
 			if (noteContentQuery.status !== "success") {
 				return null
 			}
 
-			lastValueRef.current = noteContentQuery.data.content
+			lastNoteContentRef.current = noteContentQuery.data.content
 
 			return noteContentQuery.data.content
 		}, [noteContentQuery.data, noteContentQuery.status])
@@ -84,93 +94,60 @@ export const Content = memo(
 			}
 		}, [isDarkColorScheme, markdownPreview, note.type, colors.background])
 
-		const onDidTypeDebounced = useDebouncedCallback(async (params: { type: NoteType; uuid: string; content: string }) => {
-			if (isPreview || JSON.stringify(params.content) === JSON.stringify(lastValueRef.current) || !hasWriteAccess) {
-				setSyncing(false)
-
-				return
-			}
-
-			lastValueRef.current = params.content
-
-			setSyncing(true)
-
-			try {
-				await nodeWorker.proxy("editNote", {
-					uuid: params.uuid,
-					content: params.content,
-					type: params.type
-				})
-
-				didChangeRef.current = {
-					changed: true,
-					content: params.content,
-					uuid: params.uuid,
-					type: params.type,
-					timestamp: Date.now()
-				}
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			} finally {
-				setSyncing(false)
-			}
-		}, 3000)
-
-		const onDidType = useCallback(
+		const onValueChange = useCallback(
 			(value: string) => {
-				if (isPreview || !hasWriteAccess) {
+				if (!note || !hasWriteAccess) {
 					return
 				}
 
 				setSyncing(true)
 
-				const valueCopied = `${value}`
+				onValueChangeTimeoutRef.current?.cancel()
 
-				onDidTypeDebounced({
-					type: note.type,
-					uuid: note.uuid,
-					content: valueCopied
-				})?.catch(console.error)
+				onValueChangeTimeoutRef.current = createExecutableTimeout(async () => {
+					await editMutex.acquire()
+
+					try {
+						if (
+							lastNoteContentRef.current &&
+							Buffer.from(value, "utf-8").toString("hex") === Buffer.from(lastNoteContentRef.current, "utf-8").toString("hex")
+						) {
+							return
+						}
+
+						await nodeWorker.proxy("editNote", {
+							uuid: note.uuid,
+							content: value,
+							type: note.type
+						})
+
+						lastNoteContentRef.current = value
+					} catch (e) {
+						console.error(e)
+
+						if (e instanceof Error) {
+							alerts.error(e.message)
+						}
+					} finally {
+						editMutex.release()
+
+						setSyncing(false)
+					}
+				}, 2500)
 			},
-			[note.uuid, note.type, onDidTypeDebounced, setSyncing, isPreview, hasWriteAccess]
+			[hasWriteAccess, note, setSyncing]
 		)
 
 		useEffect(() => {
-			if (noteContentQuery.isFetching || noteContentQuery.isLoading || noteContentQuery.isPending || noteContentQuery.isRefetching) {
-				setSyncing(true)
-			} else {
-				setSyncing(false)
-			}
-		}, [noteContentQuery.isFetching, setSyncing, noteContentQuery.isLoading, noteContentQuery.isPending, noteContentQuery.isRefetching])
-
-		useEffect(() => {
-			if (noteContentQuery.status === "success" && noteContentQuery.dataUpdatedAt !== noteContentQueryDataUpdatedAt) {
-				setNoteContentQueryDataUpdatedAt(noteContentQuery.dataUpdatedAt)
-			}
-		}, [noteContentQuery.status, noteContentQuery.dataUpdatedAt, noteContentQueryDataUpdatedAt])
+			setSyncing(isFetching || noteContentQuery.status === "pending")
+		}, [isFetching, setSyncing, noteContentQuery.status])
 
 		useFocusEffect(
 			useCallback(() => {
 				return () => {
-					if (didChangeRef.current.changed && !isPreview && hasWriteAccess) {
-						noteContentQueryUpdate({
-							params: {
-								uuid: didChangeRef.current.uuid
-							},
-							updater: prev => ({
-								...prev,
-								content: didChangeRef.current.content,
-								editedTimestamp: didChangeRef.current.timestamp,
-								type: didChangeRef.current.type
-							})
-						})
-					}
+					onValueChangeTimeoutRef.current?.execute()
 				}
-			}, [didChangeRef, isPreview, hasWriteAccess])
+			}, [])
 		)
 
 		return (
@@ -194,9 +171,18 @@ export const Content = memo(
 									flex: 1
 								}}
 							>
+								{(isFetching || noteContentQuery.status === "pending") && (
+									<View className="absolute top-0 right-0 bottom-0 left-0 z-50 items-center justify-center bg-background opacity-50">
+										<ActivityIndicator
+											size="small"
+											color={colors.foreground}
+											className="-mt-16"
+										/>
+									</View>
+								)}
 								{note.type === "md" || note.type === "text" || note.type === "code" ? (
 									<TextEditorDOM
-										key={`${isDarkColorScheme}:${noteContentQueryDataUpdatedAt}:${markdownPreview}`}
+										key={`${isDarkColorScheme}:${noteContentQuery.dataUpdatedAt}:${markdownPreview}`}
 										initialValue={initialValue}
 										onValueChange={() => {}}
 										title={note.title}
@@ -212,27 +198,27 @@ export const Content = memo(
 												? translateMemoized("notes.content.placeholders.text")
 												: translateMemoized("notes.content.placeholders.code")
 										}
-										onDidType={onDidType}
+										onDidType={onValueChange}
 										dom={{
 											bounces: false
 										}}
 									/>
 								) : note.type === "checklist" ? (
 									<Checklist
-										key={`${noteContentQueryDataUpdatedAt}`}
+										key={`${noteContentQuery.dataUpdatedAt}`}
 										initialValue={initialValue}
 										onValueChange={() => {}}
 										readOnly={isPreview ? false : !hasWriteAccess || !hasInternet}
-										onDidType={onDidType}
+										onDidType={onValueChange}
 									/>
 								) : (
 									<RichTextEditorDOM
-										key={`${isDarkColorScheme}:${noteContentQueryDataUpdatedAt}`}
+										key={`${isDarkColorScheme}:${noteContentQuery.dataUpdatedAt}`}
 										initialValue={initialValue}
 										onValueChange={() => {}}
 										type={note.type}
 										readOnly={isPreview ? false : !hasWriteAccess || !hasInternet}
-										onDidType={onDidType}
+										onDidType={onValueChange}
 										placeholder={translateMemoized("notes.content.placeholders.text")}
 										darkMode={isDarkColorScheme}
 										platformOS={Platform.OS}

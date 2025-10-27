@@ -1005,3 +1005,17 @@ export function jsonBigIntReviver(_: string, value: unknown) {
 
 	return value
 }
+
+export function createExecutableTimeout(callback: () => void, delay?: number) {
+	const timeoutId = globalThis.window.setTimeout(callback, delay)
+
+	return {
+		id: timeoutId,
+		execute: () => {
+			globalThis.window.clearTimeout(timeoutId)
+
+			callback()
+		},
+		cancel: () => globalThis.window.clearTimeout(timeoutId)
+	}
+}

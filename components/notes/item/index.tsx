@@ -165,32 +165,32 @@ export const Item = memo(({ note }: { note: Note }) => {
 										</View>
 									)}
 								</View>
+								{participants.length > 0 && (
+									<View className="flex-row items-center shrink-0">
+										{participants.slice(0, 3).map((participant, index) => {
+											return (
+												<Avatar
+													key={getMappingKey(participant.userId, index)}
+													className={cn("h-7 w-7", index > 0 && "-ml-4")}
+													source={
+														participant.avatar?.startsWith("https")
+															? {
+																	uri: participant.avatar
+															  }
+															: {
+																	uri: assets.uri.images.avatar_fallback()
+															  }
+													}
+													style={{
+														width: 28,
+														height: 28
+													}}
+												/>
+											)
+										})}
+									</View>
+								)}
 							</View>
-							{participants.length > 0 && (
-								<View className="flex-row items-center">
-									{participants.map((participant, index) => {
-										return (
-											<Avatar
-												key={getMappingKey(participant.userId, index)}
-												className={cn("h-7 w-7", index > 0 && "-ml-3")}
-												source={
-													participant.avatar?.startsWith("https")
-														? {
-																uri: participant.avatar
-														  }
-														: {
-																uri: assets.uri.images.avatar_fallback()
-														  }
-												}
-												style={{
-													width: 36,
-													height: 36
-												}}
-											/>
-										)
-									})}
-								</View>
-							)}
 						</View>
 					</SelectableListItem>
 				</Button>
