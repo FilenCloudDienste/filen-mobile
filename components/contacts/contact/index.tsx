@@ -248,7 +248,7 @@ export const Contact = memo(({ info, fromSelect }: { info: ListRenderItemInfo<Li
 	}, [info, fromSelect, isSelected, select])
 
 	const rightView = useMemo(() => {
-		return Platform.OS === "android" ? <RightView info={info} /> : undefined
+		return <RightView info={info} />
 	}, [info])
 
 	const onPressHandler = useMemo(() => {

@@ -119,7 +119,7 @@ export const ListItem = memo(
 		}, [info.item.item, select, selectedItemsCount, isSelected, offlineStatus, queryParams])
 
 		const rightView = useMemo(() => {
-			if (Platform.OS === "ios" || fromSearch) {
+			if (fromSearch) {
 				return undefined
 			}
 

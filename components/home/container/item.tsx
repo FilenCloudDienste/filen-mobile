@@ -314,7 +314,7 @@ export const Item = memo(
 		}, [item, colors.background, offlineStatus?.exists, type])
 
 		const rightView = useMemo(() => {
-			return Platform.OS === "android" ? (
+			return (
 				<View className="flex-1 justify-center px-4">
 					<Menu
 						type="dropdown"
@@ -334,11 +334,12 @@ export const Item = memo(
 								namingScheme="sfSymbol"
 								name="ellipsis"
 								color={colors.foreground}
+								size={24}
 							/>
 						</Button>
 					</Menu>
 				</View>
-			) : undefined
+			)
 		}, [item, type, colors.foreground])
 
 		return (

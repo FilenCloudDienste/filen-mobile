@@ -24,6 +24,7 @@ export const RightView = memo(({ item, queryParams }: { item: DriveCloudItem; qu
 						namingScheme="sfSymbol"
 						name="ellipsis"
 						color={colors.foreground}
+						size={24}
 					/>
 				</Button>
 			</Menu>

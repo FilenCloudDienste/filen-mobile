@@ -58,7 +58,7 @@ export const Participant = memo(({ info, note }: { info: ListRenderItemInfo<List
 	}, [avatarSource])
 
 	const rightView = useMemo(() => {
-		return Platform.OS === "android" ? (
+		return (
 			<View className="flex-1 flex-row items-center justify-center px-4">
 				<Menu
 					type="dropdown"
@@ -78,7 +78,7 @@ export const Participant = memo(({ info, note }: { info: ListRenderItemInfo<List
 					</Button>
 				</Menu>
 			</View>
-		) : undefined
+		)
 	}, [colors.foreground, info.item.participant, note])
 
 	return (

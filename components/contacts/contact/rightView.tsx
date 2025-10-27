@@ -24,6 +24,7 @@ export const RightView = memo(({ info }: { info: ListRenderItemInfo<ListItemInfo
 						namingScheme="sfSymbol"
 						name="ellipsis"
 						color={colors.foreground}
+						size={24}
 					/>
 				</Button>
 			</Menu>
