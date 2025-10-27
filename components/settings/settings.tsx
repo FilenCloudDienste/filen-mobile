@@ -1,11 +1,11 @@
 import { Icon, MaterialIconName } from "@roninoss/icons"
-import { View } from "react-native"
+import { View, ScrollView } from "react-native"
 import type { SettingsItem, SettingsProps } from "."
 import { Button } from "~/components/nativewindui/Button"
-import { List, ListDataItem, ListRenderItemInfo } from "~/components/nativewindui/List"
+import { ListRenderItemInfo } from "~/components/nativewindui/List"
 import { Text } from "~/components/nativewindui/Text"
 import { useColorScheme } from "~/lib/useColorScheme"
-import { useCallback, Fragment, memo, useMemo } from "react"
+import { Fragment, memo, useMemo } from "react"
 import { LargeTitleHeader } from "../nativewindui/LargeTitleHeader"
 import { cn } from "@/lib/cn"
 
@@ -74,22 +74,6 @@ const contentContainerStyle = {
 }
 
 export const Settings = memo((props: SettingsProps) => {
-	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string) => {
-		return typeof item === "string" ? item : item.id
-	}, [])
-
-	const renderItem = useCallback(
-		(info: ListRenderItemInfo<SettingsItem>) => {
-			return (
-				<Item
-					info={info}
-					props={props}
-				/>
-			)
-		},
-		[props]
-	)
-
 	const headerSearchBar = useMemo(() => {
 		return props.showSearchBar
 			? {
@@ -107,20 +91,33 @@ export const Settings = memo((props: SettingsProps) => {
 				/>
 			)}
 			{props.items.length > 0 && (
-				<List
-					rootClassName="bg-background"
-					contentContainerStyle={contentContainerStyle}
-					contentInsetAdjustmentBehavior="automatic"
-					variant="full-width"
-					data={props.items}
-					sectionHeaderAsGap={true}
-					renderItem={renderItem}
-					keyExtractor={keyExtractor}
-					showsHorizontalScrollIndicator={false}
-					showsVerticalScrollIndicator={false}
-					ListHeaderComponent={props.listHeader ? () => props.listHeader : undefined}
-					ListFooterComponent={props.listFooter ? () => props.listFooter : undefined}
-				/>
+				<View className="flex-1">
+					<ScrollView
+						className="bg-background"
+						contentContainerStyle={contentContainerStyle}
+						contentInsetAdjustmentBehavior="automatic"
+						showsHorizontalScrollIndicator={false}
+						showsVerticalScrollIndicator={false}
+					>
+						{props.listHeader && props.listHeader}
+						{props.items.map((item, index) => {
+							return (
+								<Item
+									key={index}
+									info={
+										{
+											item,
+											index,
+											target: "Cell"
+										} satisfies ListRenderItemInfo<SettingsItem>
+									}
+									props={props}
+								/>
+							)
+						})}
+						{props.listFooter && props.listFooter}
+					</ScrollView>
+				</View>
 			)}
 		</Fragment>
 	)

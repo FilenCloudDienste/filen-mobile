@@ -3,6 +3,8 @@ import useIsAuthed from "@/hooks/useIsAuthed"
 import { Platform, View } from "react-native"
 import useLockOrientation from "@/hooks/useLockOrientation"
 import { SCREEN_OPTIONS } from "@/lib/constants"
+import { useMMKVString } from "react-native-mmkv"
+import mmkvInstance from "@/lib/mmkv"
 
 const screenOptions = {
 	headerShown: Platform.OS === "ios",
@@ -15,9 +17,10 @@ export default function AuthLayout() {
 	useLockOrientation()
 
 	const [isAuthed] = useIsAuthed()
+	const [initialRouteName] = useMMKVString("initialRouteName", mmkvInstance)
 
 	if (isAuthed) {
-		return <Redirect href="/(app)/home" />
+		return <Redirect href={`/(app)/${initialRouteName ?? "home"}`} />
 	}
 
 	return (

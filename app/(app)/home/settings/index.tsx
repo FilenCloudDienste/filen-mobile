@@ -118,6 +118,12 @@ export const Settings = memo(() => {
 		}
 	}, [])
 
+	const onPressAppearance = useCallback(() => {
+		router.push({
+			pathname: "/(app)/home/settings/appearance"
+		})
+	}, [router])
+
 	const items = useMemo(() => {
 		return [
 			{
@@ -219,6 +225,18 @@ export const Settings = memo(() => {
 			},
 			"gap-3",
 			{
+				id: "6a",
+				testID: "settings.appearance",
+				title: translateMemoized("settings.index.items.appearance"),
+				onPress: onPressAppearance,
+				leftView: (
+					<IconView
+						name="wrench-outline"
+						className="bg-teal-500"
+					/>
+				)
+			},
+			{
 				id: "6",
 				testID: "settings.advanced",
 				title: translateMemoized("settings.index.items.advanced"),
@@ -243,7 +261,8 @@ export const Settings = memo(() => {
 		onPressAdvanced,
 		onPressCameraUpload,
 		fileProviderEnabledQuery.data,
-		onChangeFileProvider
+		onChangeFileProvider,
+		onPressAppearance
 	])
 
 	return (

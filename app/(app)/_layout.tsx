@@ -7,10 +7,13 @@ import { useColorScheme } from "@/lib/useColorScheme"
 import { Platform, View } from "react-native"
 import { type NativeBottomTabNavigationOptions } from "@bottom-tabs/react-navigation"
 import { translateMemoized } from "@/lib/i18n"
+import { useMMKVString } from "react-native-mmkv"
+import mmkvInstance from "@/lib/mmkv"
 
 export default function TabsLayout() {
 	const [isAuthed] = useIsAuthed()
 	const { colors } = useColorScheme()
+	const [initialRouteName] = useMMKVString("initialRouteName", mmkvInstance)
 
 	const chatUnreadQuery = useChatUnreadQuery({
 		refetchInterval: 15000
@@ -116,7 +119,7 @@ export default function TabsLayout() {
 			className="flex-1"
 		>
 			<Tabs
-				initialRouteName="home"
+				initialRouteName={initialRouteName ?? "home"}
 				screenOptions={tabsOptions}
 			>
 				<Tabs.Screen

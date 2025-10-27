@@ -13,6 +13,8 @@ import { translateMemoized } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import { Icon } from "@roninoss/icons"
 import { Form, FormItem, FormSection } from "@/components/nativewindui/Form"
+import { useMMKVString } from "react-native-mmkv"
+import mmkvInstance from "@/lib/mmkv"
 
 const keyboardAwareScrollViewBottomOffset = Platform.select({
 	ios: 175,
@@ -25,6 +27,7 @@ export const Login = memo(() => {
 	const [email, setEmail] = useState<string>("")
 	const [password, setPassword] = useState<string>("")
 	const [hidePassword, setHidePassword] = useState<boolean>(true)
+	const [initialRouteName] = useMMKVString("initialRouteName", mmkvInstance)
 
 	const disabled = useMemo(() => {
 		return !email || !password
@@ -51,7 +54,7 @@ export const Login = memo(() => {
 				return
 			}
 
-			router.replace("/(app)/home")
+			router.replace(`/(app)/${initialRouteName ?? "home"}`)
 		} catch (e) {
 			console.error(e)
 
@@ -61,7 +64,7 @@ export const Login = memo(() => {
 
 			setPassword("")
 		}
-	}, [email, password, router, disabled])
+	}, [email, password, router, disabled, initialRouteName])
 
 	const forgotPassword = useCallback(async () => {
 		KeyboardController.dismiss()

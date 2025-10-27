@@ -959,7 +959,9 @@
 				"documentsProvider": "Documents provider",
 				"documentsProviderInfo": "Enable the Android Files integration to access your files outside of the app.",
 				"contacts": "Contacts",
-				"advanced": "Advanced"
+				"advanced": "Advanced",
+				"account": "Account",
+				"appearance": "Appearance"
 			},
 			"prompts": {
 				"fileProvider": {
@@ -970,6 +972,17 @@
 					"title": "Biometric authentication enabled",
 					"message": "Enabling the documents provider will disable biometric authentication. This means you will not be able to use biometric authentication to unlock the app. Do you want to continue?"
 				}
+			}
+		},
+		"appearance": {
+			"title": "Appearance",
+			"items": {
+				"startOn": "Start screen",
+				"startOn_home": "Home",
+				"startOn_drive": "Drive",
+				"startOn_photos": "Photos",
+				"startOn_chats": "Chats",
+				"startOn_notes": "Notes"
 			}
 		},
 		"personal": {
