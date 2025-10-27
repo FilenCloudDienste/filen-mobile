@@ -1208,7 +1208,9 @@
                 "fileProvider": "Provozovatel souborů",
                 "fileProviderInfo": "Povolit integraci souborů iOS pro přístup k vašim souborům mimo aplikaci.",
                 "security": "Zabezpečení",
-                "used": "{{used}} využito z {{max}} ({{percentage}}%)"
+                "used": "{{used}} využito z {{max}} ({{percentage}}%)",
+                "account": "Účet",
+                "appearance": "Vzhled"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Zabezpečení"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Úvodní obrazovka",
+                "startOn_chats": "Chaty",
+                "startOn_drive": "Disk",
+                "startOn_home": "Domov",
+                "startOn_notes": "Poznámky",
+                "startOn_photos": "Fotky"
+            },
+            "title": "Vzhled"
         }
     },
     "shareIntent": {

@@ -1208,7 +1208,9 @@
                 "fileProvider": "ফাইল প্রদানকারী",
                 "fileProviderInfo": "অ্যাপের বাইরে আপনার ফাইলে প্রবেশ করতে iOS ফাইল ইন্টিগ্রেশন সক্রিয় করুন।",
                 "security": "নিরাপত্তা",
-                "used": "{{used}} ব্যবহৃত {{max}} এর মধ্যে ({{percentage}}%)"
+                "used": "{{used}} ব্যবহৃত {{max}} এর মধ্যে ({{percentage}}%)",
+                "account": "অ্যাকাউন্ট",
+                "appearance": "চেহারা"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "নিরাপত্তা"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "শুরু পর্দা",
+                "startOn_chats": "চ্যাট",
+                "startOn_drive": "ড্রাইভ",
+                "startOn_home": "হোম",
+                "startOn_notes": "নোটস",
+                "startOn_photos": "ছবি"
+            },
+            "title": "চেহারা"
         }
     },
     "shareIntent": {

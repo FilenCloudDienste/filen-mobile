@@ -1208,7 +1208,9 @@
                 "fileProvider": "फ़ाइल प्रदाता",
                 "fileProviderInfo": "ऐप के बाहर अपनी फाइल्स तक पहुँचने के लिए iOS फाइल्स इंटीग्रेशन सक्षम करें।",
                 "security": "सुरक्षा",
-                "used": "{{used}} का {{max}} के इस्तेमाल में ({{percentage}}%)"
+                "used": "{{used}} का {{max}} के इस्तेमाल में ({{percentage}}%)",
+                "account": "खाता",
+                "appearance": "दिखावट"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "सुरक्षा"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "प्रारंभिक स्क्रीन",
+                "startOn_chats": "चैट्स",
+                "startOn_drive": "ड्राइव",
+                "startOn_home": "मुख पृष्ठ",
+                "startOn_notes": "नोट्स",
+                "startOn_photos": "फोटो"
+            },
+            "title": "दिखावट"
         }
     },
     "shareIntent": {

@@ -1208,7 +1208,9 @@
                 "fileProvider": "Tiedostopalvelu",
                 "fileProviderInfo": "Ota käyttöön iOS-tiedostojen integrointi päästäksesi tiedostoihisi sovelluksen ulkopuolella.",
                 "security": "Turvallisuus",
-                "used": "{{used}} käytetty {{max}}:sta ({{percentage}}%)"
+                "used": "{{used}} käytetty {{max}}:sta ({{percentage}}%)",
+                "account": "Tili",
+                "appearance": "Ulkoasu"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Turvallisuus"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Aloitusnäyttö",
+                "startOn_chats": "Keskustelut",
+                "startOn_drive": "Asema",
+                "startOn_home": "Koti",
+                "startOn_notes": "Muistiinpanot",
+                "startOn_photos": "Valokuvat"
+            },
+            "title": "Ulkoasu"
         }
     },
     "shareIntent": {

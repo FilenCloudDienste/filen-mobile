@@ -1208,7 +1208,9 @@
                 "fileProvider": "Dostawca plików",
                 "fileProviderInfo": "Włącz integrację z iOS Files, aby uzyskać dostęp do swoich plików poza aplikacją.",
                 "security": "Bezpieczeństwo",
-                "used": "{{used}} użyto z {{max}} ({{percentage}}%)"
+                "used": "{{used}} użyto z {{max}} ({{percentage}}%)",
+                "account": "Konto",
+                "appearance": "Wygląd"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Bezpieczeństwo"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Ekran startowy",
+                "startOn_chats": "Czaty",
+                "startOn_drive": "Dysk",
+                "startOn_home": "Strona główna",
+                "startOn_notes": "Notatki",
+                "startOn_photos": "Zdjęcia"
+            },
+            "title": "Wygląd"
         }
     },
     "shareIntent": {

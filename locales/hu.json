@@ -1208,7 +1208,9 @@
                 "fileProvider": "Fájl szolgáltató",
                 "fileProviderInfo": "Engedélyezze az iOS Files integrációt a fájlok alkalmazáson kívüli eléréséhez.",
                 "security": "Biztonság",
-                "used": "{{used}} használva a(z) {{max}}-ből ({{percentage}}%)"
+                "used": "{{used}} használva a(z) {{max}}-ből ({{percentage}}%)",
+                "account": "Fiók",
+                "appearance": "Megjelenés"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Biztonság"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Kezdőképernyő",
+                "startOn_chats": "Beszélgetések",
+                "startOn_drive": "Meghajtó",
+                "startOn_home": "Főoldal",
+                "startOn_notes": "Jegyzetek",
+                "startOn_photos": "Fotók"
+            },
+            "title": "Megjelenés"
         }
     },
     "shareIntent": {

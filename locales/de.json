@@ -1208,7 +1208,9 @@
                 "fileProvider": "Dateianbieter",
                 "fileProviderInfo": "Aktivieren Sie die iOS-Dateiintegration, um auf Ihre Dateien außerhalb der App zuzugreifen.",
                 "security": "Sicherheit",
-                "used": "{{used}} verwendet von {{max}} ({{percentage}}%)"
+                "used": "{{used}} verwendet von {{max}} ({{percentage}}%)",
+                "account": "Konto",
+                "appearance": "Darstellung"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Sicherheit"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Startbildschirm",
+                "startOn_chats": "Chats",
+                "startOn_drive": "Laufwerk",
+                "startOn_home": "Startseite",
+                "startOn_notes": "Notizen",
+                "startOn_photos": "Fotos"
+            },
+            "title": "Darstellung"
         }
     },
     "shareIntent": {

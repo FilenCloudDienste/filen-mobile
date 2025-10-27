@@ -1208,7 +1208,9 @@
                 "fileProvider": "Поставщик файлов",
                 "fileProviderInfo": "Включите интеграцию с iOS Files, чтобы получить доступ к вашим файлам вне приложения.",
                 "security": "Безопасность",
-                "used": "Использовано {{used}} из {{max}} ({{percentage}}%)"
+                "used": "Использовано {{used}} из {{max}} ({{percentage}}%)",
+                "account": "Аккаунт",
+                "appearance": "Оформление"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Безопасность"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Стартовый экран",
+                "startOn_chats": "Чаты",
+                "startOn_drive": "Диск",
+                "startOn_home": "Главная",
+                "startOn_notes": "Заметки",
+                "startOn_photos": "Фотографии"
+            },
+            "title": "Оформление"
         }
     },
     "shareIntent": {

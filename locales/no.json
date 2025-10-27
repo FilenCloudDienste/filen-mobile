@@ -1208,7 +1208,9 @@
                 "fileProvider": "Filleverandør",
                 "fileProviderInfo": "Aktiver iOS Files-integrasjonen for å få tilgang til filene dine utenfor appen.",
                 "security": "Sikkerhet",
-                "used": "{{used}} brukt av {{max}} ({{percentage}}%)"
+                "used": "{{used}} brukt av {{max}} ({{percentage}}%)",
+                "account": "Konto",
+                "appearance": "Utseende"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Sikkerhet"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Startskjerm",
+                "startOn_chats": "Chatter",
+                "startOn_drive": "Disk",
+                "startOn_home": "Hjem",
+                "startOn_notes": "Notater",
+                "startOn_photos": "Bilder"
+            },
+            "title": "Utseende"
         }
     },
     "shareIntent": {

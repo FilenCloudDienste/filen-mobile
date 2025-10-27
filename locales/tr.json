@@ -1208,7 +1208,9 @@
                 "fileProvider": "Dosya sağlayıcı",
                 "fileProviderInfo": "Uygulama dışındaki dosyalarınıza erişmek için iOS Dosyalar entegrasyonunu etkinleştirin.",
                 "security": "Güvenlik",
-                "used": "{{max}} içinde {{used}} kullanıldı ({{percentage}}%)"
+                "used": "{{max}} içinde {{used}} kullanıldı ({{percentage}}%)",
+                "account": "Hesap",
+                "appearance": "Görünüm"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Güvenlik"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Başlangıç ekranı",
+                "startOn_chats": "Sohbetler",
+                "startOn_drive": "Sürücü",
+                "startOn_home": "Ana Sayfa",
+                "startOn_notes": "Notlar",
+                "startOn_photos": "Fotoğraflar"
+            },
+            "title": "Görünüm"
         }
     },
     "shareIntent": {

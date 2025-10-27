@@ -1208,7 +1208,9 @@
                 "fileProvider": "ファイルプロバイダー",
                 "fileProviderInfo": "iOSファイル統合を有効にし、アプリ外でファイルにアクセスしてください。",
                 "security": "セキュリティ",
-                "used": "{{max}} のうち {{used}} 使用中 ({{percentage}}%)"
+                "used": "{{max}} のうち {{used}} 使用中 ({{percentage}}%)",
+                "account": "アカウント",
+                "appearance": "外観"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "セキュリティ"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "スタート画面",
+                "startOn_chats": "チャット",
+                "startOn_drive": "ドライブ",
+                "startOn_home": "ホーム",
+                "startOn_notes": "ノート",
+                "startOn_photos": "写真"
+            },
+            "title": "外観"
         }
     },
     "shareIntent": {
