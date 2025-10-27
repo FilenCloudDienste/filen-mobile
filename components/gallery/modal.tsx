@@ -16,8 +16,12 @@ import { ActivityIndicator } from "../nativewindui/ActivityIndicator"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { cn } from "@/lib/cn"
 import { Portal } from "@rn-primitives/portal"
+import * as ScreenOrientation from "expo-screen-orientation"
+import useLockOrientation from "@/hooks/useLockOrientation"
 
 export const Item = memo(({ item, index, layout }: { item: GalleryItem; index: number; layout: { width: number; height: number } }) => {
+	useLockOrientation(ScreenOrientation.OrientationLock.PORTRAIT_UP)
+
 	const { colors, isDarkColorScheme } = useColorScheme()
 	const currentVisibleIndex = useGalleryStore(useShallow(state => state.currentVisibleIndex))
 

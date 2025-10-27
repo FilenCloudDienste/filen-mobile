@@ -95,9 +95,7 @@ function getUISortOption(orderBy?: OrderByType): UISortOption | undefined {
 		}
 
 		default: {
-			console.warn(`Unknown order key: ${orderBy}`)
-
-			return undefined
+			return UI_SORT_OPTIONS.sortByName
 		}
 	}
 }

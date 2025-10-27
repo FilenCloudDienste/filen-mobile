@@ -1,4 +1,4 @@
-import { memo, useMemo, useEffect, useState, Fragment, useCallback } from "react"
+import { memo, useMemo, useEffect, Fragment, useCallback } from "react"
 import type { GalleryItem } from "@/stores/gallery.store"
 import { View, ActivityIndicator, Pressable, Platform } from "react-native"
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio"
@@ -40,8 +40,6 @@ export const Audio = memo(
 		useSetExpoAudioMode()
 
 		const { colors } = useColorScheme()
-		const [loading, setLoading] = useState<boolean>(true)
-		const [playing, setPlaying] = useState<boolean>(false)
 		const trackPlayerControls = useTrackPlayerControls()
 		const { insets } = useDimensions()
 		const httpServer = useHTTPServer()
@@ -86,7 +84,7 @@ export const Audio = memo(
 		const playerStatus = useAudioPlayerStatus(player)
 
 		const togglePlay = useCallback(() => {
-			if (loading) {
+			if (!playerStatus.isLoaded) {
 				return
 			}
 
@@ -104,13 +102,18 @@ export const Audio = memo(
 			}
 
 			player.play()
-		}, [player, loading, playerStatus.playing, playerStatus.currentTime, playerStatus.duration])
+		}, [player, playerStatus.isLoaded, playerStatus.playing, playerStatus.currentTime, playerStatus.duration])
 
 		const seek = useCallback(
 			(value: number) => {
+				if (!playerStatus.isLoaded) {
+					return
+				}
+
 				player.seekTo((value / 100) * playerStatus.duration)
+				player.play()
 			},
-			[player, playerStatus.duration]
+			[player, playerStatus.duration, playerStatus.isLoaded]
 		)
 
 		const exportFile = useCallback(async () => {
@@ -165,11 +168,6 @@ export const Audio = memo(
 		}, [item])
 
 		useEffect(() => {
-			setLoading(!playerStatus.isLoaded)
-			setPlaying(playerStatus.playing)
-		}, [playerStatus])
-
-		useEffect(() => {
 			trackPlayerControls.stop().catch(console.error)
 		}, [trackPlayerControls])
 
@@ -191,7 +189,7 @@ export const Audio = memo(
 					</Animated.View>
 				) : (
 					<Fragment>
-						{loading && (
+						{!playerStatus.isLoaded && !playerStatus.isBuffering && (
 							<Animated.View
 								exiting={FadeOut}
 								className="flex-1 absolute top-0 left-0 right-0 bottom-0 z-50 bg-background items-center justify-center"
@@ -215,7 +213,7 @@ export const Audio = memo(
 							/>
 							<View className="flex-1 absolute top-0 left-0 right-0 bottom-0 z-50 items-center justify-center">
 								<Icon
-									name={playing ? "pause-circle" : "play-circle"}
+									name={playerStatus.playing ? "pause-circle" : "play-circle"}
 									size={layout.width / 6}
 									color={colors.foreground}
 								/>
@@ -225,7 +223,7 @@ export const Audio = memo(
 							intensity={Platform.OS === "ios" ? 100 : 0}
 							tint={Platform.OS === "ios" ? "systemChromeMaterial" : undefined}
 							className={cn(
-								"flex-1 absolute left-0 right-0 bottom-0 z-10 items-center justify-center w-full",
+								"flex-1 absolute left-0 right-0 bottom-0 z-10 items-center justify-center w-full min-h-32",
 								Platform.OS === "android" && "bg-card"
 							)}
 							style={{
@@ -253,7 +251,7 @@ export const Audio = memo(
 										}}
 										onSlidingComplete={seek}
 										minimumTrackTintColor="white"
-										disabled={loading}
+										disabled={!playerStatus.isLoaded}
 										thumbTintColor={colors.foreground}
 									/>
 									<Text
@@ -270,10 +268,13 @@ export const Audio = memo(
 										variant="plain"
 										size="icon"
 										onPress={exportFile}
-										disabled={loading || item.itemType !== "cloudItem"}
+										disabled={!playerStatus.isLoaded || item.itemType !== "cloudItem"}
 									>
 										<Icon
 											name="send"
+											ios={{
+												name: "square.and.arrow.up"
+											}}
 											size={24}
 											color={colors.primary}
 										/>
@@ -282,10 +283,10 @@ export const Audio = memo(
 										variant="plain"
 										size="icon"
 										onPress={togglePlay}
-										disabled={loading}
+										disabled={!playerStatus.isLoaded}
 									>
 										<Icon
-											name={playing ? "pause" : "play"}
+											name={playerStatus.playing ? "pause" : "play"}
 											size={24}
 											color={colors.primary}
 										/>

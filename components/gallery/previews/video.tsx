@@ -1,6 +1,6 @@
-import { memo, useMemo, useState, Fragment, useEffect } from "react"
+import { memo, useMemo, useState, Fragment, useEffect, useCallback, useRef } from "react"
 import { type GalleryItem, useGalleryStore } from "@/stores/gallery.store"
-import { View, ActivityIndicator } from "react-native"
+import { View, ActivityIndicator, Platform } from "react-native"
 import { useVideoPlayer, VideoView } from "expo-video"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Animated, { FadeOut } from "react-native-reanimated"
@@ -12,6 +12,12 @@ import { Text } from "@/components/nativewindui/Text"
 import { cn } from "@/lib/cn"
 import { useShallow } from "zustand/shallow"
 import { useEventListener } from "expo"
+import BlurView from "@/components/blurView"
+import Container from "@/components/Container"
+import { formatSecondsToMMSS } from "@/lib/utils"
+import { Slider } from "@/components/nativewindui/Slider"
+import { Button } from "@/components/nativewindui/Button"
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
 
 export const Video = memo(
 	({
@@ -31,6 +37,11 @@ export const Video = memo(
 		const trackPlayerControls = useTrackPlayerControls()
 		const httpServer = useHTTPServer()
 		const headerHeight = useGalleryStore(useShallow(state => state.headerHeight))
+		const [currentTime, setCurrentTime] = useState<number>(0)
+		const videoViewRef = useRef<VideoView>(null)
+		const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
+		const [playing, setPlaying] = useState<boolean>(false)
+		const [duration, setDuration] = useState<number>(0)
 
 		const style = useMemo(() => {
 			return {
@@ -67,13 +78,83 @@ export const Video = memo(
 
 		const player = useVideoPlayer(source, player => {
 			player.loop = true
+			player.showNowPlayingNotification = false
+			player.keepScreenOnWhilePlaying = true
+			player.timeUpdateEventInterval = 1
 
 			player.play()
 		})
 
-		useEventListener(player, "statusChange", ({ status, error }) => {
-			setLoading(status === "loading")
+		const seek = useCallback(
+			(value: number) => {
+				if (loading) {
+					return
+				}
+
+				// eslint-disable-next-line react-hooks/immutability, react-compiler/react-compiler
+				player.currentTime = (value / 100) * duration
+
+				player.play()
+			},
+			[player, loading, duration]
+		)
+
+		const toggleFullscreen = useCallback(async () => {
+			if (loading) {
+				return
+			}
+
+			if (isFullscreen) {
+				await videoViewRef?.current
+					?.exitFullscreen()
+					.then(() => {
+						setIsFullscreen(false)
+					})
+					.catch(console.error)
+			} else {
+				await videoViewRef?.current
+					?.enterFullscreen()
+					.then(() => {
+						setIsFullscreen(true)
+					})
+					.catch(console.error)
+			}
+		}, [loading, isFullscreen])
+
+		const togglePlay = useCallback(() => {
+			if (loading) {
+				return
+			}
+
+			if (currentTime >= duration) {
+				player.seekBy(-(duration + 1))
+				player.play()
+
+				return
+			}
+
+			if (playing) {
+				player.pause()
+			} else {
+				player.play()
+			}
+		}, [loading, playing, currentTime, duration, player])
+
+		useEventListener(player, "statusChange", ({ error }) => {
 			setError(error ? error.message : null)
+		})
+
+		useEventListener(player, "sourceLoad", e => {
+			setDuration(e.duration)
+			setLoading(false)
+		})
+
+		useEventListener(player, "timeUpdate", e => {
+			setCurrentTime(e.currentTime)
+		})
+
+		useEventListener(player, "playingChange", e => {
+			setPlaying(e.isPlaying)
 		})
 
 		useEffect(() => {
@@ -139,25 +220,101 @@ export const Video = memo(
 								style={[
 									style,
 									{
-										paddingTop: headerHeight,
-										paddingBottom: insets.bottom
+										paddingTop: headerHeight
 									}
 								]}
 							>
-								<VideoView
-									player={player}
-									style={style}
-									nativeControls={true}
-									fullscreenOptions={{
-										enable: true
+								<View className="flex-1">
+									<VideoView
+										ref={videoViewRef}
+										player={player}
+										style={style}
+										nativeControls={isFullscreen}
+										fullscreenOptions={{
+											enable: true
+										}}
+										onFullscreenEnter={() => setIsFullscreen(true)}
+										onFullscreenExit={() => setIsFullscreen(false)}
+										allowsPictureInPicture={false}
+										allowsVideoFrameAnalysis={false}
+										contentFit="contain"
+										crossOrigin="anonymous"
+										startsPictureInPictureAutomatically={false}
+										useExoShutter={false}
+									/>
+								</View>
+								<BlurView
+									intensity={Platform.OS === "ios" ? 100 : 0}
+									tint={Platform.OS === "ios" ? "systemChromeMaterial" : undefined}
+									className={cn(
+										"shrink-0 items-center justify-center w-full min-h-32",
+										Platform.OS === "android" && "bg-card"
+									)}
+									style={{
+										paddingBottom: insets.bottom
 									}}
-									allowsPictureInPicture={false}
-									allowsVideoFrameAnalysis={false}
-									contentFit="contain"
-									crossOrigin="anonymous"
-									startsPictureInPictureAutomatically={false}
-									useExoShutter={false}
-								/>
+								>
+									<Container className="flex-1 flex-col">
+										<View className="flex-1 flex-row items-center justify-between gap-1.5 w-full px-4 py-1 h-full">
+											<Text
+												className="text-xs font-normal text-muted-foreground"
+												style={{
+													fontVariant: ["tabular-nums"]
+												}}
+											>
+												{formatSecondsToMMSS(currentTime)}
+											</Text>
+											<Slider
+												value={(currentTime / duration) * 100}
+												minimumValue={0}
+												maximumValue={100}
+												tapToSeek={true}
+												step={0.1}
+												style={{
+													flex: 1
+												}}
+												onSlidingComplete={seek}
+												minimumTrackTintColor="white"
+												disabled={loading}
+												thumbTintColor={colors.foreground}
+											/>
+											<Text
+												className="text-xs font-normal text-muted-foreground"
+												style={{
+													fontVariant: ["tabular-nums"]
+												}}
+											>
+												{formatSecondsToMMSS(duration)}
+											</Text>
+										</View>
+										<View className="flex-1 flex-row items-center justify-between gap-4 w-full px-4 py-2 border-border border-t">
+											<Button
+												variant="plain"
+												size="icon"
+												onPress={toggleFullscreen}
+												disabled={loading}
+											>
+												<MaterialCommunityIcons
+													name="fullscreen"
+													size={24}
+													color={colors.primary}
+												/>
+											</Button>
+											<Button
+												variant="plain"
+												size="icon"
+												onPress={togglePlay}
+												disabled={loading}
+											>
+												<Icon
+													name={playing ? "pause" : "play"}
+													size={24}
+													color={colors.primary}
+												/>
+											</Button>
+										</View>
+									</Container>
+								</BlurView>
 							</View>
 						)}
 					</Fragment>
