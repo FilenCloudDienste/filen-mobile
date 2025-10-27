@@ -622,6 +622,42 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 							  }
 				})
 			)
+
+			if (pathname.startsWith("/drive") && hasInternet) {
+				items.push(
+					createDropdownItem({
+						actionKey: "settings",
+						title: translateMemoized("tabBar.settings"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "gearshape"
+								  }
+								: {
+										namingScheme: "material",
+										name: "cog-outline"
+								  }
+					})
+				)
+
+				items.push(
+					createDropdownItem({
+						actionKey: "trash",
+						title: translateMemoized("drive.header.title.trash"),
+						icon:
+							Platform.OS === "ios"
+								? {
+										namingScheme: "sfSymbol",
+										name: "trash"
+								  }
+								: {
+										namingScheme: "material",
+										name: "trash-can-outline"
+								  }
+					})
+				)
+			}
 		}
 
 		for (const item of dropdownSelectAllAndNoneItems) {
@@ -653,7 +689,15 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 		}
 
 		return items
-	}, [selectedItemsCount, dropdownSelectAllAndNoneItems, dropdownViewModeItem, dropdownSortSubMenu, dropdownSelectionItems])
+	}, [
+		selectedItemsCount,
+		dropdownSelectAllAndNoneItems,
+		dropdownViewModeItem,
+		dropdownSortSubMenu,
+		dropdownSelectionItems,
+		pathname,
+		hasInternet
+	])
 
 	const handleSortAction = useCallback(
 		(actionKey: string) => {
@@ -680,6 +724,22 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 					case "transfers": {
 						routerPush({
 							pathname: "/transfers"
+						})
+
+						return
+					}
+
+					case "settings": {
+						routerPush({
+							pathname: "/home/settings"
+						})
+
+						return
+					}
+
+					case "trash": {
+						routerPush({
+							pathname: "/home/trash"
 						})
 
 						return
@@ -804,6 +864,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 
 						if (item.actionKey.startsWith("sort")) {
 							handleSortAction(item.actionKey)
+
 							return
 						}
 					}
