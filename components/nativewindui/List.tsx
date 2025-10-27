@@ -336,8 +336,8 @@ export function ListItemComponent<T extends ListDataItem>(
 				className={cn1}
 				{...props}
 				ref={ref}
-				delayLongPress={200}
-				onLongPress={noop}
+				delayLongPress={Platform.OS === "ios" ? 200 : undefined}
+				onLongPress={Platform.OS === "ios" ? props.onLongPress ?? noop : props.onLongPress}
 			>
 				<TextClassContext.Provider value="font-normal leading-5">
 					{!!leftView && <View>{leftView}</View>}
