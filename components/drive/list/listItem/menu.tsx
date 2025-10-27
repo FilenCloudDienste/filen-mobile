@@ -18,6 +18,7 @@ import useFileOfflineStatusQuery from "@/queries/useFileOfflineStatus.query"
 import driveService from "@/services/drive.service"
 import { useShallow } from "zustand/shallow"
 import { usePhotosStore } from "@/stores/photos.store"
+import { useGalleryStore } from "@/stores/gallery.store"
 
 export const Menu = memo(
 	({
@@ -741,6 +742,12 @@ export const Menu = memo(
 						}
 
 						case "share": {
+							if (useGalleryStore.getState().visible) {
+								useGalleryStore.getState().reset()
+
+								await new Promise(resolve => setTimeout(resolve, 500))
+							}
+
 							await driveService.shareItem({
 								item
 							})
@@ -767,6 +774,12 @@ export const Menu = memo(
 						}
 
 						case "move": {
+							if (useGalleryStore.getState().visible) {
+								useGalleryStore.getState().reset()
+
+								await new Promise(resolve => setTimeout(resolve, 500))
+							}
+
 							await driveService.moveItem({
 								item,
 								queryParams,
@@ -777,6 +790,12 @@ export const Menu = memo(
 						}
 
 						case "publicLink": {
+							if (useGalleryStore.getState().visible) {
+								useGalleryStore.getState().reset()
+
+								await new Promise(resolve => setTimeout(resolve, 500))
+							}
+
 							publicLink()
 
 							break
@@ -819,6 +838,12 @@ export const Menu = memo(
 						}
 
 						case "versionHistory": {
+							if (useGalleryStore.getState().visible) {
+								useGalleryStore.getState().reset()
+
+								await new Promise(resolve => setTimeout(resolve, 500))
+							}
+
 							versionHistory()
 
 							break
@@ -845,7 +870,8 @@ export const Menu = memo(
 						case "deletePermanently": {
 							await driveService.deleteItemPermanently({
 								item,
-								queryParams
+								queryParams,
+								fromPreview
 							})
 
 							break

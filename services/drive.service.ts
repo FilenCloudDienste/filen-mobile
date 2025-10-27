@@ -1425,12 +1425,14 @@ export class DriveService {
 		item,
 		queryParams,
 		disableLoader,
-		disableAlertPrompt
+		disableAlertPrompt,
+		fromPreview
 	}: {
 		item: DriveCloudItem
 		queryParams?: FetchCloudItemsParams
 		disableLoader?: boolean
 		disableAlertPrompt?: boolean
+		fromPreview?: boolean
 	}): Promise<void> {
 		if (!disableAlertPrompt) {
 			const alertPromptResponse = await alertPrompt({
@@ -1479,6 +1481,11 @@ export class DriveService {
 
 			// Update selectedItems aswell
 			useDriveStore.getState().setSelectedItems(prev => prev.filter(prevItem => prevItem.uuid !== item.uuid))
+
+			// Close gallery modal if item is currently being previewed
+			if (fromPreview) {
+				useGalleryStore.getState().reset()
+			}
 		} finally {
 			if (!disableLoader) {
 				fullScreenLoadingModal.hide()
