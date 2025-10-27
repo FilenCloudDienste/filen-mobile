@@ -13,8 +13,6 @@ import useNetInfo from "@/hooks/useNetInfo"
 import { viewDocument } from "@react-native-documents/viewer"
 import alerts from "@/lib/alerts"
 import { useGalleryStore } from "@/stores/gallery.store"
-import { useMMKVBoolean } from "react-native-mmkv"
-import mmkvInstance from "@/lib/mmkv"
 import Grid from "./grid"
 import { useShallow } from "zustand/shallow"
 import type { TextEditorItem } from "@/components/textEditor/editor"
@@ -26,6 +24,7 @@ import cache from "@/lib/cache"
 import { translateMemoized } from "@/lib/i18n"
 import type { ListRenderItemInfo } from "@shopify/flash-list"
 import { driveItemsQueryGet } from "@/queries/useDriveItems.query"
+import { useGridMode } from "@/hooks/useGridMode"
 
 export type ListItemInfo = {
 	title: string
@@ -60,7 +59,7 @@ export const ListItem = memo(
 		const isSelected = useDriveStore(useShallow(state => state.selectedItems.some(i => i.uuid === info.item.item.uuid)))
 		const { hasInternet } = useNetInfo()
 		const pathname = usePathname()
-		const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
+		const [gridModeEnabled] = useGridMode(queryParams.parent)
 
 		const directorySize = useDirectorySizeQuery(
 			{

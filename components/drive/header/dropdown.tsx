@@ -7,7 +7,8 @@ import { createDropdownItem, createDropdownSubMenu } from "@/components/nativewi
 import { useDriveStore } from "@/stores/drive.store"
 import type { DropdownItem, DropdownSubMenu } from "@/components/nativewindui/DropdownMenu/types"
 import { useRouter, usePathname } from "expo-router"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import { useMMKVString } from "react-native-mmkv"
+import { useGridMode } from "@/hooks/useGridMode"
 import mmkvInstance from "@/lib/mmkv"
 import { getPreviewType } from "@/lib/utils"
 import type { OrderByType } from "@/lib/itemSorter"
@@ -105,7 +106,7 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 	const { colors } = useColorScheme()
 	const [orderBy, setOrderBy] = useMMKVString("orderBy", mmkvInstance) as [OrderByType | undefined, (value: OrderByType) => void]
 	const { push: routerPush } = useRouter()
-	const [gridModeEnabled, setGridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
+	const [gridModeEnabled, setGridModeEnabled] = useGridMode(queryParams.parent)
 	const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
 	const searchTerm = useDriveStore(useShallow(state => state.searchTerm))
 	const { hasInternet } = useNetInfo()

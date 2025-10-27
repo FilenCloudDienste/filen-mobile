@@ -10,7 +10,7 @@ import ListItem, { type ListItemInfo } from "./listItem"
 import { useFocusEffect } from "expo-router"
 import { useDriveStore } from "@/stores/drive.store"
 import useNetInfo from "@/hooks/useNetInfo"
-import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import useViewLayout from "@/hooks/useViewLayout"
 import useDimensions from "@/hooks/useDimensions"
@@ -21,6 +21,7 @@ import ListEmpty from "@/components/listEmpty"
 import { translateMemoized, t } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
+import { useGridMode } from "@/hooks/useGridMode"
 
 const contentContainerStyle = {
 	paddingBottom: 100
@@ -32,7 +33,7 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 	const { hasInternet } = useNetInfo()
 	const [orderBy] = useMMKVString("orderBy", mmkvInstance) as [OrderByType | undefined, (value: OrderByType) => void]
 	const listRef = useRef<FlashListRef<ListItemInfo>>(null)
-	const [gridModeEnabled] = useMMKVBoolean("gridModeEnabled", mmkvInstance)
+	const [gridModeEnabled] = useGridMode(queryParams.parent)
 	const viewRef = useRef<View>(null)
 	const { layout: listLayout, onLayout } = useViewLayout(viewRef)
 	const { isTablet, isPortrait, screen } = useDimensions()
