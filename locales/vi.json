@@ -1208,7 +1208,9 @@
                 "fileProvider": "Nhà cung cấp tệp",
                 "fileProviderInfo": "Kích hoạt tích hợp Lí tệp iOS để truy cập tệp của bạn bên ngoài ứng dụng.",
                 "security": "Bảo mật",
-                "used": "{{used}} đã sử dụng trong tổng số {{max}} ({{percentage}}%)"
+                "used": "{{used}} đã sử dụng trong tổng số {{max}} ({{percentage}}%)",
+                "account": "Tài khoản",
+                "appearance": "Giao diện"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Bảo mật"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Màn hình bắt đầu",
+                "startOn_chats": "Tin nhắn",
+                "startOn_drive": "Ổ đĩa",
+                "startOn_home": "Trang chủ",
+                "startOn_notes": "Ghi chú",
+                "startOn_photos": "Hình ảnh"
+            },
+            "title": "Giao diện"
         }
     },
     "shareIntent": {

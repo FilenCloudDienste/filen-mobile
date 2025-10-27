@@ -1208,7 +1208,9 @@
                 "fileProvider": "파일 제공자",
                 "fileProviderInfo": "앱 외부에서 파일에 접근하려면 iOS 파일 통합을 활성화하세요.",
                 "security": "보안",
-                "used": "{{max}} 중에서 {{used}} 사용됨 ({{percentage}}%)"
+                "used": "{{max}} 중에서 {{used}} 사용됨 ({{percentage}}%)",
+                "account": "계정",
+                "appearance": "외관"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "보안"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "시작 화면",
+                "startOn_chats": "채팅",
+                "startOn_drive": "드라이브",
+                "startOn_home": "홈",
+                "startOn_notes": "노트",
+                "startOn_photos": "사진"
+            },
+            "title": "외관"
         }
     },
     "shareIntent": {

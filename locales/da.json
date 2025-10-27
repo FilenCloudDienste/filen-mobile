@@ -1208,7 +1208,9 @@
                 "fileProvider": "Filudbyder",
                 "fileProviderInfo": "Aktivér iOS-filintegration for at få adgang til dine filer uden for appen.",
                 "security": "Sikkerhed",
-                "used": "{{used}} brugt af {{max}} ({{percentage}}%)"
+                "used": "{{used}} brugt af {{max}} ({{percentage}}%)",
+                "account": "Konto",
+                "appearance": "Udseende"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Sikkerhed"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Startskærm",
+                "startOn_chats": "Chats",
+                "startOn_drive": "Drev",
+                "startOn_home": "Hjem",
+                "startOn_notes": "Noter",
+                "startOn_photos": "Fotos"
+            },
+            "title": "Udseende"
         }
     },
     "shareIntent": {

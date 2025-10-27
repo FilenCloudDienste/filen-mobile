@@ -1208,7 +1208,9 @@
                 "fileProvider": "فائل پرووائڈر",
                 "fileProviderInfo": "iOS فائلز انٹیگریشن فعال کریں تاکہ آپ اپلیکیشن کے باہر فائلز تک رسائی حاصل کر سکیں۔",
                 "security": "سیکیورٹی",
-                "used": "{{used}} استعمال کیا گیا {{max}} میں سے ({{percentage}}%)"
+                "used": "{{used}} استعمال کیا گیا {{max}} میں سے ({{percentage}}%)",
+                "account": "کھاتہ",
+                "appearance": "ظاہری شکل"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "سیکیورٹی"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "آغاز کا منظر",
+                "startOn_chats": "چیٹس",
+                "startOn_drive": "ڈرائیو",
+                "startOn_home": "ہوم",
+                "startOn_notes": "نوٹس",
+                "startOn_photos": "تصاویر"
+            },
+            "title": "ظاہری شکل"
         }
     },
     "shareIntent": {

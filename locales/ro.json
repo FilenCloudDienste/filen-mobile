@@ -1208,7 +1208,9 @@
                 "fileProvider": "Furnizor de fișiere",
                 "fileProviderInfo": "Activați integrarea iOS Files pentru a accesa fișierele în afara aplicației.",
                 "security": "Securitate",
-                "used": "{{used}} folosit din {{max}} ({{percentage}}%)"
+                "used": "{{used}} folosit din {{max}} ({{percentage}}%)",
+                "account": "Cont",
+                "appearance": "Aspect"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Securitate"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Ecran de start",
+                "startOn_chats": "Mesaje",
+                "startOn_drive": "Drive",
+                "startOn_home": "Acasă",
+                "startOn_notes": "Note",
+                "startOn_photos": "Fotografii"
+            },
+            "title": "Aspect"
         }
     },
     "shareIntent": {

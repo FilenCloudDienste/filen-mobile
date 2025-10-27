@@ -1208,7 +1208,9 @@
                 "fileProvider": "Fornecedor de arquivos",
                 "fileProviderInfo": "Ative a integração com o iOS Files para acessar seus arquivos fora do aplicativo.",
                 "security": "Segurança",
-                "used": "{{used}} usados de {{max}} ({{percentage}}%)"
+                "used": "{{used}} usados de {{max}} ({{percentage}}%)",
+                "account": "Conta",
+                "appearance": "Aparência"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Segurança"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Tela inicial",
+                "startOn_chats": "Conversas",
+                "startOn_drive": "Drive",
+                "startOn_home": "Início",
+                "startOn_notes": "Notas",
+                "startOn_photos": "Fotos"
+            },
+            "title": "Aparência"
         }
     },
     "shareIntent": {

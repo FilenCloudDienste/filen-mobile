@@ -1208,7 +1208,9 @@
                 "fileProvider": "Fillagringsleverantör",
                 "fileProviderInfo": "Aktivera iOS-filerintegration för att komma åt dina filer utanför appen.",
                 "security": "Säkerhet",
-                "used": "{{used}} använt av {{max}} ({{percentage}}%)"
+                "used": "{{used}} använt av {{max}} ({{percentage}}%)",
+                "account": "Konto",
+                "appearance": "Utseende"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Säkerhet"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Startskärm",
+                "startOn_chats": "Chattar",
+                "startOn_drive": "Enhet",
+                "startOn_home": "Hem",
+                "startOn_notes": "Anteckningar",
+                "startOn_photos": "Foton"
+            },
+            "title": "Utseende"
         }
     },
     "shareIntent": {

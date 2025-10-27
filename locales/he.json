@@ -1208,7 +1208,9 @@
                 "fileProvider": "ספק קבצים",
                 "fileProviderInfo": "הפעל את שילוב ה-Files של iOS כדי לגשת לקבצים שלך מחוץ לאפליקציה.",
                 "security": "אבטחה",
-                "used": "{{used}} מתוך {{max}} ({{percentage}}%) בשימוש"
+                "used": "{{used}} מתוך {{max}} ({{percentage}}%) בשימוש",
+                "account": "חשבון",
+                "appearance": "מראה"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "אבטחה"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "מסך התחלה",
+                "startOn_chats": "שיחות",
+                "startOn_drive": "כונן",
+                "startOn_home": "בית",
+                "startOn_notes": "הערות",
+                "startOn_photos": "תמונות"
+            },
+            "title": "מראה"
         }
     },
     "shareIntent": {

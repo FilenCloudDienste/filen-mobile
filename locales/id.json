@@ -1208,7 +1208,9 @@
                 "fileProvider": "Penyedia file",
                 "fileProviderInfo": "Aktifkan integrasi Files iOS untuk mengakses file Anda di luar aplikasi.",
                 "security": "Keamanan",
-                "used": "{{used}} digunakan dari {{max}} ({{percentage}}%)"
+                "used": "{{used}} digunakan dari {{max}} ({{percentage}}%)",
+                "account": "Akun",
+                "appearance": "Tampilan"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Keamanan"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Layar awal",
+                "startOn_chats": "Obrolan",
+                "startOn_drive": "Drive",
+                "startOn_home": "Beranda",
+                "startOn_notes": "Catatan",
+                "startOn_photos": "Foto"
+            },
+            "title": "Tampilan"
         }
     },
     "shareIntent": {
