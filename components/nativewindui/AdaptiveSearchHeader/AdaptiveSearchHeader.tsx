@@ -209,7 +209,7 @@ export const AdaptiveSearchHeader = memo((props: AdaptiveSearchHeaderProps) => {
 					</View>
 				</Button>
 			</View>
-			<Portal name={`large-title:${id}`}>
+			<Portal name={`adaptive-title:${id}`}>
 				<View
 					className={cn("absolute left-0 right-0 top-0", !props.searchBar?.contentTransparent && "bottom-0")}
 					style={{

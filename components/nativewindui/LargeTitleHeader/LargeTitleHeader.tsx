@@ -169,7 +169,10 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 					<View className="flex-1 flex-row items-center">
 						{props.leftView ? (
 							<View className="flex-row justify-center gap-4 pl-0.5">
-								{props.leftView({ canGoBack, tintColor: colors.foreground })}
+								{props.leftView({
+									canGoBack,
+									tintColor: colors.foreground
+								})}
 							</View>
 						) : (
 							props.backVisible !== false &&
@@ -194,7 +197,7 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 								<Text
 									variant="title1"
 									numberOfLines={1}
-									className={props.materialTitleClassName}
+									className={cn("truncate", props.materialTitleClassName)}
 								>
 									{props.title ?? route.name}
 								</Text>
@@ -233,7 +236,7 @@ export const LargeTitleHeader = memo((props: LargeTitleHeaderProps) => {
 					<View className="px-3 pt-6">
 						<Text
 							numberOfLines={1}
-							className={cn("text-3xl", props.materialTitleClassName)}
+							className={cn("text-3xl truncate", props.materialTitleClassName)}
 						>
 							{props.title ?? route.name}
 						</Text>
