@@ -8,7 +8,7 @@
 		"@types/express": "^5.0.0",
 		"@types/fs-extra": "^11.0.4",
 		"@types/mime-types": "^2.1.4",
-		"patch-package": "^8.0.0",
+		"patch-package": "^8.0.1",
 		"react": "^19.1.0",
 		"typescript": "^5.8.3"
 	},
