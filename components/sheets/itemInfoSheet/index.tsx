@@ -5,6 +5,7 @@ import { randomUUID } from "expo-crypto"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { BottomSheetView } from "@gorhom/bottom-sheet"
 import Info from "./info"
+import { BackHandler } from "react-native"
 
 export type ItemInfoEvent = {
 	type: "request"
@@ -32,13 +33,38 @@ export const ItemInfoSheet = memo(() => {
 	const insets = useSafeAreaInsets()
 	const [item, setItem] = useState<DriveCloudItem | null>(null)
 
-	const onChange = useCallback((index: number) => {
-		if (index === -1) {
-			setItem(null)
+	const onChange = useCallback(
+		(index: number) => {
+			if (index === -1) {
+				setItem(null)
 
-			id.current = ""
+				id.current = ""
+
+				ref?.current?.forceClose()
+			}
+		},
+		[ref]
+	)
+
+	useEffect(() => {
+		const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+			if (id.current.length > 0) {
+				setItem(null)
+
+				id.current = ""
+
+				ref?.current?.forceClose()
+
+				return true
+			}
+
+			return false
+		})
+
+		return () => {
+			backHandler.remove()
 		}
-	}, [])
+	}, [ref])
 
 	useEffect(() => {
 		const sub = events.subscribe("itemInfo", e => {

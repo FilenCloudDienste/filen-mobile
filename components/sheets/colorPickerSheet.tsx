@@ -4,7 +4,7 @@ import events from "@/lib/events"
 import { randomUUID } from "expo-crypto"
 import { DEFAULT_DIRECTORY_COLOR } from "@/assets/fileIcons"
 import ColorPickerComponent, { Panel1, Preview, HueSlider } from "reanimated-color-picker"
-import { View } from "react-native"
+import { View, BackHandler } from "react-native"
 import { Button } from "../nativewindui/Button"
 import { Text } from "../nativewindui/Text"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -115,6 +115,22 @@ export const ColorPickerSheet = memo(() => {
 	)
 
 	useEffect(() => {
+		const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+			if (id.current.length > 0) {
+				close()
+
+				return true
+			}
+
+			return false
+		})
+
+		return () => {
+			backHandler.remove()
+		}
+	}, [close])
+
+	useEffect(() => {
 		const sub = events.subscribe("colorPicker", e => {
 			if (e.type === "request") {
 				id.current = e.data.id
@@ -129,10 +145,6 @@ export const ColorPickerSheet = memo(() => {
 			sub.remove()
 		}
 	}, [ref])
-
-	if (!id) {
-		return null
-	}
 
 	return (
 		<Sheet
