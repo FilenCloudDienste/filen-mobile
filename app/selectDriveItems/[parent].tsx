@@ -35,7 +35,6 @@ export default function SelectDriveItems() {
 	const { colors } = useColorScheme()
 	const { id, type, max, parent, dismissHref, toMove, previewTypes, extensions, multiScreen } = useLocalSearchParams()
 	const [refreshing, setRefreshing] = useState<boolean>(false)
-	const [searchTerm, setSearchTerm] = useState<string>("")
 	const { canGoBack: routerCanGoBack, dismissTo: routerDismissTo, back: routerBack } = useRouter()
 	const [{ baseFolderUUID }] = useSDKConfig()
 	const { hasInternet } = useNetInfo()
@@ -89,7 +88,7 @@ export default function SelectDriveItems() {
 			return []
 		}
 
-		let queryItems = orderItemsByType({
+		const queryItems = orderItemsByType({
 			items: query.data,
 			type: "nameAsc"
 		}).map(item => ({
@@ -102,16 +101,8 @@ export default function SelectDriveItems() {
 			item
 		}))
 
-		if (searchTerm.length > 0) {
-			const searchTermLowerCase = searchTerm.toLowerCase()
-
-			queryItems = queryItems.filter(
-				item => item.title.toLowerCase().includes(searchTermLowerCase) || item.subTitle.toLowerCase().includes(searchTermLowerCase)
-			)
-		}
-
 		return queryItems
-	}, [query.status, query.data, searchTerm])
+	}, [query.status, query.data])
 
 	const keyExtractor = useCallback((item: (Omit<ListDataItem, string> & { id: string }) | string): string => {
 		return typeof item === "string" ? item : item.id
@@ -197,12 +188,6 @@ export default function SelectDriveItems() {
 						</Button>
 					)
 				}}
-				searchBar={{
-					iosHideWhenScrolling: false,
-					onChangeText: setSearchTerm,
-					contentTransparent: true,
-					persistBlur: true
-				}}
 			/>
 		) : (
 			<LargeTitleHeader
@@ -219,11 +204,6 @@ export default function SelectDriveItems() {
 							<Text className="text-blue-500">{translateMemoized("selectDriveItems.header.cancel")}</Text>
 						</Button>
 					)
-				}}
-				searchBar={{
-					onChangeText: setSearchTerm,
-					contentTransparent: true,
-					persistBlur: true
 				}}
 			/>
 		)
