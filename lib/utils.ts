@@ -35,6 +35,7 @@ export function deserializeError(serializedError: SerializedError): Error {
 
 	error.name = serializedError.name
 	error.stack = serializedError.stack
+	error.message = serializedError.message
 
 	return error
 }
