@@ -1,7 +1,7 @@
 import { memo, useMemo, useCallback, useRef, useEffect } from "react"
 import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
 import { useNoteContentQuery } from "@/queries/useNoteContent.query"
-import { Platform, View, ActivityIndicator } from "react-native"
+import { Platform, View, ActivityIndicator, AppState } from "react-native"
 import Container from "@/components/Container"
 import TextEditorDOM from "./text/dom"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -141,6 +141,18 @@ export const Content = memo(
 		useEffect(() => {
 			setSyncing(isFetching || noteContentQuery.status === "pending")
 		}, [isFetching, setSyncing, noteContentQuery.status])
+
+		useEffect(() => {
+			const appStateListener = AppState.addEventListener("change", nextAppState => {
+				if (nextAppState !== "active") {
+					onValueChangeTimeoutRef.current?.execute()
+				}
+			})
+
+			return () => {
+				appStateListener.remove()
+			}
+		}, [])
 
 		useFocusEffect(
 			useCallback(() => {
