@@ -9,6 +9,8 @@ import useNetInfo from "@/hooks/useNetInfo"
 import sqlite from "@/lib/sqlite"
 import Semaphore from "@/lib/semaphore"
 import { jsonBigIntReplacer, jsonBigIntReviver } from "@/lib/utils"
+import authService from "@/services/auth.service"
+import { router } from "expo-router"
 
 export const VERSION = 3
 export const QUERY_CLIENT_PERSISTER_PREFIX = `reactQuery_v${VERSION}`
@@ -157,6 +159,19 @@ export const DEFAULT_QUERY_OPTIONS: Pick<
 		console.error(err)
 
 		if (err instanceof Error) {
+			if (err.message.toLowerCase().includes("api key not found") || err.message.toLowerCase().includes("invalid api key")) {
+				authService
+					.logout({})
+					.then(() => {
+						router.replace({
+							pathname: "/(auth)"
+						})
+					})
+					.catch(console.error)
+
+				return false
+			}
+
 			alerts.error(err.message)
 		}
 
