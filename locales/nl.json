@@ -1208,7 +1208,9 @@
                 "fileProvider": "Bestandsprovider",
                 "fileProviderInfo": "Schakel de iOS Bestanden-integratie in om toegang te krijgen tot uw bestanden buiten de app.",
                 "security": "Beveiliging",
-                "used": "{{used}} gebruikt van {{max}} ({{percentage}}%)"
+                "used": "{{used}} gebruikt van {{max}} ({{percentage}}%)",
+                "account": "Account",
+                "appearance": "Weergave"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Beveiliging"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Startscherm",
+                "startOn_chats": "Chats",
+                "startOn_drive": "Drive",
+                "startOn_home": "Home",
+                "startOn_notes": "Notities",
+                "startOn_photos": "Foto's"
+            },
+            "title": "Weergave"
         }
     },
     "shareIntent": {

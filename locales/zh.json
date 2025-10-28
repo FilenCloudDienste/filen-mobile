@@ -1208,7 +1208,9 @@
                 "fileProvider": "文件提供者",
                 "fileProviderInfo": "启用iOS文件集成以在应用外访问您的文件。",
                 "security": "安全",
-                "used": "已使用{{used}}，总共{{max}} ({{percentage}}%)"
+                "used": "已使用{{used}}，总共{{max}} ({{percentage}}%)",
+                "account": "账户",
+                "appearance": "外观"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "安全"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "开始屏幕",
+                "startOn_chats": "聊天",
+                "startOn_drive": "云盘",
+                "startOn_home": "主页",
+                "startOn_notes": "笔记",
+                "startOn_photos": "照片"
+            },
+            "title": "外观"
         }
     },
     "shareIntent": {

@@ -1208,7 +1208,9 @@
                 "fileProvider": "ตัวจัดการไฟล์",
                 "fileProviderInfo": "เปิดการใช้งานการรวมไฟล์ iOS เพื่อเข้าถึงไฟล์ของคุณภายนอกแอป.",
                 "security": "ความปลอดภัย",
-                "used": "{{used}} ของ {{max}} ({{percentage}}%)"
+                "used": "{{used}} ของ {{max}} ({{percentage}}%)",
+                "account": "บัญชี",
+                "appearance": "ลักษณะ"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "ความปลอดภัย"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "หน้าจอเริ่มต้น",
+                "startOn_chats": "การสนทนา",
+                "startOn_drive": "ไดรฟ์",
+                "startOn_home": "หน้าหลัก",
+                "startOn_notes": "บันทึกย่อ",
+                "startOn_photos": "รูปภาพ"
+            },
+            "title": "ลักษณะ"
         }
     },
     "shareIntent": {

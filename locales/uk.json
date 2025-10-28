@@ -1208,7 +1208,9 @@
                 "fileProvider": "Постачальник файлів",
                 "fileProviderInfo": "Увімкніть інтеграцію з файлами iOS, щоб отримати доступ до ваших файлів поза межами програми.",
                 "security": "Безпека",
-                "used": "Використано {{used}} з {{max}} ({{percentage}}%)"
+                "used": "Використано {{used}} з {{max}} ({{percentage}}%)",
+                "account": "Обліковий запис",
+                "appearance": "Зовнішній вигляд"
             },
             "prompts": {
                 "documentsProvider": {
@@ -1284,6 +1286,17 @@
                 }
             },
             "title": "Безпека"
+        },
+        "appearance": {
+            "items": {
+                "startOn": "Початковий екран",
+                "startOn_chats": "Чати",
+                "startOn_drive": "Диск",
+                "startOn_home": "Головна",
+                "startOn_notes": "Нотатки",
+                "startOn_photos": "Фото"
+            },
+            "title": "Зовнішній вигляд"
         }
     },
     "shareIntent": {
