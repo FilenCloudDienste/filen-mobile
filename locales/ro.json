@@ -828,7 +828,9 @@
                     "permissionsError": "Eroare de permisiuni",
                     "permissionsErrorInfo": "Te rugăm să permiți aplicației accesul la fotografiile și videoclipurile tale în setările sistemului.",
                     "videos": "Video",
-                    "videosInfo": "Includeți videoclipuri în încărcarea camerei."
+                    "videosInfo": "Includeți videoclipuri în încărcarea camerei.",
+                    "onlyDeltasAfterActivation": "După activare",
+                    "onlyDeltasAfterActivationInfo": "Când este activată, vor fi încărcate doar fotografiile și videoclipurile realizate după activarea încărcării din cameră."
                 },
                 "title": "Setări"
             }

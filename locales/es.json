@@ -828,7 +828,9 @@
                     "permissionsError": "Error de permisos",
                     "permissionsErrorInfo": "Por favor, permite que la aplicación acceda a tus fotos y videos en la configuración del sistema.",
                     "videos": "Videos",
-                    "videosInfo": "Incluir vídeos en la subida de cámara."
+                    "videosInfo": "Incluir vídeos en la subida de cámara.",
+                    "onlyDeltasAfterActivation": "Después de la activación",
+                    "onlyDeltasAfterActivationInfo": "Cuando está habilitado, solo se subirán fotos y videos tomados después de habilitar la carga de la cámara."
                 },
                 "title": "Configuraciones"
             }

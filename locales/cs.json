@@ -828,7 +828,9 @@
                     "permissionsError": "Chyba oprávnění",
                     "permissionsErrorInfo": "Povolte aplikaci přístup k vašim fotografiím a videím v systémových nastaveních.",
                     "videos": "Videa",
-                    "videosInfo": "Zahrnout videa při nahrávání z kamery."
+                    "videosInfo": "Zahrnout videa při nahrávání z kamery.",
+                    "onlyDeltasAfterActivation": "Po aktivaci",
+                    "onlyDeltasAfterActivationInfo": "Když je povoleno, nahrají se pouze fotografie a videa pořízené po povolení nahrávání z fotoaparátu."
                 },
                 "title": "Nastavení"
             }

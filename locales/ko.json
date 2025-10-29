@@ -828,7 +828,9 @@
                     "permissionsError": "권한 오류",
                     "permissionsErrorInfo": "앱이 시스템 설정에서 사진과 비디오에 접근할 수 있도록 허용하세요.",
                     "videos": "비디오",
-                    "videosInfo": "카메라 업로드에 비디오 포함."
+                    "videosInfo": "카메라 업로드에 비디오 포함.",
+                    "onlyDeltasAfterActivation": "활성화 후",
+                    "onlyDeltasAfterActivationInfo": "활성화되면, 카메라 업로드가 활성화된 후에 촬영된 사진 및 비디오만 업로드됩니다."
                 },
                 "title": "설정"
             }

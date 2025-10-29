@@ -828,7 +828,9 @@
                     "permissionsError": "許可エラー",
                     "permissionsErrorInfo": "アプリがシステム設定で写真やビデオにアクセスすることを許可してください。",
                     "videos": "ビデオ",
-                    "videosInfo": "カメラのアップロードにビデオを含める。"
+                    "videosInfo": "カメラのアップロードにビデオを含める。",
+                    "onlyDeltasAfterActivation": "アクティベーション後",
+                    "onlyDeltasAfterActivationInfo": "カメラアップロードを有効にした後に撮影された写真とビデオのみがアップロードされます。"
                 },
                 "title": "設定"
             }

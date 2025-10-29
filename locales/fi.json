@@ -828,7 +828,9 @@
                     "permissionsError": "Käyttöoikeusvirhe",
                     "permissionsErrorInfo": "Salli sovelluksen käyttää kuvia ja videoita järjestelmäasetuksissa.",
                     "videos": "Videot",
-                    "videosInfo": "Sisällytä videot kameran lataukseen."
+                    "videosInfo": "Sisällytä videot kameran lataukseen.",
+                    "onlyDeltasAfterActivation": "Aktivoinnin jälkeen",
+                    "onlyDeltasAfterActivationInfo": "Kun kamera lataus on käytössä, vain kuvat ja videot, jotka on otettu kameran latauksen ollessa käytössä, ladataan."
                 },
                 "title": "Asetukset"
             }
