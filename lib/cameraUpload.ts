@@ -34,6 +34,7 @@ export type TreeItem = (
 	creation: number
 	lastModified: number
 	path: string
+	pathWithAlbum: string
 }
 
 export type Tree = Record<string, TreeItem>
@@ -171,47 +172,28 @@ export class CameraUpload {
 		return Math.floor(timestamp / 1000)
 	}
 
-	private modifyLocalAssetPathOnDuplicate(iteration: number, asset: MediaLibrary.Asset, albumTitle: string): string {
-		const ext = pathModule.posix.extname(asset.filename)
-		const basename = pathModule.posix.basename(asset.filename, ext)
+	private modifyAssetPathOnDuplicate(
+		iteration: number,
+		asset: {
+			name: string
+			creationTime: number
+			id?: string
+		}
+	): string | null {
+		const ext = pathModule.posix.extname(asset.name)
+		const basename = pathModule.posix.basename(asset.name, ext)
 
 		switch (iteration) {
 			case 0: {
-				return this.normalizePath(pathModule.posix.join(albumTitle, `${basename}_${asset.creationTime}${ext}`))
+				return this.normalizePath(`${basename}_${asset.creationTime}${ext}`)
 			}
 
 			case 1: {
-				return this.normalizePath(pathModule.posix.join(albumTitle, `${basename}_${xxHash32(asset.id).toString(16)}${ext}`))
-			}
-
-			case 2: {
-				return this.normalizePath(
-					pathModule.posix.join(albumTitle, `${basename}_${xxHash32(`${asset.id}:${asset.filename}`).toString(16)}${ext}`)
-				)
-			}
-
-			case 3: {
-				return this.normalizePath(
-					pathModule.posix.join(
-						albumTitle,
-						`${basename}_${xxHash32(`${asset.id}:${asset.filename}:${asset.creationTime}`).toString(16)}${ext}`
-					)
-				)
-			}
-
-			case 4: {
-				return this.normalizePath(
-					pathModule.posix.join(
-						albumTitle,
-						`${basename}_${xxHash32(`${asset.id}:${asset.filename}:${asset.creationTime}:${asset.mediaType}`).toString(
-							16
-						)}${ext}`
-					)
-				)
+				return this.normalizePath(`${basename}_${xxHash32(asset.id ?? asset.creationTime.toString()).toString(16)}${ext}`)
 			}
 
 			default: {
-				return this.normalizePath(pathModule.posix.join(albumTitle, asset.filename))
+				return null
 			}
 		}
 	}
@@ -220,6 +202,11 @@ export class CameraUpload {
 		const state = getCameraUploadState()
 		const items: Tree = {}
 		const existingPaths: Record<string, true> = {}
+		const existingAssetIds: Record<string, true> = {}
+		const afterTimestamp =
+			state.onlyDeltasAfterActivation && (state.onlyDeltasAfterActivationTimestamp ?? 0) > 0
+				? state.onlyDeltasAfterActivationTimestamp ?? 0
+				: 0
 
 		await Promise.all(
 			state.albums.map(async album => {
@@ -229,11 +216,15 @@ export class CameraUpload {
 					const result = await MediaLibrary.getAssetsAsync({
 						mediaType: this.mediaTypes.includes("video") && !state.videos ? ["photo"] : this.mediaTypes,
 						album: album.id,
-						first: 128,
+						first: 256,
 						after
 					})
 
 					for (const asset of result.assets) {
+						if (asset.creationTime < afterTimestamp) {
+							continue
+						}
+
 						assets.push(asset)
 					}
 
@@ -244,22 +235,33 @@ export class CameraUpload {
 
 				await fetch()
 
-				for (const asset of assets.sort((a, b) =>
-					`${a.id}:${a.filename}:${a.creationTime}:${a.mediaType}`.localeCompare(
-						`${b.id}:${b.filename}:${b.creationTime}:${b.mediaType}`,
-						"en",
-						{
-							numeric: true
-						}
-					)
-				)) {
-					let path = this.normalizePath(pathModule.posix.join(album.title, asset.filename))
+				for (const asset of assets.sort((a, b) => a.creationTime - b.creationTime)) {
+					if (existingAssetIds[asset.id]) {
+						continue
+					}
+
+					existingAssetIds[asset.id] = true
+
+					let path: string = this.normalizePath(asset.filename)
 					let iteration = 0
 
 					while (existingPaths[path.toLowerCase()]) {
-						path = this.modifyLocalAssetPathOnDuplicate(iteration, asset, album.title)
+						path =
+							this.modifyAssetPathOnDuplicate(iteration, {
+								name: asset.filename,
+								creationTime: asset.creationTime,
+								id: asset.id
+							}) ?? ""
+
+						if (path.length === 0) {
+							break
+						}
 
 						iteration++
+					}
+
+					if (path.length === 0) {
+						continue
 					}
 
 					existingPaths[path.toLowerCase()] = true
@@ -270,7 +272,8 @@ export class CameraUpload {
 						name: pathModule.posix.basename(path),
 						creation: convertTimestampToMs(Math.floor(asset.creationTime)),
 						lastModified: convertTimestampToMs(Math.floor(asset.modificationTime)),
-						path
+						path,
+						pathWithAlbum: this.normalizePath(pathModule.posix.join(album.title, path))
 					}
 				}
 			})
@@ -287,6 +290,7 @@ export class CameraUpload {
 		}
 
 		const items: Tree = {}
+		const existingPaths: Record<string, true> = {}
 		const tree =
 			this.type === "foreground"
 				? await nodeWorker.proxy("getDirectoryTree", {
@@ -298,22 +302,45 @@ export class CameraUpload {
 						type: "normal"
 				  })
 
-		for (const path in tree) {
-			const file = tree[path]
+		for (const treeItemPath in tree) {
+			const file = tree[treeItemPath]
 
 			if (!file || file.type !== "file") {
 				continue
 			}
 
-			const pathNormalized = this.normalizePath(path)
+			let path: string = this.normalizePath(file.name)
+			let iteration = 0
 
-			items[pathNormalized.toLowerCase()] = {
+			while (existingPaths[path.toLowerCase()]) {
+				path =
+					this.modifyAssetPathOnDuplicate(iteration, {
+						name: file.name,
+						creationTime: file.creation ?? file.lastModified ?? file.timestamp,
+						id: file.uuid
+					}) ?? ""
+
+				if (path.length === 0) {
+					break
+				}
+
+				iteration++
+			}
+
+			if (path.length === 0) {
+				continue
+			}
+
+			existingPaths[path.toLowerCase()] = true
+
+			items[path.toLowerCase()] = {
 				type: "remote",
 				name: file.name,
 				uuid: file.uuid,
 				creation: file.creation ?? file.lastModified ?? file.timestamp,
 				lastModified: file.lastModified,
-				path: pathNormalized
+				path,
+				pathWithAlbum: this.normalizePath(treeItemPath)
 			}
 		}
 
@@ -419,7 +446,7 @@ export class CameraUpload {
 						throw new Error("Aborted")
 					}
 
-					const parentName = pathModule.posix.dirname(delta.item.path)
+					const parentName = pathModule.posix.dirname(delta.item.pathWithAlbum)
 					const parentUUID =
 						!parentName || parentName.length === 0 || parentName === "."
 							? state.remote.uuid

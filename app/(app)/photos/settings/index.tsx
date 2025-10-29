@@ -40,7 +40,9 @@ export const Settings = memo(() => {
 			setCameraUpload(prev => ({
 				...prev,
 				enabled: enable,
-				version: (prev.version ?? 0) + 1
+				version: (prev.version ?? 0) + 1,
+				onlyDeltasAfterActivationTimestamp:
+					enable && (prev.onlyDeltasAfterActivation ?? false) ? Date.now() : prev.onlyDeltasAfterActivationTimestamp
 			}))
 
 			if (enable) {
@@ -56,7 +58,8 @@ export const Settings = memo(() => {
 	const toggleCellular = useCallback(() => {
 		setCameraUpload(prev => ({
 			...prev,
-			cellular: !prev.cellular
+			cellular: !prev.cellular,
+			version: (prev.version ?? 0) + 1
 		}))
 
 		setTimeout(() => {
@@ -68,7 +71,8 @@ export const Settings = memo(() => {
 	const toggleCompress = useCallback(() => {
 		setCameraUpload(prev => ({
 			...prev,
-			compress: !prev.compress
+			compress: !prev.compress,
+			version: (prev.version ?? 0) + 1
 		}))
 
 		setTimeout(() => {
@@ -92,7 +96,8 @@ export const Settings = memo(() => {
 	const toggleLowBattery = useCallback(() => {
 		setCameraUpload(prev => ({
 			...prev,
-			lowBattery: !prev.lowBattery
+			lowBattery: !prev.lowBattery,
+			version: (prev.version ?? 0) + 1
 		}))
 
 		setTimeout(() => {
@@ -104,7 +109,22 @@ export const Settings = memo(() => {
 	const toggleVideos = useCallback(() => {
 		setCameraUpload(prev => ({
 			...prev,
-			videos: !prev.videos
+			videos: !prev.videos,
+			version: (prev.version ?? 0) + 1
+		}))
+
+		setTimeout(() => {
+			cameraUploadParentQuery.refetch().catch(console.error)
+			foregroundCameraUpload.run().catch(console.error)
+		}, 1000)
+	}, [setCameraUpload, cameraUploadParentQuery])
+
+	const toggleOnlyDeltasAfterActivation = useCallback(() => {
+		setCameraUpload(prev => ({
+			...prev,
+			onlyDeltasAfterActivation: !prev.onlyDeltasAfterActivation,
+			onlyDeltasAfterActivationTimestamp: !prev.onlyDeltasAfterActivation ? Date.now() : undefined,
+			version: (prev.version ?? 0) + 1
 		}))
 
 		setTimeout(() => {
@@ -320,6 +340,25 @@ export const Settings = memo(() => {
 						onValueChange={toggleCompress}
 					/>
 				)
+			},
+			{
+				id: "8",
+				title: translateMemoized("photos.settings.index.items.onlyDeltasAfterActivation"),
+				subTitle: translateMemoized("photos.settings.index.items.onlyDeltasAfterActivationInfo"),
+				leftView: (
+					<IconView
+						name="clock-outline"
+						className="bg-teal-500"
+					/>
+				),
+				rightView: (
+					<Toggle
+						value={
+							(cameraUpload.onlyDeltasAfterActivation ?? false) && (cameraUpload.onlyDeltasAfterActivationTimestamp ?? 0) > 0
+						}
+						onValueChange={toggleOnlyDeltasAfterActivation}
+					/>
+				)
 			}
 		]
 	}, [
@@ -334,7 +373,8 @@ export const Settings = memo(() => {
 		routerPush,
 		permissions,
 		requestPermissions,
-		cameraUploadParentExists
+		cameraUploadParentExists,
+		toggleOnlyDeltasAfterActivation
 	])
 
 	useFocusEffect(

@@ -1054,7 +1054,9 @@
 					"compress": "Compress",
 					"compressInfo": "Compress photos to save storage space. This can reduce the quality of the photos. JPG compression at 80% quality.",
 					"permissionsError": "Permissions error",
-					"permissionsErrorInfo": "Please allow the app to access your photos and videos in the system settings."
+					"permissionsErrorInfo": "Please allow the app to access your photos and videos in the system settings.",
+					"onlyDeltasAfterActivation": "After activation",
+					"onlyDeltasAfterActivationInfo": "When enabled, only photos and videos taken after enabling camera upload will be uploaded."
 				},
 				"errors": {
 					"noPermissions": "You need to grant media permissions to access your photos."

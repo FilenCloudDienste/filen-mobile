@@ -14,6 +14,8 @@ export type CameraUpload = {
 	lowBattery: boolean
 	videos: boolean
 	compress: boolean
+	onlyDeltasAfterActivation?: boolean
+	onlyDeltasAfterActivationTimestamp?: number
 	// The version value is used to determine if the state has changed and we need to abort any running uploads
 	// This is useful for when the user changes settings, like enabling/disabling camera upload
 	version?: number
