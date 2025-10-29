@@ -731,8 +731,14 @@ export const Dropdown = memo(({ queryParams }: { queryParams: FetchCloudItemsPar
 
 					case "settings": {
 						routerPush({
-							pathname: "/home/settings"
+							pathname: "/home"
 						})
+
+						setTimeout(() => {
+							routerPush({
+								pathname: "/home/settings"
+							})
+						}, 10)
 
 						return
 					}

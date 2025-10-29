@@ -72,7 +72,7 @@ export const Settings = memo(() => {
 			router.push({
 				pathname: "/(app)/photos/settings"
 			})
-		}, 1)
+		}, 10)
 	}, [router])
 
 	const onChangeFileProvider = useCallback(async (value: boolean) => {
