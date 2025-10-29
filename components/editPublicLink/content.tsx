@@ -324,33 +324,58 @@ export const Inner = memo(({ item, status }: { item: DriveCloudItem; status: Use
 								/>
 							)
 						},
-						...(Platform.OS === "android"
-							? [
-									{
-										id: "4",
-										title: translateMemoized("editPublicLink.items.shareLink"),
-										rightView: (
-											<Button
-												variant="tonal"
-												size="icon"
-												onPress={share}
-												disabled={!status.enabled}
-												hitSlop={15}
-											>
-												<Icon
-													name="send-outline"
-													size={20}
-													color={colors.foreground}
-												/>
-											</Button>
-										)
-									}
-							  ]
-							: [])
+						{
+							id: "4",
+							title: translateMemoized("editPublicLink.items.shareLink"),
+							rightView:
+								Platform.OS === "android" ? (
+									<Button
+										variant="tonal"
+										size="icon"
+										onPress={share}
+										disabled={!status.enabled}
+										hitSlop={15}
+									>
+										<Icon
+											name="send-outline"
+											size={20}
+											color={colors.foreground}
+										/>
+									</Button>
+								) : (
+									<Button
+										variant="plain"
+										size="none"
+										onPress={share}
+										disabled={!status.enabled}
+										hitSlop={15}
+									>
+										<Icon
+											name="send-outline"
+											ios={{
+												name: "square.and.arrow.up"
+											}}
+											size={20}
+											color={colors.primary}
+										/>
+									</Button>
+								)
+						}
 				  ]
 				: [])
 		] satisfies SettingsItem[]
-	}, [toggle, enabled, editPassword, downloadEnabled, toggleDownload, expirationText, share, colors.foreground, status.enabled])
+	}, [
+		toggle,
+		enabled,
+		editPassword,
+		downloadEnabled,
+		toggleDownload,
+		expirationText,
+		share,
+		colors.foreground,
+		status.enabled,
+		colors.primary
+	])
 
 	return (
 		<Container>
