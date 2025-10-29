@@ -1,7 +1,7 @@
 import "ts-node/register"
 import type { ExpoConfig, ConfigContext } from "expo/config"
 
-export const VERSION: string = "3.0.29"
+export const VERSION: string = "3.0.30"
 
 export const APPLE_TEAM_ID: string = "7YTW5D2K7P"
 export const IOS_APP_GROUP_ID: string = "group.io.filen.app"
