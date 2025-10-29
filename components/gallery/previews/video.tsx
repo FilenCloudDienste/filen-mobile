@@ -18,6 +18,9 @@ import { formatSecondsToMMSS } from "@/lib/utils"
 import { Slider } from "@/components/nativewindui/Slider"
 import { Button } from "@/components/nativewindui/Button"
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
+import { useMMKVObject } from "react-native-mmkv"
+import mmkvInstance from "@/lib/mmkv"
+import { type BiometricAuth, BIOMETRIC_AUTH_KEY } from "@/app/(app)/home/settings/security"
 
 export const Video = memo(
 	({
@@ -42,6 +45,7 @@ export const Video = memo(
 		const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
 		const [playing, setPlaying] = useState<boolean>(false)
 		const [duration, setDuration] = useState<number>(0)
+		const [, setBiometricAuth] = useMMKVObject<BiometricAuth>(BIOMETRIC_AUTH_KEY, mmkvInstance)
 
 		const style = useMemo(() => {
 			return {
@@ -99,10 +103,28 @@ export const Video = memo(
 			[player, loading, duration]
 		)
 
+		const doNotPromptBiometricAuth = useCallback(() => {
+			setBiometricAuth(prev => {
+				if (!prev || !prev.enabled) {
+					return prev
+				}
+
+				return {
+					...prev,
+					lastLock: Date.now() + 5000,
+					tries: 0,
+					triesLockedUntil: 0,
+					triesLockedUntilMultiplier: 1
+				}
+			})
+		}, [setBiometricAuth])
+
 		const toggleFullscreen = useCallback(async () => {
 			if (loading) {
 				return
 			}
+
+			doNotPromptBiometricAuth()
 
 			if (isFullscreen) {
 				await videoViewRef?.current
@@ -119,7 +141,7 @@ export const Video = memo(
 					})
 					.catch(console.error)
 			}
-		}, [loading, isFullscreen])
+		}, [loading, isFullscreen, doNotPromptBiometricAuth])
 
 		const togglePlay = useCallback(() => {
 			if (loading) {
@@ -233,8 +255,14 @@ export const Video = memo(
 										fullscreenOptions={{
 											enable: true
 										}}
-										onFullscreenEnter={() => setIsFullscreen(true)}
-										onFullscreenExit={() => setIsFullscreen(false)}
+										onFullscreenEnter={() => {
+											doNotPromptBiometricAuth()
+											setIsFullscreen(true)
+										}}
+										onFullscreenExit={() => {
+											doNotPromptBiometricAuth()
+											setIsFullscreen(false)
+										}}
 										allowsPictureInPicture={false}
 										allowsVideoFrameAnalysis={false}
 										contentFit="contain"
