@@ -1,5 +1,5 @@
-import { useEffect, memo, useCallback, useMemo } from "react"
-import { BackHandler, View, Pressable, type StyleProp, type ViewStyle, FlatList, Platform, Modal } from "react-native"
+import { useEffect, memo, useCallback, useMemo, useState } from "react"
+import { BackHandler, View, Pressable, FlatList, Platform, Modal, type LayoutChangeEvent } from "react-native"
 import { useGalleryStore, type GalleryItem } from "@/stores/gallery.store"
 import { useShallow } from "zustand/shallow"
 import { KeyboardController } from "react-native-keyboard-controller"
@@ -7,15 +7,14 @@ import { GestureViewer, useGestureViewerEvent, type GestureViewerProps } from "r
 import Image from "./previews/image"
 import Video from "./previews/video"
 import Audio from "./previews/audio"
-import useDimensions from "@/hooks/useDimensions"
 import Header from "./header"
 import { translateMemoized } from "@/lib/i18n"
 import { Text } from "../nativewindui/Text"
-import Animated, { FadeIn, FadeOut, type AnimatedStyle } from "react-native-reanimated"
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated"
 import { ActivityIndicator } from "../nativewindui/ActivityIndicator"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { cn } from "@/lib/cn"
-import { Portal } from "@rn-primitives/portal"
+import { PortalHost } from "@rn-primitives/portal"
 import * as ScreenOrientation from "expo-screen-orientation"
 import useLockOrientation from "@/hooks/useLockOrientation"
 
@@ -113,46 +112,17 @@ export const Item = memo(({ item, index, layout }: { item: GalleryItem; index: n
 
 Item.displayName = "Item"
 
-export const ParentComponent = memo(({ children }: { children: React.ReactNode }) => {
-	if (Platform.OS === "android") {
-		return <Portal name="biometric-modal">{children}</Portal>
-	}
-
-	return (
-		<Modal
-			testID="fullScreenLoadingModal"
-			visible={true}
-			transparent={true}
-			animationType="none"
-			presentationStyle="overFullScreen"
-			onRequestClose={e => {
-				e.preventDefault()
-				e.stopPropagation()
-			}}
-			statusBarTranslucent={true}
-			navigationBarTranslucent={true}
-			allowSwipeDismissal={false}
-			supportedOrientations={["portrait", "landscape"]}
-		>
-			{children}
-		</Modal>
-	)
-})
-
-ParentComponent.displayName = "ParentComponent"
-
 export const GalleryModal = memo(() => {
 	const visible = useGalleryStore(useShallow(state => state.visible))
 	const items = useGalleryStore(useShallow(state => state.items))
-	const { window } = useDimensions()
+	const [layout, setLayout] = useState<{
+		width: number
+		height: number
+	}>({
+		width: 0,
+		height: 0
+	})
 	const initialIndex = useGalleryStore(useShallow(state => state.initialIndex))
-
-	const layout = useMemo(() => {
-		return {
-			width: window.width,
-			height: window.height
-		}
-	}, [window.width, window.height])
 
 	const renderItem = useCallback(
 		(item: GalleryItem, index: number) => {
@@ -215,19 +185,14 @@ export const GalleryModal = memo(() => {
 		useGalleryStore.getState().setShowHeader(false)
 	}, [])
 
-	const animatedStyle = useMemo(() => {
-		return {
-			flex: 1,
-			backgroundColor: "transparent",
-			position: "absolute",
-			width: layout.width,
-			height: layout.height,
-			top: 0,
-			left: 0,
-			right: 0,
-			bottom: 0
-		} satisfies StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>
-	}, [layout.width, layout.height])
+	const onLayout = useCallback((e: LayoutChangeEvent) => {
+		const { width, height } = e.nativeEvent.layout
+
+		setLayout({
+			width,
+			height
+		})
+	}, [])
 
 	useGestureViewerEvent("zoomChange", ({ scale }) => {
 		useGalleryStore.getState().setShowHeader(scale <= 1)
@@ -260,35 +225,54 @@ export const GalleryModal = memo(() => {
 	}
 
 	return (
-		<ParentComponent>
-			<Header />
-			<Animated.View
+		<Modal
+			visible={true}
+			transparent={true}
+			animationType="none"
+			presentationStyle="overFullScreen"
+			onRequestClose={e => {
+				e.preventDefault()
+				e.stopPropagation()
+			}}
+			statusBarTranslucent={true}
+			navigationBarTranslucent={true}
+			allowSwipeDismissal={false}
+			supportedOrientations={["portrait", "landscape"]}
+			className="flex-1"
+		>
+			<View
 				className="flex-1"
-				entering={FadeIn}
-				exiting={FadeOut}
-				style={animatedStyle}
+				onLayout={onLayout}
 			>
-				<GestureViewer
-					data={items}
-					width={window.width}
-					enableLoop={false}
-					dismissThreshold={150}
-					enableDismissGesture={true}
-					enableDoubleTapGesture={true}
-					enableSwipeGesture={true}
-					enableZoomGesture={true}
-					enableZoomPanGesture={true}
-					onIndexChange={onIndexChange}
-					maxZoomScale={3}
-					renderItem={renderItem}
-					ListComponent={FlatList}
-					initialIndex={validatedInitialScrollIndex}
-					listProps={listProps}
-					onDismiss={onDismiss}
-					onDismissStart={onDismissStart}
-				/>
-			</Animated.View>
-		</ParentComponent>
+				<Header />
+				<Animated.View
+					className="flex-1"
+					entering={FadeIn}
+					exiting={FadeOut}
+				>
+					<GestureViewer
+						data={items}
+						width={layout.width}
+						enableLoop={false}
+						dismissThreshold={150}
+						enableDismissGesture={true}
+						enableDoubleTapGesture={true}
+						enableSwipeGesture={true}
+						enableZoomGesture={true}
+						enableZoomPanGesture={true}
+						onIndexChange={onIndexChange}
+						maxZoomScale={3}
+						renderItem={renderItem}
+						ListComponent={FlatList}
+						initialIndex={validatedInitialScrollIndex}
+						listProps={listProps}
+						onDismiss={onDismiss}
+						onDismissStart={onDismissStart}
+					/>
+				</Animated.View>
+				{Platform.OS === "android" && <PortalHost />}
+			</View>
+		</Modal>
 	)
 })
 
