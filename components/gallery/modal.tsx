@@ -1,5 +1,5 @@
-import { useEffect, memo, useCallback, useMemo, useState } from "react"
-import { BackHandler, View, Pressable, FlatList, Platform, Modal, type LayoutChangeEvent } from "react-native"
+import { useEffect, memo, useCallback, useMemo } from "react"
+import { BackHandler, View, Pressable, FlatList, Platform, Modal, useWindowDimensions } from "react-native"
 import { useGalleryStore, type GalleryItem } from "@/stores/gallery.store"
 import { useShallow } from "zustand/shallow"
 import { KeyboardController } from "react-native-keyboard-controller"
@@ -115,13 +115,7 @@ Item.displayName = "Item"
 export const GalleryModal = memo(() => {
 	const visible = useGalleryStore(useShallow(state => state.visible))
 	const items = useGalleryStore(useShallow(state => state.items))
-	const [layout, setLayout] = useState<{
-		width: number
-		height: number
-	}>({
-		width: 0,
-		height: 0
-	})
+	const dimensions = useWindowDimensions()
 	const initialIndex = useGalleryStore(useShallow(state => state.initialIndex))
 
 	const renderItem = useCallback(
@@ -130,11 +124,14 @@ export const GalleryModal = memo(() => {
 				<Item
 					item={item}
 					index={index}
-					layout={layout}
+					layout={{
+						width: dimensions.width,
+						height: dimensions.height
+					}}
 				/>
 			)
 		},
-		[layout]
+		[dimensions]
 	)
 
 	const keyExtractor = useCallback((item: GalleryItem) => {
@@ -151,11 +148,11 @@ export const GalleryModal = memo(() => {
 
 	const getItemLayout = useCallback(
 		(_: unknown, index: number) => ({
-			length: layout.width,
-			offset: layout.width * index,
+			length: dimensions.width,
+			offset: dimensions.width * index,
 			index
 		}),
-		[layout.width]
+		[dimensions.width]
 	)
 
 	const onIndexChange = useCallback((index: number) => {
@@ -183,15 +180,6 @@ export const GalleryModal = memo(() => {
 
 	const onDismissStart = useCallback(() => {
 		useGalleryStore.getState().setShowHeader(false)
-	}, [])
-
-	const onLayout = useCallback((e: LayoutChangeEvent) => {
-		const { width, height } = e.nativeEvent.layout
-
-		setLayout({
-			width,
-			height
-		})
 	}, [])
 
 	useGestureViewerEvent("zoomChange", ({ scale }) => {
@@ -240,10 +228,7 @@ export const GalleryModal = memo(() => {
 			supportedOrientations={["portrait", "landscape"]}
 			className="flex-1"
 		>
-			<View
-				className="flex-1"
-				onLayout={onLayout}
-			>
+			<View className="flex-1">
 				<Header />
 				<Animated.View
 					className="flex-1"
@@ -252,7 +237,7 @@ export const GalleryModal = memo(() => {
 				>
 					<GestureViewer
 						data={items}
-						width={layout.width}
+						width={dimensions.width}
 						enableLoop={false}
 						dismissThreshold={150}
 						enableDismissGesture={true}
