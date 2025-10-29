@@ -828,7 +828,9 @@
                     "permissionsError": "Erro de permissões",
                     "permissionsErrorInfo": "Por favor, permita que o aplicativo acesse suas fotos e vídeos nas configurações do sistema.",
                     "videos": "Vídeos",
-                    "videosInfo": "Incluir vídeos no upload da câmera."
+                    "videosInfo": "Incluir vídeos no upload da câmera.",
+                    "onlyDeltasAfterActivation": "Após a ativação",
+                    "onlyDeltasAfterActivationInfo": "Quando ativado, apenas fotos e vídeos capturados após a ativação do upload da câmera serão enviados."
                 },
                 "title": "Configurações"
             }

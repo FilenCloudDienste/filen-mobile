@@ -828,7 +828,9 @@
                     "permissionsError": "שגיאת הרשאות",
                     "permissionsErrorInfo": "אנא אפשר לאפליקציה גישה לתמונות ולסרטונים שלך בהגדרות המערכת.",
                     "videos": "סרטונים",
-                    "videosInfo": "כלול סרטונים בהעלאת המצלמה."
+                    "videosInfo": "כלול סרטונים בהעלאת המצלמה.",
+                    "onlyDeltasAfterActivation": "לאחר הפעלה",
+                    "onlyDeltasAfterActivationInfo": "כאשר מופעל, רק התמונות והסרטונים שצולמו לאחר הפעלת העלאת המצלמה יועלו."
                 },
                 "title": "הגדרות"
             }

@@ -828,7 +828,9 @@
                     "permissionsError": "权限错误",
                     "permissionsErrorInfo": "请允许应用在系统设置中访问您的照片和视频。",
                     "videos": "视频",
-                    "videosInfo": "在相机上传中包含视频。"
+                    "videosInfo": "在相机上传中包含视频。",
+                    "onlyDeltasAfterActivation": "激活后",
+                    "onlyDeltasAfterActivationInfo": "启用后，只有启用相机上传后的照片和视频会被上传。"
                 },
                 "title": "设置"
             }

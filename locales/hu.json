@@ -828,7 +828,9 @@
                     "permissionsError": "Engedélyek hiba",
                     "permissionsErrorInfo": "Kérjük, engedélyezze az alkalmazásnak a fényképeinek és videóinak elérését a rendszerbeállításokban.",
                     "videos": "Videók",
-                    "videosInfo": "Videók feltöltése is a kamerából."
+                    "videosInfo": "Videók feltöltése is a kamerából.",
+                    "onlyDeltasAfterActivation": "Aktiválás után",
+                    "onlyDeltasAfterActivationInfo": "Amikor engedélyezve van, csak a kamera feltöltése bekapcsolása után készült fotók és videók kerülnek feltöltésre."
                 },
                 "title": "Beállítások"
             }

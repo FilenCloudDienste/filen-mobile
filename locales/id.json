@@ -828,7 +828,9 @@
                     "permissionsError": "Kesalahan izin",
                     "permissionsErrorInfo": "Harap izinkan aplikasi mengakses foto dan video Anda di pengaturan sistem.",
                     "videos": "Video",
-                    "videosInfo": "Sertakan video dalam unggahan kamera."
+                    "videosInfo": "Sertakan video dalam unggahan kamera.",
+                    "onlyDeltasAfterActivation": "Setelah aktivasi",
+                    "onlyDeltasAfterActivationInfo": "Ketika diaktifkan, hanya foto dan video yang diambil setelah mengaktifkan unggahan kamera yang akan diunggah."
                 },
                 "title": "Pengaturan"
             }

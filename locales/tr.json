@@ -828,7 +828,9 @@
                     "permissionsError": "İzin hatası",
                     "permissionsErrorInfo": "Uygulamanın sistem ayarlarında fotoğraf ve videolarınıza erişmesine izin verin.",
                     "videos": "Videolar",
-                    "videosInfo": "Kamera yüklemesine videolar dahil edilsin."
+                    "videosInfo": "Kamera yüklemesine videolar dahil edilsin.",
+                    "onlyDeltasAfterActivation": "Aktivasyondan sonra",
+                    "onlyDeltasAfterActivationInfo": "Etkinleştirildiğinde, yalnızca kamera yüklemesi etkinleştirildikten sonra çekilen fotoğraf ve videolar yüklenecektir."
                 },
                 "title": "Ayarlar"
             }

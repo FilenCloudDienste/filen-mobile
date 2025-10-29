@@ -828,7 +828,9 @@
                     "permissionsError": "Errore di autorizzazione",
                     "permissionsErrorInfo": "Consenti all'app di accedere a foto e video nelle impostazioni di sistema.",
                     "videos": "Video",
-                    "videosInfo": "Includi video nel caricamento dalla fotocamera."
+                    "videosInfo": "Includi video nel caricamento dalla fotocamera.",
+                    "onlyDeltasAfterActivation": "Dopo l'attivazione",
+                    "onlyDeltasAfterActivationInfo": "Quando abilitato, solo foto e video scattati dopo l'abilitazione del caricamento della fotocamera verranno caricati."
                 },
                 "title": "Impostazioni"
             }

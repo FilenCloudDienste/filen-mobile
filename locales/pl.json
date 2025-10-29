@@ -828,7 +828,9 @@
                     "permissionsError": "Błąd uprawnień",
                     "permissionsErrorInfo": "Proszę zezwolić aplikacji na dostęp do zdjęć i filmów w ustawieniach systemu.",
                     "videos": "Filmy",
-                    "videosInfo": "Uwzględnij filmy w przesyłaniu z aparatu."
+                    "videosInfo": "Uwzględnij filmy w przesyłaniu z aparatu.",
+                    "onlyDeltasAfterActivation": "Po aktywacji",
+                    "onlyDeltasAfterActivationInfo": "Gdy jest włączona, tylko zdjęcia i filmy nagrane po aktywacji przesyłania z kamery zostaną przesłane."
                 },
                 "title": "Ustawienia"
             }

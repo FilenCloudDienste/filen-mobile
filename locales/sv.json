@@ -828,7 +828,9 @@
                     "permissionsError": "Behörighetsfel",
                     "permissionsErrorInfo": "Vänligen tillåt appen att få åtkomst till dina foton och videor i systeminställningarna.",
                     "videos": "Videor",
-                    "videosInfo": "Inkludera videor i kamerauppladdningen."
+                    "videosInfo": "Inkludera videor i kamerauppladdningen.",
+                    "onlyDeltasAfterActivation": "Efter aktivering",
+                    "onlyDeltasAfterActivationInfo": "När aktiverad, kommer endast foton och videor som tagits efter aktivering av kameraöverföring att laddas upp."
                 },
                 "title": "Inställningar"
             }
