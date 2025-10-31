@@ -25,7 +25,7 @@
                 "second": "Cloud-Plattform"
             },
             "login": "Anmelden",
-            "signUp": "Kostenlos anmelden"
+            "signUp": "Kostenlos registrieren"
         },
         "login": {
             "errors": {
@@ -48,7 +48,7 @@
             "login": "Anmelden",
             "loginUsingCreds": "Melden Sie sich mit Ihren Anmeldedaten an",
             "next": "Weiter",
-            "signUp": "Kostenlos anmelden",
+            "signUp": "Kostenlos registrieren",
             "submit": "Anmelden",
             "title": "Anmelden",
             "welcome": "Willkommen zurück!"
