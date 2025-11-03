@@ -16,6 +16,12 @@
             "message": "Anda telah melebihi batas penyimpanan Anda. Harap kosongkan beberapa ruang atau tingkatkan paket Anda untuk mencegah penghapusan data yang tidak diinginkan.",
             "okText": "Tingkatkan",
             "title": "Penggunaan penyimpanan melampaui batas"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Batal",
+            "message": "Sangat disarankan untuk mengekspor kunci master Anda dan menyimpannya di tempat yang aman. Tanpa kunci master Anda, Anda tidak akan dapat mengakses data Anda jika Anda lupa password Anda.",
+            "okText": "Ekspor",
+            "title": "Ekspor kunci master"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Pilih file-file",
             "selectItem": "Pilih item",
             "selectItems": "Pilih item",
-            "selectRoot": "Pilih drive cloud"
+            "selectRoot": "Pilih drive cloud",
+            "selectParent": "Pilih {{parent}}"
         },
         "list": {
             "empty": "Belum ada yang diunggah",
@@ -998,7 +1005,11 @@
                 "clearCache": "Bersihkan cache",
                 "clearOfflineFiles": "Hapus file offline",
                 "clearThumbnails": "Bersihkan thumbnail",
-                "clearTrackPlayer": "Bersihkan pemutar track"
+                "clearTrackPlayer": "Bersihkan pemutar track",
+                "documentsProviderCache": "Cache DocumentsProvider",
+                "documentsProviderCacheInfo": "Cache Documents Provider digunakan untuk mempercepat akses ke file saat menggunakan Filen di aplikasi lain.",
+                "fileProviderCache": "Cache FileProvider",
+                "fileProviderCacheInfo": "Cache FileProvider digunakan untuk mempercepat akses ke file saat menggunakan Filen di aplikasi lain."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Otentikasi Dua Faktor",
                 "biometricAuth": "Autentikasi biometrik",
-                "changePassword": "Ubah kata sandi"
+                "changePassword": "Ubah kata sandi",
+                "exportMasterKeys": "Ekspor kunci master"
             },
             "prompts": {
                 "changePassword1": {

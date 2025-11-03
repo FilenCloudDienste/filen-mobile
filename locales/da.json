@@ -16,6 +16,12 @@
             "message": "Du har overskredet din lagergrænse. Venligst frigør noget plads eller opgrader din plan for at forhindre uønsket sletning af data.",
             "okText": "Opgradér",
             "title": "Lagerforbrug over grænsen"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Annuller",
+            "message": "Det anbefales kraftigt at eksportere dine master nøgler og opbevare dem et sikkert sted. Uden dine master nøgler vil du ikke kunne få adgang til dine data, hvis du glemmer din adgangskode.",
+            "okText": "Eksportér",
+            "title": "Eksportér master nøgler"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Vælg filer",
             "selectItem": "Vælg element",
             "selectItems": "Vælg elementer",
-            "selectRoot": "Vælg cloud-drev"
+            "selectRoot": "Vælg cloud-drev",
+            "selectParent": "Vælg {{parent}}"
         },
         "list": {
             "empty": "Intet uploadet endnu",
@@ -998,7 +1005,11 @@
                 "clearCache": "Ryd cache",
                 "clearOfflineFiles": "Ryd offline filer",
                 "clearThumbnails": "Ryd miniaturebilleder",
-                "clearTrackPlayer": "Ryd spor afspiller"
+                "clearTrackPlayer": "Ryd spor afspiller",
+                "documentsProviderCache": "DocumentsProvider cache",
+                "documentsProviderCacheInfo": "Dokumentudbyder cache bruges til at accelerere adgangen til filer, når du bruger Filen i andre apps.",
+                "fileProviderCache": "FileProvider cache",
+                "fileProviderCacheInfo": "Filudbyder cache bruges til at accelerere adgangen til filer, når du bruger Filen i andre apps."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Tofaktorgodkendelse",
                 "biometricAuth": "Biometrisk godkendelse",
-                "changePassword": "Skift adgangskode"
+                "changePassword": "Skift adgangskode",
+                "exportMasterKeys": "Eksportér master nøgler"
             },
             "prompts": {
                 "changePassword1": {

@@ -16,6 +16,12 @@
             "message": "U heeft uw opslaglimiet overschreden. Maak ruimte vrij of upgrade uw abonnement om ongewenste gegevensverwijdering te voorkomen.",
             "okText": "Upgraden",
             "title": "Opslaggebruik boven limiet"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Annuleren",
+            "message": "Het wordt sterk aanbevolen om je hoofdsleutels te exporteren en op een veilige plaats op te slaan. Zonder je hoofdsleutels kun je je gegevens niet openen als je je wachtwoord vergeet.",
+            "okText": "Exporteren",
+            "title": "Hoofdsleutels exporteren"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Bestanden selecteren",
             "selectItem": "Selecteer item",
             "selectItems": "Selecteer items",
-            "selectRoot": "Selecteer clouddrive"
+            "selectRoot": "Selecteer clouddrive",
+            "selectParent": "Selecteer {{parent}}"
         },
         "list": {
             "empty": "Nog niets geüpload",
@@ -998,7 +1005,11 @@
                 "clearCache": "Cache wissen",
                 "clearOfflineFiles": "Offline bestanden wissen",
                 "clearThumbnails": "Miniaturen wissen",
-                "clearTrackPlayer": "Wis muziekspeler"
+                "clearTrackPlayer": "Wis muziekspeler",
+                "documentsProviderCache": "DocumentsProvider-cache",
+                "documentsProviderCacheInfo": "De DocumentsProvider-cache wordt gebruikt om de toegang tot bestanden te versnellen bij gebruik van Filen in andere apps.",
+                "fileProviderCache": "FileProvider-cache",
+                "fileProviderCacheInfo": "De FileProvider-cache wordt gebruikt om de toegang tot bestanden te versnellen bij gebruik van Filen in andere apps."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Twee-factorenauthenticatie",
                 "biometricAuth": "Biometrische authenticatie",
-                "changePassword": "Wachtwoord wijzigen"
+                "changePassword": "Wachtwoord wijzigen",
+                "exportMasterKeys": "Hoofdsleutels exporteren"
             },
             "prompts": {
                 "changePassword1": {

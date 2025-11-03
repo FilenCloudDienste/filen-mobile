@@ -16,6 +16,12 @@
             "message": "Olet ylittänyt tallennusrajan. Vapauta tilaa tai päivitä palvelupakettiasi estääksesi tahattoman datan poistamisen.",
             "okText": "Päivitä",
             "title": "Tallennustilan käyttö ylittää rajan"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Peruuta",
+            "message": "On erittäin suositeltavaa viedä pääavaimet ja tallentaa ne turvalliseen paikkaan. Ilman pääavaimiasi et pääse käsiksi tietoihisi, jos unohdat salasanasi.",
+            "okText": "Vie",
+            "title": "Vie pääavaimet"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Valitse tiedostot",
             "selectItem": "Valitse kohde",
             "selectItems": "Valitse kohteet",
-            "selectRoot": "Valitse pilviasema"
+            "selectRoot": "Valitse pilviasema",
+            "selectParent": "Valitse {{parent}}"
         },
         "list": {
             "empty": "Ei vielä ladattuja",
@@ -998,7 +1005,11 @@
                 "clearCache": "Tyhjennä välimuisti",
                 "clearOfflineFiles": "Tyhjennä offline-tiedostot",
                 "clearThumbnails": "Tyhjennä esikatselukuvat",
-                "clearTrackPlayer": "Tyhjennä kappalesoitin"
+                "clearTrackPlayer": "Tyhjennä kappalesoitin",
+                "documentsProviderCache": "DocumentsProvider-välimuisti",
+                "documentsProviderCacheInfo": "Documents Provider -välimuistia käytetään nopeuttamaan tiedostojen käyttöä käytettäessä Fileniä muissa sovelluksissa.",
+                "fileProviderCache": "FileProvider-välimuisti",
+                "fileProviderCacheInfo": "FileProvider-välimuistia käytetään nopeuttamaan tiedostojen käyttöä käytettäessä Fileniä muissa sovelluksissa."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Kaksivaiheinen tunnistautuminen",
                 "biometricAuth": "Biometrinen tunnistus",
-                "changePassword": "Vaihtaa salasana"
+                "changePassword": "Vaihtaa salasana",
+                "exportMasterKeys": "Vie pääavaimet"
             },
             "prompts": {
                 "changePassword1": {

@@ -16,6 +16,12 @@
             "message": "חרגת מהמגבלה של שטח אחסון. אנא תפנה מעט מקום או שדרג את התוכנית שלך כדי למנוע מחיקת נתונים לא רצויה.",
             "okText": "שדרג",
             "title": "חריגה בשימוש באחסון"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "בטל",
+            "message": "מומלץ מאוד לייצא את מפתחות המאסטר שלך ולשמור אותם במקום בטוח. ללא מפתחות המאסטר, לא תוכל לגשת לנתונים שלך אם תשכח את הסיסמה.",
+            "okText": "ייצוא",
+            "title": "ייצוא מפתחות מאסטר"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "בחר קבצים",
             "selectItem": "בחר פריט",
             "selectItems": "בחר פריטים",
-            "selectRoot": "בחר כונן ענן"
+            "selectRoot": "בחר כונן ענן",
+            "selectParent": "בחר {{parent}}"
         },
         "list": {
             "empty": "שום דבר לא הועלה עדיין",
@@ -998,7 +1005,11 @@
                 "clearCache": "נקה מטמון",
                 "clearOfflineFiles": "נקה קבצים לא מקוונים",
                 "clearThumbnails": "נקה תמונות ממוזערות",
-                "clearTrackPlayer": "נקה את נגן השירים"
+                "clearTrackPlayer": "נקה את נגן השירים",
+                "documentsProviderCache": "מטמון DocumentsProvider",
+                "documentsProviderCacheInfo": "מטמון של Documents Provider משמש להאצת הגישה לקבצים בעת שימוש ב- Filen באפליקציות אחרות.",
+                "fileProviderCache": "מטמון FileProvider",
+                "fileProviderCacheInfo": "מטמון של FileProvider משמש להאצת הגישה לקבצים בעת שימוש ב- Filen באפליקציות אחרות."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "אימות שני גורמים",
                 "biometricAuth": "אימות ביומטרי",
-                "changePassword": "שנה סיסמה"
+                "changePassword": "שנה סיסמה",
+                "exportMasterKeys": "ייצוא מפתחות מאסטר"
             },
             "prompts": {
                 "changePassword1": {

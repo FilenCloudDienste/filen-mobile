@@ -16,6 +16,12 @@
             "message": "Túllépte a tárhely korlátját. Kérjük, szabadítson fel helyet vagy frissítse csomagját az adatvesztés megelőzése érdekében.",
             "okText": "Frissítés",
             "title": "Tárolóhely túllépés"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Mégse",
+            "message": "Erősen ajánlott a fő kulcsok exportálása és biztonságos helyen történő tárolásuk. A fő kulcsok nélkül nem fér hozzá adataihoz, ha elfelejti a jelszavát.",
+            "okText": "Exportálás",
+            "title": "Fő kulcsok exportálása"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Fájlok kiválasztása",
             "selectItem": "Elem kiválasztása",
             "selectItems": "Elemek kiválasztása",
-            "selectRoot": "Válassza ki a felhő meghajtót"
+            "selectRoot": "Válassza ki a felhő meghajtót",
+            "selectParent": "Válassza ki a(z) {{parent}}-t"
         },
         "list": {
             "empty": "Még semmi sincs feltöltve",
@@ -998,7 +1005,11 @@
                 "clearCache": "Gyorsítótár törlése",
                 "clearOfflineFiles": "Offline fájlok törlése",
                 "clearThumbnails": "Miniatűrök törlése",
-                "clearTrackPlayer": "Zeneszám lejátszó kiürítése"
+                "clearTrackPlayer": "Zeneszám lejátszó kiürítése",
+                "documentsProviderCache": "DokumentumSzolgáltató gyorsítótár",
+                "documentsProviderCacheInfo": "A Dokumentum Szolgáltató gyorsítótár fájlokhoz való gyorsabb hozzáférést biztosít, amikor a Filen-t más alkalmazásokban használja.",
+                "fileProviderCache": "FájlSzolgáltató gyorsítótár",
+                "fileProviderCacheInfo": "A FájlSzolgáltató gyorsítótár fájlokhoz való gyorsabb hozzáférést biztosít, amikor a Filen-t más alkalmazásokban használja."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Kéttényezős hitelesítés",
                 "biometricAuth": "Biometrikus hitelesítés",
-                "changePassword": "Jelszó megváltoztatása"
+                "changePassword": "Jelszó megváltoztatása",
+                "exportMasterKeys": "Fő kulcsok exportálása"
             },
             "prompts": {
                 "changePassword1": {
