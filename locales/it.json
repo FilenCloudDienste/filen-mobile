@@ -9,7 +9,7 @@
             "cancelText": "Più tardi",
             "message": "Non hai ancora esportato le tue chiavi master. È altamente consigliato esportarle ora e conservarle in un luogo sicuro.",
             "okText": "Esporta",
-            "title": "Esporta chiavi principali"
+            "title": "Esporta chiavi master"
         },
         "storageUsageOverLimit": {
             "cancelText": "Più tardi",
@@ -157,10 +157,10 @@
         "input": {
             "attachment": {
                 "options": {
-                    "addDriveItems": "Aggiungi elementi drive",
+                    "addDriveItems": "Aggiungi elementi dal drive",
                     "addFiles": "Aggiungi file",
                     "addMedia": "Aggiungi media",
-                    "addPhotos": "Aggiungi foto",
+                    "addPhotos": "Scatta foto",
                     "cancel": "Annulla"
                 }
             },
@@ -311,7 +311,7 @@
                 },
                 "deselectAll": "Deseleziona tutto",
                 "dropdown": {
-                    "bulkActions": "Azioni di massa",
+                    "bulkActions": "Azioni multiple",
                     "gridMode": "Visualizza come Griglia",
                     "listMode": "Visualizza come Elenco",
                     "sortBy": {
@@ -349,7 +349,7 @@
                 "selectAll": "Seleziona tutto"
             },
             "title": {
-                "drive": "Unità",
+                "drive": "Drive",
                 "favorites": "Preferiti",
                 "links": "Link pubblici",
                 "offline": "Disponibile offline",
@@ -508,7 +508,7 @@
         "cannotOpenURL": "Impossibile aprire URL.",
         "notEnoughDiskSpace": "Spazio su disco locale insufficiente.",
         "sharingNotAvailable": "La condivisione non è disponibile su questo dispositivo.",
-        "youAreOffline": "Sei attualmente offline. Controlla la tua connessione internet."
+        "youAreOffline": "Sei offline. Controlla la tua connessione internet."
     },
     "fileVersionHistory": {
         "alerts": {
@@ -578,13 +578,13 @@
             }
         },
         "listEmpty": {
-            "favorites": "Nessun preferito ancora",
-            "links": "Nessun link pubblico ancora",
-            "offline": "Nessun elemento offline ancora",
-            "recents": "Nessun elemento recente ancora",
-            "sharedIn": "Nessun elemento condiviso ancora",
-            "sharedOut": "Nessun elemento condiviso ancora",
-            "trash": "Nessun elemento nel cestino ancora"
+            "favorites": "Ancora nessun preferito",
+            "links": "Ancora nessun link pubblico",
+            "offline": "Ancora nessun elemento offline",
+            "recents": "Ancora nessun elemento recente",
+            "sharedIn": "Ancora nessun elemento condiviso",
+            "sharedOut": "Ancora nessun elemento condiviso",
+            "trash": "Ancora nessun elemento nel cestino"
         },
         "title": "Home"
     },
@@ -597,7 +597,7 @@
     },
     "listEmpty": {
         "empty": "Nessun risultato trovato",
-        "emptySearch": "Niente trovato per questa ricerca",
+        "emptySearch": "Non è stato trovato niente per questa ricerca",
         "error": "Si è verificato un errore, per favore riprova più tardi"
     },
     "localAuthentication": {
@@ -621,7 +621,7 @@
                     "checklist": "Lista di controllo",
                     "code": "Codice",
                     "markdown": "Markdown",
-                    "rich": "Testo ricco",
+                    "rich": "Rich text",
                     "text": "Testo"
                 }
             },
@@ -680,7 +680,7 @@
                 "checklist": "Lista di controllo",
                 "code": "Codice",
                 "md": "Markdown",
-                "rich": "Testo ricco",
+                "rich": "Rich text",
                 "text": "Testo"
             },
             "unfavorite": "Rimuovi dai preferiti",
@@ -814,9 +814,9 @@
                 "items": {
                     "albums": "Album",
                     "albumsInfo": "Seleziona quali album includere nel caricamento dalla fotocamera.",
-                    "background": "Sfondo",
+                    "background": "In background",
                     "backgroundInfo": "Consenti caricamento della fotocamera in background. Questo può portare a un elevato consumo di batteria. I caricamenti in background includono solo immagini. Funziona solo quando l'app non è chiusa forzatamente.",
-                    "cellular": "Cellulare",
+                    "cellular": "Dati cellulari",
                     "cellularInfo": "Consenti il caricamento della fotocamera su dati cellulari. Questo può portare a un elevato consumo di dati.",
                     "cloudDirectory": "Directory cloud",
                     "cloudDirectoryNotSet": "Non impostato",
@@ -828,7 +828,9 @@
                     "permissionsError": "Errore di autorizzazione",
                     "permissionsErrorInfo": "Consenti all'app di accedere a foto e video nelle impostazioni di sistema.",
                     "videos": "Video",
-                    "videosInfo": "Includi video nel caricamento dalla fotocamera."
+                    "videosInfo": "Includi video nel caricamento dalla fotocamera.",
+                    "onlyDeltasAfterActivation": "Dopo l'attivazione",
+                    "onlyDeltasAfterActivationInfo": "Quando abilitato, solo foto e video scattati dopo l'abilitazione del caricamento della fotocamera verranno caricati."
                 },
                 "title": "Impostazioni"
             }
@@ -861,17 +863,17 @@
         "header": {
             "cancel": "Annulla",
             "done": "Fatto",
-            "drive": "Unità",
+            "drive": "Drive",
             "selectDirectories": "Seleziona directory",
             "selectDirectory": "Seleziona directory",
             "selectFile": "Seleziona file",
             "selectFiles": "Seleziona file",
             "selectItem": "Seleziona elemento",
             "selectItems": "Seleziona elementi",
-            "selectRoot": "Seleziona cloud drive"
+            "selectRoot": "Seleziona dal cloud drive"
         },
         "list": {
-            "empty": "Niente ancora caricato",
+            "empty": "Non è stato caricato ancora niente",
             "emptySearch": "Nessun elemento trovato per questa ricerca",
             "error": "Si è verificato un errore nel caricamento dei tuoi file, per favore riprova più tardi",
             "footer": "{{count}} elementi"
@@ -929,7 +931,7 @@
                 "fileVersioningInfo": "Abilita il versioning dei file per tenere traccia delle modifiche apportate ai tuoi file.",
                 "gdpr": "Informazioni GDPR",
                 "loginAlerts": "Avvisi di accesso",
-                "loginAlertsInfo": "Ricevi avvisi quando il tuo account viene acceduto.",
+                "loginAlertsInfo": "Ricevi avvisi quando vengono rilevati accessi al tuo account.",
                 "logout": "Esci",
                 "more": "Altre impostazioni account",
                 "nickname": "Soprannome",
@@ -1327,7 +1329,7 @@
     },
     "tabBar": {
         "chats": "Chat",
-        "drive": "Unità",
+        "drive": "Drive",
         "home": "Home",
         "notes": "Note",
         "photos": "Foto",
@@ -1400,7 +1402,7 @@
         },
         "info": "Trasferimento di {{ongoingTransfers}} elementi a {{speed}}, {{remaining}} rimanenti",
         "list": {
-            "empty": "Nessun trasferimento ancora",
+            "empty": "Anora nessun trasferimento",
             "emptySearch": "Nessun trasferimento trovato per questa ricerca",
             "error": "Si è verificato un errore nel caricamento dei tuoi trasferimenti, per favore riprova più tardi"
         },

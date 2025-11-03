@@ -25,7 +25,7 @@
                 "second": "Cloud-Plattform"
             },
             "login": "Anmelden",
-            "signUp": "Kostenlos anmelden"
+            "signUp": "Kostenlos registrieren"
         },
         "login": {
             "errors": {
@@ -48,7 +48,7 @@
             "login": "Anmelden",
             "loginUsingCreds": "Melden Sie sich mit Ihren Anmeldedaten an",
             "next": "Weiter",
-            "signUp": "Kostenlos anmelden",
+            "signUp": "Kostenlos registrieren",
             "submit": "Anmelden",
             "title": "Anmelden",
             "welcome": "Willkommen zurück!"
@@ -828,7 +828,9 @@
                     "permissionsError": "Berechtigungsfehler",
                     "permissionsErrorInfo": "Bitte erlauben Sie der App, in den Systemeinstellungen auf Ihre Fotos und Videos zuzugreifen.",
                     "videos": "Videos",
-                    "videosInfo": "Videos in den Kamera-Upload einschließen."
+                    "videosInfo": "Videos in den Kamera-Upload einschließen.",
+                    "onlyDeltasAfterActivation": "Nach der Aktivierung",
+                    "onlyDeltasAfterActivationInfo": "Wenn aktiviert, werden nur Fotos und Videos hochgeladen, die nach dem Aktivieren des Kamera-Uploads aufgenommen wurden."
                 },
                 "title": "Einstellungen"
             }

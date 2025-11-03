@@ -828,7 +828,9 @@
                     "permissionsError": "Lỗi quyền truy cập",
                     "permissionsErrorInfo": "Vui lòng cho phép ứng dụng truy cập ảnh và video của bạn trong cài đặt hệ thống.",
                     "videos": "Video",
-                    "videosInfo": "Bao gồm video trong tải lên từ camera."
+                    "videosInfo": "Bao gồm video trong tải lên từ camera.",
+                    "onlyDeltasAfterActivation": "Sau khi kích hoạt",
+                    "onlyDeltasAfterActivationInfo": "Khi được bật, chỉ những ảnh và video được chụp sau khi kích hoạt tải lên camera mới được tải lên."
                 },
                 "title": "Cài đặt"
             }

@@ -828,7 +828,9 @@
                     "permissionsError": "Erreur de permissions",
                     "permissionsErrorInfo": "Veuillez autoriser l'application à accéder à vos photos et vidéos dans les paramètres du système.",
                     "videos": "Vidéos",
-                    "videosInfo": "Inclure les vidéos dans le téléchargement de l'appareil photo."
+                    "videosInfo": "Inclure les vidéos dans le téléchargement de l'appareil photo.",
+                    "onlyDeltasAfterActivation": "Après activation",
+                    "onlyDeltasAfterActivationInfo": "Lorsqu'elle est activée, seules les photos et vidéos prises après l'activation du téléchargement de la caméra seront téléchargées."
                 },
                 "title": "Paramètres"
             }

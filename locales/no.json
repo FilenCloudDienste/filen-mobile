@@ -828,7 +828,9 @@
                     "permissionsError": "Tillatelsesfeil",
                     "permissionsErrorInfo": "Vennligst gi appen tillatelse til å få tilgang til dine bilder og videoer i systeminnstillinger.",
                     "videos": "Videoer",
-                    "videosInfo": "Inkluder videoer i kameramaterialopplastningen."
+                    "videosInfo": "Inkluder videoer i kameramaterialopplastningen.",
+                    "onlyDeltasAfterActivation": "Etter aktivering",
+                    "onlyDeltasAfterActivationInfo": "Når aktivert, vil kun bilder og videoer tatt etter aktivering av kameraopplastning bli lastet opp."
                 },
                 "title": "Innstillinger"
             }

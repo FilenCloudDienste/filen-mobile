@@ -828,7 +828,9 @@
                     "permissionsError": "Tilladelsesfejl",
                     "permissionsErrorInfo": "Tillad venligst appen at få adgang til dine fotos og videoer i systemindstillingerne.",
                     "videos": "Videoer",
-                    "videosInfo": "Inkluder videoer i kamera-upload."
+                    "videosInfo": "Inkluder videoer i kamera-upload.",
+                    "onlyDeltasAfterActivation": "Efter aktivering",
+                    "onlyDeltasAfterActivationInfo": "Når den er aktiveret, vil kun fotos og videoer, der tages efter aktivering af kamera upload, blive uploadet."
                 },
                 "title": "Indstillinger"
             }

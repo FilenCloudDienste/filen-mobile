@@ -828,7 +828,9 @@
                     "permissionsError": "Toestemmingsfout",
                     "permissionsErrorInfo": "Sta de app toe toegang te krijgen tot uw foto's en video's in de systeeminstellingen.",
                     "videos": "Video's",
-                    "videosInfo": "Video's opnemen in de camera-upload."
+                    "videosInfo": "Video's opnemen in de camera-upload.",
+                    "onlyDeltasAfterActivation": "Na activering",
+                    "onlyDeltasAfterActivationInfo": "Wanneer ingeschakeld, worden alleen foto's en video's die na het inschakelen van de camera-upload zijn gemaakt, geüpload."
                 },
                 "title": "Instellingen"
             }
