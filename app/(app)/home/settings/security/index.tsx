@@ -209,6 +209,30 @@ export const Security = memo(() => {
 		})
 	}, [router])
 
+	const exportMasterKeys = useCallback(async () => {
+		const response = await alertPrompt({
+			title: translateMemoized("alertPrompt.exportMasterKeys2.title"),
+			message: translateMemoized("alertPrompt.exportMasterKeys2.message"),
+			okText: translateMemoized("alertPrompt.exportMasterKeys2.okText"),
+			cancelText: translateMemoized("alertPrompt.exportMasterKeys2.cancelText")
+		})
+
+		if (response.cancelled) {
+			return
+		}
+
+		try {
+			await authService.exportMasterKeys({})
+			await nodeWorker.proxy("didExportMasterKeys", undefined)
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
+	}, [])
+
 	const items = useMemo(() => {
 		return [
 			{
@@ -243,9 +267,20 @@ export const Security = memo(() => {
 						className="bg-gray-500"
 					/>
 				)
+			},
+			{
+				id: "3",
+				title: translateMemoized("settings.security.items.exportMasterKeys"),
+				onPress: exportMasterKeys,
+				leftView: (
+					<IconView
+						name="key-outline"
+						className="bg-gray-500"
+					/>
+				)
 			}
 		]
-	}, [changePassword, openBiometric, openTwoFactorAuthentication])
+	}, [changePassword, openBiometric, openTwoFactorAuthentication, exportMasterKeys])
 
 	return (
 		<SettingsComponent

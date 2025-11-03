@@ -27,6 +27,12 @@
 			"message": "You have exceeded your storage limit. Please free up some space or upgrade your plan to prevent unwanted data deletion.",
 			"okText": "Upgrade",
 			"cancelText": "Later"
+		},
+		"exportMasterKeys2": {
+			"title": "Export master keys",
+			"message": "It is highly recommended to export your master keys and store them in a safe place. Without your master keys, you will not be able to access your data if you forget your password.",
+			"okText": "Export",
+			"cancelText": "Cancel"
 		}
 	},
 	"inputPrompt": {
@@ -832,7 +838,8 @@
 			"items": {
 				"changePassword": "Change password",
 				"2fa": "Two Factor Authentication",
-				"biometricAuth": "Biometric authentication"
+				"biometricAuth": "Biometric authentication",
+				"exportMasterKeys": "Export master keys"
 			},
 			"prompts": {
 				"changePassword1": {
