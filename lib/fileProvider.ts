@@ -5,6 +5,8 @@ import type { FilenSDKConfig } from "@filen/sdk"
 export type AuthFileSchema = {
 	providerEnabled: boolean
 	sdkConfig: Required<FilenSDKConfig> | null
+	maxThumbnailFilesBudget?: number | null
+	maxCacheFilesBudget?: number | null
 }
 
 export class FileProvider {
@@ -30,6 +32,16 @@ export class FileProvider {
 		const data = await this.read()
 
 		return data?.providerEnabled ?? false
+	}
+
+	public async cacheBudget(): Promise<number> {
+		const data = await this.read()
+
+		if (!data || !data.maxCacheFilesBudget || !data.maxThumbnailFilesBudget) {
+			return 1024 * 1024 * 1024
+		}
+
+		return Math.floor(data.maxCacheFilesBudget + data.maxThumbnailFilesBudget)
 	}
 
 	public async disable(): Promise<void> {

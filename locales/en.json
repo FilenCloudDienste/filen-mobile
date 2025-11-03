@@ -651,7 +651,11 @@
 				"clearCache": "Clear cache",
 				"clearThumbnails": "Clear thumbnails",
 				"clearTrackPlayer": "Clear track player",
-				"clearOfflineFiles": "Clear offline files"
+				"clearOfflineFiles": "Clear offline files",
+				"fileProviderCache": "FileProvider cache",
+				"documentsProviderCache": "DocumentsProvider cache",
+				"documentsProviderCacheInfo": "The Documents Provider cache is used to speed up access to files when using Filen in other apps.",
+				"fileProviderCacheInfo": "The FileProvider cache is used to speed up access to files when using Filen in other apps."
 			}
 		},
 		"contacts": {
