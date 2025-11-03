@@ -4,10 +4,10 @@ import { List, ListItem, type ListRenderItemInfo, type ListDataItem } from "@/co
 import { Platform } from "react-native"
 import useEventsQuery from "@/queries/useEvents.query"
 import type { UserEvent } from "@filen/sdk/dist/types/api/v3/user/events"
-import { simpleDate } from "@/lib/utils"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import ListEmpty from "@/components/listEmpty"
 import { translateMemoized, t } from "@/lib/i18n"
+import { simpleDate } from "@/lib/time"
 
 export type ListItemInfo = {
 	title: string

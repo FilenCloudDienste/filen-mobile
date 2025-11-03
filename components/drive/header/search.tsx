@@ -6,7 +6,7 @@ import alerts from "@/lib/alerts"
 import { List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useDriveItemsQuery from "@/queries/useDriveItems.query"
 import ListItem, { type ListItemInfo } from "@/components/drive/list/listItem"
-import { simpleDate, formatBytes } from "@/lib/utils"
+import { formatBytes } from "@/lib/utils"
 import { orderItemsByType } from "@/lib/itemSorter"
 import { useDebouncedCallback } from "use-debounce"
 import cache from "@/lib/cache"
@@ -16,6 +16,7 @@ import ListEmpty from "@/components/listEmpty"
 import { useDriveStore } from "@/stores/drive.store"
 import { useShallow } from "zustand/shallow"
 import { usePathname } from "expo-router"
+import { simpleDate } from "@/lib/time"
 
 export const Search = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const [isLoading, setIsLoading] = useState<boolean>(false)

@@ -4,11 +4,12 @@ import Thumbnail from "@/components/thumbnail/item"
 import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
 import { Icon } from "@roninoss/icons"
-import { formatBytes, simpleDateNoTime } from "@/lib/utils"
+import { formatBytes } from "@/lib/utils"
 import { cn } from "@/lib/cn"
 import { Checkbox } from "@/components/nativewindui/Checkbox"
 import Menu from "./menu"
 import useAllowed from "@/hooks/useAllowed"
+import { simpleDateNoTime } from "@/lib/time"
 
 export const Grid = memo(
 	({

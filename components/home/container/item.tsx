@@ -1,7 +1,7 @@
 import { memo, useCallback, useMemo } from "react"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { View, Platform } from "react-native"
-import { simpleDate, formatBytes, getPreviewType, normalizeFilePathForExpo } from "@/lib/utils"
+import { formatBytes, getPreviewType, normalizeFilePathForExpo } from "@/lib/utils"
 import { Icon } from "@roninoss/icons"
 import { Button } from "@/components/nativewindui/Button"
 import { useDirectorySizeQuery } from "@/queries/useDirectorySize.query"
@@ -19,6 +19,7 @@ import type { PDFPreviewItem } from "@/app/pdfPreview"
 import type { DOCXPreviewItem } from "@/app/docxPreview"
 import { translateMemoized } from "@/lib/i18n"
 import { driveItemsQueryGet } from "@/queries/useDriveItems.query"
+import { simpleDate } from "@/lib/time"
 
 export const ICON_HEIGHT: number = 44
 

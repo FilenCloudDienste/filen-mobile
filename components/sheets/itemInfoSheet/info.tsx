@@ -1,6 +1,6 @@
 import { memo, Fragment, useMemo } from "react"
 import { Text } from "@/components/nativewindui/Text"
-import { formatBytes, simpleDate } from "@/lib/utils"
+import { formatBytes } from "@/lib/utils"
 import { View } from "react-native"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { translateMemoized } from "@/lib/i18n"
@@ -8,6 +8,7 @@ import { useDirectorySizeQuery } from "@/queries/useDirectorySize.query"
 import useItemPathQuery from "@/queries/useItemPath.query"
 import Thumbnail from "@/components/thumbnail/item"
 import useSDKConfig from "@/hooks/useSDKConfig"
+import { simpleDate } from "@/lib/time"
 
 const ICON_HEIGHT: number = 70
 

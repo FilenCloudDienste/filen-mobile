@@ -7,19 +7,8 @@ import { Buffer } from "buffer"
 import { getRandomValues } from "expo-crypto"
 import mimeTypes from "mime-types"
 import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
-import * as ExpoLocalization from "expo-localization"
 import events from "./events"
-
-let intlLanguage: string = "de-DE"
-
-try {
-	intlLanguage =
-		ExpoLocalization.getLocales()
-			.filter(lang => lang.languageTag)
-			.at(0)?.languageTag ?? "de-DE"
-} catch (e) {
-	console.error(e)
-}
+import { simpleDate, simpleDateNoDate } from "./time"
 
 export function serializeError(error: Error): SerializedError {
 	return {
@@ -50,51 +39,6 @@ export function convertTimestampToMs(timestamp: number): number {
 	}
 
 	return timestamp
-}
-
-export const simpleDateFormatter = new Intl.DateTimeFormat(intlLanguage, {
-	year: "numeric",
-	month: "2-digit",
-	day: "2-digit",
-	hour: "2-digit",
-	minute: "2-digit",
-	second: "2-digit"
-})
-
-export function simpleDate(timestamp: number | Date): string {
-	if (typeof timestamp === "number") {
-		return simpleDateFormatter.format(convertTimestampToMs(timestamp))
-	}
-
-	return simpleDateFormatter.format(timestamp)
-}
-
-export const simpleDateNoTimeFormatter = new Intl.DateTimeFormat(intlLanguage, {
-	year: "numeric",
-	month: "2-digit",
-	day: "2-digit"
-})
-
-export function simpleDateNoTime(timestamp: number | Date): string {
-	if (typeof timestamp === "number") {
-		return simpleDateNoTimeFormatter.format(convertTimestampToMs(timestamp))
-	}
-
-	return simpleDateNoTimeFormatter.format(timestamp)
-}
-
-export const simpleDateNoDateFormatter = new Intl.DateTimeFormat(intlLanguage, {
-	hour: "2-digit",
-	minute: "2-digit",
-	second: "2-digit"
-})
-
-export function simpleDateNoDate(timestamp: number | Date): string {
-	if (typeof timestamp === "number") {
-		return simpleDateNoDateFormatter.format(convertTimestampToMs(timestamp))
-	}
-
-	return simpleDateNoDateFormatter.format(timestamp)
 }
 
 export const formatBytesSizes = [

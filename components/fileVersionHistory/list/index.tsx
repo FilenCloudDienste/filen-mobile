@@ -1,11 +1,11 @@
 import { memo, useMemo, useCallback } from "react"
 import { List as ListComponent, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import useFileVersionsQuery from "@/queries/useFileVersions.query"
-import { simpleDate } from "@/lib/utils"
 import Item, { type ListItemInfo } from "./item"
 import Container from "@/components/Container"
 import { translateMemoized } from "@/lib/i18n"
 import ListEmpty from "@/components/listEmpty"
+import { simpleDate } from "@/lib/time"
 
 const contentContainerStyle = {
 	paddingBottom: 100

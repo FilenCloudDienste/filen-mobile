@@ -9,7 +9,7 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Avatar from "@/components/avatar"
 import { cn } from "@/lib/cn"
-import { simpleDate, contactName, hideSearchBarWithDelay, fastLocaleCompare } from "@/lib/utils"
+import { contactName, hideSearchBarWithDelay, fastLocaleCompare } from "@/lib/utils"
 import { Text } from "@/components/nativewindui/Text"
 import Tag from "../tag"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -22,6 +22,7 @@ import { NoteIcon } from "./NoteIcon"
 import { SelectableListItem } from "../../SelectableListItem"
 import { noteContentQueryGet } from "@/queries/useNoteContent.query"
 import { translateMemoized } from "@/lib/i18n"
+import { simpleDate } from "@/lib/time"
 
 const ICON_SIZE = 24
 

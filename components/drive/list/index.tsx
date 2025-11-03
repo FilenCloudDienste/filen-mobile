@@ -3,7 +3,7 @@ import { Text } from "@/components/nativewindui/Text"
 import { memo, useState, useMemo, useCallback, useRef, useLayoutEffect } from "react"
 import { List, ListDataItem } from "@/components/nativewindui/List"
 import useDriveItemsQuery from "@/queries/useDriveItems.query"
-import { simpleDate, formatBytes } from "@/lib/utils"
+import { formatBytes } from "@/lib/utils"
 import { orderItemsByType, type OrderByType } from "@/lib/itemSorter"
 import { Container } from "@/components/Container"
 import ListItem, { type ListItemInfo } from "./listItem"
@@ -22,6 +22,7 @@ import { translateMemoized, t } from "@/lib/i18n"
 import alerts from "@/lib/alerts"
 import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
 import { useGridMode } from "@/hooks/useGridMode"
+import { simpleDate } from "@/lib/time"
 
 const contentContainerStyle = {
 	paddingBottom: 100

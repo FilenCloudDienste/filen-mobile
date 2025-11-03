@@ -5,7 +5,6 @@ import type { NoteHistory } from "@filen/sdk/dist/types/api/v3/notes/history"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { ListItem, List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import Container from "@/components/Container"
-import { simpleDate } from "@/lib/utils"
 import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
 import nodeWorker from "@/lib/nodeWorker"
@@ -19,6 +18,7 @@ import { AdaptiveSearchHeader } from "@/components/nativewindui/AdaptiveSearchHe
 import { useColorScheme } from "@/lib/useColorScheme"
 import { noteContentQueryUpdate } from "@/queries/useNoteContent.query"
 import { notesQueryUpdate } from "@/queries/useNotes.query"
+import { simpleDate } from "@/lib/time"
 
 export type ListItemInfo = {
 	title: string
