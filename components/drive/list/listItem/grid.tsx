@@ -120,7 +120,6 @@ export const Grid = memo(
 								}}
 								spacing={spacing}
 								type="drive"
-								queryParams={queryParams}
 							/>
 						</View>
 						<Text

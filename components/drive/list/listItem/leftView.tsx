@@ -15,15 +15,13 @@ export const LeftView = memo(
 		select,
 		selectedItemsCount,
 		isSelected,
-		isAvailableOffline,
-		queryParams
+		isAvailableOffline
 	}: {
 		item: DriveCloudItem
 		select: () => void
 		selectedItemsCount: number
 		isSelected: boolean
 		isAvailableOffline: boolean
-		queryParams: FetchCloudItemsParams
 	}) => {
 		const { colors } = useColorScheme()
 		const allowed = useAllowed()
@@ -75,7 +73,6 @@ export const LeftView = memo(
 						imageResizeMode="contain"
 						imageCachePolicy="dataCache"
 						imageStyle={imageStyle}
-						queryParams={queryParams}
 					/>
 				</View>
 			</View>

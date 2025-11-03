@@ -172,7 +172,6 @@ export const Photo = memo(
 							imageStyle={imageStyle}
 							spacing={spacing}
 							type="photos"
-							queryParams={queryParams}
 						/>
 					</View>
 				</TouchableHighlight>

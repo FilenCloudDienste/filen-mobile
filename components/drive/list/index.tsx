@@ -102,13 +102,15 @@ export const DriveList = memo(({ queryParams, scrollToUUID }: { queryParams: Fet
 
 		try {
 			await cloudItemsQuery.refetch()
+
+			setRefreshing(false)
 		} catch (e) {
 			console.error(e)
 
 			if (e instanceof Error) {
 				alerts.error(e.message)
 			}
-		} finally {
+
 			setRefreshing(false)
 		}
 	}, [cloudItemsQuery])

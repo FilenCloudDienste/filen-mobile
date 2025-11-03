@@ -55,7 +55,6 @@ export const ListItem = memo(
 	}) => {
 		const { push: routerPush } = useRouter()
 		const selectedItemsCount = useDriveStore(useShallow(state => state.selectedItems.length))
-		const setSelectedItems = useDriveStore(useShallow(state => state.setSelectedItems))
 		const isSelected = useDriveStore(useShallow(state => state.selectedItems.some(i => i.uuid === info.item.item.uuid)))
 		const { hasInternet } = useNetInfo()
 		const pathname = usePathname()
@@ -98,12 +97,14 @@ export const ListItem = memo(
 		}, [info.item.item.type, fileOfflineStatus.status, fileOfflineStatus.data])
 
 		const select = useCallback(() => {
-			setSelectedItems(prev =>
-				isSelected
-					? prev.filter(i => i.uuid !== info.item.item.uuid)
-					: [...prev.filter(i => i.uuid !== info.item.item.uuid), info.item.item]
-			)
-		}, [info.item.item, setSelectedItems, isSelected])
+			useDriveStore
+				.getState()
+				.setSelectedItems(prev =>
+					isSelected
+						? prev.filter(i => i.uuid !== info.item.item.uuid)
+						: [...prev.filter(i => i.uuid !== info.item.item.uuid), info.item.item]
+				)
+		}, [info.item.item, isSelected])
 
 		const leftView = useMemo(() => {
 			return (
@@ -113,10 +114,9 @@ export const ListItem = memo(
 					selectedItemsCount={selectedItemsCount}
 					isSelected={isSelected}
 					isAvailableOffline={offlineStatus?.exists ?? false}
-					queryParams={queryParams}
 				/>
 			)
-		}, [info.item.item, select, selectedItemsCount, isSelected, offlineStatus, queryParams])
+		}, [info.item.item, select, selectedItemsCount, isSelected, offlineStatus])
 
 		const rightView = useMemo(() => {
 			if (fromSearch) {
@@ -169,9 +169,9 @@ export const ListItem = memo(
 				if (e instanceof Error) {
 					alerts.error(e.message)
 				}
-			} finally {
-				fullScreenLoadingModal.hide()
 			}
+
+			fullScreenLoadingModal.hide()
 		}, [info.item.item, routerPush])
 
 		const onPress = useCallback(async () => {
