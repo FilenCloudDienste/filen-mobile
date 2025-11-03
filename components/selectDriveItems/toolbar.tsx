@@ -10,6 +10,8 @@ import driveService from "@/services/drive.service"
 import { Button } from "../nativewindui/Button"
 import { Text } from "../nativewindui/Text"
 import { translateMemoized, t } from "@/lib/i18n"
+import { validate as validateUUID } from "uuid"
+import cache from "@/lib/cache"
 
 export const Toolbar = memo(() => {
 	const { canGoBack, dismissTo, back } = useRouter()
@@ -73,6 +75,21 @@ export const Toolbar = memo(() => {
 			!iosHint
 		)
 	}, [canGoBack, selectedItems, id, maxParsed, typeParsed, baseFolderUUID, parent, iosHint])
+
+	const canSubmitParent = useMemo(() => {
+		return (
+			canGoBack() &&
+			typeParsed === "directory" &&
+			selectedItems.length === 0 &&
+			maxParsed === 1 &&
+			typeof id === "string" &&
+			baseFolderUUID !== parent &&
+			validateUUID(parent) &&
+			typeof parent === "string" &&
+			!iosHint &&
+			cache.directoryUUIDToName.has(parent)
+		)
+	}, [canGoBack, selectedItems, id, maxParsed, typeParsed, parent, baseFolderUUID, iosHint])
 
 	const submit = useCallback(() => {
 		if (!canSubmit) {
@@ -145,6 +162,41 @@ export const Toolbar = memo(() => {
 		}
 	}, [id, canGoBack, dismissTo, dismissHref, baseFolderUUID, back])
 
+	const selectParent = useCallback(() => {
+		if (!canGoBack() || !validateUUID(parent) || parent === baseFolderUUID || !parent || typeof parent !== "string") {
+			return
+		}
+
+		events.emit("selectDriveItems", {
+			type: "response",
+			data: {
+				id: typeof id === "string" ? id : "none",
+				cancelled: false,
+				items: [
+					{
+						uuid: parent,
+						name: cache.directoryUUIDToName.get(parent) ?? "Directory",
+						type: "directory",
+						timestamp: Date.now(),
+						lastModified: Date.now(),
+						size: 0,
+						isShared: false,
+						selected: false,
+						favorited: false,
+						parent,
+						color: null
+					}
+				]
+			}
+		})
+
+		if (typeof dismissHref === "string") {
+			dismissTo(dismissHref)
+		} else {
+			back()
+		}
+	}, [id, canGoBack, dismissTo, dismissHref, parent, baseFolderUUID, back])
+
 	const leftView = useMemo(() => {
 		return (
 			<Fragment>
@@ -162,9 +214,21 @@ export const Toolbar = memo(() => {
 						<Text className="text-blue-500">{translateMemoized("selectDriveItems.header.selectRoot")}</Text>
 					</Button>
 				)}
+				{canSubmitParent && (
+					<Button
+						variant="plain"
+						onPress={selectParent}
+					>
+						<Text className="text-blue-500">
+							{t("selectDriveItems.header.selectParent", {
+								parent: cache.directoryUUIDToName.get(typeof parent === "string" ? parent : "") ?? "Directory"
+							})}
+						</Text>
+					</Button>
+				)}
 			</Fragment>
 		)
-	}, [createDirectory, selectRoot, canSubmitRoot])
+	}, [createDirectory, selectRoot, canSubmitRoot, canSubmitParent, selectParent, parent])
 
 	const rightView = useMemo(() => {
 		return (

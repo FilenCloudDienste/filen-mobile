@@ -1232,7 +1232,8 @@
 			"selectFiles": "Select files",
 			"selectDirectories": "Select directories",
 			"drive": "Drive",
-			"selectRoot": "Select cloud drive"
+			"selectRoot": "Select cloud drive",
+			"selectParent": "Select {{parent}}"
 		},
 		"toolbar": {
 			"selected": "{{countOrName}} selected"
