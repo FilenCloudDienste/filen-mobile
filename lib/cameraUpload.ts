@@ -290,7 +290,6 @@ export class CameraUpload {
 		}
 
 		const items: Tree = {}
-		const existingPaths: Record<string, true> = {}
 		const tree =
 			this.type === "foreground"
 				? await nodeWorker.proxy("getDirectoryTree", {
@@ -309,29 +308,7 @@ export class CameraUpload {
 				continue
 			}
 
-			let path: string = this.normalizePath(file.name)
-			let iteration = 0
-
-			while (existingPaths[path.toLowerCase()]) {
-				path =
-					this.modifyAssetPathOnDuplicate(iteration, {
-						name: file.name,
-						creationTime: file.creation ?? file.lastModified ?? file.timestamp,
-						id: file.uuid
-					}) ?? ""
-
-				if (path.length === 0) {
-					break
-				}
-
-				iteration++
-			}
-
-			if (path.length === 0) {
-				continue
-			}
-
-			existingPaths[path.toLowerCase()] = true
+			const path: string = this.normalizePath(file.name)
 
 			items[path.toLowerCase()] = {
 				type: "remote",
