@@ -1020,3 +1020,119 @@ export function createExecutableTimeout(callback: () => void, delay?: number) {
 		cancel: () => globalThis.window.clearTimeout(timeoutId)
 	}
 }
+
+/**
+ * Fast replacement for string.localeCompare(string, "en", { numeric: true })
+ *
+ * This function provides the same behavior as the native localeCompare with:
+ * - locale: "en"
+ * - options: { numeric: true }
+ *
+ * Optimized for Hermes JS engine by avoiding:
+ * - Intl API calls (very slow on Hermes)
+ * - Regular expressions (slow on Hermes)
+ *
+ * Features:
+ * - Natural/numeric sort order (e.g., "item2" < "item10")
+ * - Case-insensitive base comparison with case as tiebreaker
+ * - Pure character code operations for maximum performance
+ *
+ * @param a - First string to compare
+ * @param b - Second string to compare
+ * @returns -1 if a < b, 0 if a === b, 1 if a > b
+ *
+ * @example
+ * // Instead of:
+ * items.sort((a, b) => a.localeCompare(b, "en", { numeric: true }));
+ *
+ * // Use:
+ * items.sort((a, b) => fastLocaleCompare(a, b));
+ */
+export function fastLocaleCompare(a: string, b: string): number {
+	// Fast path: identical strings
+	if (a === b) {
+		return 0
+	}
+
+	const lenA = a.length
+	const lenB = b.length
+	let idxA = 0
+	let idxB = 0
+	let caseDiff = 0 // Track first case difference for tiebreaker
+
+	while (idxA < lenA && idxB < lenB) {
+		const charA = a.charCodeAt(idxA)
+		const charB = b.charCodeAt(idxB)
+		const isDigitA = charA >= 48 && charA <= 57 // 0-9
+		const isDigitB = charB >= 48 && charB <= 57 // 0-9
+
+		if (isDigitA && isDigitB) {
+			// Both are digits - extract and compare full numbers
+			let numA = 0
+			let numB = 0
+
+			// Extract number from string a
+			while (idxA < lenA) {
+				const c = a.charCodeAt(idxA)
+
+				if (c < 48 || c > 57) {
+					break
+				}
+
+				numA = numA * 10 + (c - 48)
+				idxA++
+			}
+
+			// Extract number from string b
+			while (idxB < lenB) {
+				const c = b.charCodeAt(idxB)
+
+				if (c < 48 || c > 57) {
+					break
+				}
+
+				numB = numB * 10 + (c - 48)
+				idxB++
+			}
+
+			if (numA !== numB) {
+				return numA < numB ? -1 : 1
+			}
+		} else if (isDigitA) {
+			// Numbers come before non-numbers
+			return -1
+		} else if (isDigitB) {
+			return 1
+		} else {
+			// Both are non-digits - compare base characters (case-insensitive)
+			const lowerA = charA >= 65 && charA <= 90 ? charA + 32 : charA
+			const lowerB = charB >= 65 && charB <= 90 ? charB + 32 : charB
+
+			if (lowerA !== lowerB) {
+				// Different letters entirely
+				return lowerA < lowerB ? -1 : 1
+			}
+
+			// Same letter but might differ in case - remember first case difference
+			if (caseDiff === 0 && charA !== charB) {
+				// lowercase comes first (97 > 65 for 'a' vs 'A')
+				caseDiff = charA > charB ? -1 : 1
+			}
+
+			idxA++
+			idxB++
+		}
+	}
+
+	// One string is a prefix of the other
+	if (idxA < lenA) {
+		return 1 // a is longer
+	}
+
+	if (idxB < lenB) {
+		return -1 // b is longer
+	}
+
+	// Strings are equal except for case - use case as tiebreaker
+	return caseDiff
+}

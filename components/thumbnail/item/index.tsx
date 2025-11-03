@@ -16,8 +16,7 @@ export const Thumbnail = memo(
 		imageResizeMode = "contain",
 		imageStyle,
 		type = "drive",
-		spacing = 0,
-		queryParams
+		spacing = 0
 	}: {
 		item: DriveCloudItem
 		size: number
@@ -27,7 +26,6 @@ export const Thumbnail = memo(
 		imageStyle?: TurboImageProps["style"]
 		type?: "drive" | "photos"
 		spacing?: number
-		queryParams?: FetchCloudItemsParams
 	}) => {
 		const lastItemUuidRef = useRef<string | null>(null)
 		const { colors } = useColorScheme()
@@ -74,7 +72,6 @@ export const Thumbnail = memo(
 			thumbnails
 				.generate({
 					item,
-					queryParams,
 					abortSignal: abortControllerRef.current.signal
 				})
 				.then(thumbnailPath => {
@@ -86,7 +83,7 @@ export const Thumbnail = memo(
 					setLocalPath(thumbnailPath)
 				})
 				.catch(() => {})
-		}, [item, localPath, queryParams, setLocalPath])
+		}, [item, localPath, setLocalPath])
 
 		const onFailure = useCallback(async () => {
 			setLocalPath(undefined)

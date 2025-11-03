@@ -2,7 +2,7 @@ import { memo, useEffect, useMemo, useState, useRef } from "react"
 import { Text } from "@/components/nativewindui/Text"
 import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import type { SocketChatTyping } from "@filen/sdk/dist/types/socket"
-import { contactName } from "@/lib/utils"
+import { contactName, fastLocaleCompare } from "@/lib/utils"
 import useSocket from "@/hooks/useSocket"
 import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated"
 import { t } from "@/lib/i18n"
@@ -14,7 +14,7 @@ export const Typing = memo(({ chat }: { chat: ChatConversation }) => {
 
 	const usersTypingSorted = useMemo(() => {
 		return usersTyping.sort((a, b) =>
-			contactName(a.senderEmail, a.senderNickName).localeCompare(contactName(b.senderEmail, b.senderNickName))
+			fastLocaleCompare(contactName(a.senderEmail, a.senderNickName), contactName(b.senderEmail, b.senderNickName))
 		)
 	}, [usersTyping])
 

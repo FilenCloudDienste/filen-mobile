@@ -4,7 +4,7 @@ import { View, ScrollView } from "react-native"
 import useSocket from "@/hooks/useSocket"
 import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
 import type { SocketChatTyping } from "@filen/sdk/dist/types/socket"
-import { contactName } from "@/lib/utils"
+import { contactName, fastLocaleCompare } from "@/lib/utils"
 import { ReplacedMessageContentInline } from "../chat/messages/replace"
 import type { ChatMessage } from "@filen/sdk/dist/types/api/v3/chat/messages"
 import { randomUUID } from "expo-crypto"
@@ -22,7 +22,7 @@ export const LastMessage = memo(({ chat }: { chat: ChatConversation }) => {
 
 	const usersTypingSorted = useMemo(() => {
 		return usersTyping.sort((a, b) =>
-			contactName(a.senderEmail, a.senderNickName).localeCompare(contactName(b.senderEmail, b.senderNickName))
+			fastLocaleCompare(contactName(a.senderEmail, a.senderNickName), contactName(b.senderEmail, b.senderNickName))
 		)
 	}, [usersTyping])
 

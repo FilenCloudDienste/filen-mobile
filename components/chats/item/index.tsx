@@ -5,7 +5,7 @@ import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
 import Avatar from "@/components/avatar"
 import useSDKConfig from "@/hooks/useSDKConfig"
-import { contactName, hideSearchBarWithDelay } from "@/lib/utils"
+import { contactName, hideSearchBarWithDelay, fastLocaleCompare } from "@/lib/utils"
 import { getChatName } from "../utils"
 import { useRouter } from "expo-router"
 import Menu from "./menu"
@@ -31,7 +31,7 @@ export const Item = memo(({ info }: { info: ListRenderItemInfo<ChatConversation>
 	const avatarSource = useMemo(() => {
 		const participants = info.item.participants
 			.filter(participant => participant.userId !== userId && participant.avatar?.startsWith("https"))
-			.sort((a, b) => contactName(a.email, a.nickName).localeCompare(contactName(b.email, b.nickName)))
+			.sort((a, b) => fastLocaleCompare(contactName(a.email, a.nickName), contactName(b.email, b.nickName)))
 
 		if (participants.length === 0 || participants.length >= 2) {
 			return {

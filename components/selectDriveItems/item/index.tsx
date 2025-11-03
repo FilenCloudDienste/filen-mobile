@@ -120,10 +120,9 @@ export const Item = memo(
 					select={select}
 					isSelected={isSelected}
 					canSelect={canSelect}
-					queryParams={queryParams}
 				/>
 			)
-		}, [info.item.item, select, isSelected, canSelect, queryParams])
+		}, [info.item.item, select, isSelected, canSelect])
 
 		const onPress = useCallback(() => {
 			if (toMove.includes(info.item.item.uuid)) {

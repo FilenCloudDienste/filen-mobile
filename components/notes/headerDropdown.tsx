@@ -16,7 +16,7 @@ import { useShallow } from "zustand/shallow"
 import { Platform } from "react-native"
 import notesBulkService from "@/services/notesBulk.service"
 import useNotesTagsQuery from "@/queries/useNotesTags.query"
-import { sortAndFilterNotes } from "@/lib/utils"
+import { sortAndFilterNotes, fastLocaleCompare } from "@/lib/utils"
 
 export const HeaderDropdown = memo(() => {
 	const { colors } = useColorScheme()
@@ -44,11 +44,7 @@ export const HeaderDropdown = memo(() => {
 			return []
 		}
 
-		return notesTagsQuery.data.sort((a, b) =>
-			a.name.localeCompare(b.name, "en", {
-				numeric: true
-			})
-		)
+		return notesTagsQuery.data.sort((a, b) => fastLocaleCompare(a.name, b.name))
 	}, [notesTagsQuery.data, notesTagsQuery.status])
 
 	const notes = useMemo(() => {

@@ -11,7 +11,6 @@ import * as VideoThumbnails from "expo-video-thumbnails"
 import { EXPO_IMAGE_MANIPULATOR_SUPPORTED_EXTENSIONS, EXPO_VIDEO_THUMBNAILS_SUPPORTED_EXTENSIONS } from "./constants"
 import download from "./download"
 import pathModule from "path"
-import { driveItemsQueryUpdate } from "@/queries/useDriveItems.query"
 
 export const THUMBNAILS_MAX_ERRORS: number = 3
 export const THUMBNAILS_SIZE: number = 128
@@ -79,12 +78,10 @@ export class Thumbnails {
 
 	public async generate({
 		item,
-		queryParams,
 		originalFilePath,
 		abortSignal
 	}: {
 		item: DriveCloudItem
-		queryParams?: FetchCloudItemsParams
 		originalFilePath?: string
 		abortSignal?: AbortSignal
 	}): Promise<string> {
@@ -134,21 +131,6 @@ export class Thumbnails {
 				cache.availableThumbnails.set(item.uuid, thumbnailDestination)
 
 				delete this.errorCount[item.uuid]
-
-				if (queryParams) {
-					driveItemsQueryUpdate({
-						params: queryParams,
-						updater: prev =>
-							prev.map(prevItem =>
-								prevItem.uuid === item.uuid
-									? {
-											...prevItem,
-											thumbnail: thumbnailDestination
-									  }
-									: prevItem
-							)
-					})
-				}
 
 				return thumbnailDestination
 			}
@@ -299,21 +281,6 @@ export class Thumbnails {
 				cache.availableThumbnails.set(item.uuid, thumbnailDestination)
 
 				delete this.errorCount[item.uuid]
-
-				if (queryParams) {
-					driveItemsQueryUpdate({
-						params: queryParams,
-						updater: prev =>
-							prev.map(prevItem =>
-								prevItem.uuid === item.uuid
-									? {
-											...prevItem,
-											thumbnail: thumbnailDestination
-									  }
-									: prevItem
-							)
-					})
-				}
 
 				return thumbnailDestination
 			} catch (e) {

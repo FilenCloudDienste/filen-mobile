@@ -1,5 +1,5 @@
 import type { ChatConversation } from "@filen/sdk/dist/types/api/v3/chat/conversations"
-import { contactName } from "@/lib/utils"
+import { contactName, fastLocaleCompare } from "@/lib/utils"
 import { translateMemoized } from "@/lib/i18n"
 
 export function getChatName(chat: ChatConversation, userId: number): string {
@@ -9,7 +9,7 @@ export function getChatName(chat: ChatConversation, userId: number): string {
 
 	const participants = chat.participants
 		.filter(participant => participant.userId !== userId)
-		.sort((a, b) => contactName(a.email, a.nickName).localeCompare(contactName(b.email, b.nickName)))
+		.sort((a, b) => fastLocaleCompare(contactName(a.email, a.nickName), contactName(b.email, b.nickName)))
 
 	if (participants.length === 0) {
 		return translateMemoized("chats.chat")

@@ -7,6 +7,7 @@ import useNetInfo from "@/hooks/useNetInfo"
 import { View } from "react-native"
 import OfflineListHeader from "../offlineListHeader"
 import useDimensions from "@/hooks/useDimensions"
+import { fastLocaleCompare } from "@/lib/utils"
 
 export const Item = memo((info: ListRenderItemInfo<string>) => {
 	const notesTagsQuery = useNotesTagsQuery({
@@ -75,11 +76,7 @@ export const ListHeader = memo(() => {
 			return []
 		}
 
-		return notesTagsQuery.data.sort((a, b) =>
-			a.name.localeCompare(b.name, "en", {
-				numeric: true
-			})
-		)
+		return notesTagsQuery.data.sort((a, b) => fastLocaleCompare(a.name, b.name))
 	}, [notesTagsQuery.data, notesTagsQuery.status])
 
 	const listTags = useMemo(() => {

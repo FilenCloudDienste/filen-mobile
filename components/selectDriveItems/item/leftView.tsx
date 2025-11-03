@@ -7,19 +7,7 @@ import Thumbnail from "@/components/thumbnail/item"
 export const ICON_HEIGHT: number = 42
 
 export const LeftView = memo(
-	({
-		item,
-		select,
-		isSelected,
-		canSelect,
-		queryParams
-	}: {
-		item: DriveCloudItem
-		select: () => void
-		isSelected: boolean
-		canSelect: boolean
-		queryParams: FetchCloudItemsParams
-	}) => {
+	({ item, select, isSelected, canSelect }: { item: DriveCloudItem; select: () => void; isSelected: boolean; canSelect: boolean }) => {
 		const { colors } = useColorScheme()
 
 		return (
@@ -47,7 +35,6 @@ export const LeftView = memo(
 						backgroundColor: colors.background,
 						borderRadius: 6
 					}}
-					queryParams={queryParams}
 				/>
 			</View>
 		)

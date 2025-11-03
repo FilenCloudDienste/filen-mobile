@@ -5,7 +5,7 @@ import type { ChatConversation, ChatConversationParticipant } from "@filen/sdk/d
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { ListItem, List, type ListDataItem, type ListRenderItemInfo } from "@/components/nativewindui/List"
 import Container from "@/components/Container"
-import { contactName } from "@/lib/utils"
+import { contactName, fastLocaleCompare } from "@/lib/utils"
 import Avatar from "@/components/avatar"
 import { Text } from "@/components/nativewindui/Text"
 import { Button } from "@/components/nativewindui/Button"
@@ -145,11 +145,7 @@ export default function Participants() {
 
 		return chat.participants
 			.filter(participant => participant.userId !== userId)
-			.sort((a, b) =>
-				contactName(a.email, a.nickName).localeCompare(contactName(b.email, b.nickName), "en", {
-					numeric: true
-				})
-			)
+			.sort((a, b) => fastLocaleCompare(contactName(a.email, a.nickName), contactName(b.email, b.nickName)))
 			.map(participant => ({
 				id: participant.userId.toString(),
 				title: contactName(participant.email, participant.nickName),

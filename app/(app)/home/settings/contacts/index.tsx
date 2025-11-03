@@ -3,7 +3,7 @@ import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { List, type ListRenderItemInfo, type ListDataItem } from "@/components/nativewindui/List"
 import { RefreshControl } from "react-native"
 import useContactsQuery from "@/queries/useContacts.query"
-import { contactName, convertTimestampToMs } from "@/lib/utils"
+import { contactName, convertTimestampToMs, fastLocaleCompare } from "@/lib/utils"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 import useContactsRequestsQuery from "@/queries/useContactsRequests.query"
@@ -113,11 +113,7 @@ export const Contacts = memo(() => {
 			)
 		}
 
-		return data.sort((a, b) =>
-			a.title.localeCompare(b.title, "en", {
-				numeric: true
-			})
-		)
+		return data.sort((a, b) => fastLocaleCompare(a.title, b.title))
 	}, [
 		allContactsQuery.status,
 		allContactsQuery.data,

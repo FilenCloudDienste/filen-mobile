@@ -11,7 +11,7 @@ import Container from "@/components/Container"
 import { Toolbar, ToolbarCTA, ToolbarIcon } from "@/components/nativewindui/Toolbar"
 import Contact, { type ListItemInfo } from "@/components/contacts/contact"
 import { useSelectContactsStore } from "@/stores/selectContacts.store"
-import { contactName } from "@/lib/utils"
+import { contactName, fastLocaleCompare } from "@/lib/utils"
 import { useShallow } from "zustand/shallow"
 import { Button } from "@/components/nativewindui/Button"
 import contactsService from "@/services/contacts.service"
@@ -53,11 +53,7 @@ export default function SelectContacts() {
 				contact: item,
 				type: type === "blocked" ? ("blocked" as const) : ("contact" as const)
 			}))
-			.sort((a, b) =>
-				a.title.localeCompare(b.title, "en", {
-					numeric: true
-				})
-			)
+			.sort((a, b) => fastLocaleCompare(a.title, b.title))
 
 		if (searchTerm.length > 0) {
 			const searchTermLowercase = searchTerm.toLowerCase()

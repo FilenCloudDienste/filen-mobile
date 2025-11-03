@@ -17,6 +17,7 @@ import useNetInfo from "@/hooks/useNetInfo"
 import notesService from "@/services/notes.service"
 import { useNotesStore } from "@/stores/notes.store"
 import { useShallow } from "zustand/shallow"
+import { fastLocaleCompare } from "@/lib/utils"
 
 export const Menu = memo(
 	({
@@ -49,11 +50,7 @@ export const Menu = memo(
 				return []
 			}
 
-			return notesTagsQuery.data.sort((a, b) =>
-				a.name.localeCompare(b.name, "en", {
-					numeric: true
-				})
-			)
+			return notesTagsQuery.data.sort((a, b) => fastLocaleCompare(a.name, b.name))
 		}, [notesTagsQuery.data, notesTagsQuery.status])
 
 		const isUndecryptable = useMemo(() => {

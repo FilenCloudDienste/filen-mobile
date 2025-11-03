@@ -9,7 +9,7 @@ import { Icon } from "@roninoss/icons"
 import { useColorScheme } from "@/lib/useColorScheme"
 import Avatar from "@/components/avatar"
 import { cn } from "@/lib/cn"
-import { simpleDate, contactName, hideSearchBarWithDelay } from "@/lib/utils"
+import { simpleDate, contactName, hideSearchBarWithDelay, fastLocaleCompare } from "@/lib/utils"
 import { Text } from "@/components/nativewindui/Text"
 import Tag from "../tag"
 import useNetInfo from "@/hooks/useNetInfo"
@@ -37,19 +37,13 @@ export const Item = memo(({ note }: { note: Note }) => {
 	const participants = useMemo(() => {
 		return note.participants
 			.filter(p => p.userId !== userId)
-			.sort((a, b) =>
-				contactName(a.email, a.nickName).localeCompare(contactName(b.email, b.nickName), "en", {
-					numeric: true
-				})
-			)
+			.sort((a, b) => fastLocaleCompare(contactName(a.email, a.nickName), contactName(b.email, b.nickName)))
 			.slice(0, 3)
 	}, [note.participants, userId])
 
 	const tags = useMemo(() => {
 		return note.tags.sort((a, b) => {
-			return a.name.localeCompare(b.name, "en", {
-				numeric: true
-			})
+			return fastLocaleCompare(a.name, b.name)
 		})
 	}, [note.tags])
 
