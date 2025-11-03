@@ -16,6 +16,12 @@
             "message": "ストレージの制限を超えています。不要なデータの削除を避けるために、スペースを空けるかプランをアップグレードしてください。",
             "okText": "アップグレード",
             "title": "ストレージの使用量が制限を超えています"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "キャンセル",
+            "message": "マスターキーをエクスポートして、安全な場所に保存することを強くお勧めします。パスワードを忘れると、マスターキーがないとデータにアクセスできなくなります。",
+            "okText": "エクスポート",
+            "title": "マスターキーをエクスポート"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "ファイルを選択",
             "selectItem": "アイテムを選択",
             "selectItems": "アイテムを選択",
-            "selectRoot": "クラウドドライブを選択"
+            "selectRoot": "クラウドドライブを選択",
+            "selectParent": "{{parent}}を選択"
         },
         "list": {
             "empty": "まだ何もアップロードされていません",
@@ -998,7 +1005,11 @@
                 "clearCache": "キャッシュをクリア",
                 "clearOfflineFiles": "オフラインファイルをクリア",
                 "clearThumbnails": "サムネイルをクリア",
-                "clearTrackPlayer": "トラックプレイヤーをクリア"
+                "clearTrackPlayer": "トラックプレイヤーをクリア",
+                "documentsProviderCache": "DocumentsProvider キャッシュ",
+                "documentsProviderCacheInfo": "Documents Provider キャッシュは、Filenを他のアプリで使用する際にファイルへのアクセスを迅速化するために使用されます。",
+                "fileProviderCache": "FileProvider キャッシュ",
+                "fileProviderCacheInfo": "FileProvider キャッシュは、Filenを他のアプリで使用する際にファイルへのアクセスを迅速化するために使用されます。"
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "二要素認証",
                 "biometricAuth": "バイオメトリック認証",
-                "changePassword": "パスワードを変更"
+                "changePassword": "パスワードを変更",
+                "exportMasterKeys": "マスターキーをエクスポート"
             },
             "prompts": {
                 "changePassword1": {

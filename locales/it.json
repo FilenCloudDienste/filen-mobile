@@ -16,6 +16,12 @@
             "message": "Hai superato il limite di archiviazione. Si prega di liberare dello spazio o aggiornare il tuo piano per prevenire la cancellazione indesiderata dei dati.",
             "okText": "Aggiorna",
             "title": "Utilizzo dello spazio di archiviazione superato"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Annulla",
+            "message": "È altamente raccomandato esportare le tue chiavi master e conservarle in un luogo sicuro. Senza le tue chiavi master, non potrai accedere ai tuoi dati se dimentichi la password.",
+            "okText": "Esporta",
+            "title": "Esporta chiavi master"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Seleziona file",
             "selectItem": "Seleziona elemento",
             "selectItems": "Seleziona elementi",
-            "selectRoot": "Seleziona dal cloud drive"
+            "selectRoot": "Seleziona dal cloud drive",
+            "selectParent": "Seleziona {{parent}}"
         },
         "list": {
             "empty": "Non è stato caricato ancora niente",
@@ -998,7 +1005,11 @@
                 "clearCache": "Cancella cache",
                 "clearOfflineFiles": "Cancella file offline",
                 "clearThumbnails": "Cancella miniature",
-                "clearTrackPlayer": "Cancella lettore tracce"
+                "clearTrackPlayer": "Cancella lettore tracce",
+                "documentsProviderCache": "Cache di DocumentsProvider",
+                "documentsProviderCacheInfo": "La cache di Documents Provider viene utilizzata per velocizzare l'accesso ai file quando si utilizza Filen in altre app.",
+                "fileProviderCache": "Cache di FileProvider",
+                "fileProviderCacheInfo": "La cache di FileProvider viene utilizzata per velocizzare l'accesso ai file quando si utilizza Filen in altre app."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Autenticazione a due fattori",
                 "biometricAuth": "Autenticazione biometrica",
-                "changePassword": "Cambia password"
+                "changePassword": "Cambia password",
+                "exportMasterKeys": "Esporta chiavi master"
             },
             "prompts": {
                 "changePassword1": {

@@ -16,6 +16,12 @@
             "message": "Bạn đã vượt quá giới hạn lưu trữ của mình. Vui lòng giải phóng một số không gian hoặc nâng cấp kế hoạch của bạn để tránh mất dữ liệu không mong muốn.",
             "okText": "Nâng cấp",
             "title": "Sử dụng lưu trữ vượt mức"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Huỷ bỏ",
+            "message": "Rất khuyến nghị xuất khóa chính của bạn và lưu trữ chúng ở nơi an toàn. Nếu không có khóa chính, bạn sẽ không thể truy cập dữ liệu của mình nếu quên mật khẩu.",
+            "okText": "Xuất",
+            "title": "Xuất khóa chính"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Chọn các tệp",
             "selectItem": "Chọn mục",
             "selectItems": "Chọn mục",
-            "selectRoot": "Chọn ổ đĩa đám mây"
+            "selectRoot": "Chọn ổ đĩa đám mây",
+            "selectParent": "Chọn {{parent}}"
         },
         "list": {
             "empty": "Chưa tải lên gì cả",
@@ -998,7 +1005,11 @@
                 "clearCache": "Xóa bộ nhớ đệm",
                 "clearOfflineFiles": "Xóa tệp offline",
                 "clearThumbnails": "Xóa hình thu nhỏ",
-                "clearTrackPlayer": "Xóa trình phát nhạc"
+                "clearTrackPlayer": "Xóa trình phát nhạc",
+                "documentsProviderCache": "Bộ nhớ đệm DocumentsProvider",
+                "documentsProviderCacheInfo": "Bộ nhớ đệm Documents Provider được sử dụng để tăng tốc độ truy cập tệp khi sử dụng Filen trong các ứng dụng khác.",
+                "fileProviderCache": "Bộ nhớ đệm FileProvider",
+                "fileProviderCacheInfo": "Bộ nhớ đệm FileProvider được sử dụng để tăng tốc độ truy cập tệp khi sử dụng Filen trong các ứng dụng khác."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Xác thực hai yếu tố",
                 "biometricAuth": "Xác thực sinh trắc học",
-                "changePassword": "Thay đổi mật khẩu"
+                "changePassword": "Thay đổi mật khẩu",
+                "exportMasterKeys": "Xuất khóa chính"
             },
             "prompts": {
                 "changePassword1": {

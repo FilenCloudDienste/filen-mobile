@@ -16,6 +16,12 @@
             "message": "Ați depășit limita de stocare. Vă rugăm să eliberați spațiu sau să vă actualizați planul pentru a preveni ștergerea nedorită a datelor.",
             "okText": "Actualizare",
             "title": "Depășire a limitelor de stocare"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Anulează",
+            "message": "Este extrem de recomandat să exportați cheile dvs. master și să le depozitați într-un loc sigur. Fără cheile dvs. master, nu veți putea accesa datele dvs. dacă uitați parola.",
+            "okText": "Exportă",
+            "title": "Exportă chiflele master"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Selectează fișierele",
             "selectItem": "Selectează elementul",
             "selectItems": "Selectează elementele",
-            "selectRoot": "Selectați unitatea cloud"
+            "selectRoot": "Selectați unitatea cloud",
+            "selectParent": "Selectează {{parent}}"
         },
         "list": {
             "empty": "Nimic încărcat încă",
@@ -998,7 +1005,11 @@
                 "clearCache": "Golește cache-ul",
                 "clearOfflineFiles": "Șterge fișierele offline",
                 "clearThumbnails": "Șterge miniaturile",
-                "clearTrackPlayer": "Șterge cache-ul playerului de piese"
+                "clearTrackPlayer": "Șterge cache-ul playerului de piese",
+                "documentsProviderCache": "Cache-ul DocumentsProvider",
+                "documentsProviderCacheInfo": "Cache-ul Documents Provider este utilizat pentru a accelera accesul la fișiere atunci când folosiți Filen în alte aplicații.",
+                "fileProviderCache": "Cache-ul FileProvider",
+                "fileProviderCacheInfo": "Cache-ul FileProvider este utilizat pentru a accelera accesul la fișiere atunci când folosiți Filen în alte aplicații."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Autentificare în doi pași",
                 "biometricAuth": "Autentificare biometrică",
-                "changePassword": "Schimbare parolă"
+                "changePassword": "Schimbare parolă",
+                "exportMasterKeys": "Exportă chiflele master"
             },
             "prompts": {
                 "changePassword1": {

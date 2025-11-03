@@ -16,6 +16,12 @@
             "message": "Depolama sınırınızı aştınız. İstenmeyen veri silimini önlemek için biraz alan boşaltın veya planınızı yükseltin.",
             "okText": "Yükselt",
             "title": "Depolama kullanımı sınırın üzerinde"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "İptal",
+            "message": "Anahtarlarınızı dışa aktarmanız ve güvenli bir yerde saklamanız şiddetle tavsiye edilir. Anahtarlarınız olmadan, şifrenizi unutursanız verilerinize erişemezsiniz.",
+            "okText": "Dışa aktar",
+            "title": "Anahtarları dışa aktar"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Dosyaları seç",
             "selectItem": "Öğe seç",
             "selectItems": "Öğeleri seç",
-            "selectRoot": "Bulut sürücüsünü seç"
+            "selectRoot": "Bulut sürücüsünü seç",
+            "selectParent": "{{parent}} seç"
         },
         "list": {
             "empty": "Henüz bir şey yüklenmedi",
@@ -998,7 +1005,11 @@
                 "clearCache": "Önbelleği temizle",
                 "clearOfflineFiles": "Çevrimdışı dosyaları temizle",
                 "clearThumbnails": "Küçük resimleri temizle",
-                "clearTrackPlayer": "Parça oynatıcıyı temizle"
+                "clearTrackPlayer": "Parça oynatıcıyı temizle",
+                "documentsProviderCache": "DocumentsProvider önbelleği",
+                "documentsProviderCacheInfo": "Belge Sağlayıcı önbelleği, Filen'i diğer uygulamalarda kullanırken dosyalara erişimi hızlandırmak için kullanılır.",
+                "fileProviderCache": "FileProvider önbelleği",
+                "fileProviderCacheInfo": "FileProvider önbelleği, Filen'i diğer uygulamalarda kullanırken dosyalara erişimi hızlandırmak için kullanılır."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "İki Faktörlü Kimlik Doğrulama",
                 "biometricAuth": "Biyometrik kimlik doğrulama",
-                "changePassword": "Şifreyi değiştir"
+                "changePassword": "Şifreyi değiştir",
+                "exportMasterKeys": "Anahtarları dışa aktar"
             },
             "prompts": {
                 "changePassword1": {

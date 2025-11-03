@@ -16,6 +16,12 @@
             "message": "ท่านได้ใช้พื้นที่เก็บข้อมูลเกินขีดจำกัดแล้ว กรุณาทำความสะอาดพื้นที่หรือปรับเปลี่ยนแผนของท่านเพื่อป้องกันการลบข้อมูลที่ไม่ต้องการ",
             "okText": "อัปเกรด",
             "title": "การใช้งานพื้นที่เกินขีดจำกัด"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "ยกเลิก",
+            "message": "ขอแนะนำอย่างยิ่งให้คุณส่งออกคีย์หลักของคุณและเก็บไว้ในที่ปลอดภัย โดยที่ไม่มีคีย์หลักของคุณ คุณจะไม่สามารถเข้าถึงข้อมูลของคุณได้หากคุณลืมรหัสผ่าน",
+            "okText": "ส่งออก",
+            "title": "ส่งออกคีย์หลัก"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "เลือกไฟล์หลายรายการ",
             "selectItem": "เลือกรายการ",
             "selectItems": "เลือกหลายรายการ",
-            "selectRoot": "เลือกไดรฟ์คลาวด์"
+            "selectRoot": "เลือกไดรฟ์คลาวด์",
+            "selectParent": "เลือก {{parent}}"
         },
         "list": {
             "empty": "ยังไม่ได้อัปโหลดอะไรเลย",
@@ -998,7 +1005,11 @@
                 "clearCache": "ล้างแคช",
                 "clearOfflineFiles": "ล้างไฟล์ที่ออฟไลน์",
                 "clearThumbnails": "ล้างภาพย่อลง",
-                "clearTrackPlayer": "ล้างโปรแกรมเล่นแทร็ก"
+                "clearTrackPlayer": "ล้างโปรแกรมเล่นแทร็ก",
+                "documentsProviderCache": "แคช DocumentsProvider",
+                "documentsProviderCacheInfo": "แคช Documents Provider ใช้เพื่อเพิ่มความเร็วในการเข้าถึงไฟล์เมื่อใช้ Filen ในแอพพลิเคชันอื่น",
+                "fileProviderCache": "แคช FileProvider",
+                "fileProviderCacheInfo": "แคช FileProvider ใช้เพื่อเพิ่มความเร็วในการเข้าถึงไฟล์เมื่อใช้ Filen ในแอพพลิเคชันอื่น"
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "การยืนยันตัวตนสองปัจจัย",
                 "biometricAuth": "การยืนยันตัวตนด้วยไบโอเมตริกซ์",
-                "changePassword": "เปลี่ยนรหัสผ่าน"
+                "changePassword": "เปลี่ยนรหัสผ่าน",
+                "exportMasterKeys": "ส่งออกคีย์หลัก"
             },
             "prompts": {
                 "changePassword1": {

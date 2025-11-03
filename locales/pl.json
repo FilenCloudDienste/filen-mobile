@@ -16,6 +16,12 @@
             "message": "Przekroczyłeś limit przestrzeni dyskowej. Zwolnij trochę miejsca lub zaktualizuj swój plan, aby zapobiec niechcianemu usunięciu danych.",
             "okText": "Aktualizuj",
             "title": "Przekroczono limit użycia przestrzeni"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Anuluj",
+            "message": "Zaleca się wyeksportowanie kluczy głównych i przechowywanie ich w bezpiecznym miejscu. Bez kluczy głównych nie będziesz w stanie uzyskać dostępu do swoich danych, jeśli zapomnisz hasła.",
+            "okText": "Eksportuj",
+            "title": "Eksportuj klucze główne"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Wybierz pliki",
             "selectItem": "Wybierz element",
             "selectItems": "Wybierz elementy",
-            "selectRoot": "Wybierz dysk chmurowy"
+            "selectRoot": "Wybierz dysk chmurowy",
+            "selectParent": "Wybierz {{parent}}"
         },
         "list": {
             "empty": "Nic jeszcze nie przesłano",
@@ -998,7 +1005,11 @@
                 "clearCache": "Wyczyść pamięć podręczną",
                 "clearOfflineFiles": "Usuń pliki offline",
                 "clearThumbnails": "Wyczyść miniaturki",
-                "clearTrackPlayer": "Wyczyść odtwarzacz ścieżek"
+                "clearTrackPlayer": "Wyczyść odtwarzacz ścieżek",
+                "documentsProviderCache": "Cache dostawcy dokumentów",
+                "documentsProviderCacheInfo": "Cache dostawcy dokumentów jest używany do przyspieszania dostępu do plików przy korzystaniu z Filen w innych aplikacjach.",
+                "fileProviderCache": "Cache dostawcy plików",
+                "fileProviderCacheInfo": "Cache dostawcy plików jest używany do przyspieszania dostępu do plików przy korzystaniu z Filen w innych aplikacjach."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Dwuetapowa weryfikacja",
                 "biometricAuth": "Uwierzytelnianie biometryczne",
-                "changePassword": "Zmień hasło"
+                "changePassword": "Zmień hasło",
+                "exportMasterKeys": "Eksportuj klucze główne"
             },
             "prompts": {
                 "changePassword1": {

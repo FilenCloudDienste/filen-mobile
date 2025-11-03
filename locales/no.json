@@ -16,6 +16,12 @@
             "message": "Du har overskredet lagringsgrensen din. Vennligst frigjør plass eller oppgrader planen din for å unngå uønsket sletting av data.",
             "okText": "Oppgrader",
             "title": "Lagringsbruk over grensen"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Avbryt",
+            "message": "Det anbefales sterkt å eksportere dine master nøkler og oppbevare dem på et trygt sted. Uten dine master nøkler, vil du ikke kunne få tilgang til dine data hvis du glemmer passordet.",
+            "okText": "Eksporter",
+            "title": "Eksporter master nøkler"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Velg filer",
             "selectItem": "Velg element",
             "selectItems": "Velg elementer",
-            "selectRoot": "Velg skylagring"
+            "selectRoot": "Velg skylagring",
+            "selectParent": "Velg {{parent}}"
         },
         "list": {
             "empty": "Ingenting lastet opp ennå",
@@ -998,7 +1005,11 @@
                 "clearCache": "Tøm hurtigbuffer",
                 "clearOfflineFiles": "Tøm offline filer",
                 "clearThumbnails": "Fjern miniatyrbilder",
-                "clearTrackPlayer": "Tøm sporavspiller"
+                "clearTrackPlayer": "Tøm sporavspiller",
+                "documentsProviderCache": "DocumentsProvider cache",
+                "documentsProviderCacheInfo": "DocumentsProvider cache brukes for å øke hastigheten på tilgang til filer når du bruker Filen i andre apper.",
+                "fileProviderCache": "FileProvider cache",
+                "fileProviderCacheInfo": "FileProvider cache brukes for å øke hastigheten på tilgang til filer når du bruker Filen i andre apper."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Tofaktorautentisering",
                 "biometricAuth": "Biometrisk autentisering",
-                "changePassword": "Endre passord"
+                "changePassword": "Endre passord",
+                "exportMasterKeys": "Eksporter master nøkler"
             },
             "prompts": {
                 "changePassword1": {

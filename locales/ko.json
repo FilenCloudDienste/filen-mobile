@@ -16,6 +16,12 @@
             "message": "저장 용량을 초과했습니다. 데이터를 원치 않게 삭제하지 않도록 공간을 확보하거나 요금제를 업그레이드하세요.",
             "okText": "업그레이드",
             "title": "저장소 사용량 초과"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "취소",
+            "message": "마스터 키를 내보내고 안전한 장소에 보관할 것을 적극 권장합니다. 비밀번호를 잊어버리면 마스터 키 없이는 데이터를 접근할 수 없습니다.",
+            "okText": "내보내기",
+            "title": "마스터 키 내보내기"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "파일들 선택",
             "selectItem": "항목 선택",
             "selectItems": "항목 선택",
-            "selectRoot": "클라우드 드라이브 선택"
+            "selectRoot": "클라우드 드라이브 선택",
+            "selectParent": "{{parent}} 선택하기"
         },
         "list": {
             "empty": "아직 업로드된 내용이 없습니다",
@@ -998,7 +1005,11 @@
                 "clearCache": "캐시 지우기",
                 "clearOfflineFiles": "오프라인 파일 지우기",
                 "clearThumbnails": "썸네일 지우기",
-                "clearTrackPlayer": "트랙 플레이어 초기화"
+                "clearTrackPlayer": "트랙 플레이어 초기화",
+                "documentsProviderCache": "DocumentsProvider 캐시",
+                "documentsProviderCacheInfo": "Documents Provider 캐시는 다른 앱에서 Filen을 사용할 때 파일에 더 빠르게 접근할 수 있도록 도와줍니다.",
+                "fileProviderCache": "FileProvider 캐시",
+                "fileProviderCacheInfo": "FileProvider 캐시는 다른 앱에서 Filen을 사용할 때 파일에 더 빠르게 접근할 수 있도록 도와줍니다."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "이중 인증",
                 "biometricAuth": "생체 인증",
-                "changePassword": "비밀번호 변경"
+                "changePassword": "비밀번호 변경",
+                "exportMasterKeys": "마스터 키 내보내기"
             },
             "prompts": {
                 "changePassword1": {

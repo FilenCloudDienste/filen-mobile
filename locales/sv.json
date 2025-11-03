@@ -16,6 +16,12 @@
             "message": "Du har överskridit din lagringsgräns. Frigör utrymme eller uppgradera din plan för att förhindra oönskad databorttagning.",
             "okText": "Uppgradera",
             "title": "Lagringsanvändning över gränsen"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Avbryt",
+            "message": "Det rekommenderas starkt att exportera dina huvudnycklar och förvara dem på ett säkert ställe. Utan dina huvudnycklar kommer du inte kunna komma åt dina data om du glömmer ditt lösenord.",
+            "okText": "Exportera",
+            "title": "Exportera huvudnycklar"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Välj filer",
             "selectItem": "Välj objekt",
             "selectItems": "Välj objekt",
-            "selectRoot": "Välj molnlagring"
+            "selectRoot": "Välj molnlagring",
+            "selectParent": "Välj {{parent}}"
         },
         "list": {
             "empty": "Ingenting uppladdat än",
@@ -998,7 +1005,11 @@
                 "clearCache": "Rensa cache",
                 "clearOfflineFiles": "Rensa offlinefiler",
                 "clearThumbnails": "Rensa miniatyrer",
-                "clearTrackPlayer": "Rensa spårspelare"
+                "clearTrackPlayer": "Rensa spårspelare",
+                "documentsProviderCache": "DocumentsProvider-cache",
+                "documentsProviderCacheInfo": "Documents Provider-cache används för att snabba upp åtkomsten till filer när du använder Filen i andra appar.",
+                "fileProviderCache": "FileProvider-cache",
+                "fileProviderCacheInfo": "FileProvider-cache används för att snabba upp åtkomsten till filer när du använder Filen i andra appar."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Tvåfaktorsautentisering",
                 "biometricAuth": "Biometrisk autentisering",
-                "changePassword": "Ändra lösenord"
+                "changePassword": "Ändra lösenord",
+                "exportMasterKeys": "Exportera huvudnycklar"
             },
             "prompts": {
                 "changePassword1": {
