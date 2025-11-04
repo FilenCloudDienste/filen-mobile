@@ -16,6 +16,12 @@
             "message": "Překročili jste svůj limit úložiště. Uvolněte prosím nějaké místo nebo upgradujte svůj plán, aby se předešlo nežádoucímu smazání dat.",
             "okText": "Vylepšit",
             "title": "Použití úložiště nad limit"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Zrušit",
+            "message": "Důrazně doporučujeme exportovat vaše hlavní klíče a uložit je na bezpečné místo. Bez hlavních klíčů nebudete mít přístup k vašim datům, pokud zapomenete heslo.",
+            "okText": "Exportovat",
+            "title": "Exportovat hlavní klíče"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Vybrat soubory",
             "selectItem": "Vybrat položku",
             "selectItems": "Vybrat položky",
-            "selectRoot": "Vyberte cloud disk"
+            "selectRoot": "Vyberte cloud disk",
+            "selectParent": "Vybrat {{parent}}"
         },
         "list": {
             "empty": "Zatím nic nebylo nahráno",
@@ -998,7 +1005,11 @@
                 "clearCache": "Vyčistit cache",
                 "clearOfflineFiles": "Vymazat offline soubory",
                 "clearThumbnails": "Vymazat náhledy",
-                "clearTrackPlayer": "Vyčistit přehrávač skladeb"
+                "clearTrackPlayer": "Vyčistit přehrávač skladeb",
+                "documentsProviderCache": "Cache poskytovatele dokumentů",
+                "documentsProviderCacheInfo": "Cache poskytovatele dokumentů se používá k urychlení přístupu k souborům při použití Filen v jiných aplikacích.",
+                "fileProviderCache": "Cache poskytovatele souborů",
+                "fileProviderCacheInfo": "Cache poskytovatele souborů se používá k urychlení přístupu k souborům při použití Filen v jiných aplikacích."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Dvoufaktorové ověřování",
                 "biometricAuth": "Biometrická autentizace",
-                "changePassword": "Změnit heslo"
+                "changePassword": "Změnit heslo",
+                "exportMasterKeys": "Exportovat hlavní klíče"
             },
             "prompts": {
                 "changePassword1": {

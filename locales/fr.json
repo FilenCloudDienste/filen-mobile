@@ -16,6 +16,12 @@
             "message": "Vous avez dépassé votre limite de stockage. Veuillez libérer de l'espace ou mettre à jour votre plan pour éviter une suppression indésirable de données.",
             "okText": "Améliorer",
             "title": "Utilisation de stockage dépassée"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Annuler",
+            "message": "Il est fortement recommandé d'exporter vos clés maîtresses et de les stocker dans un endroit sûr. Sans vos clés maîtresses, vous ne pourrez pas accéder à vos données si vous oubliez votre mot de passe.",
+            "okText": "Exporter",
+            "title": "Exporter les clés maîtresses"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Sélectionner les fichiers",
             "selectItem": "Sélectionner un élément",
             "selectItems": "Sélectionner des éléments",
-            "selectRoot": "Sélectionner le disque Cloud"
+            "selectRoot": "Sélectionner le disque Cloud",
+            "selectParent": "Sélectionner {{parent}}"
         },
         "list": {
             "empty": "Rien n'a encore été téléversé",
@@ -998,7 +1005,11 @@
                 "clearCache": "Vider le cache",
                 "clearOfflineFiles": "Effacer les fichiers hors ligne",
                 "clearThumbnails": "Effacer les vignettes",
-                "clearTrackPlayer": "Effacer le lecteur de piste"
+                "clearTrackPlayer": "Effacer le lecteur de piste",
+                "documentsProviderCache": "Cache du fournisseur de documents",
+                "documentsProviderCacheInfo": "Le cache du fournisseur de documents est utilisé pour accélérer l'accès aux fichiers lorsque vous utilisez Filen dans d'autres applications.",
+                "fileProviderCache": "Cache du fournisseur de fichiers",
+                "fileProviderCacheInfo": "Le cache du fournisseur de fichiers est utilisé pour accélérer l'accès aux fichiers lorsque vous utilisez Filen dans d'autres applications."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Authentification à deux facteurs",
                 "biometricAuth": "Authentification biométrique",
-                "changePassword": "Changer le mot de passe"
+                "changePassword": "Changer le mot de passe",
+                "exportMasterKeys": "Exporter les clés maîtresses"
             },
             "prompts": {
                 "changePassword1": {

@@ -16,6 +16,12 @@
             "message": "Ha excedido su límite de almacenamiento. Por favor, libere espacio o actualice su plan para evitar la eliminación no deseada de datos.",
             "okText": "Actualizar",
             "title": "Uso de almacenamiento excedido"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Cancelar",
+            "message": "Se recomienda encarecidamente exportar tus claves maestras y guardarlas en un lugar seguro. Sin tus claves maestras, no podrás acceder a tus datos si olvidas tu contraseña.",
+            "okText": "Exportar",
+            "title": "Exportar claves maestras"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Seleccionar archivos",
             "selectItem": "Seleccionar elemento",
             "selectItems": "Seleccionar elementos",
-            "selectRoot": "Seleccionar unidad en la nube"
+            "selectRoot": "Seleccionar unidad en la nube",
+            "selectParent": "Seleccionar {{parent}}"
         },
         "list": {
             "empty": "Nada subido aún",
@@ -998,7 +1005,11 @@
                 "clearCache": "Limpiar caché",
                 "clearOfflineFiles": "Borrar archivos sin conexión",
                 "clearThumbnails": "Limpiar miniaturas",
-                "clearTrackPlayer": "Borrar reproductor de pistas"
+                "clearTrackPlayer": "Borrar reproductor de pistas",
+                "documentsProviderCache": "Cache de DocumentsProvider",
+                "documentsProviderCacheInfo": "La caché de Documentos Proveedor se usa para acelerar el acceso a archivos al usar Filen en otras aplicaciones.",
+                "fileProviderCache": "Cache de FileProvider",
+                "fileProviderCacheInfo": "La caché de FileProvider se utiliza para acelerar el acceso a archivos al usar Filen en otras aplicaciones."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Autenticación de dos factores",
                 "biometricAuth": "Autenticación biométrica",
-                "changePassword": "Cambiar contraseña"
+                "changePassword": "Cambiar contraseña",
+                "exportMasterKeys": "Exportar claves maestras"
             },
             "prompts": {
                 "changePassword1": {

@@ -16,6 +16,12 @@
             "message": "您已超出存储限制。请释放一些空间或升级您的计划以防止不必要的数据删除。",
             "okText": "升级",
             "title": "存储使用超出限制"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "取消",
+            "message": "强烈建议您导出主 ключи 并将其存放在安全的地方。如果您忘记密码， без 初 ключи，您将无法访问您的数据。",
+            "okText": "导出",
+            "title": "导出主 ключи"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "选择文件",
             "selectItem": "选择项目",
             "selectItems": "选择项目",
-            "selectRoot": "选择云盘"
+            "selectRoot": "选择云盘",
+            "selectParent": "选择 {{parent}}"
         },
         "list": {
             "empty": "尚未上传任何内容",
@@ -998,7 +1005,11 @@
                 "clearCache": "清除缓存",
                 "clearOfflineFiles": "清除离线文件",
                 "clearThumbnails": "清除缩略图",
-                "clearTrackPlayer": "清除轨道播放器"
+                "clearTrackPlayer": "清除轨道播放器",
+                "documentsProviderCache": "DocumentsProvider 缓存",
+                "documentsProviderCacheInfo": "Documents Provider 缓存用于在其他应用中使用 Filen 时加快文件访问速度。",
+                "fileProviderCache": "FileProvider 缓存",
+                "fileProviderCacheInfo": "FileProvider 缓存用于在其他应用中使用 Filen 时加快文件访问速度。"
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "双因素认证",
                 "biometricAuth": "生物特征身份验证",
-                "changePassword": "更改密码"
+                "changePassword": "更改密码",
+                "exportMasterKeys": "导出主 ключи"
             },
             "prompts": {
                 "changePassword1": {

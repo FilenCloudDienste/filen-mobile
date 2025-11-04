@@ -16,6 +16,12 @@
             "message": "Sie haben Ihr Speicherkontingent überschritten. Bitte geben Sie Speicherplatz frei oder upgraden Sie Ihren Plan, um unerwünschte Datenlöschung zu vermeiden.",
             "okText": "Aktualisieren",
             "title": "Speichernutzung über dem Limit"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Abbrechen",
+            "message": "Es wird dringend empfohlen, Ihre Master-Schlüssel zu exportieren und an einem sicheren Ort zu speichern. Ohne Ihre Master-Schlüssel können Sie nicht auf Ihre Daten zugreifen, wenn Sie Ihr Passwort vergessen.",
+            "okText": "Exportieren",
+            "title": "Master-Schlüssel exportieren"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Dateien auswählen",
             "selectItem": "Element auswählen",
             "selectItems": "Elemente auswählen",
-            "selectRoot": "Cloud-Laufwerk auswählen"
+            "selectRoot": "Cloud-Laufwerk auswählen",
+            "selectParent": "Wähle {{parent}} aus"
         },
         "list": {
             "empty": "Noch nichts hochgeladen",
@@ -998,7 +1005,11 @@
                 "clearCache": "Cache leeren",
                 "clearOfflineFiles": "Offline-Dateien löschen",
                 "clearThumbnails": "Thumbnails löschen",
-                "clearTrackPlayer": "Track-Player löschen"
+                "clearTrackPlayer": "Track-Player löschen",
+                "documentsProviderCache": "Dokumentenprovider-Cache",
+                "documentsProviderCacheInfo": "Der Dokumentenprovider-Cache wird verwendet, um den Zugriff auf Dateien beim Verwenden von Filen in anderen Apps zu beschleunigen.",
+                "fileProviderCache": "FileProvider Cache",
+                "fileProviderCacheInfo": "Der FileProvider-Cache wird verwendet, um den Zugriff auf Dateien beim Verwenden von Filen in anderen Apps zu beschleunigen."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Zwei-Faktor-Authentifizierung",
                 "biometricAuth": "Biometrische Authentifizierung",
-                "changePassword": "Passwort ändern"
+                "changePassword": "Passwort ändern",
+                "exportMasterKeys": "Master-Schlüssel exportieren"
             },
             "prompts": {
                 "changePassword1": {

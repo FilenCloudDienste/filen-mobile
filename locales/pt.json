@@ -16,6 +16,12 @@
             "message": "Você excedeu seu limite de armazenamento. Por favor, libere algum espaço ou atualize seu plano para evitar exclusão indesejada de dados.",
             "okText": "Atualizar",
             "title": "Uso de armazenamento acima do limite"
+        },
+        "exportMasterKeys2": {
+            "cancelText": "Cancelar",
+            "message": "É altamente recomendado exportar suas chaves mestras e armazená-las em um local seguro. Sem suas chaves mestras, você não conseguirá acessar seus dados se esquecer sua senha.",
+            "okText": "Exportar",
+            "title": "Exportar chaves mestras"
         }
     },
     "auth": {
@@ -870,7 +876,8 @@
             "selectFiles": "Selecionar arquivos",
             "selectItem": "Selecionar item",
             "selectItems": "Selecionar itens",
-            "selectRoot": "Selecionar drive na nuvem"
+            "selectRoot": "Selecionar drive na nuvem",
+            "selectParent": "Selecionar {{parent}}"
         },
         "list": {
             "empty": "Ainda não há uploads",
@@ -998,7 +1005,11 @@
                 "clearCache": "Limpar cache",
                 "clearOfflineFiles": "Limpar arquivos offline",
                 "clearThumbnails": "Limpar miniaturas",
-                "clearTrackPlayer": "Limpar player de faixa"
+                "clearTrackPlayer": "Limpar player de faixa",
+                "documentsProviderCache": "Cache do DocumentsProvider",
+                "documentsProviderCacheInfo": "O cache do Documents Provider é usado para acelerar o acesso a arquivos ao usar o Filen em outros aplicativos.",
+                "fileProviderCache": "Cache do FileProvider",
+                "fileProviderCacheInfo": "O cache do FileProvider é usado para acelerar o acesso a arquivos ao usar o Filen em outros aplicativos."
             },
             "prompts": {
                 "clearCache": {
@@ -1253,7 +1264,8 @@
             "items": {
                 "2fa": "Autenticação de Dois Fatores",
                 "biometricAuth": "Autenticação biométrica",
-                "changePassword": "Alterar senha"
+                "changePassword": "Alterar senha",
+                "exportMasterKeys": "Exportar chaves mestras"
             },
             "prompts": {
                 "changePassword1": {
