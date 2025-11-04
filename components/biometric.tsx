@@ -1,7 +1,7 @@
 import { memo, useEffect, useState, useMemo, useCallback, useRef } from "react"
 import { useMMKVObject } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { type BiometricAuth, BIOMETRIC_AUTH_KEY, BIOMETRIC_MAX_TRIES } from "@/app/(app)/home/settings/security"
+import { type BiometricAuth, BIOMETRIC_AUTH_KEY, BIOMETRIC_MAX_TRIES } from "@/app/settings/security"
 import { AppState, BackHandler, View, Platform, type AppStateStatus } from "react-native"
 import Animated, { FadeOut } from "react-native-reanimated"
 import * as LocalAuthentication from "expo-local-authentication"

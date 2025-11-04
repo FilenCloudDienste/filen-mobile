@@ -11,7 +11,7 @@ import useFileProviderEnabledQuery, { fileProviderEnabledQueryRefetch } from "@/
 import fileProvider from "@/lib/fileProvider"
 import fullScreenLoadingModal from "@/components/modals/fullScreenLoadingModal"
 import alerts from "@/lib/alerts"
-import { getBiometricAuth, clearBiometricAuth } from "@/app/(app)/home/settings/security"
+import { getBiometricAuth, clearBiometricAuth } from "@/app/settings/security"
 import { alertPrompt } from "@/components/prompts/alertPrompt"
 import authService from "@/services/auth.service"
 import assets from "@/lib/assets"
@@ -35,44 +35,38 @@ export const Settings = memo(() => {
 
 	const onPressAccount = useCallback(() => {
 		router.push({
-			pathname: "/(app)/home/settings/account"
+			pathname: "/settings/account"
 		})
 	}, [router])
 
 	const onPressSecurity = useCallback(() => {
 		router.push({
-			pathname: "/(app)/home/settings/security"
+			pathname: "/settings/security"
 		})
 	}, [router])
 
 	const onPressEvents = useCallback(() => {
 		router.push({
-			pathname: "/(app)/home/settings/events"
+			pathname: "/settings/events"
 		})
 	}, [router])
 
 	const onPressContacts = useCallback(() => {
 		router.push({
-			pathname: "/(app)/home/settings/contacts"
+			pathname: "/settings/contacts"
 		})
 	}, [router])
 
 	const onPressAdvanced = useCallback(() => {
 		router.push({
-			pathname: "/(app)/home/settings/advanced"
+			pathname: "/settings/advanced"
 		})
 	}, [router])
 
 	const onPressCameraUpload = useCallback(() => {
 		router.push({
-			pathname: "/(app)/photos"
+			pathname: "/photosSettings"
 		})
-
-		setTimeout(() => {
-			router.push({
-				pathname: "/(app)/photos/settings"
-			})
-		}, 10)
 	}, [router])
 
 	const onChangeFileProvider = useCallback(async (value: boolean) => {
@@ -120,7 +114,7 @@ export const Settings = memo(() => {
 
 	const onPressAppearance = useCallback(() => {
 		router.push({
-			pathname: "/(app)/home/settings/appearance"
+			pathname: "/settings/appearance"
 		})
 	}, [router])
 
@@ -268,6 +262,7 @@ export const Settings = memo(() => {
 	return (
 		<SettingsComponent
 			title={translateMemoized("settings.index.title")}
+			iosBackButtonTitle={translateMemoized("settings.index.back")}
 			showSearchBar={false}
 			loading={account.status !== "success"}
 			items={items}

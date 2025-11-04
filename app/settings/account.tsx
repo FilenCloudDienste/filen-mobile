@@ -189,7 +189,7 @@ export const Account = memo(() => {
 
 	const onPressPersonalInfo = useCallback(() => {
 		router.push({
-			pathname: "/(app)/home/settings/personal"
+			pathname: "/settings/personal"
 		})
 	}, [router])
 

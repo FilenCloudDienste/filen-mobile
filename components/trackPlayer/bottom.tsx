@@ -29,7 +29,7 @@ export const Bottom = memo(() => {
 		if (
 			trackPlayerState.playingTrack &&
 			trackPlayerState.queue.length > 0 &&
-			!(pathname.startsWith("/notes/") || pathname.startsWith("/home/settings") || pathname.startsWith("/photos/settings"))
+			!(pathname.startsWith("/notes/") || pathname.startsWith("/settings") || pathname.startsWith("/photosSettings"))
 		) {
 			return true
 		}

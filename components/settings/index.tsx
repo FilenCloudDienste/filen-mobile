@@ -22,6 +22,7 @@ export type SettingsProps = {
 	loading?: boolean
 	listFooter?: React.ReactNode
 	listHeader?: React.ReactNode
+	iosBackButtonTitle?: string
 }
 
 export * from "./settings"

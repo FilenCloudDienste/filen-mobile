@@ -335,7 +335,7 @@ export const Photos = memo(() => {
 						size="icon"
 						onPress={() => {
 							router.push({
-								pathname: "/photos/settings"
+								pathname: "/photosSettings"
 							})
 						}}
 					>

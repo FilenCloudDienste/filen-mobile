@@ -199,13 +199,13 @@ export const Security = memo(() => {
 
 	const openTwoFactorAuthentication = useCallback(() => {
 		router.push({
-			pathname: "/home/settings/security/twoFactor"
+			pathname: "/settings/security/twoFactor"
 		})
 	}, [router])
 
 	const openBiometric = useCallback(() => {
 		router.push({
-			pathname: "/home/settings/security/biometric"
+			pathname: "/settings/security/biometric"
 		})
 	}, [router])
 

@@ -252,7 +252,7 @@ export const Dropdown = memo(({ photos, queryParams }: { photos: DriveCloudItem[
 
 					case "settings": {
 						router.push({
-							pathname: "/photos/settings"
+							pathname: "/photosSettings"
 						})
 
 						break

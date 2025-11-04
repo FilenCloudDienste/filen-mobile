@@ -960,6 +960,7 @@
 		},
 		"index": {
 			"title": "Settings",
+			"back": "Back",
 			"items": {
 				"used": "{{used}} used of {{max}} ({{percentage}}%)",
 				"security": "Security",

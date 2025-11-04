@@ -82,7 +82,7 @@ export const Dropdown = memo(() => {
 
 					case "settings": {
 						routerPush({
-							pathname: "/home/settings"
+							pathname: "/settings"
 						})
 
 						return

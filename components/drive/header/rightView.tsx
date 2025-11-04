@@ -16,7 +16,7 @@ import useNetInfo from "@/hooks/useNetInfo"
 import driveService from "@/services/drive.service"
 import { useMMKVObject } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { type BiometricAuth, BIOMETRIC_AUTH_KEY } from "@/app/(app)/home/settings/security"
+import { type BiometricAuth, BIOMETRIC_AUTH_KEY } from "@/app/settings/security"
 
 export const RightView = memo(({ queryParams }: { queryParams: FetchCloudItemsParams }) => {
 	const { colors } = useColorScheme()

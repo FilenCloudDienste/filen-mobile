@@ -170,6 +170,14 @@ export default function RootLayout() {
 														name="selectTrackPlayerPlaylists"
 														options={SCREEN_OPTIONS.modal}
 													/>
+													<Stack.Screen
+														name="settings"
+														options={SCREEN_OPTIONS.base}
+													/>
+													<Stack.Screen
+														name="photosSettings"
+														options={SCREEN_OPTIONS.base}
+													/>
 												</Stack>
 												<Listeners />
 												{isAuthed && (

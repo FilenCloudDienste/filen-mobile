@@ -20,7 +20,7 @@ import { Button } from "@/components/nativewindui/Button"
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons"
 import { useMMKVObject } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
-import { type BiometricAuth, BIOMETRIC_AUTH_KEY } from "@/app/(app)/home/settings/security"
+import { type BiometricAuth, BIOMETRIC_AUTH_KEY } from "@/app/settings/security"
 
 export const Video = memo(
 	({

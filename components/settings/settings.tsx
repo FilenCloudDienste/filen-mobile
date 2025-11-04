@@ -88,6 +88,7 @@ export const Settings = memo((props: SettingsProps) => {
 				<LargeTitleHeader
 					title={props.title}
 					searchBar={headerSearchBar}
+					iosBackButtonTitle={props.iosBackButtonTitle}
 				/>
 			)}
 			{props.items.length > 0 && (

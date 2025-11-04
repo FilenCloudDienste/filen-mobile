@@ -137,7 +137,7 @@ export const Settings = memo(() => {
 		const selectDriveItemsResponse = await driveService.selectDriveItems({
 			type: "directory",
 			max: 1,
-			dismissHref: "/photos/settings"
+			dismissHref: "/photosSettings"
 		})
 
 		if (selectDriveItemsResponse.cancelled || selectDriveItemsResponse.items.length !== 1) {
@@ -236,7 +236,7 @@ export const Settings = memo(() => {
 				),
 				onPress: () => {
 					routerPush({
-						pathname: "/photos/settings/albums"
+						pathname: "/photosSettings/albums"
 					})
 				}
 			},
@@ -388,6 +388,7 @@ export const Settings = memo(() => {
 	return (
 		<RequireInternet>
 			<SettingsComponent
+				iosBackButtonTitle={translateMemoized("settings.index.back")}
 				title={translateMemoized("photos.settings.index.title")}
 				showSearchBar={false}
 				items={items}

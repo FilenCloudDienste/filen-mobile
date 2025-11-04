@@ -240,7 +240,7 @@ export const Home = memo(() => {
 
 	const openSettings = useCallback(() => {
 		router.push({
-			pathname: "/(app)/home/settings"
+			pathname: "/settings"
 		})
 	}, [router])
 
