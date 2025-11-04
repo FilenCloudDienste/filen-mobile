@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Du måste ge mediebehörighet för att komma åt dina foton."
+                    "noPermissions": "Du måste ge mediebehörighet för att komma åt dina foton.",
+                    "invalidCloudDirectory": "Den valda molnkatalogen är ogiltig. Vänligen välj en giltig katalog.",
+                    "noAlbumsSelected": "Vänligen välj minst ett album att ladda upp foton från."
                 },
                 "items": {
                     "albums": "Album",
@@ -1235,7 +1237,8 @@
                     "title": "Biometrisk autentisering aktiverad"
                 }
             },
-            "title": "Inställningar"
+            "title": "Inställningar",
+            "back": "Tillbaka"
         },
         "personal": {
             "items": {

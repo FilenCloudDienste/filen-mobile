@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Devi concedere le autorizzazioni sui media per accedere alle tue foto."
+                    "noPermissions": "Devi concedere le autorizzazioni sui media per accedere alle tue foto.",
+                    "invalidCloudDirectory": "La cartella cloud selezionata non è valida. Seleziona una cartella valida.",
+                    "noAlbumsSelected": "Seleziona almeno un album da cui caricare foto."
                 },
                 "items": {
                     "albums": "Album",
@@ -1235,7 +1237,8 @@
                     "title": "Autenticazione biometrica abilitata"
                 }
             },
-            "title": "Impostazioni"
+            "title": "Impostazioni",
+            "back": "Indietro"
         },
         "personal": {
             "items": {

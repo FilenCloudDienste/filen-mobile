@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Anda perlu memberikan izin media untuk mengakses foto Anda."
+                    "noPermissions": "Anda perlu memberikan izin media untuk mengakses foto Anda.",
+                    "invalidCloudDirectory": "Direktori cloud yang dipilih tidak valid. Silakan pilih direktori yang valid.",
+                    "noAlbumsSelected": "Silakan pilih setidaknya satu album untuk mengunggah foto."
                 },
                 "items": {
                     "albums": "Album",
@@ -1235,7 +1237,8 @@
                     "title": "Autentikasi biometrik diaktifkan"
                 }
             },
-            "title": "Pengaturan"
+            "title": "Pengaturan",
+            "back": "Kembali"
         },
         "personal": {
             "items": {

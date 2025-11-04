@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Sinun on myönnettävä medialuvat päästäksesi valokuviisi."
+                    "noPermissions": "Sinun on myönnettävä medialuvat päästäksesi valokuviisi.",
+                    "invalidCloudDirectory": "Valittu pilvihakemisto on virheellinen. Valitse kelvollinen hakemisto.",
+                    "noAlbumsSelected": "Valitse vähintään yksi albumi, josta voit ladata valokuvia."
                 },
                 "items": {
                     "albums": "Albumit",
@@ -1235,7 +1237,8 @@
                     "title": "Biometrinen tunnistus käytössä"
                 }
             },
-            "title": "Asetukset"
+            "title": "Asetukset",
+            "back": "Takaisin"
         },
         "personal": {
             "items": {

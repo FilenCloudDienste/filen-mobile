@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Chcete-li získat přístup k vašim fotkám, musíte udělit oprávnění pro média."
+                    "noPermissions": "Chcete-li získat přístup k vašim fotkám, musíte udělit oprávnění pro média.",
+                    "invalidCloudDirectory": "Vybraný cloudový adresář je neplatný. Prosím, vyberte platný adresář.",
+                    "noAlbumsSelected": "Vyberte alespoň jedno album, ze kterého chcete nahrávat fotografie."
                 },
                 "items": {
                     "albums": "Alba",
@@ -1235,7 +1237,8 @@
                     "title": "Biometrická autentizace povolena"
                 }
             },
-            "title": "Nastavení"
+            "title": "Nastavení",
+            "back": "Zpět"
         },
         "personal": {
             "items": {

@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "사진에 접근하려면 미디어 권한을 부여해야 합니다."
+                    "noPermissions": "사진에 접근하려면 미디어 권한을 부여해야 합니다.",
+                    "invalidCloudDirectory": "선택한 클라우드 디렉토리가 유효하지 않습니다. 유효한 디렉토리를 선택하십시오.",
+                    "noAlbumsSelected": "사진을 업로드할 앨범을 적어도 하나 선택하십시오."
                 },
                 "items": {
                     "albums": "앨범",
@@ -1235,7 +1237,8 @@
                     "title": "생체 인증 활성화됨"
                 }
             },
-            "title": "설정"
+            "title": "설정",
+            "back": "뒤로"
         },
         "personal": {
             "items": {

@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Sie müssen Medienberechtigungen erteilen, um auf Ihre Fotos zuzugreifen."
+                    "noPermissions": "Sie müssen Medienberechtigungen erteilen, um auf Ihre Fotos zuzugreifen.",
+                    "invalidCloudDirectory": "Das ausgewählte Cloud-Verzeichnis ist ungültig. Bitte wählen Sie ein gültiges Verzeichnis aus.",
+                    "noAlbumsSelected": "Bitte wählen Sie mindestens ein Album aus, um Fotos hochzuladen."
                 },
                 "items": {
                     "albums": "Alben",
@@ -1235,7 +1237,8 @@
                     "title": "Biometrische Authentifizierung aktiviert"
                 }
             },
-            "title": "Einstellungen"
+            "title": "Einstellungen",
+            "back": "Zurück"
         },
         "personal": {
             "items": {
