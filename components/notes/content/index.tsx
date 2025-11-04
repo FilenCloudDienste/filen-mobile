@@ -16,9 +16,6 @@ import { KeyboardAvoidingView } from "react-native-keyboard-controller"
 import useNetInfo from "@/hooks/useNetInfo"
 import { translateMemoized } from "@/lib/i18n"
 import { createExecutableTimeout } from "@/lib/utils"
-import Semaphore from "@/lib/semaphore"
-
-const editMutex = new Semaphore(1)
 
 export const Content = memo(
 	({
@@ -33,7 +30,6 @@ export const Content = memo(
 		markdownPreview: boolean
 	}) => {
 		const { isDarkColorScheme, colors } = useColorScheme()
-		const lastNoteContentRef = useRef<string | null>(null)
 		const noteContentQuery = useNoteContentQuery({
 			uuid: note.uuid
 		})
@@ -65,8 +61,6 @@ export const Content = memo(
 			if (noteContentQuery.status !== "success") {
 				return null
 			}
-
-			lastNoteContentRef.current = noteContentQuery.data.content
 
 			return noteContentQuery.data.content
 		}, [noteContentQuery.data, noteContentQuery.status])
@@ -105,34 +99,21 @@ export const Content = memo(
 				onValueChangeTimeoutRef.current?.cancel()
 
 				onValueChangeTimeoutRef.current = createExecutableTimeout(async () => {
-					await editMutex.acquire()
-
 					try {
-						if (
-							lastNoteContentRef.current &&
-							Buffer.from(value, "utf-8").toString("hex") === Buffer.from(lastNoteContentRef.current, "utf-8").toString("hex")
-						) {
-							return
-						}
-
 						await nodeWorker.proxy("editNote", {
 							uuid: note.uuid,
 							content: value,
 							type: note.type
 						})
-
-						lastNoteContentRef.current = value
 					} catch (e) {
 						console.error(e)
 
 						if (e instanceof Error) {
 							alerts.error(e.message)
 						}
-					} finally {
-						editMutex.release()
-
-						setSyncing(false)
 					}
+
+					setSyncing(false)
 				}, 2500)
 			},
 			[hasWriteAccess, note, setSyncing]

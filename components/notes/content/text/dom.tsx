@@ -1,7 +1,7 @@
 "use dom"
 
 import CodeMirror, { EditorView } from "@uiw/react-codemirror"
-import { useState, useCallback, memo, useMemo } from "react"
+import { useState, useCallback, memo, useMemo, useRef, useEffect } from "react"
 import { loadLanguage } from "@/components/textEditor/dom/langs"
 import { xcodeLight, xcodeDark } from "@uiw/codemirror-theme-xcode"
 import { materialDark, materialLight } from "@uiw/codemirror-theme-material"
@@ -39,9 +39,14 @@ const TextEditor = memo(
 		onDidType: (value: string) => void
 	}) => {
 		const [value, setValue] = useState<string>(initialValue)
+		const didTypeRef = useRef<boolean>(false)
 
 		const onChange = useCallback(
 			(value: string) => {
+				if (!didTypeRef.current) {
+					return
+				}
+
 				setValue(value)
 				onValueChange(value)
 				onDidType(value)
@@ -121,6 +126,18 @@ const TextEditor = memo(
 
 			return [...base, lang]
 		}, [title, type])
+
+		useEffect(() => {
+			const listener = () => {
+				didTypeRef.current = true
+			}
+
+			window.addEventListener("keydown", listener)
+
+			return () => {
+				window.removeEventListener("keydown", listener)
+			}
+		}, [])
 
 		if (type === "md" && markdownPreview) {
 			return (

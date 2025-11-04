@@ -952,16 +952,26 @@ export function jsonBigIntReviver(_: string, value: unknown) {
 }
 
 export function createExecutableTimeout(callback: () => void, delay?: number) {
-	const timeoutId = globalThis.window.setTimeout(callback, delay)
+	let timeoutId: ReturnType<typeof setTimeout> | null = setTimeout(callback, delay)
 
 	return {
 		id: timeoutId,
 		execute: () => {
-			globalThis.window.clearTimeout(timeoutId)
+			if (timeoutId !== null) {
+				clearTimeout(timeoutId)
+
+				timeoutId = null
+			}
 
 			callback()
 		},
-		cancel: () => globalThis.window.clearTimeout(timeoutId)
+		cancel: () => {
+			if (timeoutId !== null) {
+				clearTimeout(timeoutId)
+
+				timeoutId = null
+			}
+		}
 	}
 }
 

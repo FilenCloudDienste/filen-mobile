@@ -116,6 +116,7 @@ const RichTextEditor = memo(
 		const editorRef = useRef<HTMLDivElement>(null)
 		const quillRef = useRef<Quill | null>(null)
 		const customThemeRef = useRef<QuillThemeCustomizer | null>(null)
+		const didTypeRef = useRef<boolean>(false)
 
 		useEffect(() => {
 			if (editorRef.current && !quillRef.current) {
@@ -209,19 +210,33 @@ const RichTextEditor = memo(
 				quillRef.current.clipboard.dangerouslyPasteHTML(sanitized)
 
 				quillRef.current.on("text-change", () => {
-					if (quillRef.current) {
-						const content = quillRef.current.root.innerHTML
-
-						if (!content || content.length === 0) {
-							return
-						}
-
-						onValueChange(content)
-						onDidType(content)
+					if (!didTypeRef.current || !quillRef.current) {
+						return
 					}
+
+					const content = quillRef.current.root.innerHTML
+
+					if (typeof content !== "string") {
+						return
+					}
+
+					onValueChange(content)
+					onDidType(content)
 				})
 			}
 		}, [editorRef, placeholder, initialValue, onValueChange, type, readOnly, onDidType])
+
+		useEffect(() => {
+			const listener = () => {
+				didTypeRef.current = true
+			}
+
+			window.addEventListener("keydown", listener)
+
+			return () => {
+				window.removeEventListener("keydown", listener)
+			}
+		}, [])
 
 		useEffect(() => {
 			if (!quillRef.current) {
