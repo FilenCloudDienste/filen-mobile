@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Musisz przyznać uprawnienia do mediów, aby uzyskać dostęp do swoich zdjęć."
+                    "noPermissions": "Musisz przyznać uprawnienia do mediów, aby uzyskać dostęp do swoich zdjęć.",
+                    "invalidCloudDirectory": "Wybrany katalog w chmurze jest nieprawidłowy. Proszę wybrać prawidłowy katalog.",
+                    "noAlbumsSelected": "Proszę wybrać co najmniej jeden album, z którego chcesz przesłać zdjęcia."
                 },
                 "items": {
                     "albums": "Albumy",
@@ -1235,7 +1237,8 @@
                     "title": "Uwierzytelnianie biometryczne włączone"
                 }
             },
-            "title": "Ustawienia"
+            "title": "Ustawienia",
+            "back": "Wróć"
         },
         "personal": {
             "items": {

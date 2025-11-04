@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Bạn cần cấp quyền truy cập phương tiện để truy cập ảnh của bạn."
+                    "noPermissions": "Bạn cần cấp quyền truy cập phương tiện để truy cập ảnh của bạn.",
+                    "invalidCloudDirectory": "Thư mục đám mây đã chọn không hợp lệ. Vui lòng chọn thư mục hợp lệ.",
+                    "noAlbumsSelected": "Vui lòng chọn ít nhất một album để tải lên ảnh."
                 },
                 "items": {
                     "albums": "Album",
@@ -1235,7 +1237,8 @@
                     "title": "Xác thực sinh trắc học đã được kích hoạt"
                 }
             },
-            "title": "Cài đặt"
+            "title": "Cài đặt",
+            "back": "Quay lại"
         },
         "personal": {
             "items": {

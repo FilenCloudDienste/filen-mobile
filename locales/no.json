@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Du må gi mediatillatelser for å få tilgang til bildene dine."
+                    "noPermissions": "Du må gi mediatillatelser for å få tilgang til bildene dine.",
+                    "invalidCloudDirectory": "Den valgte sky-mappen er ugyldig. Vennligst velg en gyldig mappe.",
+                    "noAlbumsSelected": "Vennligst velg minst ett album å laste opp bilder fra."
                 },
                 "items": {
                     "albums": "Album",
@@ -1235,7 +1237,8 @@
                     "title": "Biometrisk autentisering aktivert"
                 }
             },
-            "title": "Innstillinger"
+            "title": "Innstillinger",
+            "back": "Tilbake"
         },
         "personal": {
             "items": {

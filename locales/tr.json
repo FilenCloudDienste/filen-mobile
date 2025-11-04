@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Fotoğraflarınıza erişmek için medya izinlerini vermelisiniz."
+                    "noPermissions": "Fotoğraflarınıza erişmek için medya izinlerini vermelisiniz.",
+                    "invalidCloudDirectory": "Seçilen bulut dizini geçersiz. Lütfen geçerli bir dizin seçin.",
+                    "noAlbumsSelected": "Lütfen fotoğraf yüklemek için en az bir albüm seçin."
                 },
                 "items": {
                     "albums": "Albümler",
@@ -1235,7 +1237,8 @@
                     "title": "Biyometrik kimlik doğrulama etkin"
                 }
             },
-            "title": "Ayarlar"
+            "title": "Ayarlar",
+            "back": "Geri"
         },
         "personal": {
             "items": {

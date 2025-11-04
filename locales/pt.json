@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Você precisa conceder permissões de mídia para acessar suas fotos."
+                    "noPermissions": "Você precisa conceder permissões de mídia para acessar suas fotos.",
+                    "invalidCloudDirectory": "O diretório de nuvem selecionado é inválido. Por favor, selecione um diretório válido.",
+                    "noAlbumsSelected": "Por favor, selecione pelo menos um álbum para fazer upload das fotos."
                 },
                 "items": {
                     "albums": "Álbuns",
@@ -1235,7 +1237,8 @@
                     "title": "Autenticação biométrica ativada"
                 }
             },
-            "title": "Configurações"
+            "title": "Configurações",
+            "back": "Voltar"
         },
         "personal": {
             "items": {

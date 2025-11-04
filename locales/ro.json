@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Trebuie să acorzi permisiuni media pentru a accesa fotografiile tale."
+                    "noPermissions": "Trebuie să acorzi permisiuni media pentru a accesa fotografiile tale.",
+                    "invalidCloudDirectory": "Directorul de cloud selectat este invalid. Vă rugăm să selectați un director valid.",
+                    "noAlbumsSelected": "Vă rugăm să selectați cel puțin un album de pe care să încărcați fotografii."
                 },
                 "items": {
                     "albums": "Albume",
@@ -1235,7 +1237,8 @@
                     "title": "Autentificare biometrică activată"
                 }
             },
-            "title": "Setări"
+            "title": "Setări",
+            "back": "Înapoi"
         },
         "personal": {
             "items": {

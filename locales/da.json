@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Du skal give medietilladelser for at få adgang til dine fotos."
+                    "noPermissions": "Du skal give medietilladelser for at få adgang til dine fotos.",
+                    "invalidCloudDirectory": "Den valgte cloud-mappe er ugyldig. Vælg venligst en gyldig mappe.",
+                    "noAlbumsSelected": "Vælg venligst mindst ét album at uploade billeder fra."
                 },
                 "items": {
                     "albums": "Album",
@@ -1235,7 +1237,8 @@
                     "title": "Biometrisk godkendelse aktiveret"
                 }
             },
-            "title": "Indstillinger"
+            "title": "Indstillinger",
+            "back": "Tilbage"
         },
         "personal": {
             "items": {

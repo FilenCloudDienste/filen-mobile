@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Engedélyezze a média elérést a fotók megtekintéséhez."
+                    "noPermissions": "Engedélyezze a média elérést a fotók megtekintéséhez.",
+                    "invalidCloudDirectory": "A kiválasztott felhő könyvtár érvénytelen. Kérjük, válasszon egy érvényes könyvtárat.",
+                    "noAlbumsSelected": "Kérjük, válasszon ki legalább egy albumot, hogy fotókat tölthessen fel."
                 },
                 "items": {
                     "albums": "Albumok",
@@ -1235,7 +1237,8 @@
                     "title": "Biometrikus hitelesítés engedélyezve"
                 }
             },
-            "title": "Beállítások"
+            "title": "Beállítások",
+            "back": "Vissza"
         },
         "personal": {
             "items": {

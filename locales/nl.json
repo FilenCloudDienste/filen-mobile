@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "U moet mediatoestemmingen verlenen om toegang tot uw foto's te krijgen."
+                    "noPermissions": "U moet mediatoestemmingen verlenen om toegang tot uw foto's te krijgen.",
+                    "invalidCloudDirectory": "De geselecteerde clouddirectory is ongeldig. Selecteer een geldige directory.",
+                    "noAlbumsSelected": "Selecteer ten minste één album om foto's te uploaden."
                 },
                 "items": {
                     "albums": "Albums",
@@ -1235,7 +1237,8 @@
                     "title": "Biometrische authenticatie ingeschakeld"
                 }
             },
-            "title": "Instellingen"
+            "title": "Instellingen",
+            "back": "Terug"
         },
         "personal": {
             "items": {

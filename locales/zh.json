@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "您需要授予媒体权限以访问您的照片。"
+                    "noPermissions": "您需要授予媒体权限以访问您的照片。",
+                    "invalidCloudDirectory": "所选的云目录无效，请选择一个有效的目录。",
+                    "noAlbumsSelected": "请选择至少一个相册来上传照片。"
                 },
                 "items": {
                     "albums": "相册",
@@ -1235,7 +1237,8 @@
                     "title": "生物特征身份验证已启用"
                 }
             },
-            "title": "设置"
+            "title": "设置",
+            "back": "返回"
         },
         "personal": {
             "items": {

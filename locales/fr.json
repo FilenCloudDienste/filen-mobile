@@ -815,7 +815,9 @@
             },
             "index": {
                 "errors": {
-                    "noPermissions": "Vous devez accorder les autorisations multimédia pour accéder à vos photos."
+                    "noPermissions": "Vous devez accorder les autorisations multimédia pour accéder à vos photos.",
+                    "invalidCloudDirectory": "Le répertoire cloud sélectionné est invalide. Veuillez sélectionner un répertoire valide.",
+                    "noAlbumsSelected": "Veuillez sélectionner au moins un album pour télécharger des photos."
                 },
                 "items": {
                     "albums": "Albums",
@@ -1235,7 +1237,8 @@
                     "title": "Authentification biométrique activée"
                 }
             },
-            "title": "Paramètres"
+            "title": "Paramètres",
+            "back": "Retour"
         },
         "personal": {
             "items": {
