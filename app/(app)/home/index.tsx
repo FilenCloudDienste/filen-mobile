@@ -1,4 +1,4 @@
-import { memo, useState, Fragment, useMemo, useCallback, useEffect } from "react"
+import { memo, useState, Fragment, useMemo, useCallback } from "react"
 import { Button } from "@/components/nativewindui/Button"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { useColorScheme } from "@/lib/useColorScheme"
@@ -405,16 +405,16 @@ export const Home = memo(() => {
 		trashQuery.status
 	])
 
-	useEffect(() => {
-		foregroundCameraUpload.run().catch(console.error)
-	}, [])
-
 	useFocusEffect(
 		useCallback(() => {
 			useDriveStore.getState().setSelectedItems([])
 
+			foregroundCameraUpload.run().catch(console.error)
+
 			return () => {
 				useDriveStore.getState().setSelectedItems([])
+
+				foregroundCameraUpload.run().catch(console.error)
 			}
 		}, [])
 	)

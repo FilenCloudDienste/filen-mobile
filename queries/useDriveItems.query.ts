@@ -47,12 +47,11 @@ export async function fetchData(params: UseDriveItemsQueryParams): Promise<Drive
 			return []
 		}
 
-		const directoryExists = await nodeWorker.proxy("directoryExists", {
-			name: state.remote.name,
-			parent: state.remote.parent
+		const remotePath = await nodeWorker.proxy("directoryUUIDToPath", {
+			uuid: state.remote.uuid
 		})
 
-		if (!directoryExists.exists || directoryExists.uuid !== state.remote.uuid) {
+		if (!remotePath || remotePath !== state.remote.path) {
 			return []
 		}
 	}

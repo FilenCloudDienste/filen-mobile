@@ -1,8 +1,8 @@
 import { memo, useCallback, useMemo } from "react"
 import { Settings as SettingsComponent, IconView } from "@/components/settings"
 import { Toggle } from "@/components/nativewindui/Toggle"
-import useCameraUpload from "@/hooks/useCameraUpload"
-import { useRouter, useFocusEffect } from "expo-router"
+import useCameraUpload, { setCameraUploadState } from "@/hooks/useCameraUpload"
+import { useRouter } from "expo-router"
 import driveService from "@/services/drive.service"
 import nodeWorker from "@/lib/nodeWorker"
 import alerts from "@/lib/alerts"
@@ -15,7 +15,7 @@ import { foregroundCameraUpload } from "@/lib/cameraUpload"
 import { View } from "react-native"
 
 export const Settings = memo(() => {
-	const [cameraUpload, setCameraUpload] = useCameraUpload()
+	const [cameraUpload] = useCameraUpload()
 	const { push: routerPush } = useRouter()
 
 	const [permissions, requestPermissions] = MediaLibrary.usePermissions({
@@ -35,103 +35,68 @@ export const Settings = memo(() => {
 		return cameraUploadParentQuery.data !== null
 	}, [cameraUploadParentQuery.data, cameraUploadParentQuery.status, cameraUpload.enabled])
 
-	const toggleEnabled = useCallback(
-		async (enable: boolean) => {
-			setCameraUpload(prev => ({
-				...prev,
-				enabled: enable,
-				version: (prev.version ?? 0) + 1,
-				onlyDeltasAfterActivationTimestamp:
-					enable && (prev.onlyDeltasAfterActivation ?? false) ? Date.now() : prev.onlyDeltasAfterActivationTimestamp
-			}))
+	const toggleEnabled = useCallback(async (enable: boolean) => {
+		setCameraUploadState(prev => ({
+			...prev,
+			enabled: enable,
+			version: (prev.version ?? 0) + 1,
+			enabledTimestamp: Date.now()
+		}))
 
-			if (enable) {
-				setTimeout(() => {
-					cameraUploadParentQuery.refetch().catch(console.error)
-					foregroundCameraUpload.run().catch(console.error)
-				}, 1000)
-			}
-		},
-		[setCameraUpload, cameraUploadParentQuery]
-	)
+		if (enable) {
+			setTimeout(() => {
+				foregroundCameraUpload.run().catch(console.error)
+			}, 1000)
+		}
+	}, [])
 
 	const toggleCellular = useCallback(() => {
-		setCameraUpload(prev => ({
+		setCameraUploadState(prev => ({
 			...prev,
 			cellular: !prev.cellular,
 			version: (prev.version ?? 0) + 1
 		}))
-
-		setTimeout(() => {
-			cameraUploadParentQuery.refetch().catch(console.error)
-			foregroundCameraUpload.run().catch(console.error)
-		}, 1000)
-	}, [setCameraUpload, cameraUploadParentQuery])
+	}, [])
 
 	const toggleCompress = useCallback(() => {
-		setCameraUpload(prev => ({
+		setCameraUploadState(prev => ({
 			...prev,
 			compress: !prev.compress,
 			version: (prev.version ?? 0) + 1
 		}))
-
-		setTimeout(() => {
-			cameraUploadParentQuery.refetch().catch(console.error)
-			foregroundCameraUpload.run().catch(console.error)
-		}, 1000)
-	}, [setCameraUpload, cameraUploadParentQuery])
+	}, [])
 
 	const toggleBackground = useCallback(() => {
-		setCameraUpload(prev => ({
+		setCameraUploadState(prev => ({
 			...prev,
 			background: !prev.background
 		}))
-
-		setTimeout(() => {
-			cameraUploadParentQuery.refetch().catch(console.error)
-			foregroundCameraUpload.run().catch(console.error)
-		}, 1000)
-	}, [setCameraUpload, cameraUploadParentQuery])
+	}, [])
 
 	const toggleLowBattery = useCallback(() => {
-		setCameraUpload(prev => ({
+		setCameraUploadState(prev => ({
 			...prev,
 			lowBattery: !prev.lowBattery,
 			version: (prev.version ?? 0) + 1
 		}))
-
-		setTimeout(() => {
-			cameraUploadParentQuery.refetch().catch(console.error)
-			foregroundCameraUpload.run().catch(console.error)
-		}, 1000)
-	}, [setCameraUpload, cameraUploadParentQuery])
+	}, [])
 
 	const toggleVideos = useCallback(() => {
-		setCameraUpload(prev => ({
+		setCameraUploadState(prev => ({
 			...prev,
 			videos: !prev.videos,
 			version: (prev.version ?? 0) + 1
 		}))
+	}, [])
 
-		setTimeout(() => {
-			cameraUploadParentQuery.refetch().catch(console.error)
-			foregroundCameraUpload.run().catch(console.error)
-		}, 1000)
-	}, [setCameraUpload, cameraUploadParentQuery])
-
-	const toggleOnlyDeltasAfterActivation = useCallback(() => {
-		setCameraUpload(prev => ({
+	const toggleOnlyDeltasAfterEnabled = useCallback(() => {
+		setCameraUploadState(prev => ({
 			...prev,
-			onlyDeltasAfterActivation: !prev.onlyDeltasAfterActivation,
-			onlyDeltasAfterActivationTimestamp: !prev.onlyDeltasAfterActivation ? Date.now() : undefined,
+			onlyDeltasAfterEnabled: !prev.onlyDeltasAfterEnabled,
+			enabledTimestamp: Date.now(),
 			version: (prev.version ?? 0) + 1
 		}))
-
-		setTimeout(() => {
-			cameraUploadParentQuery.refetch().catch(console.error)
-			foregroundCameraUpload.run().catch(console.error)
-		}, 1000)
-	}, [setCameraUpload, cameraUploadParentQuery])
+	}, [])
 
 	const selectRemoteDirectory = useCallback(async () => {
 		const selectDriveItemsResponse = await driveService.selectDriveItems({
@@ -155,7 +120,7 @@ export const Settings = memo(() => {
 				uuid: directory.uuid
 			})
 
-			setCameraUpload(prev => ({
+			setCameraUploadState(prev => ({
 				...prev,
 				version: (prev.version ?? 0) + 1,
 				remote: {
@@ -164,8 +129,9 @@ export const Settings = memo(() => {
 				}
 			}))
 
+			cameraUploadParentQuery.refetch().catch(console.error)
+
 			setTimeout(() => {
-				cameraUploadParentQuery.refetch().catch(console.error)
 				foregroundCameraUpload.run().catch(console.error)
 			}, 1000)
 		} catch (e) {
@@ -175,7 +141,7 @@ export const Settings = memo(() => {
 				alerts.error(e.message)
 			}
 		}
-	}, [setCameraUpload, cameraUploadParentQuery])
+	}, [cameraUploadParentQuery])
 
 	const items = useMemo(() => {
 		if (permissions && !permissions.granted) {
@@ -216,7 +182,7 @@ export const Settings = memo(() => {
 				rightView: (
 					<View testID="photos.settings.enabled">
 						<Toggle
-							value={cameraUpload.enabled}
+							value={cameraUpload.enabled && permissions?.granted && cameraUploadParentExists}
 							onValueChange={toggleEnabled}
 						/>
 					</View>
@@ -353,10 +319,8 @@ export const Settings = memo(() => {
 				),
 				rightView: (
 					<Toggle
-						value={
-							(cameraUpload.onlyDeltasAfterActivation ?? false) && (cameraUpload.onlyDeltasAfterActivationTimestamp ?? 0) > 0
-						}
-						onValueChange={toggleOnlyDeltasAfterActivation}
+						value={cameraUpload.onlyDeltasAfterEnabled ?? false}
+						onValueChange={toggleOnlyDeltasAfterEnabled}
 					/>
 				)
 			}
@@ -374,16 +338,8 @@ export const Settings = memo(() => {
 		permissions,
 		requestPermissions,
 		cameraUploadParentExists,
-		toggleOnlyDeltasAfterActivation
+		toggleOnlyDeltasAfterEnabled
 	])
-
-	useFocusEffect(
-		useCallback(() => {
-			setTimeout(() => {
-				foregroundCameraUpload.run().catch(console.error)
-			}, 1000)
-		}, [])
-	)
 
 	return (
 		<RequireInternet>

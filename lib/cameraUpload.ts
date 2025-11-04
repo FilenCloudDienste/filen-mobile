@@ -203,10 +203,7 @@ export class CameraUpload {
 		const items: Tree = {}
 		const existingPaths: Record<string, true> = {}
 		const existingAssetIds: Record<string, true> = {}
-		const afterTimestamp =
-			state.onlyDeltasAfterActivation && (state.onlyDeltasAfterActivationTimestamp ?? 0) > 0
-				? state.onlyDeltasAfterActivationTimestamp ?? 0
-				: 0
+		const afterTimestamp = state.onlyDeltasAfterEnabled && (state.enabledTimestamp ?? 0) > 0 ? state.enabledTimestamp ?? 0 : 0
 
 		await Promise.all(
 			state.albums.map(async album => {
@@ -663,18 +660,16 @@ export class CameraUpload {
 				throw new Error("Aborted")
 			}
 
-			const exists =
+			const remotePath =
 				this.type === "foreground"
-					? await nodeWorker.proxy("directoryExists", {
-							name: state.remote.name,
-							parent: state.remote.parent
+					? await nodeWorker.proxy("directoryUUIDToPath", {
+							uuid: state.remote.uuid
 					  })
-					: await getSDK().cloud().directoryExists({
-							name: state.remote.name,
-							parent: state.remote.parent
+					: await getSDK().cloud().directoryUUIDToPath({
+							uuid: state.remote.uuid
 					  })
 
-			if (!exists.exists || exists.uuid !== state.remote.uuid) {
+			if (!remotePath || remotePath !== state.remote.path) {
 				return
 			}
 

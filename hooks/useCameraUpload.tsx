@@ -14,8 +14,8 @@ export type CameraUpload = {
 	lowBattery: boolean
 	videos: boolean
 	compress: boolean
-	onlyDeltasAfterActivation?: boolean
-	onlyDeltasAfterActivationTimestamp?: number
+	onlyDeltasAfterEnabled?: boolean
+	enabledTimestamp?: number
 	// The version value is used to determine if the state has changed and we need to abort any running uploads
 	// This is useful for when the user changes settings, like enabling/disabling camera upload
 	version?: number
@@ -54,7 +54,7 @@ export function setCameraUploadState(fn: CameraUpload | ((prev: CameraUpload) =>
 }
 
 export default function useCameraUpload(): [CameraUpload, (value: CameraUpload | ((prevValue: CameraUpload) => CameraUpload)) => void] {
-	const [cameraUpload] = useMMKVObject<CameraUpload>(CAMERA_UPLOAD_MMKV_KEY, mmkvInstance)
+	const [cameraUpload, setCameraUpload] = useMMKVObject<CameraUpload>(CAMERA_UPLOAD_MMKV_KEY, mmkvInstance)
 
 	const state = useMemo((): CameraUpload => {
 		if (!cameraUpload) {
@@ -64,9 +64,18 @@ export default function useCameraUpload(): [CameraUpload, (value: CameraUpload |
 		return cameraUpload
 	}, [cameraUpload])
 
-	const setState = useCallback((fn: CameraUpload | ((prev: CameraUpload) => CameraUpload)) => {
-		setCameraUploadState(fn)
-	}, [])
+	const setState = useCallback(
+		(fn: CameraUpload | ((prev: CameraUpload) => CameraUpload)) => {
+			if (typeof fn === "function") {
+				setCameraUpload(prev => fn(prev ?? EMPTY_STATE))
+
+				return
+			}
+
+			setCameraUpload(fn)
+		},
+		[setCameraUpload]
+	)
 
 	return [state, setState]
 }

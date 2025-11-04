@@ -441,6 +441,8 @@ export const Photos = memo(() => {
 
 			return () => {
 				usePhotosStore.getState().setSelectedItems([])
+
+				foregroundCameraUpload.run().catch(console.error)
 			}
 		}, [])
 	)

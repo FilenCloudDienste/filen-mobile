@@ -14,13 +14,12 @@ export async function fetchData() {
 		return null
 	}
 
-	const exists = await nodeWorker.proxy("directoryExists", {
-		name: state.remote.name,
-		parent: state.remote.parent
+	const remotePath = await nodeWorker.proxy("directoryUUIDToPath", {
+		uuid: state.remote.uuid
 	})
 
-	if (!exists.exists || exists.uuid !== state.remote.uuid) {
-		return null
+	if (!remotePath || remotePath !== state.remote.path) {
+		return
 	}
 
 	return state.remote

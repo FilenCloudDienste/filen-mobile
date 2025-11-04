@@ -1,9 +1,10 @@
-import { useLocalSearchParams } from "expo-router"
-import { memo, Fragment, useMemo } from "react"
+import { useLocalSearchParams, useFocusEffect } from "expo-router"
+import { memo, Fragment, useMemo, useCallback } from "react"
 import DriveList from "@/components/drive/list"
 import useSDKConfig from "@/hooks/useSDKConfig"
 import Header from "@/components/drive/header"
 import { validate as validateUUID } from "uuid"
+import { foregroundCameraUpload } from "@/lib/cameraUpload"
 
 export const Drive = memo(() => {
 	const { uuid, scrollToUUID } = useLocalSearchParams()
@@ -21,6 +22,20 @@ export const Drive = memo(() => {
 	const scrollToUUIDParsed = useMemo(() => {
 		return typeof scrollToUUID === "string" && validateUUID(scrollToUUID) ? scrollToUUID : undefined
 	}, [scrollToUUID])
+
+	useFocusEffect(
+		useCallback(() => {
+			if (queryParams.parent === baseFolderUUID) {
+				foregroundCameraUpload.run().catch(console.error)
+			}
+
+			return () => {
+				if (queryParams.parent === baseFolderUUID) {
+					foregroundCameraUpload.run().catch(console.error)
+				}
+			}
+		}, [queryParams.parent, baseFolderUUID])
+	)
 
 	return (
 		<Fragment>
