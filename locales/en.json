@@ -1071,7 +1071,9 @@
 					"onlyDeltasAfterActivationInfo": "When enabled, only photos and videos taken after enabling camera upload will be uploaded."
 				},
 				"errors": {
-					"noPermissions": "You need to grant media permissions to access your photos."
+					"noPermissions": "You need to grant media permissions to access your photos.",
+					"noAlbumsSelected": "Please select at least one album to upload photos from.",
+					"invalidCloudDirectory": "The selected cloud directory is invalid. Please select a valid directory."
 				}
 			}
 		}

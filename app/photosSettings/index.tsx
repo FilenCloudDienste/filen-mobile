@@ -35,20 +35,35 @@ export const Settings = memo(() => {
 		return cameraUploadParentQuery.data !== null
 	}, [cameraUploadParentQuery.data, cameraUploadParentQuery.status, cameraUpload.enabled])
 
-	const toggleEnabled = useCallback(async (enable: boolean) => {
-		setCameraUploadState(prev => ({
-			...prev,
-			enabled: enable,
-			version: (prev.version ?? 0) + 1,
-			enabledTimestamp: Date.now()
-		}))
+	const toggleEnabled = useCallback(
+		async (enable: boolean) => {
+			if (!permissions?.granted || !cameraUploadParentExists || cameraUpload.albums.length === 0) {
+				enable = false
 
-		if (enable) {
-			setTimeout(() => {
-				foregroundCameraUpload.run().catch(console.error)
-			}, 1000)
-		}
-	}, [])
+				if (!permissions?.granted) {
+					alerts.error(translateMemoized("photos.settings.index.errors.noPermissions"))
+				} else if (cameraUpload.albums.length === 0) {
+					alerts.error(translateMemoized("photos.settings.index.errors.noAlbumsSelected"))
+				} else {
+					alerts.error(translateMemoized("photos.settings.index.errors.invalidCloudDirectory"))
+				}
+			}
+
+			setCameraUploadState(prev => ({
+				...prev,
+				enabled: enable,
+				version: (prev.version ?? 0) + 1,
+				enabledTimestamp: Date.now()
+			}))
+
+			if (enable) {
+				setTimeout(() => {
+					foregroundCameraUpload.run().catch(console.error)
+				}, 1000)
+			}
+		},
+		[permissions?.granted, cameraUploadParentExists, cameraUpload.albums.length]
+	)
 
 	const toggleCellular = useCallback(() => {
 		setCameraUploadState(prev => ({
@@ -182,7 +197,9 @@ export const Settings = memo(() => {
 				rightView: (
 					<View testID="photos.settings.enabled">
 						<Toggle
-							value={cameraUpload.enabled && permissions?.granted && cameraUploadParentExists}
+							value={
+								cameraUpload.enabled && permissions?.granted && cameraUploadParentExists && cameraUpload.albums.length > 0
+							}
 							onValueChange={toggleEnabled}
 						/>
 					</View>
