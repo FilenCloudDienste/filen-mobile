@@ -669,7 +669,7 @@ export class CameraUpload {
 							uuid: state.remote.uuid
 					  })
 
-			if (!remotePath || remotePath !== state.remote.path) {
+			if (!remotePath) {
 				return
 			}
 

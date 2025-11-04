@@ -18,7 +18,7 @@ export async function fetchData() {
 		uuid: state.remote.uuid
 	})
 
-	if (!remotePath || remotePath !== state.remote.path) {
+	if (!remotePath) {
 		return
 	}
 

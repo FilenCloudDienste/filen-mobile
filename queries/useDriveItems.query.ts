@@ -51,7 +51,7 @@ export async function fetchData(params: UseDriveItemsQueryParams): Promise<Drive
 			uuid: state.remote.uuid
 		})
 
-		if (!remotePath || remotePath !== state.remote.path) {
+		if (!remotePath) {
 			return []
 		}
 	}
