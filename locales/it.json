@@ -1235,7 +1235,8 @@
                     "title": "Autenticazione biometrica abilitata"
                 }
             },
-            "title": "Impostazioni"
+            "title": "Impostazioni",
+            "back": "Indietro"
         },
         "personal": {
             "items": {

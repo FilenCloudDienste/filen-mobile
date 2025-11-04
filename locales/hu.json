@@ -1235,7 +1235,8 @@
                     "title": "Biometrikus hitelesítés engedélyezve"
                 }
             },
-            "title": "Beállítások"
+            "title": "Beállítások",
+            "back": "Vissza"
         },
         "personal": {
             "items": {

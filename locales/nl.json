@@ -1235,7 +1235,8 @@
                     "title": "Biometrische authenticatie ingeschakeld"
                 }
             },
-            "title": "Instellingen"
+            "title": "Instellingen",
+            "back": "Terug"
         },
         "personal": {
             "items": {

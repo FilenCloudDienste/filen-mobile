@@ -1235,7 +1235,8 @@
                     "title": "Autenticação biométrica ativada"
                 }
             },
-            "title": "Configurações"
+            "title": "Configurações",
+            "back": "Voltar"
         },
         "personal": {
             "items": {

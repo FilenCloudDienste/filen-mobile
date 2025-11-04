@@ -1235,7 +1235,8 @@
                     "title": "Authentification biométrique activée"
                 }
             },
-            "title": "Paramètres"
+            "title": "Paramètres",
+            "back": "Retour"
         },
         "personal": {
             "items": {

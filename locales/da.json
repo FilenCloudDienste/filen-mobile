@@ -1235,7 +1235,8 @@
                     "title": "Biometrisk godkendelse aktiveret"
                 }
             },
-            "title": "Indstillinger"
+            "title": "Indstillinger",
+            "back": "Tilbage"
         },
         "personal": {
             "items": {

@@ -1235,7 +1235,8 @@
                     "title": "생체 인증 활성화됨"
                 }
             },
-            "title": "설정"
+            "title": "설정",
+            "back": "뒤로"
         },
         "personal": {
             "items": {

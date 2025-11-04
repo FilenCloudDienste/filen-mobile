@@ -1235,7 +1235,8 @@
                     "title": "Biometrische Authentifizierung aktiviert"
                 }
             },
-            "title": "Einstellungen"
+            "title": "Einstellungen",
+            "back": "Zurück"
         },
         "personal": {
             "items": {

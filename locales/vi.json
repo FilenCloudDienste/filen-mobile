@@ -1235,7 +1235,8 @@
                     "title": "Xác thực sinh trắc học đã được kích hoạt"
                 }
             },
-            "title": "Cài đặt"
+            "title": "Cài đặt",
+            "back": "Quay lại"
         },
         "personal": {
             "items": {

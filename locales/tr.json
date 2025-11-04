@@ -1235,7 +1235,8 @@
                     "title": "Biyometrik kimlik doğrulama etkin"
                 }
             },
-            "title": "Ayarlar"
+            "title": "Ayarlar",
+            "back": "Geri"
         },
         "personal": {
             "items": {

@@ -1235,7 +1235,8 @@
                     "title": "Autentikasi biometrik diaktifkan"
                 }
             },
-            "title": "Pengaturan"
+            "title": "Pengaturan",
+            "back": "Kembali"
         },
         "personal": {
             "items": {

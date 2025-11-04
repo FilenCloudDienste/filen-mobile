@@ -1235,7 +1235,8 @@
                     "title": "Uwierzytelnianie biometryczne włączone"
                 }
             },
-            "title": "Ustawienia"
+            "title": "Ustawienia",
+            "back": "Wstecz"
         },
         "personal": {
             "items": {

@@ -1235,7 +1235,8 @@
                     "title": "Biometrinen tunnistus käytössä"
                 }
             },
-            "title": "Asetukset"
+            "title": "Asetukset",
+            "back": "Takaisin"
         },
         "personal": {
             "items": {

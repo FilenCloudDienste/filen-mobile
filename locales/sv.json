@@ -1235,7 +1235,8 @@
                     "title": "Biometrisk autentisering aktiverad"
                 }
             },
-            "title": "Inställningar"
+            "title": "Inställningar",
+            "back": "Tillbaka"
         },
         "personal": {
             "items": {

@@ -1235,7 +1235,8 @@
                     "title": "Autentificare biometrică activată"
                 }
             },
-            "title": "Setări"
+            "title": "Setări",
+            "back": "Înapoi"
         },
         "personal": {
             "items": {

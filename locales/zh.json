@@ -1235,7 +1235,8 @@
                     "title": "生物特征身份验证已启用"
                 }
             },
-            "title": "设置"
+            "title": "设置",
+            "back": "返回"
         },
         "personal": {
             "items": {

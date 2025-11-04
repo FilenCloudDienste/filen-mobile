@@ -1235,7 +1235,8 @@
                     "title": "Biometrická autentizace povolena"
                 }
             },
-            "title": "Nastavení"
+            "title": "Nastavení",
+            "back": "Zpět"
         },
         "personal": {
             "items": {
