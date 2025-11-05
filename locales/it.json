@@ -186,7 +186,7 @@
         },
         "item": {
             "draft": "Bozza",
-            "noMessages": "Nessun messaggio ancora",
+            "noMessages": "Ancora nessun messaggio",
             "you": "Tu"
         },
         "list": {
@@ -771,10 +771,10 @@
             },
             "names": {
                 "all": "Tutti",
-                "archived": "Archiviato",
-                "favorited": "Aggiunto ai preferiti",
-                "pinned": "Fissato",
-                "shared": "Condiviso",
+                "archived": "Archiviati",
+                "favorited": "Preferiti",
+                "pinned": "Fissati",
+                "shared": "Condivisi",
                 "trash": "Cestino"
             }
         },
@@ -838,7 +838,7 @@
                     "videos": "Video",
                     "videosInfo": "Includi video nel caricamento dalla fotocamera.",
                     "onlyDeltasAfterActivation": "Dopo l'attivazione",
-                    "onlyDeltasAfterActivationInfo": "Quando abilitato, solo foto e video scattati dopo l'abilitazione del caricamento della fotocamera verranno caricati."
+                    "onlyDeltasAfterActivationInfo": "Quando abilitato, solo foto e video scattati dopo l'abilitazione del caricamento dalla fotocamera verranno caricati."
                 },
                 "title": "Impostazioni"
             }
@@ -1152,7 +1152,7 @@
             },
             "tabs": {
                 "all": "Tutti",
-                "blocked": "Bloccato",
+                "blocked": "Bloccati",
                 "offline": "Offline",
                 "online": "Online",
                 "pending": "In sospeso",
