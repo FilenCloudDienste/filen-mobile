@@ -19,9 +19,9 @@
         },
         "exportMasterKeys2": {
             "cancelText": "取消",
-            "message": "强烈建议您导出主 ключи 并将其存放在安全的地方。如果您忘记密码， без 初 ключи，您将无法访问您的数据。",
+            "message": "强烈建议您导出主密钥并将其存放在安全的地方。如果您忘记密码，没有主密钥将无法访问您的数据。",
             "okText": "导出",
-            "title": "导出主 ключи"
+            "title": "导出主密钥"
         }
     },
     "auth": {
@@ -62,7 +62,7 @@
         "prompts": {
             "2fa": {
                 "placeholder": "代码",
-                "title": "双因素认证"
+                "title": "双重认证"
             },
             "forgotPassword": {
                 "placeholder": "邮箱地址",
@@ -154,7 +154,7 @@
     },
     "chats": {
         "chat": "聊天",
-        "chats": "聊天记录",
+        "chats": "聊天",
         "header": {
             "newMessages": "{{count}}条新消息",
             "search": "搜索聊天...",
@@ -180,7 +180,7 @@
                     "matching": "与{{query}}匹配的用户"
                 },
                 "replyTo": {
-                    "replyingTo": "回复{{name}}"
+                    "replyingTo": "回复给{{name}}"
                 }
             }
         },
@@ -208,7 +208,7 @@
             "unarchive": "取消存档",
             "unfavorite": "取消收藏",
             "unmute": "取消静音",
-            "unpin": "取消固定"
+            "unpin": "取消置顶"
         },
         "messages": {
             "everyone": "所有人",
@@ -285,11 +285,11 @@
     "contacts": {
         "menu": {
             "accept": "接受",
-            "block": "阻止",
+            "block": "拉黑",
             "cancel": "取消",
             "decline": "拒绝",
             "remove": "移除",
-            "unblock": "取消阻止"
+            "unblock": "取消拉黑"
         }
     },
     "copiedToClipboard": "已复制到剪贴板",
@@ -300,16 +300,16 @@
                     "cancel": "取消",
                     "create": {
                         "created": "{{name}}已创建",
-                        "directory": "创建目录",
+                        "directory": "创建文件夹",
                         "photo": "拍照",
                         "textFile": "创建文本文件"
                     },
-                    "directoryNamePlaceholder": "目录名称",
+                    "directoryNamePlaceholder": "文件夹名称",
                     "itemsUploaded": "{{count}}个项目已上传",
                     "noMediaPermissions": "您需要授予媒体权限以上传照片或视频。",
                     "textFileNamePlaceholder": "文本文件名称",
                     "upload": {
-                        "directory": "上传目录",
+                        "directory": "上传文件夹",
                         "files": "上传文件",
                         "media": "上传媒体",
                         "uploaded": "{{name}}已上传"
@@ -319,14 +319,14 @@
                 "dropdown": {
                     "bulkActions": "批量操作",
                     "gridMode": "网格视图",
-                    "listMode": "以列表形式查看",
+                    "listMode": "列表视图",
                     "sortBy": {
                         "ascending": "升序",
                         "descending": "降序",
                         "lastModified": {
                             "ascendingTitle": "最早优先",
                             "descendingTitle": "最新优先",
-                            "title": "最后修改时间"
+                            "title": "修改日期"
                         },
                         "name": {
                             "ascendingTitle": "A 到 Z",
@@ -355,23 +355,23 @@
                 "selectAll": "全选"
             },
             "title": {
-                "drive": "驱动器",
+                "drive": "云盘",
                 "favorites": "收藏夹",
-                "links": "公共链接",
+                "links": "公开链接",
                 "offline": "离线可用",
-                "recents": "最近的",
+                "recents": "最近",
                 "selected": "已选择 {{count}} 项",
-                "sharedIn": "分享给您",
+                "sharedIn": "共享给您",
                 "sharedOut": "共享给他人",
                 "trash": "回收站"
             }
         },
-        "itemShared": "{{name}}已分享",
-        "itemSharedWith": "{{name}}与{{email}}分享了",
+        "itemShared": "{{name}}已共享",
+        "itemSharedWith": "{{name}}已与{{email}}共享",
         "list": {
             "empty": "未找到项目",
             "emptySearch": "未找到符合此搜索的项目",
-            "error": "加载您的硬盘时出错，请稍后再试",
+            "error": "加载您的云盘时出错，请稍后再试",
             "footer": "{{count}} 个项目",
             "item": {
                 "menu": {
@@ -404,7 +404,7 @@
                     "path": "路径",
                     "preview": "预览",
                     "properties": "属性",
-                    "publicLink": "公共链接",
+                    "publicLink": "公开链接",
                     "removeOffline": "移除离线文件",
                     "removeSharedIn": "移除",
                     "removeSharedOut": "停止共享",
@@ -413,9 +413,9 @@
                     "saveToGallery": "保存到图库",
                     "select": "选择",
                     "selectAll": "全选",
-                    "share": "分享",
+                    "share": "共享",
                     "share_one": "共享项目",
-                    "share_other": "分享{{count}}个项目",
+                    "share_other": "共享{{count}}个项目",
                     "trash": "回收站",
                     "trash_one": "删除项目",
                     "trash_other": "删除{{count}}个项目",
@@ -435,8 +435,8 @@
                 "title": "永久删除"
             },
             "disablePublicLinks": {
-                "message": "您确定要禁用{{count}}项的公共链接吗？这些链接将不再可访问。",
-                "title": "禁用公共链接"
+                "message": "您确定要禁用{{count}}个项目的公开链接吗？这些链接将不再可访问。",
+                "title": "禁用公开链接"
             },
             "removeOfflineFiles": {
                 "message": "您确定要移除{{count}}个离线文件吗？它们将不再可离线使用。",
@@ -463,11 +463,11 @@
                 "title": "重命名"
             },
             "trashItem": {
-                "message": "您确定要将此项目移至垃圾箱吗？您以后可以恢复它。",
+                "message": "您确定要将此项目移至回收站吗？您以后可以恢复它。",
                 "title": "移至回收站"
             },
             "trashItems": {
-                "message": "您确定要将{{count}}个项目移至垃圾箱吗？您以后可以恢复它们。",
+                "message": "您确定要将{{count}}个项目移至回收站吗？您以后可以恢复它们。",
                 "title": "移至回收站"
             }
         },
@@ -486,18 +486,18 @@
             "downloadButton": "下载按钮",
             "edit": "编辑",
             "enabled": "已启用",
-            "expiration": "到期",
-            "expiration12h": "12小时",
-            "expiration14d": "14天",
-            "expiration1d": "1天",
-            "expiration1h": "1小时",
-            "expiration30d": "30天",
-            "expiration3d": "3天",
-            "expiration6h": "6小时",
-            "expiration7d": "7天",
-            "expirationNever": "从不",
+            "expiration": "过期于",
+            "expiration12h": "12小时后",
+            "expiration14d": "14天后",
+            "expiration1d": "1天后",
+            "expiration1h": "1小时后",
+            "expiration30d": "30天后",
+            "expiration3d": "3天后",
+            "expiration6h": "6小时后",
+            "expiration7d": "7天后",
+            "expirationNever": "永不过期",
             "password": "密码",
-            "shareLink": "分享链接"
+            "shareLink": "共享链接"
         },
         "onlyPro": "此功能仅适用于Filen Pro用户。订阅任何Filen计划以启用此功能。",
         "prompts": {
@@ -506,8 +506,8 @@
                 "title": "编辑密码"
             }
         },
-        "shareDialogTile": "Filen公共链接",
-        "title": "编辑公共链接",
+        "shareDialogTile": "Filen公开链接",
+        "title": "编辑公开链接",
         "unsavedChanges": "未保存的更改"
     },
     "errors": {
@@ -565,16 +565,16 @@
                 "title": "收藏夹"
             },
             "links": {
-                "title": "公共链接"
+                "title": "公开链接"
             },
             "offline": {
                 "title": "离线可用"
             },
             "recents": {
-                "title": "最近的"
+                "title": "最近"
             },
             "sharedIn": {
-                "title": "分享给您"
+                "title": "共享给您"
             },
             "sharedOut": {
                 "title": "共享给他人"
@@ -585,11 +585,11 @@
         },
         "listEmpty": {
             "favorites": "暂无收藏",
-            "links": "暂无公共链接",
+            "links": "暂无公开链接",
             "offline": "暂时没有离线项目",
             "recents": "暂无最近项目",
-            "sharedIn": "暂无共享项目",
-            "sharedOut": "暂无共享项目",
+            "sharedIn": "暂无与您共享的项目",
+            "sharedOut": "暂无与他人共享的项目",
             "trash": "暂无被删除项目"
         },
         "title": "主页"
@@ -635,7 +635,7 @@
                 "settings": "设置"
             },
             "selected": "已选择 {{count}} 项",
-            "title": "备注"
+            "title": "笔记"
         },
         "history": {
             "list": {
@@ -655,7 +655,7 @@
             "title": "历史记录"
         },
         "list": {
-            "empty": "暂无备注",
+            "empty": "暂无笔记",
             "emptySearch": "未找到符合此搜索的笔记",
             "error": "加载您的笔记时出错，请稍后再试",
             "footer": "{{count}} 个项目"
@@ -673,8 +673,8 @@
             "history": "历史记录",
             "leave": "离开",
             "participants": "参与者",
-            "pin": "固定",
-            "pinned": "已固定",
+            "pin": "置顶",
+            "pinned": "已置顶",
             "preview": "预览",
             "rename": "重命名",
             "restore": "恢复",
@@ -690,7 +690,7 @@
                 "text": "文本"
             },
             "unfavorite": "取消收藏",
-            "unpin": "取消固定"
+            "unpin": "取消置顶"
         },
         "participants": {
             "list": {
@@ -755,7 +755,7 @@
                 "title": "重命名标签"
             },
             "trashNote": {
-                "message": "您确定要将此笔记移至垃圾箱吗？您以后可以恢复它。",
+                "message": "您确定要将此笔记移至回收站吗？您以后可以恢复它。",
                 "title": "移至回收站"
             },
             "trashNotes": {
@@ -773,12 +773,12 @@
                 "all": "全部",
                 "archived": "已存档",
                 "favorited": "已收藏",
-                "pinned": "已固定",
-                "shared": "已分享",
+                "pinned": "已置顶",
+                "shared": "已共享",
                 "trash": "回收站"
             }
         },
-        "title": "备注"
+        "title": "笔记"
     },
     "nwui": {
         "search": {
@@ -816,7 +816,7 @@
             "index": {
                 "errors": {
                     "noPermissions": "您需要授予媒体权限以访问您的照片。",
-                    "invalidCloudDirectory": "所选的云目录无效，请选择一个有效的目录。",
+                    "invalidCloudDirectory": "所选的云文件夹无效，请选择一个有效的文件夹。",
                     "noAlbumsSelected": "请选择至少一个相册来上传照片。"
                 },
                 "items": {
@@ -826,7 +826,7 @@
                     "backgroundInfo": "允许相机在后台上传。这可能会导致电池消耗过快。后台上传仅包括图像。仅在应用程序未被强制关闭时有效。",
                     "cellular": "蜂窝网络",
                     "cellularInfo": "允许在蜂窝数据上上传相机，这可能导致高数据使用率。",
-                    "cloudDirectory": "云目录",
+                    "cloudDirectory": "云文件夹",
                     "cloudDirectoryNotSet": "未设置",
                     "compress": "压缩",
                     "compressInfo": "压缩照片以节省存储空间。这可能会降低照片质量。JPG压缩在80%质量。",
@@ -846,7 +846,7 @@
         "state": {
             "synced": "已同步",
             "syncing": "同步中",
-            "syncingProgress": "{{done}}个/{{total}}个项目已同步"
+            "syncingProgress": "{{done}}/{{total}}个项目已同步"
         },
         "title": "照片"
     },
@@ -871,9 +871,9 @@
         "header": {
             "cancel": "取消",
             "done": "完成",
-            "drive": "驱动器",
-            "selectDirectories": "选择目录",
-            "selectDirectory": "选择目录",
+            "drive": "云盘",
+            "selectDirectories": "选择文件夹",
+            "selectDirectory": "选择文件夹",
             "selectFile": "选择文件",
             "selectFiles": "选择文件",
             "selectItem": "选择项目",
@@ -889,9 +889,9 @@
         },
         "prompts": {
             "createDirectory": {
-                "placeholder": "目录名称",
+                "placeholder": "文件夹名称",
                 "success": "{{name}}已创建",
-                "title": "创建目录"
+                "title": "创建文件夹"
             }
         },
         "toolbar": {
@@ -906,7 +906,7 @@
             "selectPlaylists": "选择播放列表"
         },
         "item": {
-            "subTitle": "{{count}}首曲目，更新于{{date}}"
+            "subTitle": "共{{count}}首曲目，更新于{{date}}"
         },
         "list": {
             "empty": "尚无播放列表",
@@ -928,12 +928,12 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "头像图片大小超过3 MiB的限制。",
+                "avatarLimit": "头像图片大小超过最大3 MiB的限制。",
                 "emailsNotMatching": "新的邮箱地址不匹配。"
             },
             "items": {
                 "changeAvatar": "更改头像",
-                "deleteAllFilesAndDirectories": "删除所有文件和目录",
+                "deleteAllFilesAndDirectories": "删除所有文件和文件夹",
                 "deleteVersionedFiles": "删除版本文件",
                 "emailAddress": "邮箱地址",
                 "fileVersioning": "文件版本控制",
@@ -942,7 +942,7 @@
                 "loginAlerts": "登录警报",
                 "loginAlertsInfo": "当您的账户被访问时接收警报。",
                 "logout": "登出",
-                "more": "更多帐户设置",
+                "more": "更多账户设置",
                 "nickname": "昵称",
                 "personalInformation": "个人信息",
                 "requestAccountDeletion": "请求删除账户",
@@ -951,7 +951,7 @@
             "prompts": {
                 "2fa": {
                     "placeholder": "代码",
-                    "title": "双因素认证"
+                    "title": "双重认证"
                 },
                 "changeEmail": {
                     "confirmEmail": {
@@ -972,12 +972,12 @@
                     "title": "请求删除账户"
                 },
                 "deleteAllFilesAndDirectories1": {
-                    "message": "您确定要删除所有文件和目录吗？此操作无法撤销！",
+                    "message": "您确定要删除所有文件和文件夹吗？此操作无法撤销！",
                     "title": "删除所有文件和目录"
                 },
                 "deleteAllFilesAndDirectories2": {
                     "message": "你确定吗？此操作无法撤销！",
-                    "title": "删除所有文件和目录"
+                    "title": "删除所有文件和文件夹"
                 },
                 "deleteVersionedFiles1": {
                     "message": "您确定要删除所有版本文件吗？此操作无法撤销！",
@@ -1007,11 +1007,11 @@
                 "clearCache": "清除缓存",
                 "clearOfflineFiles": "清除离线文件",
                 "clearThumbnails": "清除缩略图",
-                "clearTrackPlayer": "清除轨道播放器",
-                "documentsProviderCache": "DocumentsProvider 缓存",
-                "documentsProviderCacheInfo": "Documents Provider 缓存用于在其他应用中使用 Filen 时加快文件访问速度。",
-                "fileProviderCache": "FileProvider 缓存",
-                "fileProviderCacheInfo": "FileProvider 缓存用于在其他应用中使用 Filen 时加快文件访问速度。"
+                "clearTrackPlayer": "清空播放列表",
+                "documentsProviderCache": "文档提供程序缓存",
+                "documentsProviderCacheInfo": "文档提供程序缓存用于在其他应用中使用 Filen 时加快文件访问速度。",
+                "fileProviderCache": "文件提供程序缓存",
+                "fileProviderCacheInfo": "文件提供程序缓存用于在其他应用中使用 Filen 时加快文件访问速度。"
             },
             "prompts": {
                 "clearCache": {
@@ -1027,8 +1027,8 @@
                     "title": "清除缩略图"
                 },
                 "clearTrackPlayer": {
-                    "message": "清除轨道播放器缓存会移除缓存的轨道和图片，这可能会导致加载时间增加。您确定要继续吗？",
-                    "title": "清除轨道播放器"
+                    "message": "清除轨道播放器缓存会移除缓存的播放列表和图片，这可能会导致加载时间增加。您确定要继续吗？",
+                    "title": "清除播放列表"
                 }
             },
             "title": "高级"
@@ -1041,25 +1041,25 @@
                 "pinTooShort": "备用 PIN 必须至少为4位数字。"
             },
             "items": {
-                "biometricAuth": "生物特征身份验证",
-                "lockAppAfter": "锁定应用后",
+                "biometricAuth": "生物识别身份验证",
+                "lockAppAfter": "锁定于",
                 "pinOnly": "仅限PIN"
             },
             "lockAppAfter": {
-                "fifteenMinutes": "15分钟",
-                "fiveMinutes": "5分钟",
+                "fifteenMinutes": "15分钟后",
+                "fiveMinutes": "5分钟后",
                 "immediately": "立即",
-                "minutes": "{{minutes}}分钟",
-                "never": "从不",
-                "oneHour": "1小时",
-                "oneMinute": "1分钟",
-                "tenMinutes": "10分钟",
-                "thirtyMinutes": "30分钟"
+                "minutes": "{{minutes}}分钟后",
+                "never": "永不",
+                "oneHour": "1小时后",
+                "oneMinute": "1分钟后",
+                "tenMinutes": "10分钟后",
+                "thirtyMinutes": "30分钟后"
             },
             "prompts": {
                 "disable": {
-                    "message": "您确定要禁用生物特征身份验证吗？",
-                    "title": "禁用生物特征身份验证"
+                    "message": "您确定要禁用生物识别身份验证吗？",
+                    "title": "禁用生物识别身份验证"
                 },
                 "documentsProvider": {
                     "message": "启用生物识别认证将禁用文档提供程序。这意味着您将无法在其他应用中使用Filen文档提供程序访问文件。您想继续吗？",
@@ -1088,8 +1088,8 @@
                     "error": "加载您的联系人时出错，请稍后再试"
                 },
                 "blocked": {
-                    "empty": "未找到已屏蔽联系人",
-                    "emptySearch": "未找到符合此搜索的被封联系人",
+                    "empty": "未找到已拉黑的联系人",
+                    "emptySearch": "未找到符合此搜索的被拉黑联系人",
                     "error": "加载您的联系人时出错，请稍后再试"
                 },
                 "offline": {
@@ -1115,24 +1115,24 @@
             },
             "prompts": {
                 "blockContact": {
-                    "message": "您确定要阻止此联系人吗？",
-                    "success": "{{email}}已阻止",
-                    "title": "阻止联系人"
+                    "message": "您确定要拉黑此联系人吗？",
+                    "success": "{{email}}已拉黑",
+                    "title": "拉黑联系人"
                 },
                 "blockContacts": {
-                    "message": "您确定要阻止{{count}}个联系人吗？",
-                    "success": "已阻止{{count}}个联系人",
-                    "title": "阻止联系人"
+                    "message": "您确定要拉黑{{count}}个联系人吗？",
+                    "success": "已拉黑{{count}}个联系人",
+                    "title": "拉黑联系人"
                 },
                 "removeContact": {
                     "message": "您确定要删除此联系人吗？",
-                    "success": "{{email}}已移除",
-                    "title": "移除联系人"
+                    "success": "{{email}}已删除",
+                    "title": "删除联系人"
                 },
                 "removeContacts": {
                     "message": "您确定要删除{{count}}个联系人吗？",
-                    "success": "已移除{{count}}个联系人",
-                    "title": "移除联系人"
+                    "success": "已删除{{count}}个联系人",
+                    "title": "删除联系人"
                 },
                 "sendRequest": {
                     "placeholder": "Filen邮箱地址",
@@ -1140,19 +1140,19 @@
                     "title": "发送联系人请求"
                 },
                 "unblockContact": {
-                    "message": "您确定要取消阻止此联系人吗？",
-                    "success": "{{email}}已解除阻止",
-                    "title": "解除对联系人的阻止"
+                    "message": "您确定要取消拉黑此联系人吗？",
+                    "success": "{{email}}已取消拉黑",
+                    "title": "取消拉黑此联系人"
                 },
                 "unblockContacts": {
-                    "message": "您确定要取消阻止{{count}}个联系人吗？",
-                    "success": "已取消阻止{{count}}个联系人",
-                    "title": "解除对联系人的阻止"
+                    "message": "您确定要取消拉黑{{count}}个联系人吗？",
+                    "success": "已取消拉黑{{count}}个联系人",
+                    "title": "取消拉黑联系人"
                 }
             },
             "tabs": {
                 "all": "全部",
-                "blocked": "已阻止",
+                "blocked": "已拉黑",
                 "offline": "离线",
                 "online": "在线",
                 "pending": "待处理",
@@ -1163,45 +1163,45 @@
         "events": {
             "event": "事件",
             "eventInfo": {
-                "2faDisabled": "2FA已禁用",
-                "2faEnabled": "2FA已启用",
+                "2faDisabled": "双重认证已禁用",
+                "2faEnabled": "双重认证已启用",
                 "baseFolderCreated": "基础文件夹已创建",
                 "codeRedeemed": "代码“{{code}}”已兑换",
-                "deleteAll": "所有目录和文件已被永久删除",
+                "deleteAll": "所有文件夹和文件已被永久删除",
                 "deleteFilePermanently": "{{name}}已永久删除",
                 "deleteFolderPermanently": "{{name}}已永久删除",
                 "deleteUnfinished": "未完成的上传文件已删除",
                 "deleteVersioned": "所有版本文件已删除",
-                "emailChangeAttempt": "尝试更改电子邮件",
-                "emailChanged": "邮箱已更改",
+                "emailChangeAttempt": "尝试更改了电子邮件",
+                "emailChanged": "电子邮件地址已更改",
                 "failedLogin": "登录尝试失败",
-                "fileLinkEdited": "{{name}}的公共链接已编辑",
+                "fileLinkEdited": "{{name}}的公开链接已编辑",
                 "fileMetadataChanged": "{{name}}的元数据已更改",
                 "fileMoved": "{{name}}已移动",
                 "fileRenamed": "{{oldName}}重命名为{{newName}}",
                 "fileRestored": "{{name}}已恢复",
                 "fileRm": "{{name}}已删除",
-                "fileShared": "{{name}}与{{email}}分享了",
-                "fileTrash": "{{name}} 移至垃圾桶",
+                "fileShared": "{{name}}已与{{email}}共享",
+                "fileTrash": "{{name}} 已移至回收站",
                 "fileUploaded": "{{name}}已上传",
-                "fileVersioned": "{{name}}已版本化",
-                "folderColorChanged": "目录{{name}}的颜色已更改",
-                "folderLinkEdited": "目录公共链接已编辑",
-                "folderMetadataChanged": "目录{{name}}的元数据已更改",
-                "folderMoved": "目录{{name}}已移动",
-                "folderRenamed": "目录{{oldName}}重命名为{{newName}}",
-                "folderRestored": "目录{{name}}已恢复",
-                "folderShared": "目录{{name}}与{{email}}分享了",
-                "folderTrash": "目录{{name}}已移至回收站",
-                "itemFavorited": "{{name}} 已标记为喜爱",
-                "itemUnfavorited": "{{name}} 已取消标记为喜爱",
+                "fileVersioned": "{{name}}已计入版本",
+                "folderColorChanged": "文件夹{{name}}的颜色已更改",
+                "folderLinkEdited": "文件夹的公开链接已编辑",
+                "folderMetadataChanged": "文件夹{{name}}的元数据已更改",
+                "folderMoved": "文件夹{{name}}已移动",
+                "folderRenamed": "文件夹{{oldName}}重命名为{{newName}}",
+                "folderRestored": "文件夹{{name}}已恢复",
+                "folderShared": "文件夹{{name}}与{{email}}分享了",
+                "folderTrash": "文件夹{{name}}已移至回收站",
+                "itemFavorited": "{{name}} 已标记为收藏",
+                "itemUnfavorited": "{{name}} 已取消标记为收藏",
                 "login": "已登录",
                 "passwordChanged": "密码已更改",
                 "removedSharedInItems": "从{{email}}中删除的共享项目",
                 "removedSharedOutItems": "从{{email}}中删除的共享项目",
                 "requestAccountDeletion": "请求删除账户",
-                "subFolderCreated": "目录{{name}}已创建",
-                "trashEmptied": "垃圾桶已清空",
+                "subFolderCreated": "文件夹{{name}}已创建",
+                "trashEmptied": "回收站已清空",
                 "versionedFileRestored": "{{name}}的版本已恢复"
             },
             "events": "事件",
@@ -1217,10 +1217,10 @@
                 "advanced": "高级",
                 "cameraUpload": "相机上传",
                 "contacts": "联系人",
-                "documentsProvider": "文档提供者",
+                "documentsProvider": "文档提供程序",
                 "documentsProviderInfo": "启用Android文件集成以在应用外访问您的文件。",
                 "events": "事件",
-                "fileProvider": "文件提供者",
+                "fileProvider": "文件提供程序",
                 "fileProviderInfo": "启用iOS文件集成以在应用外访问您的文件。",
                 "security": "安全",
                 "used": "已使用{{used}}，总共{{max}} ({{percentage}}%)",
@@ -1230,11 +1230,11 @@
             "prompts": {
                 "documentsProvider": {
                     "message": "启用文档提供者将禁用生物识别身份验证。这意味着您将无法使用生物识别身份验证解锁应用。您要继续吗？",
-                    "title": "生物特征身份验证已启用"
+                    "title": "生物识别身份验证已启用"
                 },
                 "fileProvider": {
                     "message": "启用文件提供者将禁用生物识别身份验证。这意味着您将无法使用生物识别身份验证来解锁应用。您要继续吗？",
-                    "title": "生物特征身份验证已启用"
+                    "title": "生物识别身份验证已启用"
                 }
             },
             "title": "设置",
@@ -1265,14 +1265,14 @@
                 "weak": "您的新密码太弱。请选择一个更强的密码，至少包含10个字符，混合大小写字母、数字和特殊字符。"
             },
             "items": {
-                "2fa": "双因素认证",
-                "biometricAuth": "生物特征身份验证",
+                "2fa": "双重认证",
+                "biometricAuth": "生物识别身份验证",
                 "changePassword": "更改密码",
-                "exportMasterKeys": "导出主 ключи"
+                "exportMasterKeys": "导出主密钥"
             },
             "prompts": {
                 "changePassword1": {
-                    "message": "更改密码后，您将被注销，并需使用新密码重新登录。",
+                    "message": "更改密码后，您将被退出登录，并需使用新密码重新登录。",
                     "title": "更改密码"
                 },
                 "confirmNewPassword": {
@@ -1294,7 +1294,7 @@
             "copied": "密钥已复制到剪贴板",
             "copyKey": "复制密钥",
             "items": {
-                "2fa": "双因素认证"
+                "2fa": "双重认证"
             },
             "prompts": {
                 "enable": {
@@ -1306,7 +1306,7 @@
         },
         "appearance": {
             "items": {
-                "startOn": "开始屏幕",
+                "startOn": "开始界面",
                 "startOn_chats": "聊天",
                 "startOn_drive": "云盘",
                 "startOn_home": "主页",
@@ -1330,23 +1330,23 @@
         },
         "itemInfo": {
             "creation": "已创建",
-            "directories": "目录",
-            "directory": "目录",
+            "directories": "个文件夹",
+            "directory": "文件夹",
             "files": "文件",
             "location": "位置",
-            "modified": "已修改",
+            "modified": "修改日期",
             "name": "名称",
             "notAvailable": "不适用",
             "size": "大小",
             "type": "类型",
-            "uploaded": "已上传"
+            "uploaded": "上传日期"
         }
     },
     "tabBar": {
         "chats": "聊天记录",
-        "drive": "驱动器",
+        "drive": "云盘",
         "home": "主页",
-        "notes": "备注",
+        "notes": "笔记",
         "photos": "照片",
         "settings": "设置"
     },
@@ -1374,7 +1374,7 @@
                 "delete": "删除",
                 "play": "播放"
             },
-            "subTitle": "{{count}}首曲目，更新于{{date}}"
+            "subTitle": "共{{count}}首曲目，更新于{{date}}"
         },
         "list": {
             "empty": "尚无播放列表",
@@ -1415,7 +1415,7 @@
             "back": "返回",
             "title": "传输"
         },
-        "info": "正在以{{speed}}速度传输{{ongoingTransfers}}个项目，还剩{{remaining}}",
+        "info": "正在以{{speed}}的速度传输{{ongoingTransfers}}个项目，剩余{{remaining}}",
         "list": {
             "empty": "暂无传输",
             "emptySearch": "未找到符合此搜索的传输",
@@ -1430,6 +1430,6 @@
             "stop": "停止",
             "stopAll": "停止所有"
         },
-        "infoNoTime": "正在以 {{speed}} 的速度传输 {{ongoingTransfers}} 项目"
+        "infoNoTime": "正在以 {{speed}} 的速度传输 {{ongoingTransfers}} 个项目"
     }
 }
