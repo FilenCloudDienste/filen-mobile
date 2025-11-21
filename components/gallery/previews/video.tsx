@@ -95,12 +95,16 @@ export const Video = memo(
 					return
 				}
 
-				// eslint-disable-next-line react-hooks/immutability, react-compiler/react-compiler
-				player.currentTime = (value / 100) * duration
+				const seekTo = Math.floor((value / 100) * duration)
+				const seekBy = Math.floor(seekTo - currentTime)
 
-				player.play()
+				if (seekTo >= duration || seekTo <= 0 || seekBy <= 0 || seekBy + currentTime >= duration) {
+					return
+				}
+
+				player.seekBy(seekBy)
 			},
-			[player, loading, duration]
+			[player, loading, duration, currentTime]
 		)
 
 		const doNotPromptBiometricAuth = useCallback(() => {

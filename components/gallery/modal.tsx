@@ -15,12 +15,8 @@ import { ActivityIndicator } from "../nativewindui/ActivityIndicator"
 import { useColorScheme } from "@/lib/useColorScheme"
 import { cn } from "@/lib/cn"
 import { PortalHost } from "@rn-primitives/portal"
-import * as ScreenOrientation from "expo-screen-orientation"
-import useLockOrientation from "@/hooks/useLockOrientation"
 
 export const Item = memo(({ item, index, layout }: { item: GalleryItem; index: number; layout: { width: number; height: number } }) => {
-	useLockOrientation(ScreenOrientation.OrientationLock.PORTRAIT_UP)
-
 	const { colors, isDarkColorScheme } = useColorScheme()
 	const currentVisibleIndex = useGalleryStore(useShallow(state => state.currentVisibleIndex))
 
@@ -117,6 +113,7 @@ export const GalleryModal = memo(() => {
 	const items = useGalleryStore(useShallow(state => state.items))
 	const dimensions = useWindowDimensions()
 	const initialIndex = useGalleryStore(useShallow(state => state.initialIndex))
+	const currentVisibleIndex = useGalleryStore(useShallow(state => state.currentVisibleIndex))
 
 	const renderItem = useCallback(
 		(item: GalleryItem, index: number) => {
@@ -241,10 +238,10 @@ export const GalleryModal = memo(() => {
 						enableLoop={false}
 						dismissThreshold={150}
 						enableDismissGesture={true}
-						enableDoubleTapGesture={true}
+						enableDoubleTapGesture={items[currentVisibleIndex ?? 0]?.previewType === "image"}
 						enableSwipeGesture={true}
-						enableZoomGesture={true}
-						enableZoomPanGesture={true}
+						enableZoomGesture={items[currentVisibleIndex ?? 0]?.previewType === "image"}
+						enableZoomPanGesture={items[currentVisibleIndex ?? 0]?.previewType === "image"}
 						onIndexChange={onIndexChange}
 						maxZoomScale={3}
 						renderItem={renderItem}
