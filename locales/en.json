@@ -1027,7 +1027,8 @@
 		"state": {
 			"synced": "Synced",
 			"syncing": "Syncing",
-			"syncingProgress": "{{done}} of {{total}} items synced"
+			"syncingProgress": "{{done}} of {{total}} items synced",
+			"waiting": "Waiting"
 		},
 		"menu": {
 			"settings": "Settings"

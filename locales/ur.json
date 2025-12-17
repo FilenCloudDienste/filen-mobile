@@ -846,7 +846,8 @@
         "state": {
             "synced": "ہم آہنگ کیا گیا",
             "syncing": "ہم آہنگ کر رہے ہیں",
-            "syncingProgress": "{{done}} کے {{total}} آئٹمز کو ہم آہنگ کیا گیا"
+            "syncingProgress": "{{done}} کے {{total}} آئٹمز کو ہم آہنگ کیا گیا",
+            "waiting": "انتظار کر رہے ہیں"
         },
         "title": "تصاویر"
     },

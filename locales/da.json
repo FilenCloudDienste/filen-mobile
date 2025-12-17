@@ -846,7 +846,8 @@
         "state": {
             "synced": "Synkroniseret",
             "syncing": "Synkronisering",
-            "syncingProgress": "{{done}} af {{total}} emner synkroniseret"
+            "syncingProgress": "{{done}} af {{total}} emner synkroniseret",
+            "waiting": "Venter"
         },
         "title": "Fotos"
     },

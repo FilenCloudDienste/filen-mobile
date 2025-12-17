@@ -846,7 +846,8 @@
         "state": {
             "synced": "Synkronoitu",
             "syncing": "Synkronoidaan",
-            "syncingProgress": "{{done}}/{{total}} kohdetta synkronoitu"
+            "syncingProgress": "{{done}}/{{total}} kohdetta synkronoitu",
+            "waiting": "Odottaa"
         },
         "title": "Kuvat"
     },

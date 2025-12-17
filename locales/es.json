@@ -846,7 +846,8 @@
         "state": {
             "synced": "Sincronizado",
             "syncing": "Sincronizando",
-            "syncingProgress": "{{done}} de {{total}} elementos sincronizados"
+            "syncingProgress": "{{done}} de {{total}} elementos sincronizados",
+            "waiting": "Esperando"
         },
         "title": "Fotos"
     },

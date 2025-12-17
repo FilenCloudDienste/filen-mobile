@@ -846,7 +846,8 @@
         "state": {
             "synced": "Synkroniserad",
             "syncing": "Synkroniserar",
-            "syncingProgress": "{{done}} av {{total}} objekt synkroniserade"
+            "syncingProgress": "{{done}} av {{total}} objekt synkroniserade",
+            "waiting": "Väntar"
         },
         "title": "Foton"
     },

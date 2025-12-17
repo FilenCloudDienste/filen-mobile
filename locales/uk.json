@@ -846,7 +846,8 @@
         "state": {
             "synced": "Синхронізовано",
             "syncing": "Синхронізація",
-            "syncingProgress": "Синхронізовано {{done}} з {{total}} елементів"
+            "syncingProgress": "Синхронізовано {{done}} з {{total}} елементів",
+            "waiting": "Очікування"
         },
         "title": "Фотографії"
     },

@@ -846,7 +846,8 @@
         "state": {
             "synced": "Tersinkronisasi",
             "syncing": "Sinkronisasi",
-            "syncingProgress": "{{done}} dari {{total}} item tersinkronisasi"
+            "syncingProgress": "{{done}} dari {{total}} item tersinkronisasi",
+            "waiting": "Menunggu"
         },
         "title": "Foto"
     },

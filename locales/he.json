@@ -846,7 +846,8 @@
         "state": {
             "synced": "סונכרן",
             "syncing": "סנכרון",
-            "syncingProgress": "{{done}} מתוך {{total}} פריטים סונכרנו"
+            "syncingProgress": "{{done}} מתוך {{total}} פריטים סונכרנו",
+            "waiting": "ממתין"
         },
         "title": "תמונות"
     },

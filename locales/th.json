@@ -846,7 +846,8 @@
         "state": {
             "synced": "ซิงค์แล้ว",
             "syncing": "กำลังซิงค์",
-            "syncingProgress": "ซิงค์ {{done}} จาก {{total}} รายการแล้ว"
+            "syncingProgress": "ซิงค์ {{done}} จาก {{total}} รายการแล้ว",
+            "waiting": "รอ"
         },
         "title": "รูปภาพ"
     },

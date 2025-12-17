@@ -191,7 +191,8 @@ export const Photos = memo(() => {
 	const [cameraUpload] = useCameraUpload()
 	const router = useRouter()
 	const syncState = useCameraUploadStore(useShallow(state => state.syncState))
-	const running = useCameraUploadStore(useShallow(state => state.running))
+    const running = useCameraUploadStore(useShallow(state => state.running))
+    const waiting = useCameraUploadStore(useShallow(state => state.waiting))
 	const selectedItemsCount = usePhotosStore(useShallow(state => state.selectedItems.length))
 	const listRef = useRef<FlashListRef<DriveCloudItem>>(null)
 	const { screen } = useDimensions()
@@ -316,6 +317,14 @@ export const Photos = memo(() => {
 									size="small"
 									color={colors.foreground}
 								/>
+							</View>
+						) : waiting ? (
+						    <View className="flex-row items-center gap-2">
+                                <ActivityIndicator
+									size="small"
+									color={colors.foreground}
+								/>
+								<Text>{translateMemoized("photos.state.waiting")}</Text>
 							</View>
 						) : (
 							<View className="flex-row items-center gap-2">

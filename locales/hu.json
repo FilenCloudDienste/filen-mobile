@@ -846,7 +846,8 @@
         "state": {
             "synced": "Szinkronizálva",
             "syncing": "Szinkronizálás",
-            "syncingProgress": "{{done}} a(z) {{total}} elemből szinkronizálva"
+            "syncingProgress": "{{done}} a(z) {{total}} elemből szinkronizálva",
+            "waiting": "Várakozás"
         },
         "title": "Fotók"
     },

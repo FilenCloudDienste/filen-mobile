@@ -846,7 +846,8 @@
         "state": {
             "synced": "समन्वयित",
             "syncing": "सिंक कर रहा है",
-            "syncingProgress": "{{done}} में से {{total}} आइटम्स सिंक हुए"
+            "syncingProgress": "{{done}} में से {{total}} आइटम्स सिंक हुए",
+            "waiting": "प्रतीक्षा कर रहा है"
         },
         "title": "फोटो"
     },

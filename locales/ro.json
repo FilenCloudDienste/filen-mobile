@@ -846,7 +846,8 @@
         "state": {
             "synced": "Sincronizat",
             "syncing": "Sincronizare",
-            "syncingProgress": "{{done}} din {{total}} articole sincronizate"
+            "syncingProgress": "{{done}} din {{total}} articole sincronizate",
+            "waiting": "Așteptare"
         },
         "title": "Fotografii"
     },

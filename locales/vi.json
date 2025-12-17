@@ -846,7 +846,8 @@
         "state": {
             "synced": "Đã đồng bộ",
             "syncing": "Đang đồng bộ",
-            "syncingProgress": "{{done}} trên tổng số {{total}} mục đã được đồng bộ"
+            "syncingProgress": "{{done}} trên tổng số {{total}} mục đã được đồng bộ",
+            "waiting": "Đang chờ"
         },
         "title": "Ảnh"
     },
