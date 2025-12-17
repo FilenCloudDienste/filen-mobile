@@ -832,7 +832,7 @@
                     "compressInfo": "Komprese fotek pro úsporu místa na úložišti. Může to snížit kvalitu fotek. Komprese JPG na 80 % kvality.",
                     "enabled": "Povoleno",
                     "lowBattery": "Nízká baterie",
-                    "lowBatteryInfo": "Zakázat nahrávání z fotoaparátu, když je baterie vybitá.",
+                    "lowBatteryInfo": "Povolit nahrávání z fotoaparátu, když je baterie vybitá.",
                     "permissionsError": "Chyba oprávnění",
                     "permissionsErrorInfo": "Povolte aplikaci přístup k vašim fotografiím a videím v systémových nastaveních.",
                     "videos": "Videa",

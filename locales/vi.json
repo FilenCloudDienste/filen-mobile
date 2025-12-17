@@ -832,7 +832,7 @@
                     "compressInfo": "Nén ảnh để tiết kiệm dung lượng lưu trữ. Điều này có thể giảm chất lượng của ảnh. Nén JPG ở chất lượng 80%.",
                     "enabled": "Đã bật",
                     "lowBattery": "Pin yếu",
-                    "lowBatteryInfo": "Tắt tải lên máy ảnh khi pin yếu.",
+                    "lowBatteryInfo": "Cho phép tải lên máy ảnh khi pin yếu.",
                     "permissionsError": "Lỗi quyền truy cập",
                     "permissionsErrorInfo": "Vui lòng cho phép ứng dụng truy cập ảnh và video của bạn trong cài đặt hệ thống.",
                     "videos": "Video",

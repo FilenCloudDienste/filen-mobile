@@ -832,7 +832,7 @@
                     "compressInfo": "Fotók tömörítése a tárolóhely takarékossága érdekében. Ez csökkentheti a fotók minőségét. JPG tömörítés 80%-os minőségen.",
                     "enabled": "Engedélyezve",
                     "lowBattery": "Alacsony akkumulátor",
-                    "lowBatteryInfo": "Disable camera upload when the battery is low.",
+                    "lowBatteryInfo": "Allow camera upload when the battery is low.",
                     "permissionsError": "Engedélyek hiba",
                     "permissionsErrorInfo": "Kérjük, engedélyezze az alkalmazásnak a fényképeinek és videóinak elérését a rendszerbeállításokban.",
                     "videos": "Videók",

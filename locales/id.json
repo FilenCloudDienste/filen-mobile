@@ -832,7 +832,7 @@
                     "compressInfo": "Kompres foto untuk menghemat ruang penyimpanan. Ini dapat mengurangi kualitas foto. Kompresi JPG pada kualitas 80%.",
                     "enabled": "Dinyalakan",
                     "lowBattery": "Baterai lemah",
-                    "lowBatteryInfo": "Nonaktifkan unggahan kamera saat baterai rendah.",
+                    "lowBatteryInfo": "Izinkan unggahan kamera saat baterai rendah.",
                     "permissionsError": "Kesalahan izin",
                     "permissionsErrorInfo": "Harap izinkan aplikasi mengakses foto dan video Anda di pengaturan sistem.",
                     "videos": "Video",

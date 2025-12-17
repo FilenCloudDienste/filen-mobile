@@ -832,7 +832,7 @@
                     "compressInfo": "Comprimați fotografiile pentru a economisi spațiu de stocare. Aceasta poate reduce calitatea fotografiilor. Comprimare JPG la o calitate de 80%.",
                     "enabled": "Activat",
                     "lowBattery": "Baterie scăzută",
-                    "lowBatteryInfo": "Dezactivați încărcarea de pe cameră atunci când bateria este la un nivel scăzut.",
+                    "lowBatteryInfo": "Permiteți încărcarea de pe cameră atunci când bateria este la un nivel scăzut.",
                     "permissionsError": "Eroare de permisiuni",
                     "permissionsErrorInfo": "Te rugăm să permiți aplicației accesul la fotografiile și videoclipurile tale în setările sistemului.",
                     "videos": "Video",

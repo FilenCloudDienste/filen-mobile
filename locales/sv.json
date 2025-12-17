@@ -832,7 +832,7 @@
                     "compressInfo": "Komprimera foton för att spara lagringsutrymme. Detta kan försämra fotonas kvalitet. JPG-komprimering på 80% kvalitet.",
                     "enabled": "Aktiverad",
                     "lowBattery": "Låg batterinivå",
-                    "lowBatteryInfo": "Inaktivera kamerauppladdning när batteriet är lågt.",
+                    "lowBatteryInfo": "Tillåt kamerauppladdning när batteriet är lågt.",
                     "permissionsError": "Behörighetsfel",
                     "permissionsErrorInfo": "Vänligen tillåt appen att få åtkomst till dina foton och videor i systeminställningarna.",
                     "videos": "Videor",

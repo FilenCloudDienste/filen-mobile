@@ -832,7 +832,7 @@
                     "compressInfo": "Komprimer fotos for at spare lagerplads. Dette kan reducere kvaliteten af ​​billederne. JPG-komprimering ved 80% kvalitet.",
                     "enabled": "Aktiveret",
                     "lowBattery": "Lavt batteri",
-                    "lowBatteryInfo": "Deaktiver kamera-upload, når batteriet er lavt.",
+                    "lowBatteryInfo": "Tillad kamera-upload, når batteriet er lavt.",
                     "permissionsError": "Tilladelsesfejl",
                     "permissionsErrorInfo": "Tillad venligst appen at få adgang til dine fotos og videoer i systemindstillingerne.",
                     "videos": "Videoer",
