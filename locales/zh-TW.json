@@ -1,0 +1,1435 @@
+{
+	"copiedToClipboard": "已複製到剪貼簿",
+	"localAuthentication": {
+		"cancelLabel": "取消",
+		"promptMessage": "驗證以繼續"
+	},
+	"errors": {
+		"cannotOpenURL": "無法開啟網址。",
+		"youAreOffline": "您已離線，請檢查您的網路連線。",
+		"notEnoughDiskSpace": "本機磁碟空間不足。",
+		"sharingNotAvailable": "無法在此裝置上共用。"
+	},
+	"alertPrompt": {
+		"defaults": {
+			"title": "標題",
+			"okText": "好的",
+			"cancelText": "取消"
+		},
+		"exportMasterKeys": {
+			"title": "匯出主金鑰",
+			"message": "您尚未匯出您的主金鑰，強烈建議您現在匯出並儲存在安全的地方。",
+			"okText": "匯出",
+			"cancelText": "之後再說"
+		},
+		"storageUsageOverLimit": {
+			"title": "超出儲存空間限制",
+			"message": "您已超出儲存空間限制，請釋放一些空間或升級您的方案，以防止資料被刪除。",
+			"okText": "升級", 
+			"cancelText": "之後再說"
+		},
+		"exportMasterKeys2": {
+			"title": "匯出主金鑰",
+			"message": "強烈建議您匯出主金鑰並儲存在安全的地方。如果您忘記密碼，沒有主金鑰將使您無法存取您的資料。",
+			"okText": "匯出",
+			"cancelText": "取消"
+		}
+	},
+	"inputPrompt": {
+		"defaults": {
+			"title": "標題",
+			"okText": "好的",
+			"cancelText": "取消"
+		}
+	},
+	"drive": {
+		"header": {
+			"title": {
+				"drive": "雲端硬碟",
+				"selected": "已選擇 {{count}} 項",
+				"recents": "近期存取",
+				"favorites": "喜好項目",
+				"sharedIn": "與您共用",
+				"sharedOut": "與他人共用",
+				"offline": "可離線存取",
+				"links": "公開連結",
+				"trash": "垃圾桶"
+			},
+			"rightView": {
+				"actionSheet": {
+					"upload": {
+						"files": "上傳檔案",
+						"directory": "上傳資料夾",
+						"media": "上傳媒體",
+						"uploaded": "已上傳 {{name}}"
+					},
+					"create": {
+						"textFile": "建立文字檔案",
+						"directory": "建立資料夾",
+						"photo": "拍照",
+						"created": "已建立 {{name}}"
+					},
+					"cancel": "取消",
+					"noMediaPermissions": "您需要授予媒體權限以上傳相片或影片。",
+					"itemsUploaded": "已上傳 {{count}} 個項目",
+					"directoryNamePlaceholder": "資料夾名稱",
+					"textFileNamePlaceholder": "文字檔名稱"
+				},
+				"dropdown": {
+					"sortBy": {
+						"sortBy": "排序方式",
+						"ascending": "升序",
+						"descending": "降序",
+						"name": {
+							"title": "名稱",
+							"ascendingTitle": "A 到 Z",
+							"descendingTitle": "Z 到 A"
+						},
+						"uploadDate": {
+							"title": "上傳日期",
+							"ascendingTitle": "最舊在上",
+							"descendingTitle": "最新在上"
+						},
+						"lastModified": {
+							"title": "修改日期",
+							"ascendingTitle": "最舊在上",
+							"descendingTitle": "最新在上"
+						},
+						"type": {
+							"title": "類型",
+							"ascendingTitle": "升序",
+							"descendingTitle": "降序"
+						},
+						"size": {
+							"title": "大小",
+							"ascendingTitle": "最小在上",
+							"descendingTitle": "最大在上"
+						}
+					},
+					"transfers": "傳輸作業",
+					"listMode": "清單檢視",
+					"gridMode": "格狀檢視",
+					"bulkActions": "批次動作"
+				},
+				"selectAll": "全選",
+				"deselectAll": "取消全選"
+			}
+		},
+		"list": {
+			"footer": "{{count}} 個項目",
+			"empty": "找不到項目",
+			"emptySearch": "找不到符合此搜尋的項目",
+			"error": "載入您的雲端硬碟時發生錯誤，請稍後再試。",
+			"item": {
+				"menu": {
+					"select": "選擇",
+					"deselect": "取消選擇",
+					"download": "下載",
+					"publicLink": "公開連結",
+					"share": "共用",
+					"export": "匯出",
+					"favorite": "加入喜好項目",
+					"unfavorite": "移除喜好項目",
+					"favorited": "已加入喜好項目",
+					"selectAll": "全選",
+					"deselectAll": "取消全選",
+					"info": "資訊",
+					"rename": "重新命名",
+					"move": "移動",
+					"copyId": "複製 ID",
+					"delete": "刪除",
+					"trash": "移至垃圾桶",
+					"restore": "復原",
+					"preview": "預覽",
+					"deletePermanently": "永久刪除",
+					"open": "開啟",
+					"color": "顏色",
+					"copyPath": "複製路徑",
+					"makeAvailableOffline": "使可離線存取",
+					"removeOffline": "移除離線檔案",
+					"downloadFolder": "下載資料夾",
+					"saveToGallery": "儲存到圖庫",
+					"copy": "複製",
+					"id": "ID",
+					"path": "路徑",
+					"location": "位置",
+					"versionHistory": "版本歷史",
+					"properties": "屬性",
+					"clipboard": "剪貼簿",
+					"withUser": "與使用者",
+					"removeSharedIn": "移除",
+					"removeSharedOut": "停止共用",
+					"disablePublicLink": "停用連結",
+					"availableOffline": "可離線存取",
+					"share_one": "共用項目",
+					"share_other": "共用 {{count}} 個項目",
+					"favorite_one": "加入喜好項目",
+					"favorite_other": "加入 {{count}} 個喜好項目",
+					"move_one": "移動項目",
+					"move_other": "移動 {{count}} 個項目",
+					"trash_one": "刪除項目",
+					"trash_other": "刪除 {{count}} 個項目"
+				}
+			}
+		},
+		"search": {
+			"list": {
+				"footer": "{{count}} 個項目",
+				"empty": "找不到項目",
+				"emptySearch": "找不到符合此搜尋的項目",
+				"error": "載入搜尋結果時發生錯誤，請稍後再試"
+			}
+		},
+		"prompts": {
+			"renameItem": {
+				"title": "重新命名",
+				"placeholder": "新名稱"
+			},
+			"trashItem": {
+				"title": "移至垃圾桶",
+				"message": "您確定要將此項目移到垃圾桶嗎？您之後可以復原它。"
+			},
+			"removeSharedInItem": {
+				"title": "移除",
+				"message": "您確定要從共用項目中移除此項目嗎？您將無法再檢視或存取它。"
+			},
+			"removeSharedOutItem": {
+				"title": "停止共用",
+				"message": "您確定要停止共用此項目嗎？該使用者將無法再存取它。"
+			},
+			"deletePermanently": {
+				"title": "永久刪除",
+				"message": "您確定要永久刪除此項目嗎？此動作無法復原！"
+			},
+			"trashItems": {
+				"title": "移至垃圾桶",
+				"message": "您確定要將 {{count}} 個項目移到垃圾桶嗎？您之後可以復原它們。"
+			},
+			"deleteItemsPermanently": {
+				"title": "永久刪除",
+				"message": "您確定要永久刪除 {{count}} 個項目嗎？此動作無法復原！"
+			},
+			"removeSharedInItems": {
+				"title": "移除",
+				"message": "您確定要從共用項目中移除 {{count}} 個項目嗎？您將無法再檢視或存取它們。"
+			},
+			"removeSharedOutItems": {
+				"title": "停止共用",
+				"message": "您確定要停止共用 {{count}} 個項目嗎？該使用者將無法再存取它們。"
+			},
+			"disablePublicLinks": {
+				"title": "停用公開連結",
+				"message": "您確定要停用 {{count}} 個項目的公開連結嗎？這些連結將不再可存取。"
+			},
+			"removeOfflineFiles": {
+				"title": "移除離線檔案",
+				"message": "您確定要移除 {{count}} 個離線檔案嗎？它們將不再可離線使用。"
+			}
+		},
+		"itemSharedWith": "已與 {{email}} 共用 {{name}}",
+		"itemShared": "已共用 {{name}}"
+	},
+	"gallery": {
+		"noPreviewAvailable": "無可用預覽"
+	},
+	"nwui": {
+		"search": {
+			"placeholder": "搜尋...",
+			"cancel": "取消"
+		}
+	},
+	"sheets": {
+		"itemInfo": {
+			"name": "名稱",
+			"size": "大小",
+			"type": "類型",
+			"location": "路徑",
+			"modified": "修改日期",
+			"uploaded": "上傳日期",
+			"directories": "資料夾數",
+			"files": "檔案數",
+			"notAvailable": "不適用",
+			"creation": "建立日期",
+			"directory": "資料夾"
+		},
+		"colorPicker": {
+			"select": "選擇",
+			"cancel": "取消"
+		}
+	},
+	"fileVersionHistory": {
+		"header": {
+			"title": "版本歷史"
+		},
+		"list": {
+			"item": {
+				"current": "目前",
+				"delete": "刪除",
+				"restore": "復原"
+			},
+			"empty": "尚無版本",
+			"emptySearch": "此搜尋中找不到版本",
+			"error": "載入檔案版本時發生錯誤，請稍後再試。"
+		},
+		"alerts": {
+			"delete": {
+				"title": "刪除版本",
+				"message": "您確定要刪除此版本嗎？此動作無法復原！",
+				"confirm": "刪除",
+				"cancel": "取消"
+			},
+			"restore": {
+				"title": "復原版本",
+				"message": "您確定要復原此版本嗎？這會覆寫目前的檔案。",
+				"confirm": "復原",
+				"cancel": "取消"
+			}
+		}
+	},
+	"home": {
+		"title": "首頁",
+		"container": {
+			"recents": {
+				"title": "近期存取"
+			},
+			"favorites": {
+				"title": "喜好項目"
+			},
+			"sharedIn": {
+				"title": "與您共用"
+			},
+			"sharedOut": {
+				"title": "與他人共用"
+			},
+			"offline": {
+				"title": "可離線存取"
+			},
+			"links": {
+				"title": "公開連結"
+			},
+			"trash": {
+				"title": "垃圾桶"
+			}
+		},
+		"listEmpty": {
+			"recents": "暫無近期存取",
+			"favorites": "暫無喜好項目",
+			"sharedIn": "暫無與您共用的項目",
+			"sharedOut": "暫無與他人共用的項目",
+			"offline": "暫無可離線存取的項目",
+			"links": "暫無公開連結",
+			"trash": "暫無被刪除的項目"
+		}
+	},
+	"chats": {
+		"chat": "對話",
+		"chats": "對話",
+		"typing": "{{users}} 正在輸入...",
+		"messages": {
+			"menu": {
+				"copyText": "複製文字",
+				"copyId": "複製 ID",
+				"reply": "回覆",
+				"edit": "編輯",
+				"delete": "刪除",
+				"disableEmbeds": "停用嵌入內容",
+				"cancel": "取消"
+			},
+			"time": {
+				"now": "現在",
+				"todayAt": "今天 {{date}}",
+				"yesterdayAt": "昨天 {{date}}",
+				"secondAgo": "{{seconds}} 秒前",
+				"secondsAgo": "{{seconds}} 秒前",
+				"minuteAgo": "{{minutes}} 分鐘前",
+				"minutesAgo": "{{minutes}} 分鐘前",
+				"hourAgo": "{{hours}} 小時前",
+				"hoursAgo": "{{hours}} 小時前"
+			},
+			"new": "新",
+			"everyone": "所有人",
+			"unknown": "未知",
+			"undecryptable": "無法解密訊息。"
+		},
+		"menu": {
+			"leave": "離開",
+			"delete": "刪除",
+			"rename": "重新命名",
+			"mute": "關閉通知",
+			"unmute": "開啟通知",
+			"archive": "封存",
+			"unarchive": "取消封存",
+			"pin": "釘選",
+			"unpin": "取消釘選",
+			"favorite": "加入喜好項目",
+			"unfavorite": "移除喜好項目",
+			"markAsRead": "標記為已讀",
+			"participants": "參與者",
+			"muted": "關閉通知"
+		},
+		"prompts": {
+			"deleteMessage": {
+				"title": "刪除訊息",
+				"message": "您確定要刪除此訊息嗎？此動作無法復原！"
+			},
+			"disableEmbeds": {
+				"title": "停用嵌入內容",
+				"message": "您確定要停用此訊息的嵌入內容嗎？這將刪除任何嵌入內容。"
+			},
+			"leaveChat": {
+				"title": "離開對話",
+				"message": "您確定要離開此對話嗎？您將無法再在此對話中檢視或傳送訊息。"
+			},
+			"deleteChat": {
+				"title": "刪除對話",
+				"message": "您確定要刪除此對話嗎？這會將此對話從您的列表中移除，且您將無法再在此對話中檢視或傳送訊息。"
+			},
+			"leaveChats": {
+				"title": "離開對話",
+				"message": "您確定要離開 {{count}} 個對話嗎？您將無法再在這些對話中檢視或傳送訊息。"
+			},
+			"deleteChats": {
+				"title": "刪除對話",
+				"message": "您確定要刪除 {{count}} 個對話嗎？這會將這些對話從您的列表中移除，且您將無法再在這些對話中檢視或傳送訊息。"
+			},
+			"renameChat": {
+				"title": "重新命名對話",
+				"placeholder": "新名稱"
+			}
+		},
+		"participants": {
+			"menu": {
+				"remove": "移除"
+			},
+			"participants": "參與者",
+			"participant": "參與者",
+			"prompts": {
+				"remove": {
+					"title": "移除參與者",
+					"message": "您確定要移除此參與者嗎？他們將無法再在此對話中檢視或傳送訊息。",
+					"success": "已移除 {{name}}"
+				}
+			}
+		},
+		"list": {
+			"empty": "找不到對話",
+			"emptySearch": "找不到符合此搜尋的對話",
+			"error": "載入您的對話時發生錯誤，請稍後再試。"
+		},
+		"input": {
+			"placeholder": "輸入訊息",
+			"send": "傳送",
+			"suggestions": {
+				"emojis": {
+					"matching": "與 {{query}} 符合的表情符號"
+				},
+				"mention": {
+					"matching": "與 {{query}} 符合的使用者"
+				},
+				"replyTo": {
+					"replyingTo": "正在回覆 {{name}}"
+				}
+			},
+			"attachment": {
+				"options": {
+					"addMedia": "新增媒體",
+					"addPhotos": "新增相片",
+					"addFiles": "新增檔案",
+					"addDriveItems": "新增雲端硬碟項目",
+					"cancel": "取消"
+				}
+			}
+		},
+		"header": {
+			"newMessages": "{{count}} 則新訊息",
+			"search": "搜尋對話...",
+			"title": "對話"
+		},
+		"item": {
+			"draft": "草稿",
+			"you": "您",
+			"noMessages": "暫無訊息"
+		}
+	},
+	"notes": {
+		"title": "筆記",
+		"list": {
+			"footer": "{{count}} 個項目",
+			"empty": "暫無筆記",
+			"emptySearch": "找不到符合此搜尋的筆記",
+			"error": "載入您的筆記時發生錯誤，請稍後再試。"
+		},
+		"menu": {
+			"history": "歷史紀錄",
+			"participants": "參與者",
+			"type": "類型",
+			"types": {
+				"text": "純文字",
+				"checklist": "清單",
+				"rich": "富文字",
+				"md": "Markdown",
+				"code": "程式碼"
+			},
+			"pin": "釘選",
+			"unpin": "取消釘選",
+			"favorite": "加入喜好項目",
+			"unfavorite": "移除喜好項目",
+			"tags": "標籤",
+			"duplicate": "建立副本",
+			"export": "匯出",
+			"clipboard": "剪貼簿",
+			"copyId": "複製 ID",
+			"archive": "封存",
+			"trash": "移至垃圾桶",
+			"restore": "復原",
+			"delete": "刪除",
+			"pinned": "已釘選",
+			"favorited": "已加入喜好項目",
+			"leave": "離開",
+			"preview": "預覽",
+			"rename": "重新命名",
+			"select": "選擇",
+			"deselect": "取消選擇"
+		},
+		"participants": {
+			"title": "參與者",
+			"menu": {
+				"remove": "移除",
+				"permissionsWrite": "寫入權限"
+			},
+			"list": {
+				"footer": "{{count}} 位參與者",
+				"empty": "暫無參與者",
+				"emptySearch": "找不到符合此搜尋的參與者",
+				"error": "載入參與者時發生錯誤，請稍後再試"
+			}
+		},
+		"tags": {
+			"names": {
+				"all": "全部",
+				"favorited": "已加入喜好項目",
+				"archived": "已封存",
+				"pinned": "已釘選",
+				"shared": "已共用",
+				"trash": "垃圾桶"
+			},
+			"menu": {
+				"rename": "重新命名",
+				"delete": "刪除",
+				"favorited": "已收藏"
+			}
+		},
+		"history": {
+			"title": "歷史紀錄",
+			"noPreview": "無可用預覽",
+			"list": {
+				"footer": "{{count}} 個項目",
+				"empty": "無可用歷史紀錄",
+				"emptySearch": "找不到符合此搜尋的項目",
+				"error": "載入歷史紀錄時發生錯誤，請稍後再試"
+			},
+			"restore": "復原",
+			"prompts": {
+				"restore": {
+					"title": "復原筆記",
+					"message": "您確定要復原此筆記嗎？這會覆寫目前筆記。"
+				}
+			}
+		},
+		"prompts": {
+			"createNote": {
+				"title": "建立筆記",
+				"placeholder": "筆記標題"
+			},
+			"trashNote": {
+				"title": "移至垃圾桶",
+				"message": "您確定要將此筆記移到垃圾桶嗎？您之後可以復原它。"
+			},
+			"trashNotes": {
+				"title": "移至垃圾桶",
+				"message": "您確定要將 {{count}} 個筆記移到垃圾箱嗎？您之後可以復原它們。"
+			},
+			"renameNote": {
+				"title": "重新命名筆記",
+				"placeholder": "新名稱"
+			},
+			"deleteNote": {
+				"title": "刪除筆記",
+				"message": "您確定要永久刪除此筆記嗎？此動作無法復原！"
+			},
+			"deleteNotes": {
+				"title": "刪除筆記",
+				"message": "您確定要永久刪除 {{count}} 個筆記嗎？此動作無法復原！"
+			},
+			"leaveNote": {
+				"title": "離開筆記",
+				"message": "您確定要離開此筆記嗎？您將無法再檢視或編輯它。"
+			},
+			"leaveNotes": {
+				"title": "離開筆記",
+				"message": "您確定要離開 {{count}} 個筆記嗎？您將無法再檢視或編輯它們。"
+			},
+			"removeParticipant": {
+				"title": "移除參與者",
+				"message": "您確定要移除此參與者嗎？他們將無法再檢視或編輯此筆記。"
+			},
+			"removeParticipants": {
+				"title": "移除參與者",
+				"message": "您確定要移除 {{count}} 個參與者嗎？他們將無法再檢視或編輯這些筆記。"
+			},
+			"createTag": {
+				"title": "建立標籤",
+				"placeholder": "標籤名稱"
+			},
+			"deleteTag": {
+				"title": "刪除標籤",
+				"message": "您確定要刪除此標籤嗎？此動作無法復原！"
+			},
+			"deleteTags": {
+				"title": "刪除標籤",
+				"message": "您確定要刪除 {{count}} 個標籤嗎？此動作無法復原！"
+			},
+			"renameTag": {
+				"title": "重新命名標籤",
+				"placeholder": "新標籤名稱"
+			}
+		},
+		"header": {
+			"title": "筆記",
+			"selected": "已選擇 {{count}} 項",
+			"menu": {
+				"settings": "設定"
+			},
+			"dropdown": {
+				"types": {
+					"markdown": "Markdown",
+					"checklist": "清單",
+					"text": "純文字",
+					"rich": "富文字",
+					"code": "程式碼"
+				},
+				"items": {
+					"selectAll": "全選",
+					"deselectAll": "取消全選"
+				}
+			}
+		},
+		"content": {
+			"placeholders": {
+				"text": "在這裡寫下您的文字...",
+				"code": "在這裡寫下您的程式碼..."
+			}
+		}
+	},
+	"listEmpty": {
+		"error": "發生錯誤，請稍後再試",
+		"empty": "找不到任何內容",
+		"emptySearch": "此搜尋找不到結果"
+	},
+	"settings": {
+		"advanced": {
+			"title": "進階",
+			"prompts": {
+				"clearCache": {
+					"title": "清除快取",
+					"message": "清除快取將刪除暫存檔。這可能會中斷正在進行的上傳或下載。您確定要繼續嗎？"
+				},
+				"clearThumbnails": {
+					"title": "清除縮圖",
+					"message": "清除縮圖會讓應用程式重新下載所有可見的縮圖。您確定要繼續嗎？"
+				},
+				"clearTrackPlayer": {
+					"title": "清除音訊播放器",
+					"message": "清除播音訊播放器快取會移除已快取的曲目與圖片，可能會導致載入時間變長。您確定要繼續嗎？"
+				},
+				"clearOfflineFiles": {
+					"title": "清除離線檔案",
+					"message": "清除離線檔案將移除所有可離線使用的檔案。您確定要繼續嗎？"
+				}
+			},
+			"items": {
+				"clearCache": "清除快取",
+				"clearThumbnails": "清除縮圖",
+				"clearTrackPlayer": "清除音訊播放器",
+				"clearOfflineFiles": "清除離線檔案",
+				"fileProviderCache": "FileProvider 快取",
+				"documentsProviderCache": "DocumentsProvider 快取",
+				"documentsProviderCacheInfo": "DocumentsProvider 快取用於加速在其他應用程式中使用 Filen 時存取檔案的速度。",
+				"fileProviderCacheInfo": "FileProvider 快取用於加速在其他應用程式中使用 Filen 時存取檔案的速度。"
+			}
+		},
+		"contacts": {
+			"title": "聯絡人",
+			"tabs": {
+				"all": "全部",
+				"online": "線上",
+				"offline": "離線",
+				"blocked": "已封鎖",
+				"requests": "收到的請求",
+				"pending": "發出的請求"
+			},
+			"listEmpty": {
+				"all": {
+					"error": "載入您的聯絡人時發生錯誤，請稍後再試",
+					"empty": "找不到聯絡人",
+					"emptySearch": "找不到符合此搜尋的聯絡人"
+				},
+				"online": {
+					"error": "載入您的聯絡人時發生錯誤，請稍後再試",
+					"empty": "找不到線上聯絡人",
+					"emptySearch": "找不到符合此搜尋的線上聯絡人"
+				},
+				"offline": {
+					"error": "載入您的聯絡人時發生錯誤，請稍後再試",
+					"empty": "找不到離線聯絡人",
+					"emptySearch": "找不到符合此搜尋的離線聯絡人"
+				},
+				"blocked": {
+					"error": "載入您的聯絡人時發生錯誤，請稍後再試",
+					"empty": "找不到已封鎖的聯絡人",
+					"emptySearch": "找不到符合此搜尋的已封鎖的聯絡人"
+				},
+				"requests": {
+					"error": "載入您的聯絡人請求時發生錯誤，請稍後再試",
+					"empty": "找不到聯絡人請求",
+					"emptySearch": "找不到符合此搜尋的聯絡人請求"
+				},
+				"pending": {
+					"error": "載入您的聯絡人請求時發生錯誤，請稍後再試",
+					"empty": "找不到聯絡人請求",
+					"emptySearch": "找不到符合此搜尋的聯絡人請求"
+				}
+			},
+			"prompts": {
+				"removeContact": {
+					"title": "刪除聯絡人",
+					"message": "您確定要刪除此聯絡人嗎？",
+					"success": "已刪除 {{email}}"
+				},
+				"removeContacts": {
+					"title": "刪除聯絡人",
+					"message": "您確定要刪除 {{count}} 個聯絡人嗎？",
+					"success": "已刪除 {{count}} 個聯絡人"
+				},
+				"blockContact": {
+					"title": "封鎖聯絡人",
+					"message": "您確定要封鎖此聯絡人嗎？",
+					"success": "已封鎖 {{email}}"
+				},
+				"blockContacts": {
+					"title": "封鎖聯絡人",
+					"message": "您確定要封鎖 {{count}} 個聯絡人嗎？",
+					"success": "已封鎖 {{count}} 聯絡人"
+				},
+				"unblockContact": {
+					"title": "解除封鎖此聯絡人",
+					"message": "您確定要解除封鎖此聯絡人嗎？",
+					"success": "已解除封鎖 {{email}}"
+				},
+				"unblockContacts": {
+					"title": "解除封鎖聯絡人",
+					"message": "您確定要解除封鎖 {{count}} 個聯絡人嗎？",
+					"success": "已解除封鎖 {{count}} 個聯絡人"
+				},
+				"sendRequest": {
+					"title": "傳送聯絡人請求",
+					"placeholder": "Filen 電子郵件地址",
+					"success": "聯絡人請求已傳送到 {{email}}"
+				}
+			}
+		},
+		"events": {
+			"title": "事件",
+			"event": "事件",
+			"events": "事件",
+			"listEmpty": {
+				"error": "載入您的事件時發生錯誤，請稍後再試",
+				"empty": "找不到事件",
+				"emptySearch": "找不到符合此搜尋的事件"
+			},
+			"eventInfo": {
+				"2faDisabled": "已停用雙重驗證",
+				"2faEnabled": "已啟用雙重驗證",
+				"deleteFilePermanently": "已永久刪除 {{name}}",
+				"deleteAll": "已永久刪除所有資料夾和檔案",
+				"codeRedeemed": "已兌換代碼 “{{code}}”",
+				"baseFolderCreated": "已建立基底資料夾",
+				"deleteFolderPermanently": "已永久刪除 {{name}}",
+				"deleteUnfinished": "已刪除未完成的檔案上傳",
+				"login": "已登入",
+				"deleteVersioned": "所有版本檔案已刪除",
+				"emailChangeAttempt": "試圖變更電子郵件地址",
+				"emailChanged": "已變更電子郵件地址",
+				"passwordChanged": "已變更密碼",
+				"failedLogin": "試圖登入失敗",
+				"fileLinkEdited": "已編輯 {{name}} 的公開連結",
+				"fileMetadataChanged": "已變更 {{name}} 的元資料",
+				"fileMoved": "已移動 {{name}}",
+				"fileRenamed": "{{oldName}} 重新命名為 {{newName}}",
+				"fileShared": "已與 {{email}} 共用 {{name}}",
+				"fileUploaded": "已上傳 {{name}}",
+				"fileRestored": "已復原 {{name}}",
+				"fileRm": "已刪除 {{name}}",
+				"fileTrash": "已將 {{name}} 移至垃圾桶",
+				"fileVersioned": "已將 {{name}} 計入版本",
+				"folderColorChanged": "已變更資料夾 {{name}} 的顏色",
+				"folderLinkEdited": "已編輯資料夾的公開連結",
+				"folderMetadataChanged": "已變更資料夾 {{name}} 的元資料",
+				"folderMoved": "已移動資料夾 {{name}}",
+				"folderRenamed": "資料夾 {{oldName}} 重新命名為 {{newName}}",
+				"folderShared": "已與 {{email}} 分享資料夾 {{name}}",
+				"folderRestored": "已復原資料夾 {{name}}",
+				"folderTrash": "已將資料夾 {{name}} 移至垃圾桶",
+				"itemFavorited": "已將 {{name}} 加入喜好項目",
+				"itemUnfavorited": "已將 {{name}} 移除喜好項目",
+				"removedSharedInItems": "已從 {{email}} 刪除共用項目",
+				"removedSharedOutItems": "已從 {{email}} 刪除共用項目",
+				"requestAccountDeletion": "已請求刪除帳戶",
+				"subFolderCreated": "已建立資料夾 {{name}}",
+				"trashEmptied": "已清空垃圾桶",
+				"versionedFileRestored": "已復原 {{name}} 的版本"
+			}
+		},
+		"biometric": {
+			"title": "安全性",
+			"lockAppAfter": {
+				"never": "永不",
+				"immediately": "立即",
+				"oneMinute": "1 分鐘後",
+				"fiveMinutes": "5 分鐘後",
+				"tenMinutes": "10 分鐘後",
+				"fifteenMinutes": "15 分鐘後",
+				"thirtyMinutes": "30 分鐘後",
+				"oneHour": "1 小時後",
+				"minutes": "{{minutes}} 分鐘後"
+			},
+			"items": {
+				"biometricAuth": "生物辨識驗證",
+				"lockAppAfter": "鎖定應用程式於",
+				"pinOnly": "僅 PIN"
+			},
+			"prompts": {
+				"enable": {
+					"title": "設定備用 PIN",
+					"placeholder": "備用 PIN"
+				},
+				"enableConfirm": {
+					"title": "確認備用 PIN",
+					"placeholder": "確認 PIN"
+				},
+				"disable": {
+					"title": "停用生物辨識驗證",
+					"message": "您確定要停用生物辨識驗證嗎？"
+				},
+				"fileProvider": {
+					"title": "已啟用 File provider",
+					"message": "啟用生物辨識驗證將停用 file provider，這表示您將無法再從其他應用程式透過 Filen 的檔案提供者存取檔案。您要繼續嗎？"
+				},
+				"documentsProvider": {
+					"title": "已啟用 Documents provider",
+					"message": "啟用生物辨識驗證將停用 documents provider，這表示您將無法再從其他應用程式透過 Filen 的文件提供者存取檔案。您要繼續嗎？"
+				}
+			},
+			"errors": {
+				"pinTooShort": "備用 PIN 至少須 4 位數字。",
+				"pinTooLong": "備用 PIN 不可超過 128 位數字。",
+				"pinNotMatching": "備用 PIN 不一致。",
+				"biometricAuthNotAvailable": "此裝置無法使用生物辨識驗證。請改用僅 PIN 驗證，或使用支援生物辨識的裝置。"
+			}
+		},
+		"security": {
+			"title": "安全性",
+			"items": {
+				"changePassword": "變更密碼",
+				"2fa": "雙重驗證",
+				"biometricAuth": "生物辨識驗證",
+				"exportMasterKeys": "匯出主金鑰"
+			},
+			"prompts": {
+				"changePassword1": {
+					"title": "變更密碼",
+					"message": "更改密碼後，您將被登出，且需使用新密碼重新登入。"
+				},
+				"currentPassword": {
+					"title": "您目前的密碼",
+					"placeholder": "目前密碼"
+				},
+				"newPassword": {
+					"title": "您的新密碼",
+					"placeholder": "新密碼"
+				},
+				"confirmNewPassword": {
+					"title": "確認新密碼",
+					"placeholder": "確認密碼"
+				}
+			},
+			"errors": {
+				"passwordsDoNotMatch": "新密碼不一致。",
+                "weak": "您的新密碼太弱，請選擇更強的密碼。至少 10 個字元，並包含大小寫字母、數字與特殊字元。"
+			}
+		},
+		"twoFactorAuth": {
+			"title": "安全性",
+			"copyKey": "複製金鑰",
+			"copied": "金鑰已複製到剪貼簿",
+			"items": {
+				"2fa": "雙重驗證"
+			},
+			"prompts": {
+				"enable": {
+					"title": "輸入代碼",
+					"placeholder": "代碼"
+				}
+			}
+		},
+		"account": {
+			"title": "帳戶",
+			"items": {
+				"changeAvatar": "變更頭像",
+				"emailAddress": "電子郵件地址",
+				"personalInformation": "個人資訊",
+				"nickname": "暱稱",
+				"gdpr": "GDPR 資訊",
+				"more": "更多帳戶設定",
+				"fileVersioning": "檔案版本控制",
+				"fileVersioningInfo": "啟用檔案版本控制以追蹤檔案變更。",
+				"loginAlerts": "登入警告",
+				"loginAlertsInfo": "當您的帳戶被存取時接收警告。",
+				"deleteVersionedFiles": "刪除版本檔案",
+				"deleteAllFilesAndDirectories": "刪除所有檔案和資料夾",
+				"logout": "登出",
+				"requestAccountDeletion": "請求刪除帳戶",
+				"requestAccountDeletionInfo": "請求刪除帳戶。我們會向您傳送一封包含進一步說明的電子郵件。"
+			},
+			"prompts": {
+				"logout": {
+					"title": "登出",
+					"message": "您確定要登出嗎？您需要重新登入才能存取您的帳戶。"
+				},
+				"deleteAccount": {
+					"title": "請求刪除帳戶",
+					"message": "您確定要請求帳戶刪除嗎？您會收到一封包含進一步說明的電子郵件。"
+				},
+				"2fa": {
+					"title": "雙重驗證",
+					"placeholder": "代碼"
+				},
+				"deleteAllFilesAndDirectories1": {
+					"title": "刪除所有檔案和資料夾",
+					"message": "您確定要刪除所有檔案和資料夾嗎？此動作無法復原！"
+				},
+				"deleteAllFilesAndDirectories2": {
+					"title": "刪除所有檔案和資料夾",
+					"message": "您真的確定嗎？此動作無法復原！"
+				},
+				"deleteVersionedFiles1": {
+					"title": "刪除版本檔案",
+					"message": "您確定要刪除所有版本檔案嗎？此動作無法復原！"
+				},
+				"deleteVersionedFiles2": {
+					"title": "刪除版本檔案",
+					"message": "您真的確定嗎？此動作無法復原！"
+				},
+				"changeEmail": {
+					"newEmail": {
+						"title": "新電子郵件地址",
+						"placeholder": "新電子郵件地址"
+					},
+					"confirmEmail": {
+						"title": "確認新的電子郵件地址",
+						"placeholder": "確認新的電子郵件地址"
+					},
+					"password": {
+						"title": "您的密碼",
+						"placeholder": "密碼"
+					}
+				},
+				"updateNickname": {
+					"title": "更新暱稱",
+					"placeholder": "新暱稱"
+				},
+				"more": {
+					"title": "開啟網頁應用程式",
+					"message": "網頁應用程式中有更多設定，您想現在開啟嗎？"
+				}
+			},
+			"errors": {
+				"emailsNotMatching": "新電子郵件地址不一致。",
+				"avatarLimit": "頭像圖片大小超過 3 MiB 上限。"
+			}
+		},
+		"index": {
+			"title": "設定",
+			"back": "返回",
+			"items": {
+				"used": "{{used}} / {{max}} ({{percentage}}%)",
+				"security": "安全性",
+				"events": "事件",
+				"cameraUpload": "相機上傳",
+				"fileProvider": "檔案提供者",
+				"fileProviderInfo": "啟用 iOS 檔案整合以在應用程式外存取您的檔案。",
+				"documentsProvider": "文件提供者",
+				"documentsProviderInfo": "啟用 Android 檔案整合以在應用程式外存取您的檔案。",
+				"contacts": "聯絡人",
+				"advanced": "進階",
+				"account": "帳戶",
+				"appearance": "外觀"
+			},
+			"prompts": {
+				"fileProvider": {
+					"title": "已啟用生物辨識驗證",
+					"message": "啟用檔案提供者會停用生物辨識驗證，這表示您將無法使用生物辨識解鎖應用程式。您要繼續嗎？"
+				},
+				"documentsProvider": {
+					"title": "已啟用生物辨識驗證",
+					"message": "啟用文件提供者會停用生物辨識驗證，這表示您將無法使用生物辨識解鎖應用程式。您要繼續嗎？"
+				}
+			}
+		},
+		"appearance": {
+			"title": "外觀",
+			"items": {
+				"startOn": "起始畫面",
+				"startOn_home": "首頁",
+				"startOn_drive": "雲端硬碟",
+				"startOn_photos": "相片",
+				"startOn_chats": "對話",
+				"startOn_notes": "筆記"
+			}
+		},
+		"personal": {
+			"title": "個人資訊",
+			"items": {
+				"firstName": "名 (first name)",
+				"lastName": "姓 (last name)",
+				"city": "城市",
+				"country": "國家",
+				"companyName": "公司名稱",
+				"vatId": "加值營業稅 (VAT) ID",
+				"street": "街道",
+				"postalCode": "郵遞區號",
+				"streetNumber": "街道號碼"
+			},
+			"prompts": {
+				"edit": {
+					"title": "編輯"
+				}
+			}
+		}
+	},
+	"photos": {
+		"title": "相片",
+		"list": {
+			"empty": "暫無相片",
+			"emptySearch": "找不到符合此搜尋的相片",
+			"error": "載入您的相片時發生錯誤，請稍後再試"
+		},
+		"state": {
+			"synced": "已同步",
+			"syncing": "同步中",
+			"syncingProgress": "已同步 {{done}}/{{total}} 個項目"
+		},
+		"menu": {
+			"settings": "設定"
+		},
+		"header": {
+			"selected": "已選擇 {{count}} 項"
+		},
+		"settings": {
+			"albums": {
+				"title": "相簿",
+				"item": {
+					"subTitle": "{{count}} 個項目"
+				},
+				"list": {
+					"empty": "找不到相簿",
+					"emptySearch": "找不到符合此搜尋的相簿",
+					"error": "載入您的相簿時發生錯誤，請稍後再試"
+				}
+			},
+			"index": {
+				"title": "設定",
+				"items": {
+					"enabled": "已啟用",
+					"albums": "相簿",
+					"albumsInfo": "選擇要包含在相機上傳中的相簿。",
+					"cloudDirectory": "雲端資料夾",
+					"cloudDirectoryNotSet": "尚未設定",
+					"videos": "影片",
+					"videosInfo": "在相機上傳中包含影片。",
+					"cellular": "行動網路",
+					"cellularInfo": "允許使用行動網路進行相機上傳，可能導致高數據使用量。",
+					"background": "背景",
+					"backgroundInfo": "允許在背景進行相機上傳，可能導致高電池用量。背景上傳僅包含圖像。只在應用程式非被強制停止時運作",
+					"lowBattery": "低電量",
+					"lowBatteryInfo": "當電池電量低時停止相機上傳",
+					"compress": "壓縮",
+					"compressInfo": "壓縮相片以節省儲存空間，可能導致相片品質下降。JPG 壓縮品質為 80%。",
+					"permissionsError": "權限錯誤",
+					"permissionsErrorInfo": "請在系統設定中允許應用程式存取您的相片與影片。",
+					"onlyDeltasAfterActivation": "啟用後",
+					"onlyDeltasAfterActivationInfo": "啟用此功能後，系統只會上傳在啟用相機上傳功能之後拍攝的相片與影片。"
+				},
+				"errors": {
+					"noPermissions": "您需要授予媒體權限以存取您的相片",
+					"noAlbumsSelected": "請至少選擇一個相簿以上傳相片。",
+					"invalidCloudDirectory": "選擇的雲端資料夾無效，請選擇一個有效的資料夾。"
+				}
+			}
+		}
+	},
+	"tabBar": {
+		"home": "首頁",
+		"drive": "雲端硬碟",
+		"photos": "相片",
+		"notes": "筆記",
+		"chats": "對話紀錄",
+		"settings": "設定"
+	},
+	"auth": {
+		"prompts": {
+			"2fa": {
+				"title": "雙重驗證",
+				"placeholder": "代碼"
+			},
+			"resendConfirmation": {
+				"title": "重發確認電郵",
+				"placeholder": "電子郵件地址",
+				"success": "認郵件已寄送至 {{email}}，如果該信箱已註冊。"
+			},
+			"forgotPassword": {
+				"title": "忘記密碼",
+				"placeholder": "電子郵件地址",
+				"success": "如果該電子郵件地址已被註冊，您會收到一封包含密碼重設說明的電子郵件。"
+			}
+		},
+		"registrationSuccessful": "註冊成功！請檢查您的電子郵件以確認您的帳戶。",
+		"index": {
+			"hero": {
+				"first": "端對端加密",
+				"second": "雲端平台"
+			},
+			"signUp": "免費註冊",
+			"login": "登入"
+		},
+		"login": {
+			"title": "登入",
+			"header": {
+				"cancel": "取消"
+			},
+			"welcome": "歡迎回來！",
+			"loginUsingCreds": "使用您的驗證資訊登入",
+			"forgotPassword": "忘記密碼？",
+			"login": "登入",
+			"signUp": "免費註冊",
+			"next": "下一步",
+			"submit": "登入",
+			"errors": {
+				"emptyFields": "請填寫所有欄位。"
+			},
+			"form": {
+				"email": {
+					"label": "電子郵件地址",
+					"placeholder": "輸入您的電子郵件地址"
+				},
+				"password": {
+					"label": "密碼",
+					"placeholder": "輸入您的密碼"
+				}
+			}
+		},
+		"register": {
+			"title": "註冊",
+			"header": {
+				"cancel": "取消",
+				"title": "註冊"
+			},
+			"hero": {
+				"create": "建立您的免費帳戶",
+				"description": "設定您的驗證資訊以開始使用您的 Filen 帳戶。"
+			},
+			"form": {
+				"email": {
+					"label": "電子郵件地址",
+					"placeholder": "輸入您的電子郵件地址"
+				},
+				"confirmEmail": {
+					"label": "確認電子郵件地址",
+					"placeholder": "確認您的電子郵件地址"
+				},
+				"password": {
+					"label": "密碼",
+					"placeholder": "輸入您的密碼"
+				},
+				"confirmPassword": {
+					"label": "確認密碼",
+					"placeholder": "確認您的密碼"
+				}
+			},
+			"passwordStrength": {
+				"length": "長度",
+				"uppercase": "大寫字母",
+				"lowercase": "小寫字母",
+				"numbers": "數字",
+				"specialCharacters": "特殊字元",
+				"weak": "弱",
+				"medium": "中",
+				"strong": "強",
+				"best": "最佳"
+			},
+			"errors": {
+				"emptyFields": "請填寫所有欄位",
+				"passwordsDoNotMatch": "密碼不一致。",
+				"emailAddressesDoNotMatch": "電子郵件地址不一致。",
+				"weakPassword": "您的密碼太弱，請選擇一個更強的密碼。至少包含 10 個字元，並混合大小寫字母、數字和特殊字元。"
+			},
+			"createAccount": "建立帳戶",
+			"resendConfirmationEmail": "重發確認電郵",
+			"next": "下一步"
+		}
+	},
+	"editPublicLink": {
+		"title": "編輯公開連結",
+		"cancel": "取消",
+		"prompts": {
+			"editPassword": {
+				"title": "編輯密碼",
+				"placeholder": "留空以移除密碼"
+			}
+		},
+		"shareDialogTile": "Filen 公開連結",
+		"items": {
+			"enabled": "已啟用",
+			"password": "密碼",
+			"edit": "編輯",
+			"expiration": "過期於",
+			"expirationNever": "永不",
+			"expiration1h": "1 小時後",
+			"expiration6h": "6 小時後",
+			"expiration12h": "12 小時後",
+			"expiration1d": "1 天後",
+			"expiration3d": "3 天後",
+			"expiration7d": "7 天後",
+			"expiration14d": "14 天後",
+			"expiration30d": "30 天後",
+			"downloadButton": "下載按鈕",
+			"shareLink": "分享連結"
+		},
+		"onlyPro": "此功能僅開放給 Filen Pro 使用者。訂閱任何 Filen 方案以啟用。",
+		"unsavedChanges": "尚未儲存的變更"
+	},
+	"selectContacts": {
+		"header": {
+			"selectContacts": "選擇聯絡人",
+			"cancel": "取消",
+			"done": "完成",
+			"selectContact": "選擇聯絡人"
+		},
+		"toolbar": {
+			"selected": "已選擇 {{countOrName}} 項"
+		},
+		"list": {
+			"footer": "{{count}} 名聯絡人",
+			"empty": "尚無聯絡人",
+			"emptySearch": "找不到符合此搜尋的聯絡人",
+			"error": "載入您的聯絡人時發生錯誤，請稍後再試"
+		}
+	},
+	"selectDriveItems": {
+		"header": {
+			"selectItems": "選擇項目",
+			"cancel": "取消",
+			"done": "完成",
+			"selectItem": "選擇項目",
+			"selectFile": "選擇檔案",
+			"selectDirectory": "選擇資料夾",
+			"selectFiles": "選擇檔案",
+			"selectDirectories": "選擇資料夾",
+			"drive": "雲端硬碟",
+			"selectRoot": "選擇雲端硬碟",
+			"selectParent": "選擇 {{parent}}"
+		},
+		"toolbar": {
+			"selected": "已選擇 {{countOrName}} 項"
+		},
+		"list": {
+			"footer": "{{count}} 個項目",
+			"empty": "尚未上傳任何內容",
+			"emptySearch": "找不到符合此搜尋的項目",
+			"error": "載入您的檔案時發生錯誤，請稍後再試"
+		},
+		"prompts": {
+			"createDirectory": {
+				"title": "建立資料夾",
+				"placeholder": "資料夾名稱",
+				"success": "已建立 {{name}}"
+			}
+		}
+	},
+	"selectTrackPlayerPlaylists": {
+		"selected": "已選擇 {{countOrName}} 項",
+		"header": {
+			"selectPlaylists": "選擇播放清單",
+			"cancel": "取消",
+			"done": "完成",
+			"selectPlaylist": "選擇播放清單"
+		},
+		"toolbar": {
+			"selected": "已選擇 {{countOrName}} 項"
+		},
+		"list": {
+			"footer": "{{count}} 個播放清單",
+			"empty": "尚無播放清單",
+			"emptySearch": "找不到符合此搜尋的播放清單",
+			"error": "載入您的播放清單時發生錯誤，請稍後再試"
+		},
+		"item": {
+			"subTitle": "共 {{count}} 首曲目，更新於 {{date}}"
+		},
+		"prompts": {
+			"createPlaylist": {
+				"title": "建立播放清單",
+				"placeholder": "播放清單名稱"
+			}
+		}
+	},
+	"shareIntent": {
+		"header": {
+			"title": "儲存到 Filen",
+			"cancel": "取消",
+			"upload": "上傳"
+		}
+	},
+	"trackPlayer": {
+		"item": {
+			"subTitle": "共 {{count}} 首曲目，更新於 {{date}}",
+			"menu": {
+				"play": "播放",
+				"delete": "刪除",
+				"addToQueue": "新增至佇列",
+				"cancel": "取消"
+			}
+		},
+		"list": {
+			"footer": "{{count}} 個播放清單",
+			"empty": "尚無播放清單",
+			"emptySearch": "找不到符合此搜尋的播放清單",
+			"error": "載入您的播放清單時發生錯誤，請稍後再試"
+		},
+		"playlist": {
+			"item": {
+				"menu": {
+					"play": "播放",
+					"addToPlaylist": "新增到播放清單",
+					"addToQueue": "新增至佇列",
+					"removeFromPlaylist": "從播放清單中移除",
+					"cancel": "取消"
+				}
+			},
+			"list": {
+				"footer": "{{count}} 首曲目",
+				"empty": "尚無曲目",
+				"emptySearch": "找不到符合此搜尋的曲目",
+				"error": "載入您的曲目時發生錯誤，請稍後再試"
+			}
+		},
+		"bottom": {
+			"unknownTitle": "未知標題",
+			"unknownArtist": "未知藝術家",
+			"noTrackQueued": "沒有佇列的曲目"
+		},
+		"prompts": {
+			"createPlaylist": {
+				"title": "建立播放清單",
+				"placeholder": "播放清單名稱"
+			},
+			"deletePlaylist": {
+				"title": "刪除播放清單",
+				"message": "您確定要刪除此播放清單嗎？此動作無法復原！"
+			}
+		},
+		"header": {
+			"title": "播放清單"
+		}
+	},
+	"transfers": {
+		"header": {
+			"title": "傳輸作業",
+			"back": "返回"
+		},
+		"info": "正在以 {{speed}} 傳輸 {{ongoingTransfers}} 個項目，剩餘 {{remaining}}",
+		"infoNoTime": "正在以 {{speed}} 傳輸 {{ongoingTransfers}} 個項目",
+		"noOngoingTransfers": "沒有正在進行的傳輸作業",
+		"list": {
+			"empty": "暫無傳輸作業",
+			"emptySearch": "找不到符合此搜尋的傳輸作業",
+			"error": "載入您的傳輸作業紀錄時發生錯誤，請稍後再試"
+		},
+		"transfer": {
+			"resume": "繼續",
+			"pause": "暫停",
+			"cancel": "取消",
+			"cancelAll": "全部取消",
+			"stop": "停止",
+			"stopAll": "全部停止"
+		}
+	},
+	"textEditor": {
+		"header": {
+			"back": "返回"
+		},
+		"unsavedChanges": "尚未儲存的變更",
+		"savedSuccess": "儲存成功",
+		"saved": "已儲存"
+	},
+	"contacts": {
+		"menu": {
+			"remove": "移除",
+			"block": "封鎖",
+			"unblock": "解除封鎖",
+			"cancel": "取消",
+			"accept": "接受",
+			"decline": "拒絕"
+		}
+	},
+	"biometric": {
+		"appLockedFor": "應用程式鎖定 {{seconds}} 秒",
+		"authenticateUsingPin": "使用您的 PIN 認證",
+		"authenticateUsingBiometrics": "使用生物辨識驗證",
+		"prompts": {
+			"pin": {
+				"title": "輸入您的 PIN",
+				"placeholder": "PIN"
+			}
+		},
+		"errors": {
+			"tooManyIncorrectAttempts": "錯誤次數太多，請稍後再試。",
+			"incorrectPin": "錯誤的s PIN，請再試一次。"
+		}
+	},
+	"offlineListHeader": {
+		"title": "離線模式"
+	},
+	"formatBytes": {
+		"b": "位元組",
+		"kib": "KiB",
+		"mib": "MiB",
+		"gib": "GiB",
+		"tib": "TiB",
+		"pib": "PiB",
+		"eib": "EiB",
+		"zib": "ZiB",
+		"yib": "YiB"
+	},
+	"bpsToReadable": {
+		"b": "B/s",
+		"kib": "KiB/s",
+		"mib": "MiB/s",
+		"gib": "GiB/s",
+		"tib": "TiB/s",
+		"pib": "PiB/s",
+		"eib": "EiB/s",
+		"zib": "ZiB/s",
+		"yib": "YiB/s"
+	}
+}
