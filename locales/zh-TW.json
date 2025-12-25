@@ -1,1417 +1,1417 @@
 {
-	"copiedToClipboard": "Copied to clipboard",
+	"copiedToClipboard": "已複製到剪貼簿",
 	"localAuthentication": {
-		"cancelLabel": "Cancel",
-		"promptMessage": "Authenticate to continue"
+		"cancelLabel": "取消",
+		"promptMessage": "驗證以繼續"
 	},
 	"errors": {
-		"cannotOpenURL": "Cannot open URL.",
-		"youAreOffline": "You are currently offline. Please check your internet connection.",
-		"notEnoughDiskSpace": "Not enough local disk space available.",
-		"sharingNotAvailable": "Sharing is not available on this device."
+		"cannotOpenURL": "無法開啟網址。",
+		"youAreOffline": "您已離線，請檢查您的網路連線。",
+		"notEnoughDiskSpace": "本機磁碟空間不足。",
+		"sharingNotAvailable": "無法在此裝置上共用。"
 	},
 	"alertPrompt": {
 		"defaults": {
-			"title": "Title",
-			"okText": "OK",
-			"cancelText": "Cancel"
+			"title": "標題",
+			"okText": "好的",
+			"cancelText": "取消"
 		},
 		"exportMasterKeys": {
-			"title": "Export master keys",
-			"message": "You have not exported your master keys yet. It is highly recommended to export them now and store them in a safe place.",
-			"okText": "Export",
-			"cancelText": "Later"
+			"title": "匯出主金鑰",
+			"message": "您尚未匯出您的主金鑰，強烈建議您現在匯出並儲存在安全的地方。",
+			"okText": "匯出",
+			"cancelText": "之後再說"
 		},
 		"storageUsageOverLimit": {
-			"title": "Storage usage over limit",
-			"message": "You have exceeded your storage limit. Please free up some space or upgrade your plan to prevent unwanted data deletion.",
-			"okText": "Upgrade",
-			"cancelText": "Later"
+			"title": "超出儲存空間限制",
+			"message": "您已超出儲存空間限制，請釋放一些空間或升級您的方案，以防止資料被刪除。",
+			"okText": "升級", 
+			"cancelText": "之後再說"
 		},
 		"exportMasterKeys2": {
-			"title": "Export master keys",
-			"message": "It is highly recommended to export your master keys and store them in a safe place. Without your master keys, you will not be able to access your data if you forget your password.",
-			"okText": "Export",
-			"cancelText": "Cancel"
+			"title": "匯出主金鑰",
+			"message": "強烈建議您匯出主金鑰並儲存在安全的地方。如果您忘記密碼，沒有主金鑰將使您無法存取您的資料。",
+			"okText": "匯出",
+			"cancelText": "取消"
 		}
 	},
 	"inputPrompt": {
 		"defaults": {
-			"title": "Title",
-			"okText": "OK",
-			"cancelText": "Cancel"
+			"title": "標題",
+			"okText": "好的",
+			"cancelText": "取消"
 		}
 	},
 	"drive": {
 		"header": {
 			"title": {
-				"drive": "Drive",
-				"selected": "{{count}} selected",
-				"recents": "Recents",
-				"favorites": "Favorites",
-				"sharedIn": "Shared with you",
-				"sharedOut": "Shared with others",
-				"offline": "Available offline",
-				"links": "Public links",
-				"trash": "Trash"
+				"drive": "雲端硬碟",
+				"selected": "已選擇 {{count}} 項",
+				"recents": "近期存取",
+				"favorites": "喜好項目",
+				"sharedIn": "與您共用",
+				"sharedOut": "與他人共用",
+				"offline": "可離線存取",
+				"links": "公開連結",
+				"trash": "垃圾桶"
 			},
 			"rightView": {
 				"actionSheet": {
 					"upload": {
-						"files": "Upload files",
-						"directory": "Upload directory",
-						"media": "Upload media",
-						"uploaded": "{{name}} uploaded"
+						"files": "上傳檔案",
+						"directory": "上傳資料夾",
+						"media": "上傳媒體",
+						"uploaded": "已上傳 {{name}}"
 					},
 					"create": {
-						"textFile": "Create text file",
-						"directory": "Create directory",
-						"photo": "Take photo",
-						"created": "{{name}} created"
+						"textFile": "建立文字檔案",
+						"directory": "建立資料夾",
+						"photo": "拍照",
+						"created": "已建立 {{name}}"
 					},
-					"cancel": "Cancel",
-					"noMediaPermissions": "You need to grant media permissions to upload photos or videos.",
-					"itemsUploaded": "{{count}} items uploaded",
-					"directoryNamePlaceholder": "Directory name",
-					"textFileNamePlaceholder": "Text file name"
+					"cancel": "取消",
+					"noMediaPermissions": "您需要授予媒體權限以上傳相片或影片。",
+					"itemsUploaded": "已上傳 {{count}} 個項目",
+					"directoryNamePlaceholder": "資料夾名稱",
+					"textFileNamePlaceholder": "文字檔名稱"
 				},
 				"dropdown": {
 					"sortBy": {
-						"sortBy": "Sort By",
-						"ascending": "Ascending",
-						"descending": "Descending",
+						"sortBy": "排序方式",
+						"ascending": "升序",
+						"descending": "降序",
 						"name": {
-							"title": "Name",
-							"ascendingTitle": "A to Z",
-							"descendingTitle": "Z to A"
+							"title": "名稱",
+							"ascendingTitle": "A 到 Z",
+							"descendingTitle": "Z 到 A"
 						},
 						"uploadDate": {
-							"title": "Upload Date",
-							"ascendingTitle": "Earliest First",
-							"descendingTitle": "Latest First"
+							"title": "上傳日期",
+							"ascendingTitle": "最舊在上",
+							"descendingTitle": "最新在上"
 						},
 						"lastModified": {
-							"title": "Last Modified",
-							"ascendingTitle": "Earliest First",
-							"descendingTitle": "Latest First"
+							"title": "修改日期",
+							"ascendingTitle": "最舊在上",
+							"descendingTitle": "最新在上"
 						},
 						"type": {
-							"title": "Type",
-							"ascendingTitle": "Ascending",
-							"descendingTitle": "Descending"
+							"title": "類型",
+							"ascendingTitle": "升序",
+							"descendingTitle": "降序"
 						},
 						"size": {
-							"title": "Size",
-							"ascendingTitle": "Smallest First",
-							"descendingTitle": "Largest First"
+							"title": "大小",
+							"ascendingTitle": "最小在上",
+							"descendingTitle": "最大在上"
 						}
 					},
-					"transfers": "Transfers",
-					"listMode": "View as List",
-					"gridMode": "View as Grid",
-					"bulkActions": "Bulk actions"
+					"transfers": "傳輸作業",
+					"listMode": "清單檢視",
+					"gridMode": "格狀檢視",
+					"bulkActions": "批次動作"
 				},
-				"selectAll": "Select all",
-				"deselectAll": "Deselect all"
+				"selectAll": "全選",
+				"deselectAll": "取消全選"
 			}
 		},
 		"list": {
-			"footer": "{{count}} items",
-			"empty": "No items found",
-			"emptySearch": "No items found for this search",
-			"error": "There was an error loading your drive, please try again later",
+			"footer": "{{count}} 個項目",
+			"empty": "找不到項目",
+			"emptySearch": "找不到符合此搜尋的項目",
+			"error": "載入您的雲端硬碟時發生錯誤，請稍後再試。",
 			"item": {
 				"menu": {
-					"select": "Select",
-					"deselect": "Deselect",
-					"download": "Download",
-					"publicLink": "Public link",
-					"share": "Share",
-					"export": "Export",
-					"favorite": "Favorite",
-					"unfavorite": "Unfavorite",
-					"favorited": "Favorited",
-					"selectAll": "Select all",
-					"deselectAll": "Deselect all",
-					"info": "Info",
-					"rename": "Rename",
-					"move": "Move",
-					"copyId": "Copy ID",
-					"delete": "Delete",
-					"trash": "Trash",
-					"restore": "Restore",
-					"preview": "Preview",
-					"deletePermanently": "Delete permanently",
-					"open": "Open",
-					"color": "Color",
-					"copyPath": "Copy path",
-					"makeAvailableOffline": "Make available offline",
-					"removeOffline": "Remove offline file",
-					"downloadFolder": "Download folder",
-					"saveToGallery": "Save to gallery",
-					"copy": "Copy",
+					"select": "選擇",
+					"deselect": "取消選擇",
+					"download": "下載",
+					"publicLink": "公開連結",
+					"share": "共用",
+					"export": "匯出",
+					"favorite": "加入喜好項目",
+					"unfavorite": "移除喜好項目",
+					"favorited": "已加入喜好項目",
+					"selectAll": "全選",
+					"deselectAll": "取消全選",
+					"info": "資訊",
+					"rename": "重新命名",
+					"move": "移動",
+					"copyId": "複製 ID",
+					"delete": "刪除",
+					"trash": "移至垃圾桶",
+					"restore": "復原",
+					"preview": "預覽",
+					"deletePermanently": "永久刪除",
+					"open": "開啟",
+					"color": "顏色",
+					"copyPath": "複製路徑",
+					"makeAvailableOffline": "使可離線存取",
+					"removeOffline": "移除離線檔案",
+					"downloadFolder": "下載資料夾",
+					"saveToGallery": "儲存到圖庫",
+					"copy": "複製",
 					"id": "ID",
-					"path": "Path",
-					"location": "Location",
-					"versionHistory": "Version history",
-					"properties": "Properties",
-					"clipboard": "Clipboard",
-					"withUser": "With user",
-					"removeSharedIn": "Remove",
-					"removeSharedOut": "Stop sharing",
-					"disablePublicLink": "Disable link",
-					"availableOffline": "Available offline",
-					"share_one": "Share Item",
-					"share_other": "Share {{count}} Items",
-					"favorite_one": "Favorite Item",
-					"favorite_other": "Favorite {{count}} Items",
-					"move_one": "Move Item",
-					"move_other": "Move {{count}} Items",
-					"trash_one": "Trash Item",
-					"trash_other": "Trash {{count}} Items"
+					"path": "路徑",
+					"location": "位置",
+					"versionHistory": "版本歷史",
+					"properties": "屬性",
+					"clipboard": "剪貼簿",
+					"withUser": "與使用者",
+					"removeSharedIn": "移除",
+					"removeSharedOut": "停止共用",
+					"disablePublicLink": "停用連結",
+					"availableOffline": "可離線存取",
+					"share_one": "共用項目",
+					"share_other": "共用 {{count}} 個項目",
+					"favorite_one": "加入喜好項目",
+					"favorite_other": "加入 {{count}} 個喜好項目",
+					"move_one": "移動項目",
+					"move_other": "移動 {{count}} 個項目",
+					"trash_one": "刪除項目",
+					"trash_other": "刪除 {{count}} 個項目"
 				}
 			}
 		},
 		"search": {
 			"list": {
-				"footer": "{{count}} items",
-				"empty": "No items found",
-				"emptySearch": "No items found for this search",
-				"error": "There was an error loading search results, please try again later"
+				"footer": "{{count}} 個項目",
+				"empty": "找不到項目",
+				"emptySearch": "找不到符合此搜尋的項目",
+				"error": "載入搜尋結果時發生錯誤，請稍後再試"
 			}
 		},
 		"prompts": {
 			"renameItem": {
-				"title": "Rename",
-				"placeholder": "New name"
+				"title": "重新命名",
+				"placeholder": "新名稱"
 			},
 			"trashItem": {
-				"title": "Move to trash",
-				"message": "Are you sure you want to move this item to the trash? You can restore it later."
+				"title": "移至垃圾桶",
+				"message": "您確定要將此項目移到垃圾桶嗎？您之後可以復原它。"
 			},
 			"removeSharedInItem": {
-				"title": "Remove",
-				"message": "Are you sure you want to remove this item from your shared items? You will no longer be able to see or access it."
+				"title": "移除",
+				"message": "您確定要從共用項目中移除此項目嗎？您將無法再檢視或存取它。"
 			},
 			"removeSharedOutItem": {
-				"title": "Stop sharing",
-				"message": "Are you sure you want to stop sharing this item? The user will no longer be able to access it."
+				"title": "停止共用",
+				"message": "您確定要停止共用此項目嗎？該使用者將無法再存取它。"
 			},
 			"deletePermanently": {
-				"title": "Delete permanently",
-				"message": "Are you sure you want to delete this item permanently? This action cannot be undone!"
+				"title": "永久刪除",
+				"message": "您確定要永久刪除此項目嗎？此動作無法復原！"
 			},
 			"trashItems": {
-				"title": "Move to trash",
-				"message": "Are you sure you want to move {{count}} items to the trash? You can restore them later."
+				"title": "移至垃圾桶",
+				"message": "您確定要將 {{count}} 個項目移到垃圾桶嗎？您之後可以復原它們。"
 			},
 			"deleteItemsPermanently": {
-				"title": "Delete permanently",
-				"message": "Are you sure you want to delete {{count}} items permanently? This action cannot be undone!"
+				"title": "永久刪除",
+				"message": "您確定要永久刪除 {{count}} 個項目嗎？此動作無法復原！"
 			},
 			"removeSharedInItems": {
-				"title": "Remove",
-				"message": "Are you sure you want to remove {{count}} items from your shared items? You will no longer be able to see or access them."
+				"title": "移除",
+				"message": "您確定要從共用項目中移除 {{count}} 個項目嗎？您將無法再檢視或存取它們。"
 			},
 			"removeSharedOutItems": {
-				"title": "Stop sharing",
-				"message": "Are you sure you want to stop sharing {{count} items? The users will no longer be able to access them."
+				"title": "停止共用",
+				"message": "您確定要停止共用 {{count}} 個項目嗎？該使用者將無法再存取它們。"
 			},
 			"disablePublicLinks": {
-				"title": "Disable public links",
-				"message": "Are you sure you want to disable public links for {{count}} items? The links will no longer be accessible."
+				"title": "停用公開連結",
+				"message": "您確定要停用 {{count}} 個項目的公開連結嗎？這些連結將不再可存取。"
 			},
 			"removeOfflineFiles": {
-				"title": "Remove offline files",
-				"message": "Are you sure you want to remove {{count}} offline files? They will no longer be available offline."
+				"title": "移除離線檔案",
+				"message": "您確定要移除 {{count}} 個離線檔案嗎？它們將不再可離線使用。"
 			}
 		},
-		"itemSharedWith": "{{name}} shared with {{email}}",
-		"itemShared": "{{name}} shared"
+		"itemSharedWith": "已與 {{email}} 共用 {{name}}",
+		"itemShared": "已共用 {{name}}"
 	},
 	"gallery": {
-		"noPreviewAvailable": "No preview available"
+		"noPreviewAvailable": "無可用預覽"
 	},
 	"nwui": {
 		"search": {
-			"placeholder": "Search...",
-			"cancel": "Cancel"
+			"placeholder": "搜尋...",
+			"cancel": "取消"
 		}
 	},
 	"sheets": {
 		"itemInfo": {
-			"name": "Name",
-			"size": "Size",
-			"type": "Type",
-			"location": "Location",
-			"modified": "Modified",
-			"uploaded": "Uploaded",
-			"directories": "Directories",
-			"files": "Files",
-			"notAvailable": "N/A",
-			"creation": "Created",
-			"directory": "Directory"
+			"name": "名稱",
+			"size": "大小",
+			"type": "類型",
+			"location": "路徑",
+			"modified": "修改日期",
+			"uploaded": "上傳日期",
+			"directories": "資料夾數",
+			"files": "檔案數",
+			"notAvailable": "不適用",
+			"creation": "建立日期",
+			"directory": "資料夾"
 		},
 		"colorPicker": {
-			"select": "Select",
-			"cancel": "Cancel"
+			"select": "選擇",
+			"cancel": "取消"
 		}
 	},
 	"fileVersionHistory": {
 		"header": {
-			"title": "Version history"
+			"title": "版本歷史"
 		},
 		"list": {
 			"item": {
-				"current": "Current",
-				"delete": "Delete",
-				"restore": "Restore"
+				"current": "目前",
+				"delete": "刪除",
+				"restore": "復原"
 			},
-			"empty": "No versions yet",
-			"emptySearch": "No versions found for this search",
-			"error": "There was an error loading file versions, please try again later"
+			"empty": "尚無版本",
+			"emptySearch": "此搜尋中找不到版本",
+			"error": "載入檔案版本時發生錯誤，請稍後再試。"
 		},
 		"alerts": {
 			"delete": {
-				"title": "Delete version",
-				"message": "Are you sure you want to delete this version? This action cannot be undone!",
-				"confirm": "Delete",
-				"cancel": "Cancel"
+				"title": "刪除版本",
+				"message": "您確定要刪除此版本嗎？此動作無法復原！",
+				"confirm": "刪除",
+				"cancel": "取消"
 			},
 			"restore": {
-				"title": "Restore version",
-				"message": "Are you sure you want to restore this version? This will overwrite the current file.",
-				"confirm": "Restore",
-				"cancel": "Cancel"
+				"title": "復原版本",
+				"message": "您確定要復原此版本嗎？這會覆寫目前的檔案。",
+				"confirm": "復原",
+				"cancel": "取消"
 			}
 		}
 	},
 	"home": {
-		"title": "Home",
+		"title": "首頁",
 		"container": {
 			"recents": {
-				"title": "Recents"
+				"title": "近期存取"
 			},
 			"favorites": {
-				"title": "Favorites"
+				"title": "喜好項目"
 			},
 			"sharedIn": {
-				"title": "Shared with you"
+				"title": "與您共用"
 			},
 			"sharedOut": {
-				"title": "Shared with others"
+				"title": "與他人共用"
 			},
 			"offline": {
-				"title": "Available offline"
+				"title": "可離線存取"
 			},
 			"links": {
-				"title": "Public links"
+				"title": "公開連結"
 			},
 			"trash": {
-				"title": "Trash"
+				"title": "垃圾桶"
 			}
 		},
 		"listEmpty": {
-			"recents": "No recents yet",
-			"favorites": "No favorites yet",
-			"sharedIn": "No shared items yet",
-			"sharedOut": "No shared items yet",
-			"offline": "No offline items yet",
-			"links": "No public links yet",
-			"trash": "No trashed items yet"
+			"recents": "暫無近期存取",
+			"favorites": "暫無喜好項目",
+			"sharedIn": "暫無與您共用的項目",
+			"sharedOut": "暫無與他人共用的項目",
+			"offline": "暫無可離線存取的項目",
+			"links": "暫無公開連結",
+			"trash": "暫無被刪除的項目"
 		}
 	},
 	"chats": {
-		"chat": "Chat",
-		"chats": "Chats",
-		"typing": "{{users}} typing...",
+		"chat": "對話",
+		"chats": "對話",
+		"typing": "{{users}} 正在輸入...",
 		"messages": {
 			"menu": {
-				"copyText": "Copy text",
-				"copyId": "Copy ID",
-				"reply": "Reply",
-				"edit": "Edit",
-				"delete": "Delete",
-				"disableEmbeds": "Disable embeds",
-				"cancel": "Cancel"
+				"copyText": "複製文字",
+				"copyId": "複製 ID",
+				"reply": "回覆",
+				"edit": "編輯",
+				"delete": "刪除",
+				"disableEmbeds": "停用嵌入內容",
+				"cancel": "取消"
 			},
 			"time": {
-				"now": "Now",
-				"todayAt": "Today at {{date}}",
-				"yesterdayAt": "Yesterday at {{date}}",
-				"secondAgo": "{{seconds}} second ago",
-				"secondsAgo": "{{seconds}} seconds ago",
-				"minuteAgo": "{{minutes}} minute ago",
-				"minutesAgo": "{{minutes}} minutes ago",
-				"hourAgo": "{{hours}} hour ago",
-				"hoursAgo": "{{hours}} hours ago"
+				"now": "現在",
+				"todayAt": "今天 {{date}}",
+				"yesterdayAt": "昨天 {{date}}",
+				"secondAgo": "{{seconds}} 秒前",
+				"secondsAgo": "{{seconds}} 秒前",
+				"minuteAgo": "{{minutes}} 分鐘前",
+				"minutesAgo": "{{minutes}} 分鐘前",
+				"hourAgo": "{{hours}} 小時前",
+				"hoursAgo": "{{hours}} 小時前"
 			},
-			"new": "New",
-			"everyone": "Everyone",
-			"unknown": "Unknown",
-			"undecryptable": "Cannot decrypt message."
+			"new": "新",
+			"everyone": "所有人",
+			"unknown": "未知",
+			"undecryptable": "無法解密訊息。"
 		},
 		"menu": {
-			"leave": "Leave",
-			"delete": "Delete",
-			"rename": "Rename",
-			"mute": "Mute",
-			"unmute": "Unmute",
-			"archive": "Archive",
-			"unarchive": "Unarchive",
-			"pin": "Pin",
-			"unpin": "Unpin",
-			"favorite": "Favorite",
-			"unfavorite": "Unfavorite",
-			"markAsRead": "Mark as read",
-			"participants": "Participants",
-			"muted": "Muted"
+			"leave": "離開",
+			"delete": "刪除",
+			"rename": "重新命名",
+			"mute": "關閉通知",
+			"unmute": "開啟通知",
+			"archive": "封存",
+			"unarchive": "取消封存",
+			"pin": "釘選",
+			"unpin": "取消釘選",
+			"favorite": "加入喜好項目",
+			"unfavorite": "移除喜好項目",
+			"markAsRead": "標記為已讀",
+			"participants": "參與者",
+			"muted": "關閉通知"
 		},
 		"prompts": {
 			"deleteMessage": {
-				"title": "Delete message",
-				"message": "Are you sure you want to delete this message? This action cannot be undone!"
+				"title": "刪除訊息",
+				"message": "您確定要刪除此訊息嗎？此動作無法復原！"
 			},
 			"disableEmbeds": {
-				"title": "Disable embeds",
-				"message": "Are you sure you want to disable embeds for this message? This will remove any embedded content."
+				"title": "停用嵌入內容",
+				"message": "您確定要停用此訊息的嵌入內容嗎？這將刪除任何嵌入內容。"
 			},
 			"leaveChat": {
-				"title": "Leave chat",
-				"message": "Are you sure you want to leave this chat? You will no longer be able to see or send messages in this chat."
+				"title": "離開對話",
+				"message": "您確定要離開此對話嗎？您將無法再在此對話中檢視或傳送訊息。"
 			},
 			"deleteChat": {
-				"title": "Delete chat",
-				"message": "Are you sure you want to delete this chat? This will remove the chat from your list and you will no longer be able to see or send messages in this chat."
+				"title": "刪除對話",
+				"message": "您確定要刪除此對話嗎？這會將此對話從您的列表中移除，且您將無法再在此對話中檢視或傳送訊息。"
 			},
 			"leaveChats": {
-				"title": "Leave chats",
-				"message": "Are you sure you want to leave {{count}} chats? You will no longer be able to see or send messages in these chats."
+				"title": "離開對話",
+				"message": "您確定要離開 {{count}} 個對話嗎？您將無法再在這些對話中檢視或傳送訊息。"
 			},
 			"deleteChats": {
-				"title": "Delete chats",
-				"message": "Are you sure you want to delete {{count}} chats? This will remove the chats from your list and you will no longer be able to see or send messages in these chats."
+				"title": "刪除對話",
+				"message": "您確定要刪除 {{count}} 個對話嗎？這會將這些對話從您的列表中移除，且您將無法再在這些對話中檢視或傳送訊息。"
 			},
 			"renameChat": {
-				"title": "Rename chat",
-				"placeholder": "New name"
+				"title": "重新命名對話",
+				"placeholder": "新名稱"
 			}
 		},
 		"participants": {
 			"menu": {
-				"remove": "Remove"
+				"remove": "移除"
 			},
-			"participants": "Participants",
-			"participant": "Participant",
+			"participants": "參與者",
+			"participant": "參與者",
 			"prompts": {
 				"remove": {
-					"title": "Remove participant",
-					"message": "Are you sure you want to remove this participant? They will no longer be able to see or send messages in this chat.",
-					"success": "{{name}} removed"
+					"title": "移除參與者",
+					"message": "您確定要移除此參與者嗎？他們將無法再在此對話中檢視或傳送訊息。",
+					"success": "已移除 {{name}}"
 				}
 			}
 		},
 		"list": {
-			"empty": "No chats found",
-			"emptySearch": "No chats found for this search",
-			"error": "There was an error loading your chats, please try again later"
+			"empty": "找不到對話",
+			"emptySearch": "找不到符合此搜尋的對話",
+			"error": "載入您的對話時發生錯誤，請稍後再試。"
 		},
 		"input": {
-			"placeholder": "Type a message",
-			"send": "Send",
+			"placeholder": "輸入訊息",
+			"send": "傳送",
 			"suggestions": {
 				"emojis": {
-					"matching": "Emojis matching {{query}}"
+					"matching": "與 {{query}} 符合的表情符號"
 				},
 				"mention": {
-					"matching": "Users matching {{query}}"
+					"matching": "與 {{query}} 符合的使用者"
 				},
 				"replyTo": {
-					"replyingTo": "Replying to {{name}}"
+					"replyingTo": "正在回覆 {{name}}"
 				}
 			},
 			"attachment": {
 				"options": {
-					"addMedia": "Add media",
-					"addPhotos": "Add photos",
-					"addFiles": "Add files",
-					"addDriveItems": "Add drive items",
-					"cancel": "Cancel"
+					"addMedia": "新增媒體",
+					"addPhotos": "新增相片",
+					"addFiles": "新增檔案",
+					"addDriveItems": "新增雲端硬碟項目",
+					"cancel": "取消"
 				}
 			}
 		},
 		"header": {
-			"newMessages": "{{count}} new messages",
-			"search": "Search chats...",
-			"title": "Chats"
+			"newMessages": "{{count}} 則新訊息",
+			"search": "搜尋對話...",
+			"title": "對話"
 		},
 		"item": {
-			"draft": "Draft",
-			"you": "You",
-			"noMessages": "No messages yet"
+			"draft": "草稿",
+			"you": "您",
+			"noMessages": "暫無訊息"
 		}
 	},
 	"notes": {
-		"title": "Notes",
+		"title": "筆記",
 		"list": {
-			"footer": "{{count}} items",
-			"empty": "No notes yet",
-			"emptySearch": "No note found for this search",
-			"error": "There was an error loading your notes, please try again later"
+			"footer": "{{count}} 個項目",
+			"empty": "暫無筆記",
+			"emptySearch": "找不到符合此搜尋的筆記",
+			"error": "載入您的筆記時發生錯誤，請稍後再試。"
 		},
 		"menu": {
-			"history": "History",
-			"participants": "Participants",
-			"type": "Type",
+			"history": "歷史紀錄",
+			"participants": "參與者",
+			"type": "類型",
 			"types": {
-				"text": "Text",
-				"checklist": "Checklist",
-				"rich": "Rich text",
+				"text": "純文字",
+				"checklist": "清單",
+				"rich": "富文字",
 				"md": "Markdown",
-				"code": "Code"
+				"code": "程式碼"
 			},
-			"pin": "Pin",
-			"unpin": "Unpin",
-			"favorite": "Favorite",
-			"unfavorite": "Unfavorite",
-			"tags": "Tags",
-			"duplicate": "Duplicate",
-			"export": "Export",
-			"clipboard": "Clipboard",
-			"copyId": "Copy ID",
-			"archive": "Archive",
-			"trash": "Trash",
-			"restore": "Restore",
-			"delete": "Delete",
-			"pinned": "Pinned",
-			"favorited": "Favorited",
-			"leave": "Leave",
-			"preview": "Preview",
-			"rename": "Rename",
-			"select": "Select",
-			"deselect": "Deselect"
+			"pin": "釘選",
+			"unpin": "取消釘選",
+			"favorite": "加入喜好項目",
+			"unfavorite": "移除喜好項目",
+			"tags": "標籤",
+			"duplicate": "建立副本",
+			"export": "匯出",
+			"clipboard": "剪貼簿",
+			"copyId": "複製 ID",
+			"archive": "封存",
+			"trash": "移至垃圾桶",
+			"restore": "復原",
+			"delete": "刪除",
+			"pinned": "已釘選",
+			"favorited": "已加入喜好項目",
+			"leave": "離開",
+			"preview": "預覽",
+			"rename": "重新命名",
+			"select": "選擇",
+			"deselect": "取消選擇"
 		},
 		"participants": {
-			"title": "Participants",
+			"title": "參與者",
 			"menu": {
-				"remove": "Remove",
-				"permissionsWrite": "Write permissions"
+				"remove": "移除",
+				"permissionsWrite": "寫入權限"
 			},
 			"list": {
-				"footer": "{{count}} participants",
-				"empty": "No participants yet",
-				"emptySearch": "No participant found for this search",
-				"error": "There was an error loading the participants, please try again later"
+				"footer": "{{count}} 位參與者",
+				"empty": "暫無參與者",
+				"emptySearch": "找不到符合此搜尋的參與者",
+				"error": "載入參與者時發生錯誤，請稍後再試"
 			}
 		},
 		"tags": {
 			"names": {
-				"all": "All",
-				"favorited": "Favorited",
-				"archived": "Archived",
-				"pinned": "Pinned",
-				"shared": "Shared",
-				"trash": "Trash"
+				"all": "全部",
+				"favorited": "已加入喜好項目",
+				"archived": "已封存",
+				"pinned": "已釘選",
+				"shared": "已共用",
+				"trash": "垃圾桶"
 			},
 			"menu": {
-				"rename": "Rename",
-				"delete": "Delete",
-				"favorited": "Favorited"
+				"rename": "重新命名",
+				"delete": "刪除",
+				"favorited": "已收藏"
 			}
 		},
 		"history": {
-			"title": "History",
-			"noPreview": "No preview available",
+			"title": "歷史紀錄",
+			"noPreview": "無可用預覽",
 			"list": {
-				"footer": "{{count}} items",
-				"empty": "No history available",
-				"emptySearch": "No entry found for this search",
-				"error": "There was an error loading the history, please try again later"
+				"footer": "{{count}} 個項目",
+				"empty": "無可用歷史紀錄",
+				"emptySearch": "找不到符合此搜尋的項目",
+				"error": "載入歷史紀錄時發生錯誤，請稍後再試"
 			},
-			"restore": "Restore",
+			"restore": "復原",
 			"prompts": {
 				"restore": {
-					"title": "Restore note",
-					"message": "Are you sure you want to restore this note? This will overwrite the current note."
+					"title": "復原筆記",
+					"message": "您確定要復原此筆記嗎？這會覆寫目前筆記。"
 				}
 			}
 		},
 		"prompts": {
 			"createNote": {
-				"title": "Create note",
-				"placeholder": "Note title"
+				"title": "建立筆記",
+				"placeholder": "筆記標題"
 			},
 			"trashNote": {
-				"title": "Move to trash",
-				"message": "Are you sure you want to move this note to the trash? You can restore it later."
+				"title": "移至垃圾桶",
+				"message": "您確定要將此筆記移到垃圾桶嗎？您之後可以復原它。"
 			},
 			"trashNotes": {
-				"title": "Move to trash",
-				"message": "Are you sure you want to move {{count}} notes to the trash? You can restore them later."
+				"title": "移至垃圾桶",
+				"message": "您確定要將 {{count}} 個筆記移到垃圾箱嗎？您之後可以復原它們。"
 			},
 			"renameNote": {
-				"title": "Rename note",
-				"placeholder": "New name"
+				"title": "重新命名筆記",
+				"placeholder": "新名稱"
 			},
 			"deleteNote": {
-				"title": "Delete note",
-				"message": "Are you sure you want to delete this note permanently? This action cannot be undone!"
+				"title": "刪除筆記",
+				"message": "您確定要永久刪除此筆記嗎？此動作無法復原！"
 			},
 			"deleteNotes": {
-				"title": "Delete notes",
-				"message": "Are you sure you want to delete {{count}} notes permanently? This action cannot be undone!"
+				"title": "刪除筆記",
+				"message": "您確定要永久刪除 {{count}} 個筆記嗎？此動作無法復原！"
 			},
 			"leaveNote": {
-				"title": "Leave note",
-				"message": "Are you sure you want to leave this note? You will no longer be able to see or edit it."
+				"title": "離開筆記",
+				"message": "您確定要離開此筆記嗎？您將無法再檢視或編輯它。"
 			},
 			"leaveNotes": {
-				"title": "Leave notes",
-				"message": "Are you sure you want to leave {{count}} notes? You will no longer be able to see or edit them."
+				"title": "離開筆記",
+				"message": "您確定要離開 {{count}} 個筆記嗎？您將無法再檢視或編輯它們。"
 			},
 			"removeParticipant": {
-				"title": "Remove participant",
-				"message": "Are you sure you want to remove this participant? They will no longer be able to see or edit this note."
+				"title": "移除參與者",
+				"message": "您確定要移除此參與者嗎？他們將無法再檢視或編輯此筆記。"
 			},
 			"removeParticipants": {
-				"title": "Remove participants",
-				"message": "Are you sure you want to remove {{count}} participants? They will no longer be able to see or edit these notes."
+				"title": "移除參與者",
+				"message": "您確定要移除 {{count}} 個參與者嗎？他們將無法再檢視或編輯這些筆記。"
 			},
 			"createTag": {
-				"title": "Create tag",
-				"placeholder": "Tag name"
+				"title": "建立標籤",
+				"placeholder": "標籤名稱"
 			},
 			"deleteTag": {
-				"title": "Delete tag",
-				"message": "Are you sure you want to delete this tag? This action cannot be undone!"
+				"title": "刪除標籤",
+				"message": "您確定要刪除此標籤嗎？此動作無法復原！"
 			},
 			"deleteTags": {
-				"title": "Delete tags",
-				"message": "Are you sure you want to delete {{count}} tags? This action cannot be undone!"
+				"title": "刪除標籤",
+				"message": "您確定要刪除 {{count}} 個標籤嗎？此動作無法復原！"
 			},
 			"renameTag": {
-				"title": "Rename tag",
-				"placeholder": "New tag name"
+				"title": "重新命名標籤",
+				"placeholder": "新標籤名稱"
 			}
 		},
 		"header": {
-			"title": "Notes",
-			"selected": "{{count}} selected",
+			"title": "筆記",
+			"selected": "已選擇 {{count}} 項",
 			"menu": {
-				"settings": "Settings"
+				"settings": "設定"
 			},
 			"dropdown": {
 				"types": {
 					"markdown": "Markdown",
-					"checklist": "Checklist",
-					"text": "Text",
-					"rich": "Rich text",
-					"code": "Code"
+					"checklist": "清單",
+					"text": "純文字",
+					"rich": "富文字",
+					"code": "程式碼"
 				},
 				"items": {
-					"selectAll": "Select all",
-					"deselectAll": "Deselect all"
+					"selectAll": "全選",
+					"deselectAll": "取消全選"
 				}
 			}
 		},
 		"content": {
 			"placeholders": {
-				"text": "Write your text here...",
-				"code": "Write your code here..."
+				"text": "在這裡寫下您的文字...",
+				"code": "在這裡寫下您的程式碼..."
 			}
 		}
 	},
 	"listEmpty": {
-		"error": "There was an error, please try again later",
-		"empty": "Nothing found",
-		"emptySearch": "Nothing found for this search"
+		"error": "發生錯誤，請稍後再試",
+		"empty": "找不到任何內容",
+		"emptySearch": "此搜尋找不到結果"
 	},
 	"settings": {
 		"advanced": {
-			"title": "Advanced",
+			"title": "進階",
 			"prompts": {
 				"clearCache": {
-					"title": "Clear cache",
-					"message": "Clearing the cache will remove temporary files. This can interrupt ongoing uploads or downloads. Are you sure you want to continue?"
+					"title": "清除快取",
+					"message": "清除快取將刪除暫存檔。這可能會中斷正在進行的上傳或下載。您確定要繼續嗎？"
 				},
 				"clearThumbnails": {
-					"title": "Clear thumbnails",
-					"message": "Clearing the thumbnails will make the app download every visible thumbnail again. Are you sure you want to continue?"
+					"title": "清除縮圖",
+					"message": "清除縮圖會讓應用程式重新下載所有可見的縮圖。您確定要繼續嗎？"
 				},
 				"clearTrackPlayer": {
-					"title": "Clear track player",
-					"message": "Clearing the track player cache removes cached tracks and pictures. This can lead to increased loading times. Are you sure you want to continue?"
+					"title": "清除音訊播放器",
+					"message": "清除播音訊播放器快取會移除已快取的曲目與圖片，可能會導致載入時間變長。您確定要繼續嗎？"
 				},
 				"clearOfflineFiles": {
-					"title": "Clear offline files",
-					"message": "Clearing offline files will remove all offline available files. Are you sure you want to continue?"
+					"title": "清除離線檔案",
+					"message": "清除離線檔案將移除所有可離線使用的檔案。您確定要繼續嗎？"
 				}
 			},
 			"items": {
-				"clearCache": "Clear cache",
-				"clearThumbnails": "Clear thumbnails",
-				"clearTrackPlayer": "Clear track player",
-				"clearOfflineFiles": "Clear offline files",
-				"fileProviderCache": "FileProvider cache",
-				"documentsProviderCache": "DocumentsProvider cache",
-				"documentsProviderCacheInfo": "The Documents Provider cache is used to speed up access to files when using Filen in other apps.",
-				"fileProviderCacheInfo": "The FileProvider cache is used to speed up access to files when using Filen in other apps."
+				"clearCache": "清除快取",
+				"clearThumbnails": "清除縮圖",
+				"clearTrackPlayer": "清除音訊播放器",
+				"clearOfflineFiles": "清除離線檔案",
+				"fileProviderCache": "FileProvider 快取",
+				"documentsProviderCache": "DocumentsProvider 快取",
+				"documentsProviderCacheInfo": "DocumentsProvider 快取用於加速在其他應用程式中使用 Filen 時存取檔案的速度。",
+				"fileProviderCacheInfo": "FileProvider 快取用於加速在其他應用程式中使用 Filen 時存取檔案的速度。"
 			}
 		},
 		"contacts": {
-			"title": "Contacts",
+			"title": "聯絡人",
 			"tabs": {
-				"all": "All",
-				"online": "Online",
-				"offline": "Offline",
-				"blocked": "Blocked",
-				"requests": "Requests",
-				"pending": "Pending"
+				"all": "全部",
+				"online": "線上",
+				"offline": "離線",
+				"blocked": "已封鎖",
+				"requests": "收到的請求",
+				"pending": "發出的請求"
 			},
 			"listEmpty": {
 				"all": {
-					"error": "There was an error loading your contacts, please try again later",
-					"empty": "No contacts found",
-					"emptySearch": "No contacts found for this search"
+					"error": "載入您的聯絡人時發生錯誤，請稍後再試",
+					"empty": "找不到聯絡人",
+					"emptySearch": "找不到符合此搜尋的聯絡人"
 				},
 				"online": {
-					"error": "There was an error loading your contacts, please try again later",
-					"empty": "No online contacts found",
-					"emptySearch": "No online contacts found for this search"
+					"error": "載入您的聯絡人時發生錯誤，請稍後再試",
+					"empty": "找不到線上聯絡人",
+					"emptySearch": "找不到符合此搜尋的線上聯絡人"
 				},
 				"offline": {
-					"error": "There was an error loading your contacts, please try again later",
-					"empty": "No offline contacts found",
-					"emptySearch": "No offline contacts found for this search"
+					"error": "載入您的聯絡人時發生錯誤，請稍後再試",
+					"empty": "找不到離線聯絡人",
+					"emptySearch": "找不到符合此搜尋的離線聯絡人"
 				},
 				"blocked": {
-					"error": "There was an error loading your contacts, please try again later",
-					"empty": "No blocked contacts found",
-					"emptySearch": "No blocked contacts found for this search"
+					"error": "載入您的聯絡人時發生錯誤，請稍後再試",
+					"empty": "找不到已封鎖的聯絡人",
+					"emptySearch": "找不到符合此搜尋的已封鎖的聯絡人"
 				},
 				"requests": {
-					"error": "There was an error loading your contact requests, please try again later",
-					"empty": "No contact requests found",
-					"emptySearch": "No contact requests found for this search"
+					"error": "載入您的聯絡人請求時發生錯誤，請稍後再試",
+					"empty": "找不到聯絡人請求",
+					"emptySearch": "找不到符合此搜尋的聯絡人請求"
 				},
 				"pending": {
-					"error": "There was an error loading your contact requests, please try again later",
-					"empty": "No contact requests found",
-					"emptySearch": "No contact requests found for this search"
+					"error": "載入您的聯絡人請求時發生錯誤，請稍後再試",
+					"empty": "找不到聯絡人請求",
+					"emptySearch": "找不到符合此搜尋的聯絡人請求"
 				}
 			},
 			"prompts": {
 				"removeContact": {
-					"title": "Remove contact",
-					"message": "Are you sure you want to remove this contact?",
-					"success": "{{email}} removed"
+					"title": "刪除聯絡人",
+					"message": "您確定要刪除此聯絡人嗎？",
+					"success": "已刪除 {{email}}"
 				},
 				"removeContacts": {
-					"title": "Remove contacts",
-					"message": "Are you sure you want to remove {{count}} contacts?",
-					"success": "{{count}} contacts removed"
+					"title": "刪除聯絡人",
+					"message": "您確定要刪除 {{count}} 個聯絡人嗎？",
+					"success": "已刪除 {{count}} 個聯絡人"
 				},
 				"blockContact": {
-					"title": "Block contact",
-					"message": "Are you sure you want to block this contact?",
-					"success": "{{email}} blocked"
+					"title": "封鎖聯絡人",
+					"message": "您確定要封鎖此聯絡人嗎？",
+					"success": "已封鎖 {{email}}"
 				},
 				"blockContacts": {
-					"title": "Block contacts",
-					"message": "Are you sure you want to block {{count}} contacts?",
-					"success": "{{count}} contacts blocked"
+					"title": "封鎖聯絡人",
+					"message": "您確定要封鎖 {{count}} 個聯絡人嗎？",
+					"success": "已封鎖 {{count}} 聯絡人"
 				},
 				"unblockContact": {
-					"title": "Unblock contact",
-					"message": "Are you sure you want to unblock this contact?",
-					"success": "{{email}} unblocked"
+					"title": "解除封鎖此聯絡人",
+					"message": "您確定要解除封鎖此聯絡人嗎？",
+					"success": "已解除封鎖 {{email}}"
 				},
 				"unblockContacts": {
-					"title": "Unblock contacts",
-					"message": "Are you sure you want to unblock {{count}} contacts?",
-					"success": "{{count}} contacts unblocked"
+					"title": "解除封鎖聯絡人",
+					"message": "您確定要解除封鎖 {{count}} 個聯絡人嗎？",
+					"success": "已解除封鎖 {{count}} 個聯絡人"
 				},
 				"sendRequest": {
-					"title": "Send contact request",
-					"placeholder": "Filen email address",
-					"success": "Contact request sent to {{email}}"
+					"title": "傳送聯絡人請求",
+					"placeholder": "Filen 電子郵件地址",
+					"success": "聯絡人請求已傳送到 {{email}}"
 				}
 			}
 		},
 		"events": {
-			"title": "Events",
-			"event": "Event",
-			"events": "Events",
+			"title": "事件",
+			"event": "事件",
+			"events": "事件",
 			"listEmpty": {
-				"error": "There was an error loading your events, please try again later",
-				"empty": "No events found",
-				"emptySearch": "No events found for this search"
+				"error": "載入您的事件時發生錯誤，請稍後再試",
+				"empty": "找不到事件",
+				"emptySearch": "找不到符合此搜尋的事件"
 			},
 			"eventInfo": {
-				"2faDisabled": "2FA disabled",
-				"2faEnabled": "2FA enabled",
-				"deleteFilePermanently": "{{name}} deleted permanently",
-				"deleteAll": "All directories and files deleted permanently",
-				"codeRedeemed": "Code \"{{code}}\" redeemed",
-				"baseFolderCreated": "Base folder created",
-				"deleteFolderPermanently": "{{name}} deleted permanently",
-				"deleteUnfinished": "Unfinished uploads deleted",
-				"login": "Logged in",
-				"deleteVersioned": "All versioned files deleted",
-				"emailChangeAttempt": "Email change attempted",
-				"emailChanged": "Email changed",
-				"passwordChanged": "Password changed",
-				"failedLogin": "Failed login attempt",
-				"fileLinkEdited": "Public link for {{name}} edited",
-				"fileMetadataChanged": "Metadata for {{name}} changed",
-				"fileMoved": "{{name}} moved",
-				"fileRenamed": "{{oldName}} renamed to {{newName}}",
-				"fileShared": "{{name}} shared with {{email}}",
-				"fileUploaded": "{{name}} uploaded",
-				"fileRestored": "{{name}} restored",
-				"fileRm": "{{name}} deleted",
-				"fileTrash": "{{name}} moved to trash",
-				"fileVersioned": "{{name}} versioned",
-				"folderColorChanged": "Color of directory {{name}} changed",
-				"folderLinkEdited": "Directory public link edited",
-				"folderMetadataChanged": "Metadata of directory {{name}} changed",
-				"folderMoved": "Directory {{name}} moved",
-				"folderRenamed": "Directory {{oldName}} renamed to {{newName}}",
-				"folderShared": "Directory {{name}} shared with {{email}}",
-				"folderRestored": "Directory {{name}} restored",
-				"folderTrash": "Directory {{name}} moved to trash",
-				"itemFavorited": "{{name}} favorited",
-				"itemUnfavorited": "{{name}} unfavorited",
-				"removedSharedInItems": "Shared items removed from {{email}}",
-				"removedSharedOutItems": "Shared items removed from {{email}}",
-				"requestAccountDeletion": "Account deletion requested",
-				"subFolderCreated": "Directory {{name}} created",
-				"trashEmptied": "Trash emptied",
-				"versionedFileRestored": "Version of {{name}} restored"
+				"2faDisabled": "已停用雙重驗證",
+				"2faEnabled": "已啟用雙重驗證",
+				"deleteFilePermanently": "已永久刪除 {{name}}",
+				"deleteAll": "已永久刪除所有資料夾和檔案",
+				"codeRedeemed": "已兌換代碼 “{{code}}”",
+				"baseFolderCreated": "已建立基底資料夾",
+				"deleteFolderPermanently": "已永久刪除 {{name}}",
+				"deleteUnfinished": "已刪除未完成的檔案上傳",
+				"login": "已登入",
+				"deleteVersioned": "所有版本檔案已刪除",
+				"emailChangeAttempt": "試圖變更電子郵件地址",
+				"emailChanged": "已變更電子郵件地址",
+				"passwordChanged": "已變更密碼",
+				"failedLogin": "試圖登入失敗",
+				"fileLinkEdited": "已編輯 {{name}} 的公開連結",
+				"fileMetadataChanged": "已變更 {{name}} 的元資料",
+				"fileMoved": "已移動 {{name}}",
+				"fileRenamed": "{{oldName}} 重新命名為 {{newName}}",
+				"fileShared": "已與 {{email}} 共用 {{name}}",
+				"fileUploaded": "已上傳 {{name}}",
+				"fileRestored": "已復原 {{name}}",
+				"fileRm": "已刪除 {{name}}",
+				"fileTrash": "已將 {{name}} 移至垃圾桶",
+				"fileVersioned": "已將 {{name}} 計入版本",
+				"folderColorChanged": "已變更資料夾 {{name}} 的顏色",
+				"folderLinkEdited": "已編輯資料夾的公開連結",
+				"folderMetadataChanged": "已變更資料夾 {{name}} 的元資料",
+				"folderMoved": "已移動資料夾 {{name}}",
+				"folderRenamed": "資料夾 {{oldName}} 重新命名為 {{newName}}",
+				"folderShared": "已與 {{email}} 分享資料夾 {{name}}",
+				"folderRestored": "已復原資料夾 {{name}}",
+				"folderTrash": "已將資料夾 {{name}} 移至垃圾桶",
+				"itemFavorited": "已將 {{name}} 加入喜好項目",
+				"itemUnfavorited": "已將 {{name}} 移除喜好項目",
+				"removedSharedInItems": "已從 {{email}} 刪除共用項目",
+				"removedSharedOutItems": "已從 {{email}} 刪除共用項目",
+				"requestAccountDeletion": "已請求刪除帳戶",
+				"subFolderCreated": "已建立資料夾 {{name}}",
+				"trashEmptied": "已清空垃圾桶",
+				"versionedFileRestored": "已復原 {{name}} 的版本"
 			}
 		},
 		"biometric": {
-			"title": "Security",
+			"title": "安全性",
 			"lockAppAfter": {
-				"never": "Never",
-				"immediately": "Immediately",
-				"oneMinute": "1 minute",
-				"fiveMinutes": "5 minutes",
-				"tenMinutes": "10 minutes",
-				"fifteenMinutes": "15 minutes",
-				"thirtyMinutes": "30 minutes",
-				"oneHour": "1 hour",
-				"minutes": "{{minutes}} minutes"
+				"never": "永不",
+				"immediately": "立即",
+				"oneMinute": "1 分鐘後",
+				"fiveMinutes": "5 分鐘後",
+				"tenMinutes": "10 分鐘後",
+				"fifteenMinutes": "15 分鐘後",
+				"thirtyMinutes": "30 分鐘後",
+				"oneHour": "1 小時後",
+				"minutes": "{{minutes}} 分鐘後"
 			},
 			"items": {
-				"biometricAuth": "Biometric authentication",
-				"lockAppAfter": "Lock app after",
-				"pinOnly": "PIN only"
+				"biometricAuth": "生物辨識驗證",
+				"lockAppAfter": "鎖定應用程式於",
+				"pinOnly": "僅 PIN"
 			},
 			"prompts": {
 				"enable": {
-					"title": "Setup fallback PIN",
-					"placeholder": "Fallback PIN"
+					"title": "設定備用 PIN",
+					"placeholder": "備用 PIN"
 				},
 				"enableConfirm": {
-					"title": "Confirm fallback PIN",
-					"placeholder": "Confirm PIN"
+					"title": "確認備用 PIN",
+					"placeholder": "確認 PIN"
 				},
 				"disable": {
-					"title": "Disable biometric authentication",
-					"message": "Are you sure you want to disable biometric authentication?"
+					"title": "停用生物辨識驗證",
+					"message": "您確定要停用生物辨識驗證嗎？"
 				},
 				"fileProvider": {
-					"title": "File provider enabled",
-					"message": "Enabling biometric authentication will disable the file provider. This means you will not be able to access your files in other apps using the Filen file provider. Do you want to continue?"
+					"title": "已啟用 File provider",
+					"message": "啟用生物辨識驗證將停用 file provider，這表示您將無法再從其他應用程式透過 Filen 的檔案提供者存取檔案。您要繼續嗎？"
 				},
 				"documentsProvider": {
-					"title": "Documents provider enabled",
-					"message": "Enabling biometric authentication will disable the documents provider. This means you will not be able to access your files in other apps using the Filen documents provider. Do you want to continue?"
+					"title": "已啟用 Documents provider",
+					"message": "啟用生物辨識驗證將停用 documents provider，這表示您將無法再從其他應用程式透過 Filen 的文件提供者存取檔案。您要繼續嗎？"
 				}
 			},
 			"errors": {
-				"pinTooShort": "The fallback PIN must be at least 4 digits long.",
-				"pinTooLong": "The fallback PIN must not be longer than 128 digits.",
-				"pinNotMatching": "The fallback PINs do not match.",
-				"biometricAuthNotAvailable": "Biometric authentication is not available on this device. Please enable PIN only authentication or use a device with biometric authentication support."
+				"pinTooShort": "備用 PIN 至少須 4 位數字。",
+				"pinTooLong": "備用 PIN 不可超過 128 位數字。",
+				"pinNotMatching": "備用 PIN 不一致。",
+				"biometricAuthNotAvailable": "此裝置無法使用生物辨識驗證。請改用僅 PIN 驗證，或使用支援生物辨識的裝置。"
 			}
 		},
 		"security": {
-			"title": "Security",
+			"title": "安全性",
 			"items": {
-				"changePassword": "Change password",
-				"2fa": "Two Factor Authentication",
-				"biometricAuth": "Biometric authentication",
-				"exportMasterKeys": "Export master keys"
+				"changePassword": "變更密碼",
+				"2fa": "雙重驗證",
+				"biometricAuth": "生物辨識驗證",
+				"exportMasterKeys": "匯出主金鑰"
 			},
 			"prompts": {
 				"changePassword1": {
-					"title": "Change password",
-					"message": "After changing your password, you will be logged out and need to log in again with your new password."
+					"title": "變更密碼",
+					"message": "更改密碼後，您將被登出，且需使用新密碼重新登入。"
 				},
 				"currentPassword": {
-					"title": "Your current password",
-					"placeholder": "Current password"
+					"title": "您目前的密碼",
+					"placeholder": "目前密碼"
 				},
 				"newPassword": {
-					"title": "Your new password",
-					"placeholder": "New password"
+					"title": "您的新密碼",
+					"placeholder": "新密碼"
 				},
 				"confirmNewPassword": {
-					"title": "Confirm new password",
-					"placeholder": "Confirm password"
+					"title": "確認新密碼",
+					"placeholder": "確認密碼"
 				}
 			},
 			"errors": {
-				"passwordsDoNotMatch": "The new passwords do not match.",
-				"weak": "Your new password is too weak. Please choose a stronger password. One that is at least 10 characters long, contains a mix of uppercase and lowercase letters, numbers, and special characters."
+				"passwordsDoNotMatch": "新密碼不一致。",
+                "weak": "您的新密碼太弱，請選擇更強的密碼。至少 10 個字元，並包含大小寫字母、數字與特殊字元。"
 			}
 		},
 		"twoFactorAuth": {
-			"title": "Security",
-			"copyKey": "Copy key",
-			"copied": "Key copied to clipboard",
+			"title": "安全性",
+			"copyKey": "複製金鑰",
+			"copied": "金鑰已複製到剪貼簿",
 			"items": {
-				"2fa": "Two Factor Authentication"
+				"2fa": "雙重驗證"
 			},
 			"prompts": {
 				"enable": {
-					"title": "Enter code",
-					"placeholder": "Code"
+					"title": "輸入代碼",
+					"placeholder": "代碼"
 				}
 			}
 		},
 		"account": {
-			"title": "Account",
+			"title": "帳戶",
 			"items": {
-				"changeAvatar": "Change avatar",
-				"emailAddress": "Email address",
-				"personalInformation": "Personal information",
-				"nickname": "Nickname",
-				"gdpr": "GDPR information",
-				"more": "More account settings",
-				"fileVersioning": "File versioning",
-				"fileVersioningInfo": "Enable file versioning to keep track of changes made to your files.",
-				"loginAlerts": "Login alerts",
-				"loginAlertsInfo": "Receive alerts when your account is accessed.",
-				"deleteVersionedFiles": "Delete versioned files",
-				"deleteAllFilesAndDirectories": "Delete all files and directories",
-				"logout": "Logout",
-				"requestAccountDeletion": "Request account deletion",
-				"requestAccountDeletionInfo": "Request account deletion. We will send you an email with further instructions."
+				"changeAvatar": "變更頭像",
+				"emailAddress": "電子郵件地址",
+				"personalInformation": "個人資訊",
+				"nickname": "暱稱",
+				"gdpr": "GDPR 資訊",
+				"more": "更多帳戶設定",
+				"fileVersioning": "檔案版本控制",
+				"fileVersioningInfo": "啟用檔案版本控制以追蹤檔案變更。",
+				"loginAlerts": "登入警告",
+				"loginAlertsInfo": "當您的帳戶被存取時接收警告。",
+				"deleteVersionedFiles": "刪除版本檔案",
+				"deleteAllFilesAndDirectories": "刪除所有檔案和資料夾",
+				"logout": "登出",
+				"requestAccountDeletion": "請求刪除帳戶",
+				"requestAccountDeletionInfo": "請求刪除帳戶。我們會向您傳送一封包含進一步說明的電子郵件。"
 			},
 			"prompts": {
 				"logout": {
-					"title": "Logout",
-					"message": "Are you sure you want to logout? You will need to login again to access your account."
+					"title": "登出",
+					"message": "您確定要登出嗎？您需要重新登入才能存取您的帳戶。"
 				},
 				"deleteAccount": {
-					"title": "Request account deletion",
-					"message": "Are you sure you want to request account deletion? You will receive an email with further instructions."
+					"title": "請求刪除帳戶",
+					"message": "您確定要請求帳戶刪除嗎？您會收到一封包含進一步說明的電子郵件。"
 				},
 				"2fa": {
-					"title": "Two Factor Authentication",
-					"placeholder": "Code"
+					"title": "雙重驗證",
+					"placeholder": "代碼"
 				},
 				"deleteAllFilesAndDirectories1": {
-					"title": "Delete all files and directories",
-					"message": "Are you sure you want to delete all files and directories? This action cannot be undone!"
+					"title": "刪除所有檔案和資料夾",
+					"message": "您確定要刪除所有檔案和資料夾嗎？此動作無法復原！"
 				},
 				"deleteAllFilesAndDirectories2": {
-					"title": "Delete all files and directories",
-					"message": "Are you really sure? This action cannot be undone!"
+					"title": "刪除所有檔案和資料夾",
+					"message": "您真的確定嗎？此動作無法復原！"
 				},
 				"deleteVersionedFiles1": {
-					"title": "Delete versioned files",
-					"message": "Are you sure you want to delete all versioned files? This action cannot be undone!"
+					"title": "刪除版本檔案",
+					"message": "您確定要刪除所有版本檔案嗎？此動作無法復原！"
 				},
 				"deleteVersionedFiles2": {
-					"title": "Delete versioned files",
-					"message": "Are you really sure? This action cannot be undone!"
+					"title": "刪除版本檔案",
+					"message": "您真的確定嗎？此動作無法復原！"
 				},
 				"changeEmail": {
 					"newEmail": {
-						"title": "New email address",
-						"placeholder": "New email address"
+						"title": "新電子郵件地址",
+						"placeholder": "新電子郵件地址"
 					},
 					"confirmEmail": {
-						"title": "Confirm new email address",
-						"placeholder": "Confirm new email address"
+						"title": "確認新的電子郵件地址",
+						"placeholder": "確認新的電子郵件地址"
 					},
 					"password": {
-						"title": "Your password",
-						"placeholder": "Password"
+						"title": "您的密碼",
+						"placeholder": "密碼"
 					}
 				},
 				"updateNickname": {
-					"title": "Update nickname",
-					"placeholder": "New nickname"
+					"title": "更新暱稱",
+					"placeholder": "新暱稱"
 				},
 				"more": {
-					"title": "Open Web App",
-					"message": "More settings are available in the web app. Do you want to open it now?"
+					"title": "開啟網頁應用程式",
+					"message": "網頁應用程式中有更多設定，您想現在開啟嗎？"
 				}
 			},
 			"errors": {
-				"emailsNotMatching": "The new email addresses do not match.",
-				"avatarLimit": "The avatar image size exceeds the limit of 3 MiB."
+				"emailsNotMatching": "新電子郵件地址不一致。",
+				"avatarLimit": "頭像圖片大小超過 3 MiB 上限。"
 			}
 		},
 		"index": {
-			"title": "Settings",
-			"back": "Back",
+			"title": "設定",
+			"back": "返回",
 			"items": {
-				"used": "{{used}} used of {{max}} ({{percentage}}%)",
-				"security": "Security",
-				"events": "Events",
-				"cameraUpload": "Camera upload",
-				"fileProvider": "File provider",
-				"fileProviderInfo": "Enable the iOS Files integration to access your files outside of the app.",
-				"documentsProvider": "Documents provider",
-				"documentsProviderInfo": "Enable the Android Files integration to access your files outside of the app.",
-				"contacts": "Contacts",
-				"advanced": "Advanced",
-				"account": "Account",
-				"appearance": "Appearance"
+				"used": "{{used}} / {{max}} ({{percentage}}%)",
+				"security": "安全性",
+				"events": "事件",
+				"cameraUpload": "相機上傳",
+				"fileProvider": "檔案提供者",
+				"fileProviderInfo": "啟用 iOS 檔案整合以在應用程式外存取您的檔案。",
+				"documentsProvider": "文件提供者",
+				"documentsProviderInfo": "啟用 Android 檔案整合以在應用程式外存取您的檔案。",
+				"contacts": "聯絡人",
+				"advanced": "進階",
+				"account": "帳戶",
+				"appearance": "外觀"
 			},
 			"prompts": {
 				"fileProvider": {
-					"title": "Biometric authentication enabled",
-					"message": "Enabling the file provider will disable biometric authentication. This means you will not be able to use biometric authentication to unlock the app. Do you want to continue?"
+					"title": "已啟用生物辨識驗證",
+					"message": "啟用檔案提供者會停用生物辨識驗證，這表示您將無法使用生物辨識解鎖應用程式。您要繼續嗎？"
 				},
 				"documentsProvider": {
-					"title": "Biometric authentication enabled",
-					"message": "Enabling the documents provider will disable biometric authentication. This means you will not be able to use biometric authentication to unlock the app. Do you want to continue?"
+					"title": "已啟用生物辨識驗證",
+					"message": "啟用文件提供者會停用生物辨識驗證，這表示您將無法使用生物辨識解鎖應用程式。您要繼續嗎？"
 				}
 			}
 		},
 		"appearance": {
-			"title": "Appearance",
+			"title": "外觀",
 			"items": {
-				"startOn": "Start screen",
-				"startOn_home": "Home",
-				"startOn_drive": "Drive",
-				"startOn_photos": "Photos",
-				"startOn_chats": "Chats",
-				"startOn_notes": "Notes"
+				"startOn": "起始畫面",
+				"startOn_home": "首頁",
+				"startOn_drive": "雲端硬碟",
+				"startOn_photos": "相片",
+				"startOn_chats": "對話",
+				"startOn_notes": "筆記"
 			}
 		},
 		"personal": {
-			"title": "Personal information",
+			"title": "個人資訊",
 			"items": {
-				"firstName": "First name",
-				"lastName": "Last name",
-				"city": "City",
-				"country": "Country",
-				"companyName": "Company name",
-				"vatId": "VAT ID",
-				"street": "Street",
-				"postalCode": "Postal code",
-				"streetNumber": "Street number"
+				"firstName": "名 (first name)",
+				"lastName": "姓 (last name)",
+				"city": "城市",
+				"country": "國家",
+				"companyName": "公司名稱",
+				"vatId": "加值營業稅 (VAT) ID",
+				"street": "街道",
+				"postalCode": "郵遞區號",
+				"streetNumber": "街道號碼"
 			},
 			"prompts": {
 				"edit": {
-					"title": "Edit"
+					"title": "編輯"
 				}
 			}
 		}
 	},
 	"photos": {
-		"title": "Photos",
+		"title": "相片",
 		"list": {
-			"empty": "No photos yet",
-			"emptySearch": "No photos found for this search",
-			"error": "There was an error loading your photos, please try again later"
+			"empty": "暫無相片",
+			"emptySearch": "找不到符合此搜尋的相片",
+			"error": "載入您的相片時發生錯誤，請稍後再試"
 		},
 		"state": {
-			"synced": "Synced",
-			"syncing": "Syncing",
-			"syncingProgress": "{{done}} of {{total}} items synced"
+			"synced": "已同步",
+			"syncing": "同步中",
+			"syncingProgress": "已同步 {{done}}/{{total}} 個項目"
 		},
 		"menu": {
-			"settings": "Settings"
+			"settings": "設定"
 		},
 		"header": {
-			"selected": "{{count}} selected"
+			"selected": "已選擇 {{count}} 項"
 		},
 		"settings": {
 			"albums": {
-				"title": "Albums",
+				"title": "相簿",
 				"item": {
-					"subTitle": "{{count}} items"
+					"subTitle": "{{count}} 個項目"
 				},
 				"list": {
-					"empty": "No albums found",
-					"emptySearch": "No albums found for this search",
-					"error": "There was an error loading your albums, please try again later"
+					"empty": "找不到相簿",
+					"emptySearch": "找不到符合此搜尋的相簿",
+					"error": "載入您的相簿時發生錯誤，請稍後再試"
 				}
 			},
 			"index": {
-				"title": "Settings",
+				"title": "設定",
 				"items": {
-					"enabled": "Enabled",
-					"albums": "Albums",
-					"albumsInfo": "Select which albums to include in the camera upload.",
-					"cloudDirectory": "Cloud directory",
-					"cloudDirectoryNotSet": "Not set",
-					"videos": "Videos",
-					"videosInfo": "Include videos in the camera upload.",
-					"cellular": "Cellular",
-					"cellularInfo": "Allow camera upload over cellular data. This can lead to high data usage.",
-					"background": "Background",
-					"backgroundInfo": "Allow camera upload in the background. This can lead to high battery usage. Background uploads only include images. Only works when app is not force closed.",
-					"lowBattery": "Low battery",
-					"lowBatteryInfo": "Disable camera upload when the battery is low.",
-					"compress": "Compress",
-					"compressInfo": "Compress photos to save storage space. This can reduce the quality of the photos. JPG compression at 80% quality.",
-					"permissionsError": "Permissions error",
-					"permissionsErrorInfo": "Please allow the app to access your photos and videos in the system settings.",
-					"onlyDeltasAfterActivation": "After activation",
-					"onlyDeltasAfterActivationInfo": "When enabled, only photos and videos taken after enabling camera upload will be uploaded."
+					"enabled": "已啟用",
+					"albums": "相簿",
+					"albumsInfo": "選擇要包含在相機上傳中的相簿。",
+					"cloudDirectory": "雲端資料夾",
+					"cloudDirectoryNotSet": "尚未設定",
+					"videos": "影片",
+					"videosInfo": "在相機上傳中包含影片。",
+					"cellular": "行動網路",
+					"cellularInfo": "允許使用行動網路進行相機上傳，可能導致高數據使用量。",
+					"background": "背景",
+					"backgroundInfo": "允許在背景進行相機上傳，可能導致高電池用量。背景上傳僅包含圖像。只在應用程式非被強制停止時運作",
+					"lowBattery": "低電量",
+					"lowBatteryInfo": "當電池電量低時停止相機上傳",
+					"compress": "壓縮",
+					"compressInfo": "壓縮相片以節省儲存空間，可能導致相片品質下降。JPG 壓縮品質為 80%。",
+					"permissionsError": "權限錯誤",
+					"permissionsErrorInfo": "請在系統設定中允許應用程式存取您的相片與影片。",
+					"onlyDeltasAfterActivation": "啟用後",
+					"onlyDeltasAfterActivationInfo": "啟用此功能後，系統只會上傳在啟用相機上傳功能之後拍攝的相片與影片。"
 				},
 				"errors": {
-					"noPermissions": "You need to grant media permissions to access your photos.",
-					"noAlbumsSelected": "Please select at least one album to upload photos from.",
-					"invalidCloudDirectory": "The selected cloud directory is invalid. Please select a valid directory."
+					"noPermissions": "您需要授予媒體權限以存取您的相片",
+					"noAlbumsSelected": "請至少選擇一個相簿以上傳相片。",
+					"invalidCloudDirectory": "選擇的雲端資料夾無效，請選擇一個有效的資料夾。"
 				}
 			}
 		}
 	},
 	"tabBar": {
-		"home": "Home",
-		"drive": "Drive",
-		"photos": "Photos",
-		"notes": "Notes",
-		"chats": "Chats",
-		"settings": "Settings"
+		"home": "首頁",
+		"drive": "雲端硬碟",
+		"photos": "相片",
+		"notes": "筆記",
+		"chats": "對話紀錄",
+		"settings": "設定"
 	},
 	"auth": {
 		"prompts": {
 			"2fa": {
-				"title": "Two Factor Authentication",
-				"placeholder": "Code"
+				"title": "雙重驗證",
+				"placeholder": "代碼"
 			},
 			"resendConfirmation": {
-				"title": "Resend confirmation",
-				"placeholder": "Email address",
-				"success": "Confirmation email sent to {{email}} if it is registered."
+				"title": "重發確認電郵",
+				"placeholder": "電子郵件地址",
+				"success": "認郵件已寄送至 {{email}}，如果該信箱已註冊。"
 			},
 			"forgotPassword": {
-				"title": "Forgot password",
-				"placeholder": "Email address",
-				"success": "If the email address is registered, you will receive an email with instructions to reset your password."
+				"title": "忘記密碼",
+				"placeholder": "電子郵件地址",
+				"success": "如果該電子郵件地址已被註冊，您會收到一封包含密碼重設說明的電子郵件。"
 			}
 		},
-		"registrationSuccessful": "Registration successful! Please check your email to confirm your account.",
+		"registrationSuccessful": "註冊成功！請檢查您的電子郵件以確認您的帳戶。",
 		"index": {
 			"hero": {
-				"first": "End-to-end encrypted",
-				"second": "Cloud Platform"
+				"first": "端對端加密",
+				"second": "雲端平台"
 			},
-			"signUp": "Sign up for free",
-			"login": "Log in"
+			"signUp": "免費註冊",
+			"login": "登入"
 		},
 		"login": {
-			"title": "Log in",
+			"title": "登入",
 			"header": {
-				"cancel": "Cancel"
+				"cancel": "取消"
 			},
-			"welcome": "Welcome back!",
-			"loginUsingCreds": "Log in using your credentials",
-			"forgotPassword": "Forgot password?",
-			"login": "Log in",
-			"signUp": "Sign up for free",
-			"next": "Next",
-			"submit": "Log in",
+			"welcome": "歡迎回來！",
+			"loginUsingCreds": "使用您的驗證資訊登入",
+			"forgotPassword": "忘記密碼？",
+			"login": "登入",
+			"signUp": "免費註冊",
+			"next": "下一步",
+			"submit": "登入",
 			"errors": {
-				"emptyFields": "Please fill out all fields."
+				"emptyFields": "請填寫所有欄位。"
 			},
 			"form": {
 				"email": {
-					"label": "Email address",
-					"placeholder": "Enter your email address"
+					"label": "電子郵件地址",
+					"placeholder": "輸入您的電子郵件地址"
 				},
 				"password": {
-					"label": "Password",
-					"placeholder": "Enter your password"
+					"label": "密碼",
+					"placeholder": "輸入您的密碼"
 				}
 			}
 		},
 		"register": {
-			"title": "Sign up",
+			"title": "註冊",
 			"header": {
-				"cancel": "Cancel",
-				"title": "Sign up"
+				"cancel": "取消",
+				"title": "註冊"
 			},
 			"hero": {
-				"create": "Create your free account",
-				"description": "Set up your credentials to get started with your Filen account."
+				"create": "建立您的免費帳戶",
+				"description": "設定您的驗證資訊以開始使用您的 Filen 帳戶。"
 			},
 			"form": {
 				"email": {
-					"label": "Email address",
-					"placeholder": "Enter your email address"
+					"label": "電子郵件地址",
+					"placeholder": "輸入您的電子郵件地址"
 				},
 				"confirmEmail": {
-					"label": "Confirm email address",
-					"placeholder": "Confirm your email address"
+					"label": "確認電子郵件地址",
+					"placeholder": "確認您的電子郵件地址"
 				},
 				"password": {
-					"label": "Password",
-					"placeholder": "Enter your password"
+					"label": "密碼",
+					"placeholder": "輸入您的密碼"
 				},
 				"confirmPassword": {
-					"label": "Confirm password",
-					"placeholder": "Confirm your password"
+					"label": "確認密碼",
+					"placeholder": "確認您的密碼"
 				}
 			},
 			"passwordStrength": {
-				"length": "Length",
-				"uppercase": "Uppercase letters",
-				"lowercase": "Lowercase letters",
-				"numbers": "Numbers",
-				"specialCharacters": "Special characters",
-				"weak": "Weak",
-				"medium": "Medium",
-				"strong": "Strong",
-				"best": "Best"
+				"length": "長度",
+				"uppercase": "大寫字母",
+				"lowercase": "小寫字母",
+				"numbers": "數字",
+				"specialCharacters": "特殊字元",
+				"weak": "弱",
+				"medium": "中",
+				"strong": "強",
+				"best": "最佳"
 			},
 			"errors": {
-				"emptyFields": "Please fill out all fields.",
-				"passwordsDoNotMatch": "The passwords do not match.",
-				"emailAddressesDoNotMatch": "The email addresses do not match.",
-				"weakPassword": "Your password is too weak. Please choose a stronger password. One that is at least 10 characters long, contains a mix of uppercase and lowercase letters, numbers, and special characters."
+				"emptyFields": "請填寫所有欄位",
+				"passwordsDoNotMatch": "密碼不一致。",
+				"emailAddressesDoNotMatch": "電子郵件地址不一致。",
+				"weakPassword": "您的密碼太弱，請選擇一個更強的密碼。至少包含 10 個字元，並混合大小寫字母、數字和特殊字元。"
 			},
-			"createAccount": "Create account",
-			"resendConfirmationEmail": "Resend confirmation email",
-			"next": "Next"
+			"createAccount": "建立帳戶",
+			"resendConfirmationEmail": "重發確認電郵",
+			"next": "下一步"
 		}
 	},
 	"editPublicLink": {
-		"title": "Edit public link",
-		"cancel": "Cancel",
+		"title": "編輯公開連結",
+		"cancel": "取消",
 		"prompts": {
 			"editPassword": {
-				"title": "Edit password",
-				"placeholder": "Leave empty to remove password"
+				"title": "編輯密碼",
+				"placeholder": "留空以移除密碼"
 			}
 		},
-		"shareDialogTile": "Filen public link",
+		"shareDialogTile": "Filen 公開連結",
 		"items": {
-			"enabled": "Enabled",
-			"password": "Password",
-			"edit": "Edit",
-			"expiration": "Expiration",
-			"expirationNever": "Never",
-			"expiration1h": "1 hour",
-			"expiration6h": "6 hours",
-			"expiration12h": "12 hours",
-			"expiration1d": "1 day",
-			"expiration3d": "3 days",
-			"expiration7d": "7 days",
-			"expiration14d": "14 days",
-			"expiration30d": "30 days",
-			"downloadButton": "Download button",
-			"shareLink": "Share link"
+			"enabled": "已啟用",
+			"password": "密碼",
+			"edit": "編輯",
+			"expiration": "過期於",
+			"expirationNever": "永不",
+			"expiration1h": "1 小時後",
+			"expiration6h": "6 小時後",
+			"expiration12h": "12 小時後",
+			"expiration1d": "1 天後",
+			"expiration3d": "3 天後",
+			"expiration7d": "7 天後",
+			"expiration14d": "14 天後",
+			"expiration30d": "30 天後",
+			"downloadButton": "下載按鈕",
+			"shareLink": "分享連結"
 		},
-		"onlyPro": "This feature is only available for Filen Pro users. Subscribe to any Filen plan to enable it.",
-		"unsavedChanges": "Unsaved changes"
+		"onlyPro": "此功能僅開放給 Filen Pro 使用者。訂閱任何 Filen 方案以啟用。",
+		"unsavedChanges": "尚未儲存的變更"
 	},
 	"selectContacts": {
 		"header": {
-			"selectContacts": "Select contacts",
-			"cancel": "Cancel",
-			"done": "Done",
-			"selectContact": "Select contact"
+			"selectContacts": "選擇聯絡人",
+			"cancel": "取消",
+			"done": "完成",
+			"selectContact": "選擇聯絡人"
 		},
 		"toolbar": {
-			"selected": "{{countOrName}} selected"
+			"selected": "已選擇 {{countOrName}} 項"
 		},
 		"list": {
-			"footer": "{{count}} contacts",
-			"empty": "No contacts yet",
-			"emptySearch": "No contacts found for this search",
-			"error": "There was an error loading your contacts, please try again later"
+			"footer": "{{count}} 名聯絡人",
+			"empty": "尚無聯絡人",
+			"emptySearch": "找不到符合此搜尋的聯絡人",
+			"error": "載入您的聯絡人時發生錯誤，請稍後再試"
 		}
 	},
 	"selectDriveItems": {
 		"header": {
-			"selectItems": "Select items",
-			"cancel": "Cancel",
-			"done": "Done",
-			"selectItem": "Select item",
-			"selectFile": "Select file",
-			"selectDirectory": "Select directory",
-			"selectFiles": "Select files",
-			"selectDirectories": "Select directories",
-			"drive": "Drive",
-			"selectRoot": "Select cloud drive",
-			"selectParent": "Select {{parent}}"
+			"selectItems": "選擇項目",
+			"cancel": "取消",
+			"done": "完成",
+			"selectItem": "選擇項目",
+			"selectFile": "選擇檔案",
+			"selectDirectory": "選擇資料夾",
+			"selectFiles": "選擇檔案",
+			"selectDirectories": "選擇資料夾",
+			"drive": "雲端硬碟",
+			"selectRoot": "選擇雲端硬碟",
+			"selectParent": "選擇 {{parent}}"
 		},
 		"toolbar": {
-			"selected": "{{countOrName}} selected"
+			"selected": "已選擇 {{countOrName}} 項"
 		},
 		"list": {
-			"footer": "{{count}} items",
-			"empty": "Nothing uploaded yet",
-			"emptySearch": "No items found for this search",
-			"error": "There was an error loading your files, please try again later"
+			"footer": "{{count}} 個項目",
+			"empty": "尚未上傳任何內容",
+			"emptySearch": "找不到符合此搜尋的項目",
+			"error": "載入您的檔案時發生錯誤，請稍後再試"
 		},
 		"prompts": {
 			"createDirectory": {
-				"title": "Create directory",
-				"placeholder": "Directory name",
-				"success": "{{name}} created"
+				"title": "建立資料夾",
+				"placeholder": "資料夾名稱",
+				"success": "已建立 {{name}}"
 			}
 		}
 	},
 	"selectTrackPlayerPlaylists": {
-		"selected": "{{countOrName}} selected",
+		"selected": "已選擇 {{countOrName}} 項",
 		"header": {
-			"selectPlaylists": "Select playlists",
-			"cancel": "Cancel",
-			"done": "Done",
-			"selectPlaylist": "Select playlist"
+			"selectPlaylists": "選擇播放清單",
+			"cancel": "取消",
+			"done": "完成",
+			"selectPlaylist": "選擇播放清單"
 		},
 		"toolbar": {
-			"selected": "{{countOrName}} selected"
+			"selected": "已選擇 {{countOrName}} 項"
 		},
 		"list": {
-			"footer": "{{count}} playlists",
-			"empty": "No playlists yet",
-			"emptySearch": "No playlists found for this search",
-			"error": "There was an error loading your playlists, please try again later"
+			"footer": "{{count}} 個播放清單",
+			"empty": "尚無播放清單",
+			"emptySearch": "找不到符合此搜尋的播放清單",
+			"error": "載入您的播放清單時發生錯誤，請稍後再試"
 		},
 		"item": {
-			"subTitle": "{{count}} tracks, updated {{date}}"
+			"subTitle": "共 {{count}} 首曲目，更新於 {{date}}"
 		},
 		"prompts": {
 			"createPlaylist": {
-				"title": "Create playlist",
-				"placeholder": "Playlist name"
+				"title": "建立播放清單",
+				"placeholder": "播放清單名稱"
 			}
 		}
 	},
 	"shareIntent": {
 		"header": {
-			"title": "Save to Filen",
-			"cancel": "Cancel",
-			"upload": "Upload"
+			"title": "儲存到 Filen",
+			"cancel": "取消",
+			"upload": "上傳"
 		}
 	},
 	"trackPlayer": {
 		"item": {
-			"subTitle": "{{count}} tracks, updated {{date}}",
+			"subTitle": "共 {{count}} 首曲目，更新於 {{date}}",
 			"menu": {
-				"play": "Play",
-				"delete": "Delete",
-				"addToQueue": "Add to queue",
-				"cancel": "Cancel"
+				"play": "播放",
+				"delete": "刪除",
+				"addToQueue": "新增至佇列",
+				"cancel": "取消"
 			}
 		},
 		"list": {
-			"footer": "{{count}} playlists",
-			"empty": "No playlists yet",
-			"emptySearch": "No playlists found for this search",
-			"error": "There was an error loading your playlists, please try again later"
+			"footer": "{{count}} 個播放清單",
+			"empty": "尚無播放清單",
+			"emptySearch": "找不到符合此搜尋的播放清單",
+			"error": "載入您的播放清單時發生錯誤，請稍後再試"
 		},
 		"playlist": {
 			"item": {
 				"menu": {
-					"play": "Play",
-					"addToPlaylist": "Add to playlist",
-					"addToQueue": "Add to queue",
-					"removeFromPlaylist": "Remove from playlist",
-					"cancel": "Cancel"
+					"play": "播放",
+					"addToPlaylist": "新增到播放清單",
+					"addToQueue": "新增至佇列",
+					"removeFromPlaylist": "從播放清單中移除",
+					"cancel": "取消"
 				}
 			},
 			"list": {
-				"footer": "{{count}} tracks",
-				"empty": "No tracks yet",
-				"emptySearch": "No tracks found for this search",
-				"error": "There was an error loading your tracks, please try again later"
+				"footer": "{{count}} 首曲目",
+				"empty": "尚無曲目",
+				"emptySearch": "找不到符合此搜尋的曲目",
+				"error": "載入您的曲目時發生錯誤，請稍後再試"
 			}
 		},
 		"bottom": {
-			"unknownTitle": "Unknown title",
-			"unknownArtist": "Unknown artist",
-			"noTrackQueued": "No track queued"
+			"unknownTitle": "未知標題",
+			"unknownArtist": "未知藝術家",
+			"noTrackQueued": "沒有佇列的曲目"
 		},
 		"prompts": {
 			"createPlaylist": {
-				"title": "Create playlist",
-				"placeholder": "Playlist name"
+				"title": "建立播放清單",
+				"placeholder": "播放清單名稱"
 			},
 			"deletePlaylist": {
-				"title": "Delete playlist",
-				"message": "Are you sure you want to delete this playlist? This action cannot be undone!"
+				"title": "刪除播放清單",
+				"message": "您確定要刪除此播放清單嗎？此動作無法復原！"
 			}
 		},
 		"header": {
-			"title": "Playlists"
+			"title": "播放清單"
 		}
 	},
 	"transfers": {
 		"header": {
-			"title": "Transfers",
-			"back": "Back"
+			"title": "傳輸作業",
+			"back": "返回"
 		},
-		"info": "Transferring {{ongoingTransfers}} items at {{speed}}, {{remaining}} remaining",
-		"infoNoTime": "Transferring {{ongoingTransfers}} items at {{speed}}",
-		"noOngoingTransfers": "No ongoing transfers",
+		"info": "正在以 {{speed}} 傳輸 {{ongoingTransfers}} 個項目，剩餘 {{remaining}}",
+		"infoNoTime": "正在以 {{speed}} 傳輸 {{ongoingTransfers}} 個項目",
+		"noOngoingTransfers": "沒有正在進行的傳輸作業",
 		"list": {
-			"empty": "No transfers yet",
-			"emptySearch": "No transfers found for this search",
-			"error": "There was an error loading your transfers, please try again later"
+			"empty": "暫無傳輸作業",
+			"emptySearch": "找不到符合此搜尋的傳輸作業",
+			"error": "載入您的傳輸作業紀錄時發生錯誤，請稍後再試"
 		},
 		"transfer": {
-			"resume": "Resume",
-			"pause": "Pause",
-			"cancel": "Cancel",
-			"cancelAll": "Cancel all",
-			"stop": "Stop",
-			"stopAll": "Stop all"
+			"resume": "繼續",
+			"pause": "暫停",
+			"cancel": "取消",
+			"cancelAll": "全部取消",
+			"stop": "停止",
+			"stopAll": "全部停止"
 		}
 	},
 	"textEditor": {
 		"header": {
-			"back": "Back"
+			"back": "返回"
 		},
-		"unsavedChanges": "Unsaved changes",
-		"savedSuccess": "Saved successfully",
-		"saved": "Saved"
+		"unsavedChanges": "尚未儲存的變更",
+		"savedSuccess": "儲存成功",
+		"saved": "已儲存"
 	},
 	"contacts": {
 		"menu": {
-			"remove": "Remove",
-			"block": "Block",
-			"unblock": "Unblock",
-			"cancel": "Cancel",
-			"accept": "Accept",
-			"decline": "Decline"
+			"remove": "移除",
+			"block": "封鎖",
+			"unblock": "解除封鎖",
+			"cancel": "取消",
+			"accept": "接受",
+			"decline": "拒絕"
 		}
 	},
 	"biometric": {
-		"appLockedFor": "App locked for {{seconds}} seconds",
-		"authenticateUsingPin": "Authenticate using your PIN",
-		"authenticateUsingBiometrics": "Authenticate using Biometrics",
+		"appLockedFor": "應用程式鎖定 {{seconds}} 秒",
+		"authenticateUsingPin": "使用您的 PIN 認證",
+		"authenticateUsingBiometrics": "使用生物辨識驗證",
 		"prompts": {
 			"pin": {
-				"title": "Enter your PIN",
+				"title": "輸入您的 PIN",
 				"placeholder": "PIN"
 			}
 		},
 		"errors": {
-			"tooManyIncorrectAttempts": "Too many incorrect attempts. Please try again later.",
-			"incorrectPin": "Incorrect PIN. Please try again."
+			"tooManyIncorrectAttempts": "錯誤次數太多，請稍後再試。",
+			"incorrectPin": "錯誤的s PIN，請再試一次。"
 		}
 	},
 	"offlineListHeader": {
-		"title": "Offline mode"
+		"title": "離線模式"
 	},
 	"formatBytes": {
-		"b": "Bytes",
+		"b": "位元組",
 		"kib": "KiB",
 		"mib": "MiB",
 		"gib": "GiB",
