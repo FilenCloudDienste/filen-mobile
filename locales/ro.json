@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Creați cont",
             "errors": {
-                "emailAddressesDoNotMatch": "Adresele de e-mail nu coincid.",
                 "emptyFields": "Vă rugăm să completați toate câmpurile.",
                 "passwordsDoNotMatch": "Parolele nu se potrivesc.",
                 "weakPassword": "Parola dvs. este prea slabă. Vă rugăm să alegeți o parolă mai puternică. Una care are cel puțin 10 caractere, conține un amestec de litere mari și mici, numere și caractere speciale."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Confirmați adresa de email",
-                    "placeholder": "Confirmați-vă adresa de email"
-                },
                 "confirmPassword": {
                     "label": "Confirmare parolă",
                     "placeholder": "Confirmați parola dvs."
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "Dimensiunea imaginii avatarului depășește limita de 3 MiB.",
-                "emailsNotMatching": "Noile adrese de e-mail nu coincid."
+                "avatarLimit": "Dimensiunea imaginii avatarului depășește limita de 3 MiB."
             },
             "items": {
                 "changeAvatar": "Schimbați avatarul",
@@ -954,10 +948,6 @@
                     "title": "Autentificare în doi pași"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Confirmați noua adresă de email",
-                        "title": "Confirmați noua adresă de email"
-                    },
                     "newEmail": {
                         "placeholder": "Adresă nouă de email",
                         "title": "Adresă nouă de email"

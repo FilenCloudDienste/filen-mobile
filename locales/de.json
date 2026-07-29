@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Konto erstellen",
             "errors": {
-                "emailAddressesDoNotMatch": "Die E-Mail-Adressen stimmen nicht überein.",
                 "emptyFields": "Bitte füllen Sie alle Felder aus.",
                 "passwordsDoNotMatch": "Die Passwörter stimmen nicht überein.",
                 "weakPassword": "Ihr Passwort ist zu schwach. Bitte wählen Sie ein stärkeres Passwort. Es sollte mindestens 10 Zeichen lang sein und eine Mischung aus Groß- und Kleinbuchstaben, Zahlen und Sonderzeichen enthalten."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "E-Mail-Adresse bestätigen",
-                    "placeholder": "Bestätigen Sie Ihre E-Mail-Adresse"
-                },
                 "confirmPassword": {
                     "label": "Passwort bestätigen",
                     "placeholder": "Bestätigen Sie Ihr Passwort"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "Die Größe des Avatarbildes überschreitet das Limit von 3 MiB.",
-                "emailsNotMatching": "Die neuen E-Mail-Adressen stimmen nicht überein."
+                "avatarLimit": "Die Größe des Avatarbildes überschreitet das Limit von 3 MiB."
             },
             "items": {
                 "changeAvatar": "Avatar ändern",
@@ -954,10 +948,6 @@
                     "title": "Zwei-Faktor-Authentifizierung"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Neue E-Mail-Adresse bestätigen",
-                        "title": "Neue E-Mail-Adresse bestätigen"
-                    },
                     "newEmail": {
                         "placeholder": "Neue E-Mail-Adresse",
                         "title": "Neue E-Mail-Adresse"

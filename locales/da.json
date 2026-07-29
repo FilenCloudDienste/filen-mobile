@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Opret konto",
             "errors": {
-                "emailAddressesDoNotMatch": "E-mailadresserne stemmer ikke overens.",
                 "emptyFields": "Udfyld venligst alle felter.",
                 "passwordsDoNotMatch": "Adgangskoderne stemmer ikke overens.",
                 "weakPassword": "Din adgangskode er for svag. Vælg venligst en stærkere adgangskode, som er mindst 10 tegn lang og indeholder en blanding af store og små bogstaver, tal og specialtegn."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Bekræft email-adresse",
-                    "placeholder": "Bekræft din email-adresse"
-                },
                 "confirmPassword": {
                     "label": "Bekræft adgangskode",
                     "placeholder": "Bekræft din adgangskode"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "Avatarbilledets størrelse overstiger grænsen på 3 MiB.",
-                "emailsNotMatching": "De nye e-mailadresser stemmer ikke overens."
+                "avatarLimit": "Avatarbilledets størrelse overstiger grænsen på 3 MiB."
             },
             "items": {
                 "changeAvatar": "Skift avatar",
@@ -954,10 +948,6 @@
                     "title": "Tofaktorgodkendelse"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Bekræft ny email-adresse",
-                        "title": "Bekræft ny email-adresse"
-                    },
                     "newEmail": {
                         "placeholder": "Ny e-mail adresse",
                         "title": "Ny e-mail adresse"

@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "اکاؤنٹ بنائیں",
             "errors": {
-                "emailAddressesDoNotMatch": "ای میل ایڈریسز مماثل نہیں ہیں۔",
                 "emptyFields": "براہ کرم تمام خانے پر کریں۔",
                 "passwordsDoNotMatch": "پاس ورڈز کا میل نہیں ہوا۔",
                 "weakPassword": "آپ کا پاس ورڈ بہت کمزور ہے۔ براہ کرم ایک مضبوط پاس ورڈ منتخب کریں۔ ایسا جو کم از کم 10 حروف لمبا ہو، بڑے اور چھوٹے حروف، نمبرز اور خاص علامات کا مجموعہ ہو۔"
             },
             "form": {
-                "confirmEmail": {
-                    "label": "ای میل ایڈریس کی تصدیق کریں",
-                    "placeholder": "اپنے ای میل ایڈریس کی تصدیق کریں"
-                },
                 "confirmPassword": {
                     "label": "پاس ورڈ کی تصدیق کریں",
                     "placeholder": "اپنے پاس ورڈ کی تصدیق کریں"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "آواتار تصویر کا سائز 3 MiB کی حد سے تجاوز کر گیا ہے۔",
-                "emailsNotMatching": "نئی ای میل ایڈریسز مماثل نہیں ہیں۔"
+                "avatarLimit": "آواتار تصویر کا سائز 3 MiB کی حد سے تجاوز کر گیا ہے۔"
             },
             "items": {
                 "changeAvatar": "اوتار تبدیل کریں",
@@ -954,10 +948,6 @@
                     "title": "دو فیکٹر توثیق"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "نئے ای میل ایڈریس کی تصدیق کریں",
-                        "title": "نئے ای میل ایڈریس کی تصدیق کریں"
-                    },
                     "newEmail": {
                         "placeholder": "نیا ای میل پتہ",
                         "title": "نیا ای میل پتہ"

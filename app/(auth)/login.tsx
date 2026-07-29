@@ -16,11 +16,6 @@ import { Form, FormItem, FormSection } from "@/components/nativewindui/Form"
 import { useMMKVString } from "react-native-mmkv"
 import mmkvInstance from "@/lib/mmkv"
 
-const keyboardAwareScrollViewBottomOffset = Platform.select({
-	ios: 175,
-	default: 0
-})
-
 export const Login = memo(() => {
 	const insets = useSafeAreaInsets()
 	const router = useRouter()
@@ -120,7 +115,7 @@ export const Login = memo(() => {
 	}, [goBack])
 
 	const signUp = useCallback(() => {
-		router.push({
+		router.replace({
 			pathname: "/(auth)/register"
 		})
 	}, [router])
@@ -167,17 +162,14 @@ export const Login = memo(() => {
 			{header}
 			<SafeAreaView className="ios:bg-card flex-1">
 				<KeyboardAwareScrollView
-					bottomOffset={keyboardAwareScrollViewBottomOffset}
-					bounces={false}
 					keyboardDismissMode="interactive"
 					keyboardShouldPersistTaps="handled"
-					contentContainerClassName="ios:pt-12 pt-20"
 				>
-					<View className="ios:px-12 flex-1 px-8">
-						<View className="items-center pb-1">
+					<View className="flex-1 px-8">
+						<View className="items-center pb-1 gap-2">
 							<Text
 								variant="title1"
-								className="ios:font-bold pb-1 pt-4 text-center"
+								className="ios:font-bold pb-1 text-center"
 							>
 								{translateMemoized("auth.login.welcome")}
 							</Text>
@@ -185,8 +177,8 @@ export const Login = memo(() => {
 								{translateMemoized("auth.login.loginUsingCreds")}
 							</Text>
 						</View>
-						<View className="ios:pt-4 pt-6">
-							<Form className="gap-2">
+						<View className="ios:pt-4 gap-2 pt-6">
+							<Form>
 								<FormSection className="ios:bg-background">
 									<FormItem testID="email">
 										<TextField
@@ -242,23 +234,32 @@ export const Login = memo(() => {
 							</View>
 						</View>
 					</View>
-				</KeyboardAwareScrollView>
-				<KeyboardStickyView
-					offset={keyboardStickyViewOffset}
-					className="ios:bg-card bg-background"
-				>
-					{Platform.OS === "ios" ? (
-						<View className="px-12 py-4">
+					{Platform.OS === "ios" && (
+						<>
+							<View className="px-8 py-4 pt-8">
+								<Button
+									testID="login"
+									size="lg"
+									onPress={login}
+									disabled={disabled}
+								>
+									<Text>{translateMemoized("auth.login.login")}</Text>
+								</Button>
+							</View>
 							<Button
-								testID="login"
-								size="lg"
-								onPress={login}
-								disabled={disabled}
+								variant="plain"
+								onPress={signUp}
 							>
-								<Text>{translateMemoized("auth.login.login")}</Text>
+								<Text className="text-primary text-sm">{translateMemoized("auth.login.signUp")}</Text>
 							</Button>
-						</View>
-					) : (
+						</>
+					)}
+				</KeyboardAwareScrollView>
+				{Platform.OS === "android" && (
+					<KeyboardStickyView
+						offset={keyboardStickyViewOffset}
+						className="bg-background"
+					>
 						<View className="flex-row justify-between py-4 pl-6 pr-8">
 							<Button
 								variant="plain"
@@ -275,15 +276,7 @@ export const Login = memo(() => {
 								<Text className="text-sm">{translateMemoized("auth.login.submit")}</Text>
 							</Button>
 						</View>
-					)}
-				</KeyboardStickyView>
-				{Platform.OS === "ios" && (
-					<Button
-						variant="plain"
-						onPress={signUp}
-					>
-						<Text className="text-primary text-sm">{translateMemoized("auth.login.signUp")}</Text>
-					</Button>
+					</KeyboardStickyView>
 				)}
 			</SafeAreaView>
 		</RequireInternet>

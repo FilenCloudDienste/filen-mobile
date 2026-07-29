@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Crear cuenta",
             "errors": {
-                "emailAddressesDoNotMatch": "Las direcciones de correo electrónico no coinciden.",
                 "emptyFields": "Por favor completa todos los campos.",
                 "passwordsDoNotMatch": "Las contraseñas no coinciden.",
                 "weakPassword": "Su contraseña es demasiado débil. Por favor, elija una contraseña más segura. Debe ser de al menos 10 caracteres de longitud, contener una combinación de letras mayúsculas y minúsculas, números y caracteres especiales."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Confirma la dirección de correo electrónico",
-                    "placeholder": "Confirma tu dirección de correo electrónico"
-                },
                 "confirmPassword": {
                     "label": "Confirmar contraseña",
                     "placeholder": "Confirma tu contraseña"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "El tamaño de la imagen del avatar excede el límite de 3 MiB.",
-                "emailsNotMatching": "Las nuevas direcciones de correo electrónico no coinciden."
+                "avatarLimit": "El tamaño de la imagen del avatar excede el límite de 3 MiB."
             },
             "items": {
                 "changeAvatar": "Cambiar avatar",
@@ -954,10 +948,6 @@
                     "title": "Autenticación de dos factores"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Confirma la nueva dirección de correo electrónico",
-                        "title": "Confirma la nueva dirección de correo electrónico"
-                    },
                     "newEmail": {
                         "placeholder": "Nueva dirección de correo electrónico",
                         "title": "Nueva dirección de correo electrónico"

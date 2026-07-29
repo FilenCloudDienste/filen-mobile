@@ -935,10 +935,6 @@
 						"title": "New email address",
 						"placeholder": "New email address"
 					},
-					"confirmEmail": {
-						"title": "Confirm new email address",
-						"placeholder": "Confirm new email address"
-					},
 					"password": {
 						"title": "Your password",
 						"placeholder": "Password"
@@ -954,7 +950,6 @@
 				}
 			},
 			"errors": {
-				"emailsNotMatching": "The new email addresses do not match.",
 				"avatarLimit": "The avatar image size exceeds the limit of 3 MiB."
 			}
 		},
@@ -1153,10 +1148,6 @@
 					"label": "Email address",
 					"placeholder": "Enter your email address"
 				},
-				"confirmEmail": {
-					"label": "Confirm email address",
-					"placeholder": "Confirm your email address"
-				},
 				"password": {
 					"label": "Password",
 					"placeholder": "Enter your password"
@@ -1180,7 +1171,6 @@
 			"errors": {
 				"emptyFields": "Please fill out all fields.",
 				"passwordsDoNotMatch": "The passwords do not match.",
-				"emailAddressesDoNotMatch": "The email addresses do not match.",
 				"weakPassword": "Your password is too weak. Please choose a stronger password. One that is at least 10 characters long, contains a mix of uppercase and lowercase letters, numbers, and special characters."
 			},
 			"createAccount": "Create account",

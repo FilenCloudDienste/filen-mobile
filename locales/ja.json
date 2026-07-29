@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "アカウントを作成",
             "errors": {
-                "emailAddressesDoNotMatch": "メールアドレスが一致しません。",
                 "emptyFields": "すべてのフィールドに入力してください。",
                 "passwordsDoNotMatch": "パスワードが一致しません。",
                 "weakPassword": "パスワードが弱すぎます。より強力なパスワードを選んでください。少なくとも10文字以上で、大文字と小文字、数字、特殊文字を含む必要があります。"
             },
             "form": {
-                "confirmEmail": {
-                    "label": "メールアドレスを確認",
-                    "placeholder": "メールアドレスを確認してください"
-                },
                 "confirmPassword": {
                     "label": "パスワードの確認",
                     "placeholder": "パスワードを確認してください"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "アバター画像のサイズが3MBの制限を超えています。",
-                "emailsNotMatching": "新しいメールアドレスが一致しません。"
+                "avatarLimit": "アバター画像のサイズが3MBの制限を超えています。"
             },
             "items": {
                 "changeAvatar": "アバターを変更",
@@ -954,10 +948,6 @@
                     "title": "二要素認証"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "新しいメールアドレスを確認",
-                        "title": "新しいメールアドレスを確認"
-                    },
                     "newEmail": {
                         "placeholder": "新しいメールアドレス",
                         "title": "新しいメールアドレス"

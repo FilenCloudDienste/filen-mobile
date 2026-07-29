@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Criar conta",
             "errors": {
-                "emailAddressesDoNotMatch": "Os endereços de e-mail não coincidem.",
                 "emptyFields": "Por favor, preencha todos os campos.",
                 "passwordsDoNotMatch": "As senhas não correspondem.",
                 "weakPassword": "Sua senha é muito fraca. Por favor, escolha uma senha mais forte. Uma que tenha pelo menos 10 caracteres, contendo uma combinação de letras maiúsculas, minúsculas, números e caracteres especiais."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Confirme o endereço de email",
-                    "placeholder": "Confirme seu endereço de email"
-                },
                 "confirmPassword": {
                     "label": "Confirmar senha",
                     "placeholder": "Confirme sua senha"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "O tamanho da imagem do avatar excede o limite de 3 MiB.",
-                "emailsNotMatching": "Os novos endereços de e-mail não coincidem."
+                "avatarLimit": "O tamanho da imagem do avatar excede o limite de 3 MiB."
             },
             "items": {
                 "changeAvatar": "Alterar avatar",
@@ -954,10 +948,6 @@
                     "title": "Autenticação de Dois Fatores"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Confirme o novo endereço de email",
-                        "title": "Confirme o novo endereço de email"
-                    },
                     "newEmail": {
                         "placeholder": "Novo endereço de email",
                         "title": "Novo endereço de email"

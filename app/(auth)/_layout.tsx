@@ -10,7 +10,7 @@ const screenOptions = {
 	headerShown: Platform.OS === "ios",
 	headerBlurEffect: "systemChromeMaterial",
 	presentation: "modal",
-	animation: "slide_from_bottom"
+	animation: Platform.OS === "ios" ? "slide_from_bottom" : "slide_from_right"
 } satisfies NonNullable<React.ComponentPropsWithoutRef<typeof Stack.Screen>["options"]>
 
 export default function AuthLayout() {

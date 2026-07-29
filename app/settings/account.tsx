@@ -239,7 +239,6 @@ export const Account = memo(() => {
 	const changeEmail = useCallback(async () => {
 		const request = {
 			email: "",
-			confirmEmail: "",
 			password: ""
 		}
 
@@ -266,29 +265,6 @@ export const Account = memo(() => {
 			return
 		}
 
-		const confirmEmailPrompt = await inputPrompt({
-			title: translateMemoized("settings.account.prompts.changeEmail.confirmEmail.title"),
-			materialIcon: {
-				name: "email"
-			},
-			prompt: {
-				type: "plain-text",
-				keyboardType: "default",
-				defaultValue: "",
-				placeholder: translateMemoized("settings.account.prompts.changeEmail.confirmEmail.placeholder")
-			}
-		})
-
-		if (confirmEmailPrompt.cancelled || confirmEmailPrompt.type !== "text") {
-			return
-		}
-
-		request.confirmEmail = confirmEmailPrompt.text.trim()
-
-		if (request.confirmEmail.length === 0 || request.confirmEmail === account.data?.account.email) {
-			return
-		}
-
 		const passwordPrompt = await inputPrompt({
 			title: translateMemoized("settings.account.prompts.changeEmail.password.title"),
 			materialIcon: {
@@ -309,12 +285,6 @@ export const Account = memo(() => {
 		request.password = passwordPrompt.text
 
 		if (request.password.length === 0) {
-			return
-		}
-
-		if (request.email !== request.confirmEmail) {
-			alerts.error(translateMemoized("settings.account.errors.emailsNotMatching"))
-
 			return
 		}
 

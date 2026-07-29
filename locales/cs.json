@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Vytvořit účet",
             "errors": {
-                "emailAddressesDoNotMatch": "Emailové adresy se neshodují.",
                 "emptyFields": "Vyplňte prosím všechna pole.",
                 "passwordsDoNotMatch": "Hesla se neshodují.",
                 "weakPassword": "Vaše heslo je příliš slabé. Zvolte si prosím silnější heslo. Takové, které má alespoň 10 znaků a obsahuje směs velkých a malých písmen, čísel a speciálních znaků."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Potvrdit emailovou adresu",
-                    "placeholder": "Potvrďte svou emailovou adresu"
-                },
                 "confirmPassword": {
                     "label": "Potvrdit heslo",
                     "placeholder": "Potvrďte své heslo"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "Velikost obrázku avatara překračuje limit 3 MiB.",
-                "emailsNotMatching": "Nové emailové adresy se neshodují."
+                "avatarLimit": "Velikost obrázku avatara překračuje limit 3 MiB."
             },
             "items": {
                 "changeAvatar": "Změnit avatar",
@@ -954,10 +948,6 @@
                     "title": "Dvoufaktorové ověřování"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Potvrdit novou emailovou adresu",
-                        "title": "Potvrdit novou emailovou adresu"
-                    },
                     "newEmail": {
                         "placeholder": "Nová emailová adresa",
                         "title": "Nová emailová adresa"

@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Tạo tài khoản",
             "errors": {
-                "emailAddressesDoNotMatch": "Địa chỉ email không khớp.",
                 "emptyFields": "Vui lòng điền vào tất cả các trường.",
                 "passwordsDoNotMatch": "Mật khẩu không khớp nhau.",
                 "weakPassword": "Mật khẩu của bạn quá yếu. Vui lòng chọn mật khẩu mạnh hơn. Phải dài ít nhất 10 ký tự, bao gồm chữ hoa và chữ thường, số và ký tự đặc biệt."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Xác nhận địa chỉ email",
-                    "placeholder": "Xác nhận địa chỉ email của bạn"
-                },
                 "confirmPassword": {
                     "label": "Xác nhận mật khẩu",
                     "placeholder": "Xác nhận mật khẩu của bạn"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "Kích thước ảnh đại diện vượt quá giới hạn 3 MiB.",
-                "emailsNotMatching": "Địa chỉ email mới không khớp."
+                "avatarLimit": "Kích thước ảnh đại diện vượt quá giới hạn 3 MiB."
             },
             "items": {
                 "changeAvatar": "Thay đổi ảnh đại diện",
@@ -954,10 +948,6 @@
                     "title": "Xác thực hai yếu tố"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Xác nhận địa chỉ email mới",
-                        "title": "Xác nhận địa chỉ email mới"
-                    },
                     "newEmail": {
                         "placeholder": "Địa chỉ email mới",
                         "title": "Địa chỉ email mới"

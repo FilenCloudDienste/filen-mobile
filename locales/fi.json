@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Luo tili",
             "errors": {
-                "emailAddressesDoNotMatch": "Sähköpostiosoitteet eivät täsmää.",
                 "emptyFields": "Täytä kaikki kentät.",
                 "passwordsDoNotMatch": "Salasanat eivät täsmää.",
                 "weakPassword": "Salasanasi on liian heikko. Valitse vahvempi salasana. Sellainen, joka on vähintään 10 merkkiä pitkä, sisältää sekä isoja että pieniä kirjaimia, numeroita ja erikoismerkkejä."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Vahvista sähköpostiosoite",
-                    "placeholder": "Vahvista sähköpostiosoitteesi"
-                },
                 "confirmPassword": {
                     "label": "Vahvista salasana",
                     "placeholder": "Vahvista salasanasi"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "Avatar-kuvan koko ylittää 3 MiB:n rajan.",
-                "emailsNotMatching": "Uudet sähköpostiosoitteet eivät täsmää."
+                "avatarLimit": "Avatar-kuvan koko ylittää 3 MiB:n rajan."
             },
             "items": {
                 "changeAvatar": "Vaihda avatar",
@@ -954,10 +948,6 @@
                     "title": "Kaksivaiheinen tunnistautuminen"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Vahvista uusi sähköpostiosoite",
-                        "title": "Vahvista uusi sähköpostiosoite"
-                    },
                     "newEmail": {
                         "placeholder": "Uusi sähköpostiosoite",
                         "title": "Uusi sähköpostiosoite"

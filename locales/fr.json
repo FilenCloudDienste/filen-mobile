@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Créer un compte",
             "errors": {
-                "emailAddressesDoNotMatch": "Les adresses e-mail ne correspondent pas.",
                 "emptyFields": "Veuillez remplir tous les champs.",
                 "passwordsDoNotMatch": "Les mots de passe ne correspondent pas.",
                 "weakPassword": "Votre mot de passe est trop faible. Veuillez choisir un mot de passe plus robuste. Il doit comporter au moins 10 caractères, inclure un mélange de majuscules et minuscules, des chiffres et des caractères spéciaux."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Confirmer l'adresse e-mail",
-                    "placeholder": "Confirmez votre adresse e-mail"
-                },
                 "confirmPassword": {
                     "label": "Confirmez le mot de passe",
                     "placeholder": "Confirmez votre mot de passe"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "La taille de l'image de l'avatar dépasse la limite de 3 MiB.",
-                "emailsNotMatching": "Les nouvelles adresses e-mail ne correspondent pas."
+                "avatarLimit": "La taille de l'image de l'avatar dépasse la limite de 3 MiB."
             },
             "items": {
                 "changeAvatar": "Changer d'avatar",
@@ -954,10 +948,6 @@
                     "title": "Authentification à deux facteurs"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Confirmer la nouvelle adresse e-mail",
-                        "title": "Confirmer la nouvelle adresse e-mail"
-                    },
                     "newEmail": {
                         "placeholder": "Nouvelle adresse e-mail",
                         "title": "Nouvelle adresse e-mail"

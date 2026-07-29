@@ -2,8 +2,7 @@ import { useRouter, Stack } from "expo-router"
 import { useState, memo, useMemo, useCallback } from "react"
 import { Platform, View } from "react-native"
 import { KeyboardAwareScrollView, KeyboardController, KeyboardStickyView } from "react-native-keyboard-controller"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
-import Container from "@/components/Container"
+import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context"
 import { Button } from "@/components/nativewindui/Button"
 import { Form, FormItem, FormSection } from "@/components/nativewindui/Form"
 import { Text } from "@/components/nativewindui/Text"
@@ -22,15 +21,10 @@ function onSubmitEditing() {
 	KeyboardController.setFocusTo("next")
 }
 
-const keyboardAwareScrollViewBottomOffset = Platform.select({
-	ios: 8
-})
-
 export const Register = memo(() => {
 	const insets = useSafeAreaInsets()
-	const [focusedTextField, setFocusedTextField] = useState<"email" | "password" | "confirmPassword" | "confirmEmail" | null>(null)
+	const [focusedTextField, setFocusedTextField] = useState<"email" | "password" | "confirmPassword" | null>(null)
 	const [email, setEmail] = useState<string>("")
-	const [confirmEmail, setConfirmEmail] = useState<string>("")
 	const [password, setPassword] = useState<string>("")
 	const [confirmPassword, setConfirmPassword] = useState<string>("")
 	const router = useRouter()
@@ -43,18 +37,15 @@ export const Register = memo(() => {
 	const disabled = useMemo(() => {
 		return (
 			!email ||
-			!confirmEmail ||
 			!password ||
 			!confirmPassword ||
 			password.length === 0 ||
 			email.length === 0 ||
-			confirmEmail.length === 0 ||
 			confirmPassword.length === 0 ||
 			password !== confirmPassword ||
-			email !== confirmEmail ||
 			passwordStrength.strength === "weak"
 		)
-	}, [email, confirmEmail, password, confirmPassword, passwordStrength])
+	}, [email, password, confirmPassword, passwordStrength])
 
 	const register = useCallback(async () => {
 		KeyboardController.dismiss()
@@ -62,10 +53,6 @@ export const Register = memo(() => {
 		try {
 			if (disabled) {
 				throw new Error(translateMemoized("auth.register.errors.emptyFields"))
-			}
-
-			if (email !== confirmEmail) {
-				throw new Error(translateMemoized("auth.register.errors.emailAddressesDoNotMatch"))
 			}
 
 			if (password !== confirmPassword) {
@@ -90,11 +77,10 @@ export const Register = memo(() => {
 			}
 
 			setFocusedTextField("email")
-			setConfirmEmail("")
 			setConfirmPassword("")
 			setPassword("")
 		}
-	}, [email, password, router, disabled, confirmEmail, confirmPassword, passwordStrength.strength])
+	}, [email, password, router, disabled, confirmPassword, passwordStrength.strength])
 
 	const resend = useCallback(async () => {
 		KeyboardController.dismiss()
@@ -165,10 +151,6 @@ export const Register = memo(() => {
 		setFocusedTextField("confirmPassword")
 	}, [])
 
-	const confirmEmailOnFocus = useCallback(() => {
-		setFocusedTextField("confirmEmail")
-	}, [])
-
 	const keyboardStickyViewOffset = useMemo(() => {
 		return {
 			closed: 0,
@@ -189,12 +171,12 @@ export const Register = memo(() => {
 						passwordStrength.strength === "weak" && index === 0
 							? "bg-red-500"
 							: passwordStrength.strength === "normal" && index <= 1
-							? "bg-yellow-500"
-							: passwordStrength.strength === "strong" && index <= 2
-							? "bg-blue-500"
-							: passwordStrength.strength === "best" && index <= 3
-							? "bg-green-500"
-							: "bg-gray-500"
+								? "bg-yellow-500"
+								: passwordStrength.strength === "strong" && index <= 2
+									? "bg-blue-500"
+									: passwordStrength.strength === "best" && index <= 3
+										? "bg-green-500"
+										: "bg-gray-500"
 					)}
 				/>
 			)
@@ -221,10 +203,6 @@ export const Register = memo(() => {
 				ios: undefined,
 				default: translateMemoized("auth.register.form.password.label")
 			}),
-			confirmEmail: Platform.select({
-				ios: undefined,
-				default: translateMemoized("auth.register.form.confirmEmail.label")
-			}),
 			confirmPassword: Platform.select({
 				ios: undefined,
 				default: translateMemoized("auth.register.form.confirmPassword.label")
@@ -235,19 +213,16 @@ export const Register = memo(() => {
 	return (
 		<RequireInternet redirectHref="/(auth)">
 			{header}
-			<Container className="ios:bg-card flex-1 py-8">
+			<SafeAreaView className="ios:bg-card flex-1">
 				<KeyboardAwareScrollView
-					bottomOffset={keyboardAwareScrollViewBottomOffset}
-					bounces={false}
 					keyboardDismissMode="interactive"
 					keyboardShouldPersistTaps="handled"
-					contentContainerClassName="ios:pt-12 pt-20"
 				>
-					<View className="ios:px-12 flex-1 px-8">
-						<View className="items-center pb-1">
+					<View className="flex-1 px-8">
+						<View className="items-center pb-1 gap-2">
 							<Text
 								variant="title1"
-								className="ios:font-bold pb-1 pt-4 text-center"
+								className="ios:font-bold pb-1 text-center"
 							>
 								{translateMemoized("auth.register.hero.create")}
 							</Text>
@@ -272,21 +247,6 @@ export const Register = memo(() => {
 											returnKeyType="next"
 											value={email}
 											onChangeText={setEmail}
-										/>
-									</FormItem>
-									<FormItem>
-										<TextField
-											placeholder={translateMemoized("auth.register.form.confirmEmail.placeholder")}
-											label={labels.confirmEmail}
-											onSubmitEditing={onSubmitEditing}
-											submitBehavior="submit"
-											onFocus={confirmEmailOnFocus}
-											onBlur={onBlur}
-											keyboardType="email-address"
-											textContentType="emailAddress"
-											returnKeyType="next"
-											value={confirmEmail}
-											onChangeText={setConfirmEmail}
 										/>
 									</FormItem>
 									<FormItem>
@@ -401,22 +361,31 @@ export const Register = memo(() => {
 							)}
 						</View>
 					</View>
-				</KeyboardAwareScrollView>
-				<KeyboardStickyView
-					offset={keyboardStickyViewOffset}
-					className="ios:bg-card bg-background"
-				>
-					{Platform.OS === "ios" ? (
-						<View className="px-12 py-4">
+					{Platform.OS === "ios" && (
+						<>
+							<View className="px-8 py-4 pt-8">
+								<Button
+									size="lg"
+									disabled={disabled}
+									onPress={register}
+								>
+									<Text>{translateMemoized("auth.register.createAccount")}</Text>
+								</Button>
+							</View>
 							<Button
-								size="lg"
-								disabled={disabled}
-								onPress={register}
+								variant="plain"
+								onPress={resend}
 							>
-								<Text>{translateMemoized("auth.register.createAccount")}</Text>
+								<Text className="text-primary text-sm">{translateMemoized("auth.register.resendConfirmationEmail")}</Text>
 							</Button>
-						</View>
-					) : (
+						</>
+					)}
+				</KeyboardAwareScrollView>
+				{Platform.OS === "android" && (
+					<KeyboardStickyView
+						offset={keyboardStickyViewOffset}
+						className="bg-background"
+					>
 						<View className="flex-row justify-between py-4 pl-6 pr-8">
 							<Button
 								variant="plain"
@@ -428,7 +397,7 @@ export const Register = memo(() => {
 								</Text>
 							</Button>
 							<Button
-								disabled={disabled}
+								disabled={focusedTextField === "confirmPassword" && disabled}
 								onPress={submit}
 							>
 								<Text className="text-sm">
@@ -438,17 +407,9 @@ export const Register = memo(() => {
 								</Text>
 							</Button>
 						</View>
-					)}
-				</KeyboardStickyView>
-				{Platform.OS === "ios" && (
-					<Button
-						variant="plain"
-						onPress={resend}
-					>
-						<Text className="text-primary text-sm">{translateMemoized("auth.register.resendConfirmationEmail")}</Text>
-					</Button>
+					</KeyboardStickyView>
 				)}
-			</Container>
+			</SafeAreaView>
 		</RequireInternet>
 	)
 })

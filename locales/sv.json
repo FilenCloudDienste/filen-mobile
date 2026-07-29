@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Skapa konto",
             "errors": {
-                "emailAddressesDoNotMatch": "E-postadresserna stämmer inte överens.",
                 "emptyFields": "Vänligen fyll i alla fält.",
                 "passwordsDoNotMatch": "Lösenorden matchar inte.",
                 "weakPassword": "Ditt lösenord är för svagt. Vänligen välj ett starkare lösenord. Ett som är minst 10 tecken långt, innehåller en blandning av stora och små bokstäver, siffror och specialtecken."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Bekräfta e-postadress",
-                    "placeholder": "Bekräfta din e-postadress"
-                },
                 "confirmPassword": {
                     "label": "Bekräfta lösenord",
                     "placeholder": "Bekräfta ditt lösenord"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "Avatarbildens storlek överskrider gränsen på 3 MiB.",
-                "emailsNotMatching": "De nya e-postadresserna stämmer inte överens."
+                "avatarLimit": "Avatarbildens storlek överskrider gränsen på 3 MiB."
             },
             "items": {
                 "changeAvatar": "Ändra avatar",
@@ -954,10 +948,6 @@
                     "title": "Tvåfaktorsautentisering"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Bekräfta ny e-postadress",
-                        "title": "Bekräfta ny e-postadress"
-                    },
                     "newEmail": {
                         "placeholder": "Ny e-postadress",
                         "title": "Ny e-postadress"

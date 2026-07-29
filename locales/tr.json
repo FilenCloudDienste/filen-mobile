@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Hesap oluştur",
             "errors": {
-                "emailAddressesDoNotMatch": "E-posta adresleri eşleşmiyor.",
                 "emptyFields": "Lütfen tüm alanları doldurun.",
                 "passwordsDoNotMatch": "Parolalar eşleşmiyor.",
                 "weakPassword": "Şifreniz çok zayıf. Lütfen daha güçlü bir şifre seçin. En az 10 karakter uzunluğunda, büyük ve küçük harf karışımı, sayılar ve özel karakterler içeren bir şifre."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "E-posta adresini doğrula",
-                    "placeholder": "E-posta adresinizi doğrulayın"
-                },
                 "confirmPassword": {
                     "label": "Şifreyi onayla",
                     "placeholder": "Şifrenizi onaylayın"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "Avatar resim boyutu 3 MiB sınırını aşıyor.",
-                "emailsNotMatching": "Yeni e-posta adresleri eşleşmiyor."
+                "avatarLimit": "Avatar resim boyutu 3 MiB sınırını aşıyor."
             },
             "items": {
                 "changeAvatar": "Avatarı değiştir",
@@ -954,10 +948,6 @@
                     "title": "İki Faktörlü Kimlik Doğrulama"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Yeni e-posta adresini doğrula",
-                        "title": "Yeni e-posta adresini doğrula"
-                    },
                     "newEmail": {
                         "placeholder": "Yeni e-posta adresi",
                         "title": "Yeni e-posta adresi"

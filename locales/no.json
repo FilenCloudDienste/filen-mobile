@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Opprett konto",
             "errors": {
-                "emailAddressesDoNotMatch": "E-postadressene stemmer ikke overens.",
                 "emptyFields": "Vennligst fyll ut alle felt.",
                 "passwordsDoNotMatch": "Passordene stemmer ikke overens.",
                 "weakPassword": "Passordet ditt er for svakt. Vennligst velg et sterkere passord. Et som er minst 10 tegn langt, inneholder en blanding av store og små bokstaver, tall og spesialtegn."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Bekreft e-postadresse",
-                    "placeholder": "Bekreft din e-postadresse"
-                },
                 "confirmPassword": {
                     "label": "Bekreft passord",
                     "placeholder": "Bekreft passordet ditt"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "Avatarbildets størrelse overskrider grensen på 3 MiB.",
-                "emailsNotMatching": "De nye e-postadressene stemmer ikke overens."
+                "avatarLimit": "Avatarbildets størrelse overskrider grensen på 3 MiB."
             },
             "items": {
                 "changeAvatar": "Endre avatar",
@@ -954,10 +948,6 @@
                     "title": "Tofaktorautentisering"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Bekreft ny e-postadresse",
-                        "title": "Bekreft ny e-postadresse"
-                    },
                     "newEmail": {
                         "placeholder": "Ny e-postadresse",
                         "title": "Ny e-postadresse"

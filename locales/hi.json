@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "खाता बनाएं",
             "errors": {
-                "emailAddressesDoNotMatch": "ईमेल पते मेल नहीं खाते।",
                 "emptyFields": "कृपया सभी क्षेत्रों को भरें।",
                 "passwordsDoNotMatch": "पासवर्ड मेल नहीं खाते।",
                 "weakPassword": "आपका पासवर्ड बहुत कमजोर है। कृपया एक मजबूत पासवर्ड चुनें। ऐसा जो कम से कम 10 वर्ण लंबा हो, जिसमें बड़े और छोटे अक्षरों, संख्याओं, और विशेष वर्णों का मिश्रण हो।"
             },
             "form": {
-                "confirmEmail": {
-                    "label": "ईमेल पता की पुष्टि करें",
-                    "placeholder": "अपने ईमेल पते की पुष्टि करें"
-                },
                 "confirmPassword": {
                     "label": "पासवर्ड की पुष्टि करें",
                     "placeholder": "अपने पासवर्ड की पुष्टि करें"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "अवातार छवि आकार 3 MiB की सीमा से अधिक है।",
-                "emailsNotMatching": "नए ईमेल पते मेल नहीं खाते।"
+                "avatarLimit": "अवातार छवि आकार 3 MiB की सीमा से अधिक है।"
             },
             "items": {
                 "changeAvatar": "अवतार बदलें",
@@ -954,10 +948,6 @@
                     "title": "दो चरण प्रमाणीकरण"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "नया ईमेल पता पुष्टि करें",
-                        "title": "नया ईमेल पता पुष्टि करें"
-                    },
                     "newEmail": {
                         "placeholder": "नया ईमेल पता",
                         "title": "नया ईमेल पता"

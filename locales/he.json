@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "צור חשבון",
             "errors": {
-                "emailAddressesDoNotMatch": "כתובות האימייל אינן תואמות.",
                 "emptyFields": "אנא מלא את כל השדות.",
                 "passwordsDoNotMatch": "הסיסמאות אינן תואמות.",
                 "weakPassword": "הסיסמה שלך חלשה מדי. אנא בחר סיסמה חזקה יותר. כזו שהיא לפחות 10 תווים ארוכה, מכילה שילוב של אותיות גדולות וקטנות, מספרים, ותווים מיוחדים."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "אשר כתובת דוא\"ל",
-                    "placeholder": "אשר את כתובת הדוא\"ל שלך"
-                },
                 "confirmPassword": {
                     "label": "לאשר סיסמה",
                     "placeholder": "אשר את הסיסמה שלך"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "גודל תמונת האבטאר חורג מהמגבלה של 3 מגה-בית.",
-                "emailsNotMatching": "כתובות האימייל החדשות אינן תואמות."
+                "avatarLimit": "גודל תמונת האבטאר חורג מהמגבלה של 3 מגה-בית."
             },
             "items": {
                 "changeAvatar": "שנה דמות",
@@ -954,10 +948,6 @@
                     "title": "אימות שני גורמים"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "אשר כתובת דוא\"ל חדשה",
-                        "title": "אשר כתובת דוא\"ל חדשה"
-                    },
                     "newEmail": {
                         "placeholder": "כתובת אימייל חדשה",
                         "title": "כתובת אימייל חדשה"

@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "สร้างบัญชี",
             "errors": {
-                "emailAddressesDoNotMatch": "ที่อยู่อีเมลไม่ตรงกัน",
                 "emptyFields": "โปรดกรอกข้อมูลให้ครบทุกช่อง",
                 "passwordsDoNotMatch": "รหัสผ่านไม่ตรงกัน",
                 "weakPassword": "รหัสผ่านของคุณอ่อนเกินไป โปรดเลือกรหัสผ่านที่แข็งแกร่งขึ้น อย่างน้อย 10 ตัวอักษร ประกอบด้วยตัวอักษรพิมพ์เล็กและพิมพ์ใหญ่ ตัวเลข และอักขระพิเศษ"
             },
             "form": {
-                "confirmEmail": {
-                    "label": "ยืนยันที่อยู่อีเมล",
-                    "placeholder": "ยืนยันที่อยู่อีเมลของคุณ"
-                },
                 "confirmPassword": {
                     "label": "ยืนยันรหัสผ่าน",
                     "placeholder": "ยืนยันรหัสผ่านของคุณ"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "ขนาดรูปอวาตาร์เกินขีดจำกัด 3 MiB",
-                "emailsNotMatching": "ที่อยู่อีเมลใหม่ไม่ตรงกัน"
+                "avatarLimit": "ขนาดรูปอวาตาร์เกินขีดจำกัด 3 MiB"
             },
             "items": {
                 "changeAvatar": "เปลี่ยนอวตาร",
@@ -954,10 +948,6 @@
                     "title": "การยืนยันตัวตนสองปัจจัย"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "ยืนยันที่อยู่อีเมลใหม่",
-                        "title": "ยืนยันที่อยู่อีเมลใหม่"
-                    },
                     "newEmail": {
                         "placeholder": "ที่อยู่อีเมลใหม่",
                         "title": "ที่อยู่อีเมลใหม่"

@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Account aanmaken",
             "errors": {
-                "emailAddressesDoNotMatch": "De e-mailadressen komen niet overeen.",
                 "emptyFields": "Vul alstublieft alle velden in.",
                 "passwordsDoNotMatch": "De wachtwoorden komen niet overeen.",
                 "weakPassword": "Uw wachtwoord is te zwak. Kies een sterker wachtwoord van minimaal 10 tekens lang, met een mix van hoofd- en kleine letters, cijfers en speciale tekens."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Bevestig e-mailadres",
-                    "placeholder": "Bevestig uw e-mailadres"
-                },
                 "confirmPassword": {
                     "label": "Bevestig wachtwoord",
                     "placeholder": "Bevestig je wachtwoord"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "De grootte van de avatar overschrijdt de limiet van 3 MiB.",
-                "emailsNotMatching": "De nieuwe e-mailadressen komen niet overeen."
+                "avatarLimit": "De grootte van de avatar overschrijdt de limiet van 3 MiB."
             },
             "items": {
                 "changeAvatar": "Avatar wijzigen",
@@ -954,10 +948,6 @@
                     "title": "Twee-factorenauthenticatie"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Bevestig nieuw e-mailadres",
-                        "title": "Bevestig nieuw e-mailadres"
-                    },
                     "newEmail": {
                         "placeholder": "Nieuw e-mailadres",
                         "title": "Nieuw e-mailadres"

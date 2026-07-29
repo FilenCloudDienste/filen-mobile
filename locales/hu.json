@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Fiók létrehozása",
             "errors": {
-                "emailAddressesDoNotMatch": "Az e-mail címek nem egyeznek.",
                 "emptyFields": "Kérjük, töltsön ki minden mezőt.",
                 "passwordsDoNotMatch": "A jelszavak nem egyeznek.",
                 "weakPassword": "A jelszava túl gyenge. Kérjük, válasszon erősebb jelszót. Olyat, amely legalább 10 karakter hosszú, nagy- és kisbetűket, számokat és speciális karaktereket tartalmaz."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Email cím megerősítése",
-                    "placeholder": "Erősítse meg az email címét"
-                },
                 "confirmPassword": {
                     "label": "Jelszó megerősítése",
                     "placeholder": "Erősítse meg jelszavát"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "Az avatarkép mérete meghaladja a 3 MiB korlátot.",
-                "emailsNotMatching": "Az új e-mail címek nem egyeznek."
+                "avatarLimit": "Az avatarkép mérete meghaladja a 3 MiB korlátot."
             },
             "items": {
                 "changeAvatar": "Avatár megváltoztatása",
@@ -954,10 +948,6 @@
                     "title": "Kéttényezős hitelesítés"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Új email cím megerősítése",
-                        "title": "Új email cím megerősítése"
-                    },
                     "newEmail": {
                         "placeholder": "Új email cím",
                         "title": "Új email cím"

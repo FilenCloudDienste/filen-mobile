@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Buat akun",
             "errors": {
-                "emailAddressesDoNotMatch": "Alamat email tidak cocok.",
                 "emptyFields": "Silakan isi semua kolom.",
                 "passwordsDoNotMatch": "Kata sandi tidak cocok.",
                 "weakPassword": "Kata sandi Anda terlalu lemah. Silakan pilih kata sandi yang lebih kuat. Yang setidaknya sepanjang 10 karakter, berisi campuran huruf besar dan kecil, angka, dan karakter khusus."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Konfirmasi alamat email",
-                    "placeholder": "Konfirmasi alamat email Anda"
-                },
                 "confirmPassword": {
                     "label": "Konfirmasi kata sandi",
                     "placeholder": "Konfirmasi kata sandi Anda"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "Ukuran gambar avatar melebihi batas 3 MiB.",
-                "emailsNotMatching": "Alamat email baru tidak cocok."
+                "avatarLimit": "Ukuran gambar avatar melebihi batas 3 MiB."
             },
             "items": {
                 "changeAvatar": "Ubah avatar",
@@ -954,10 +948,6 @@
                     "title": "Otentikasi Dua Faktor"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Konfirmasi alamat email baru",
-                        "title": "Konfirmasi alamat email baru"
-                    },
                     "newEmail": {
                         "placeholder": "Alamat email baru",
                         "title": "Alamat email baru"

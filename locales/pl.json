@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "Utwórz konto",
             "errors": {
-                "emailAddressesDoNotMatch": "Adresy e-mail nie pasują do siebie.",
                 "emptyFields": "Proszę wypełnić wszystkie pola.",
                 "passwordsDoNotMatch": "Hasła nie są zgodne.",
                 "weakPassword": "Twoje hasło jest zbyt słabe. Wybierz silniejsze hasło. Takie, które ma co najmniej 10 znaków, zawiera mieszankę dużych i małych liter, cyfr oraz znaków specjalnych."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "Potwierdź adres e-mail",
-                    "placeholder": "Potwierdź swój adres e-mail"
-                },
                 "confirmPassword": {
                     "label": "Potwierdź hasło",
                     "placeholder": "Potwierdź swoje hasło"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "Rozmiar obrazu awatara przekracza limit 3 MiB.",
-                "emailsNotMatching": "Nowe adresy e-mail nie pasują do siebie."
+                "avatarLimit": "Rozmiar obrazu awatara przekracza limit 3 MiB."
             },
             "items": {
                 "changeAvatar": "Zmień awatar",
@@ -954,10 +948,6 @@
                     "title": "Dwuetapowa weryfikacja"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "Potwierdź nowy adres e-mail",
-                        "title": "Potwierdź nowy adres e-mail"
-                    },
                     "newEmail": {
                         "placeholder": "Nowy adres e-mail",
                         "title": "Nowy adres e-mail"

@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "创建账户",
             "errors": {
-                "emailAddressesDoNotMatch": "邮箱地址不匹配。",
                 "emptyFields": "请填写所有字段。",
                 "passwordsDoNotMatch": "密码不匹配。",
                 "weakPassword": "您的密码太弱。请选择一个更强的密码，至少包含10个字符，混合大小写字母、数字和特殊字符。"
             },
             "form": {
-                "confirmEmail": {
-                    "label": "确认邮箱地址",
-                    "placeholder": "确认您的邮箱地址"
-                },
                 "confirmPassword": {
                     "label": "确认密码",
                     "placeholder": "确认您的密码"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "头像图片大小超过最大3 MiB的限制。",
-                "emailsNotMatching": "新的邮箱地址不匹配。"
+                "avatarLimit": "头像图片大小超过最大3 MiB的限制。"
             },
             "items": {
                 "changeAvatar": "更改头像",
@@ -954,10 +948,6 @@
                     "title": "双重认证"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "确认新的邮箱地址",
-                        "title": "确认新的邮箱地址"
-                    },
                     "newEmail": {
                         "placeholder": "新邮箱地址",
                         "title": "新邮箱地址"

@@ -78,16 +78,11 @@
         "register": {
             "createAccount": "계정 생성",
             "errors": {
-                "emailAddressesDoNotMatch": "이메일 주소가 일치하지 않습니다.",
                 "emptyFields": "모든 필드를 작성하세요.",
                 "passwordsDoNotMatch": "비밀번호가 일치하지 않습니다.",
                 "weakPassword": "비밀번호가 너무 약합니다. 10자 이상으로 대문자, 소문자, 숫자 및 특수문자를 조합하여 더 강한 비밀번호를 선택하세요."
             },
             "form": {
-                "confirmEmail": {
-                    "label": "이메일 주소 확인",
-                    "placeholder": "이메일 주소를 확인하세요"
-                },
                 "confirmPassword": {
                     "label": "비밀번호 확인",
                     "placeholder": "비밀번호를 확인하세요"
@@ -928,8 +923,7 @@
     "settings": {
         "account": {
             "errors": {
-                "avatarLimit": "아바타 이미지 크기가 3 MiB 제한을 초과합니다.",
-                "emailsNotMatching": "새 이메일 주소가 일치하지 않습니다."
+                "avatarLimit": "아바타 이미지 크기가 3 MiB 제한을 초과합니다."
             },
             "items": {
                 "changeAvatar": "아바타 변경",
@@ -954,10 +948,6 @@
                     "title": "이중 인증"
                 },
                 "changeEmail": {
-                    "confirmEmail": {
-                        "placeholder": "새 이메일 주소 확인",
-                        "title": "새 이메일 주소 확인"
-                    },
                     "newEmail": {
                         "placeholder": "새 이메일 주소",
                         "title": "새 이메일 주소"
