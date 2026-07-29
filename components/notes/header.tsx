@@ -1,44 +1,31 @@
-import { memo, useCallback, useMemo } from "react"
 import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader"
 import { Text } from "@/components/nativewindui/Text"
-import { useNotesStore } from "@/stores/notes.store"
-import { Button } from "../nativewindui/Button"
-import { Icon } from "@roninoss/icons"
-import { useColorScheme } from "@/lib/useColorScheme"
-import { translateMemoized, t } from "@/lib/i18n"
-import alerts from "@/lib/alerts"
-import { useShallow } from "zustand/shallow"
-import useNetInfo from "@/hooks/useNetInfo"
-import notesService from "@/services/notes.service"
-import HeaderDropdown from "./headerDropdown"
-import { useMMKVString } from "react-native-mmkv"
+import { t, translateMemoized } from "@/lib/i18n"
 import mmkvInstance from "@/lib/mmkv"
+import { useColorScheme } from "@/lib/useColorScheme"
+import { useNotesStore } from "@/stores/notes.store"
+import { memo, useCallback, useMemo } from "react"
 import { View } from "react-native"
-import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
-import { createDropdownItem } from "../nativewindui/DropdownMenu/utils"
-import type { NoteType } from "@filen/sdk/dist/types/api/v3/notes"
-import type { DropdownItem } from "@/components/nativewindui/DropdownMenu/types"
-import { createDropdownNativeIcon } from "../nativewindui/DropdownMenu/createDropdownNativeIcon"
+import { useMMKVString } from "react-native-mmkv"
+import { useShallow } from "zustand/shallow"
+import { Button } from "../nativewindui/Button"
+import HeaderDropdown from "./headerDropdown"
+import GridViewIcon from "./icons/GridViewIcon"
+import ListViewIcon from "./icons/ListViewIcon"
 
-export const Header = memo(() => {
+export type HeaderProps = {
+	isGridView?: boolean
+	setIsGridView?: (value: boolean) => void
+}
+
+export const Header = memo(({ isGridView, setIsGridView }: HeaderProps) => {
 	const selectedNotesCount = useNotesStore(useShallow(state => state.selectedNotes.length))
 	const { colors } = useColorScheme()
-	const { hasInternet } = useNetInfo()
 	const [, setSearchTerm] = useMMKVString("notesSearchTerm", mmkvInstance)
 
-	const createNote = useCallback(async (type: NoteType) => {
-		try {
-			await notesService.createNote({
-				type
-			})
-		} catch (e) {
-			console.error(e)
-
-			if (e instanceof Error) {
-				alerts.error(e.message)
-			}
-		}
-	}, [])
+	const toggleView = useCallback(() => {
+		setIsGridView?.(!isGridView)
+	}, [isGridView, setIsGridView])
 
 	const headerSearchBar = useMemo(() => {
 		return {
@@ -62,119 +49,34 @@ export const Header = memo(() => {
 			: undefined
 	}, [selectedNotesCount])
 
-	const createNoteDropdownItems = useMemo(() => {
-		return [
-			createDropdownItem({
-				actionKey: "createNote_text",
-				title: translateMemoized("notes.header.dropdown.types.text"),
-				icon: createDropdownNativeIcon({
-					name: "note-text-outline"
-				})
-			}),
-			createDropdownItem({
-				actionKey: "createNote_checklist",
-				title: translateMemoized("notes.header.dropdown.types.checklist"),
-				icon: createDropdownNativeIcon({
-					name: "format-list-checks"
-				})
-			}),
-			createDropdownItem({
-				actionKey: "createNote_markdown",
-				title: translateMemoized("notes.header.dropdown.types.markdown"),
-				icon: createDropdownNativeIcon({
-					name: "file-document-outline"
-				})
-			}),
-			createDropdownItem({
-				actionKey: "createNote_code",
-				title: translateMemoized("notes.header.dropdown.types.code"),
-				icon: createDropdownNativeIcon({
-					name: "code-parentheses"
-				})
-			}),
-			createDropdownItem({
-				actionKey: "createNote_rich",
-				title: translateMemoized("notes.header.dropdown.types.rich"),
-				icon: createDropdownNativeIcon({
-					name: "image-text"
-				})
-			})
-		]
-	}, [])
-
-	const onCreateNoteDropdownPress = useCallback(
-		async (item: Omit<DropdownItem, "icon">) => {
-			try {
-				switch (item.actionKey) {
-					case "createNote_markdown": {
-						await createNote("md")
-
-						break
-					}
-
-					case "createNote_checklist": {
-						await createNote("checklist")
-
-						break
-					}
-
-					case "createNote_text": {
-						await createNote("text")
-
-						break
-					}
-
-					case "createNote_code": {
-						await createNote("code")
-
-						break
-					}
-
-					case "createNote_rich": {
-						await createNote("rich")
-
-						break
-					}
-				}
-			} catch (e) {
-				console.error(e)
-
-				if (e instanceof Error) {
-					alerts.error(e.message)
-				}
-			}
-		},
-		[createNote]
-	)
-
 	const headerRightView = useCallback(() => {
-		if (!hasInternet) {
-			return undefined
-		}
-
 		return (
 			<View className="flex-row items-center">
-				<DropdownMenu
-					items={createNoteDropdownItems}
-					onItemPress={onCreateNoteDropdownPress}
-				>
+				{setIsGridView && (
 					<Button
-						testID="notes.header.rightView.plus"
+						testID="notes.header.rightView.viewToggle"
 						variant="plain"
 						size="icon"
+						onPress={toggleView}
 					>
-						<Icon
-							name="plus"
-							size={24}
-							color={colors.primary}
-						/>
+						{isGridView ? (
+							<ListViewIcon
+								size={22}
+								color={colors.primary}
+							/>
+						) : (
+							<GridViewIcon
+								size={22}
+								color={colors.primary}
+							/>
+						)}
 					</Button>
-				</DropdownMenu>
+				)}
 
 				<HeaderDropdown />
 			</View>
 		)
-	}, [colors.primary, hasInternet, createNoteDropdownItems, onCreateNoteDropdownPress])
+	}, [colors.primary, isGridView, toggleView, setIsGridView])
 
 	return (
 		<LargeTitleHeader

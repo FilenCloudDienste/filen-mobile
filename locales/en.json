@@ -989,6 +989,10 @@
 		"appearance": {
 			"title": "Appearance",
 			"items": {
+				"theme": "Theme",
+				"theme_system": "System default",
+				"theme_light": "Light",
+				"theme_dark": "Dark",
 				"startOn": "Start screen",
 				"startOn_home": "Home",
 				"startOn_drive": "Drive",

@@ -76,6 +76,7 @@ export type DropdownMenuProps = DropdownMenuConfig &
 		materialSideOffset?: number
 		materialAlignOffset?: number
 		materialAlign?: "start" | "center" | "end"
+		materialSide?: "top" | "right" | "bottom" | "left"
 		materialWidth?: number
 		materialMinWidth?: number
 		materialLoadingText?: string

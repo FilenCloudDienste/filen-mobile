@@ -1,16 +1,16 @@
+import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
+import { Button } from "@/components/nativewindui/Button"
+import { Text } from "@/components/nativewindui/Text"
+import useDimensions from "@/hooks/useDimensions"
+import { cn } from "@/lib/cn"
+import { useColorScheme } from "@/lib/useColorScheme"
 import * as DropdownMenuPrimitive from "@rn-primitives/dropdown-menu"
 import { useAugmentedRef } from "@rn-primitives/hooks"
 import { Icon } from "@roninoss/icons"
-import { Image, LayoutChangeEvent, StyleSheet, View, ScrollView } from "react-native"
+import { createContext, forwardRef, memo, useCallback, useContext, useId, useRef, useState } from "react"
+import { Image, LayoutChangeEvent, ScrollView, StyleSheet, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import useDimensions from "@/hooks/useDimensions"
 import { DropdownItem, DropdownMenuProps, DropdownMenuRef, DropdownSubMenu } from "./types"
-import { createContext, forwardRef, memo, useState, useRef, useContext, useId, useCallback } from "react"
-import { ActivityIndicator } from "@/components/nativewindui/ActivityIndicator"
-import { Text } from "@/components/nativewindui/Text"
-import { Button } from "@/components/nativewindui/Button"
-import { cn } from "@/lib/cn"
-import { useColorScheme } from "@/lib/useColorScheme"
 
 export const DropdownContext = createContext<{
 	onItemPress: DropdownMenuProps["onItemPress"]
@@ -34,6 +34,7 @@ export const DropdownMenu = memo(
 				materialSideOffset = 2,
 				materialAlignOffset,
 				materialAlign = "center",
+				materialSide = "bottom",
 				materialWidth,
 				materialMinWidth = 200,
 				materialLoadingText = "Loading...",
@@ -118,6 +119,7 @@ export const DropdownMenu = memo(
 											bottom: insets.bottom,
 											left: 8
 										}}
+										side={materialSide === "top" || materialSide === "bottom" ? materialSide : undefined}
 										sideOffset={materialSideOffset}
 										alignOffset={materialAlignOffset}
 										align={materialAlign}

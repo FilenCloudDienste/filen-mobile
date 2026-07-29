@@ -818,6 +818,11 @@ export function sortAndFilterNotes({ notes, searchTerm, selectedTag }: { notes: 
 			}
 		}
 
+		// Exclude trashed notes unless the selected tag is explicitly 'trash'
+		if (selectedTag !== "trash" && note.trash) {
+			continue
+		}
+
 		if (hasTagFilter) {
 			let matchesTag = false
 

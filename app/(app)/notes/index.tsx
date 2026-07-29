@@ -1,38 +1,144 @@
-import { Fragment, useMemo, useCallback, useState, useEffect, useRef, memo } from "react"
 import Container from "@/components/Container"
-import ListHeader from "@/components/notes/listHeader"
-import useNotesQuery from "@/queries/useNotes.query"
-import type { Note } from "@filen/sdk/dist/types/api/v3/notes"
-import { View, RefreshControl } from "react-native"
-import { Text } from "@/components/nativewindui/Text"
-import { useNotesStore } from "@/stores/notes.store"
-import useNotesTagsQuery from "@/queries/useNotesTags.query"
-import mmkvInstance from "@/lib/mmkv"
-import { useMMKVString } from "react-native-mmkv"
-import Item from "@/components/notes/item"
-import Header from "@/components/notes/header"
-import { useShallow } from "zustand/shallow"
-import alerts from "@/lib/alerts"
-import { translateMemoized, t } from "@/lib/i18n"
 import ListEmpty from "@/components/listEmpty"
-import { sortAndFilterNotes } from "@/lib/utils"
-import { useFocusEffect } from "expo-router"
-import useNetInfo from "@/hooks/useNetInfo"
-import { FlashList, type ListRenderItemInfo, type FlashListRef } from "@shopify/flash-list"
+import { Button } from "@/components/nativewindui/Button"
+import { DropdownMenu } from "@/components/nativewindui/DropdownMenu"
+import { createDropdownNativeIcon } from "@/components/nativewindui/DropdownMenu/createDropdownNativeIcon"
+import type { DropdownItem } from "@/components/nativewindui/DropdownMenu/types"
+import { createDropdownItem } from "@/components/nativewindui/DropdownMenu/utils"
+import { Text } from "@/components/nativewindui/Text"
+import Header from "@/components/notes/header"
+import Item from "@/components/notes/item"
+import ListHeader from "@/components/notes/listHeader"
+import MasonryGrid from "@/components/notes/masonryGrid"
 import useDimensions from "@/hooks/useDimensions"
+import useNetInfo from "@/hooks/useNetInfo"
+import alerts from "@/lib/alerts"
+import { t, translateMemoized } from "@/lib/i18n"
+import mmkvInstance from "@/lib/mmkv"
+import { sortAndFilterNotes } from "@/lib/utils"
+import useNotesQuery from "@/queries/useNotes.query"
+import useNotesTagsQuery from "@/queries/useNotesTags.query"
+import notesService from "@/services/notes.service"
+import { useNotesStore } from "@/stores/notes.store"
+import type { Note, NoteType } from "@filen/sdk/dist/types/api/v3/notes"
+import { Icon } from "@roninoss/icons"
+import { FlashList, type FlashListRef, type ListRenderItemInfo } from "@shopify/flash-list"
+import { useFocusEffect } from "expo-router"
+import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { RefreshControl, View } from "react-native"
+import { useMMKVBoolean, useMMKVString } from "react-native-mmkv"
+import { useShallow } from "zustand/shallow"
+import { useColorScheme } from "@/lib/useColorScheme"
 
 const contentContainerStyle = {
 	paddingBottom: 100
 }
 
 export const Notes = memo(() => {
+	const { colors } = useColorScheme()
 	const [searchTerm] = useMMKVString("notesSearchTerm", mmkvInstance)
 	const [refreshing, setRefreshing] = useState<boolean>(false)
 	const [selectedTag] = useMMKVString("notesSelectedTag", mmkvInstance)
+	const [isGridView = false, setIsGridView] = useMMKVBoolean("notesGridView", mmkvInstance)
 	const setNotes = useNotesStore(useShallow(state => state.setNotes))
 	const listRef = useRef<FlashListRef<Note>>(null)
 	const { hasInternet } = useNetInfo()
 	const { screen } = useDimensions()
+
+	const createNote = useCallback(async (type: NoteType) => {
+		try {
+			await notesService.createNote({
+				type
+			})
+		} catch (e) {
+			console.error(e)
+
+			if (e instanceof Error) {
+				alerts.error(e.message)
+			}
+		}
+	}, [])
+
+	const createNoteDropdownItems = useMemo(() => {
+		return [
+			createDropdownItem({
+				actionKey: "createNote_text",
+				title: translateMemoized("notes.header.dropdown.types.text"),
+				icon: createDropdownNativeIcon({
+					name: "note-text-outline",
+					color: colors.foreground
+				})
+			}),
+			createDropdownItem({
+				actionKey: "createNote_checklist",
+				title: translateMemoized("notes.header.dropdown.types.checklist"),
+				icon: createDropdownNativeIcon({
+					name: "format-list-checks",
+					color: colors.foreground
+				})
+			}),
+			createDropdownItem({
+				actionKey: "createNote_markdown",
+				title: translateMemoized("notes.header.dropdown.types.markdown"),
+				icon: createDropdownNativeIcon({
+					name: "file-document-outline",
+					color: colors.foreground
+				})
+			}),
+			createDropdownItem({
+				actionKey: "createNote_code",
+				title: translateMemoized("notes.header.dropdown.types.code"),
+				icon: createDropdownNativeIcon({
+					name: "code-parentheses",
+					color: colors.foreground
+				})
+			}),
+			createDropdownItem({
+				actionKey: "createNote_rich",
+				title: translateMemoized("notes.header.dropdown.types.rich"),
+				icon: createDropdownNativeIcon({
+					name: "image-text",
+					color: colors.foreground
+				})
+			})
+		]
+	}, [colors])
+
+	const onCreateNoteDropdownPress = useCallback(
+		async (item: Omit<DropdownItem, "icon">) => {
+			try {
+				switch (item.actionKey) {
+					case "createNote_markdown": {
+						await createNote("md")
+						break
+					}
+					case "createNote_checklist": {
+						await createNote("checklist")
+						break
+					}
+					case "createNote_text": {
+						await createNote("text")
+						break
+					}
+					case "createNote_code": {
+						await createNote("code")
+						break
+					}
+					case "createNote_rich": {
+						await createNote("rich")
+						break
+					}
+				}
+			} catch (e) {
+				console.error(e)
+
+				if (e instanceof Error) {
+					alerts.error(e.message)
+				}
+			}
+		},
+		[createNote]
+	)
 
 	const notesQuery = useNotesQuery()
 	const notesTagsQuery = useNotesTagsQuery()
@@ -148,23 +254,58 @@ export const Notes = memo(() => {
 
 	return (
 		<Fragment>
-			<Header />
+			<Header
+				isGridView={isGridView}
+				setIsGridView={setIsGridView}
+			/>
 			<Container>
-				<FlashList
-					ref={listRef}
-					data={notes}
-					contentInsetAdjustmentBehavior="automatic"
-					renderItem={renderItem}
-					refreshing={refreshing}
-					contentContainerStyle={contentContainerStyle}
-					ListFooterComponent={ListFooterComponent}
-					ListEmptyComponent={ListEmptyComponent}
-					ListHeaderComponent={ListHeaderComponent}
-					refreshControl={refreshControl}
-					keyExtractor={keyExtractor}
-					maxItemsInRecyclePool={0}
-					drawDistance={Math.floor(screen.height / 4)}
-				/>
+				{isGridView ? (
+					<MasonryGrid
+						notes={notes}
+						refreshing={refreshing}
+						refreshControl={refreshControl}
+						ListHeaderComponent={ListHeaderComponent}
+						ListFooterComponent={ListFooterComponent}
+						ListEmptyComponent={ListEmptyComponent}
+					/>
+				) : (
+					<FlashList
+						ref={listRef}
+						data={notes}
+						contentInsetAdjustmentBehavior="automatic"
+						renderItem={renderItem}
+						refreshing={refreshing}
+						contentContainerStyle={contentContainerStyle}
+						ListFooterComponent={ListFooterComponent}
+						ListEmptyComponent={ListEmptyComponent}
+						ListHeaderComponent={ListHeaderComponent}
+						refreshControl={refreshControl}
+						keyExtractor={keyExtractor}
+						drawDistance={Math.floor(screen.height / 4)}
+					/>
+				)}
+				{hasInternet && (
+					<View className="absolute bottom-6 right-6">
+						<DropdownMenu
+							items={createNoteDropdownItems}
+							onItemPress={onCreateNoteDropdownPress}
+							materialSide="top"
+						>
+							<Button
+								testID="notes.fab.plus"
+								variant="primary"
+								size="icon"
+								className="w-14 h-14 rounded-full shadow-lg"
+							>
+								<Icon
+									name="plus"
+									size={28}
+									color="foreground"
+								/>
+							</Button>
+						</DropdownMenu>
+					</View>
+				)}
 			</Container>
 		</Fragment>
 	)
