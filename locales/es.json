@@ -832,7 +832,7 @@
                     "compressInfo": "Comprima fotos para ahorrar espacio de almacenamiento. Esto puede reducir la calidad de las fotos. Compresión JPG al 80% de calidad.",
                     "enabled": "Habilitado",
                     "lowBattery": "Batería baja",
-                    "lowBatteryInfo": "Desactivar la subida de cámara cuando la batería esté baja.",
+                    "lowBatteryInfo": "Permitir la subida de cámara cuando la batería esté baja.",
                     "permissionsError": "Error de permisos",
                     "permissionsErrorInfo": "Por favor, permite que la aplicación acceda a tus fotos y videos en la configuración del sistema.",
                     "videos": "Videos",

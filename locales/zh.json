@@ -832,7 +832,7 @@
                     "compressInfo": "压缩照片以节省存储空间。这可能会降低照片质量。JPG压缩在80%质量。",
                     "enabled": "已启用",
                     "lowBattery": "电量低",
-                    "lowBatteryInfo": "当电池电量低时禁用相机上传。",
+                    "lowBatteryInfo": "当电池电量低时允许相机上传。",
                     "permissionsError": "权限错误",
                     "permissionsErrorInfo": "请允许应用在系统设置中访问您的照片和视频。",
                     "videos": "视频",

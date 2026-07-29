@@ -832,7 +832,7 @@
                     "compressInfo": "Depolama alanından tasarruf etmek için fotoğrafları sıkıştır. Bu işlem fotoğrafların kalitesini düşürebilir. JPG sıkıştırması %80 kalitede.",
                     "enabled": "Etkinleştirildi",
                     "lowBattery": "Düşük pil",
-                    "lowBatteryInfo": "Batarya düşükken kamera yüklemesini devre dışı bırak.",
+                    "lowBatteryInfo": "Batarya düşükken kamera yüklemesine izin ver.",
                     "permissionsError": "İzin hatası",
                     "permissionsErrorInfo": "Uygulamanın sistem ayarlarında fotoğraf ve videolarınıza erişmesine izin verin.",
                     "videos": "Videolar",

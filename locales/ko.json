@@ -832,7 +832,7 @@
                     "compressInfo": "저장 공간 절약을 위해 사진을 압축합니다. 이는 사진의 품질을 저하할 수 있습니다. 80% 품질의 JPG 압축.",
                     "enabled": "활성화됨",
                     "lowBattery": "배터리 부족",
-                    "lowBatteryInfo": "배터리가 낮을 때 카메라 업로드 비활성화.",
+                    "lowBatteryInfo": "배터리가 낮을 때 카메라 업로드 허용.",
                     "permissionsError": "권한 오류",
                     "permissionsErrorInfo": "앱이 시스템 설정에서 사진과 비디오에 접근할 수 있도록 허용하세요.",
                     "videos": "비디오",

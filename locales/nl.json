@@ -832,7 +832,7 @@
                     "compressInfo": "Comprimeer foto's om opslagruimte te besparen. Dit kan de kwaliteit van de foto's verminderen. JPG-compressie op 80% kwaliteit.",
                     "enabled": "Ingeschakeld",
                     "lowBattery": "Lage batterij",
-                    "lowBatteryInfo": "Camera-upload uitschakelen wanneer de batterij bijna leeg is.",
+                    "lowBatteryInfo": "Camera-upload toestaan wanneer de batterij bijna leeg is.",
                     "permissionsError": "Toestemmingsfout",
                     "permissionsErrorInfo": "Sta de app toe toegang te krijgen tot uw foto's en video's in de systeeminstellingen.",
                     "videos": "Video's",

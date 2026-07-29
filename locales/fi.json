@@ -832,7 +832,7 @@
                     "compressInfo": "Pakkaa valokuvat tallennustilan säästämiseksi. Tämä voi heikentää valokuvien laatua. JPG-pakkaus 80 % laadulla.",
                     "enabled": "Käytössä",
                     "lowBattery": "Akkua jäljellä vähän",
-                    "lowBatteryInfo": "Poista kameran lataus käytöstä, kun akku on vähissä.",
+                    "lowBatteryInfo": "Salli kameran lataus, kun akku on vähissä.",
                     "permissionsError": "Käyttöoikeusvirhe",
                     "permissionsErrorInfo": "Salli sovelluksen käyttää kuvia ja videoita järjestelmäasetuksissa.",
                     "videos": "Videot",

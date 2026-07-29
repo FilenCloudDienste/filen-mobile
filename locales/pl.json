@@ -832,7 +832,7 @@
                     "compressInfo": "Kompresuj zdjęcia, aby zaoszczędzić miejsce na dysku. Może to obniżyć jakość zdjęć. Kompresja JPG przy 80% jakości.",
                     "enabled": "Włączony",
                     "lowBattery": "Niski poziom baterii",
-                    "lowBatteryInfo": "Wyłącz przesyłanie z aparatu przy niskim poziomie baterii.",
+                    "lowBatteryInfo": "Zezwól na przesyłanie z aparatu przy niskim poziomie baterii.",
                     "permissionsError": "Błąd uprawnień",
                     "permissionsErrorInfo": "Proszę zezwolić aplikacji na dostęp do zdjęć i filmów w ustawieniach systemu.",
                     "videos": "Filmy",
