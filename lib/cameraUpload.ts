@@ -57,7 +57,8 @@ export class CameraUpload {
 	private readonly maxSize: number
 	private readonly useCameraUploadStore = {
 		setSyncState: useCameraUploadStore.getState().setSyncState,
-		setRunning: useCameraUploadStore.getState().setRunning
+		setRunning: useCameraUploadStore.getState().setRunning,
+        setWaiting: useCameraUploadStore.getState().setWaiting
 	}
 	private readonly deltaErrors: Record<string, number> = {}
 
@@ -643,8 +644,10 @@ export class CameraUpload {
 					checkAppState: true
 				}))
 			) {
+                this.useCameraUploadStore.setWaiting(true)
 				return
 			}
+            this.useCameraUploadStore.setWaiting(false)
 
 			if (abortController.signal.aborted) {
 				throw new Error("Aborted")

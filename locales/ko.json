@@ -846,7 +846,8 @@
         "state": {
             "synced": "동기화됨",
             "syncing": "동기화 중",
-            "syncingProgress": "{{total}}개의 항목 중 {{done}}개 동기화됨"
+            "syncingProgress": "{{total}}개의 항목 중 {{done}}개 동기화됨",
+            "waiting": "대기 중"
         },
         "title": "사진"
     },

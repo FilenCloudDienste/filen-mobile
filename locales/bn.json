@@ -846,7 +846,8 @@
         "state": {
             "synced": "সিঙ্ক করা হয়েছে",
             "syncing": "সিঙ্কিং",
-            "syncingProgress": "{{done}} এর মধ্যে {{total}} আইটেম সিঙ্ক হয়েছে"
+            "syncingProgress": "{{done}} এর মধ্যে {{total}} আইটেম সিঙ্ক হয়েছে",
+            "waiting": "অপেক্ষা করছে"
         },
         "title": "ছবিগুলো"
     },

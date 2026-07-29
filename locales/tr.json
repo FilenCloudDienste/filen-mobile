@@ -846,7 +846,8 @@
         "state": {
             "synced": "Senkronize edildi",
             "syncing": "Senkronizasyon",
-            "syncingProgress": "{{total}} öğeden {{done}} eşitlendi"
+            "syncingProgress": "{{total}} öğeden {{done}} eşitlendi",
+            "waiting": "Bekliyor"
         },
         "title": "Fotoğraflar"
     },

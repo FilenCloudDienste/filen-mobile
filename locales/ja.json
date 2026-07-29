@@ -846,7 +846,8 @@
         "state": {
             "synced": "同期済み",
             "syncing": "同期中",
-            "syncingProgress": "{{total}} 件中 {{done}} 件が同期されました"
+            "syncingProgress": "{{total}} 件中 {{done}} 件が同期されました",
+            "waiting": "待機中"
         },
         "title": "写真"
     },

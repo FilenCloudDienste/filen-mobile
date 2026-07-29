@@ -846,7 +846,8 @@
         "state": {
             "synced": "已同步",
             "syncing": "同步中",
-            "syncingProgress": "{{done}}/{{total}}个项目已同步"
+            "syncingProgress": "{{done}}/{{total}}个项目已同步",
+            "waiting": "等待中"
         },
         "title": "照片"
     },

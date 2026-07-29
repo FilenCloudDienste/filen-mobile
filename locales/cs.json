@@ -846,7 +846,8 @@
         "state": {
             "synced": "Synchronizováno",
             "syncing": "Synchronizace",
-            "syncingProgress": "{{done}} z {{total}} položek synchronizováno"
+            "syncingProgress": "{{done}} z {{total}} položek synchronizováno",
+            "waiting": "Čeká se"
         },
         "title": "Fotografie"
     },
